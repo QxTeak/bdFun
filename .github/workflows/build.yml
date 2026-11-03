@@ -1,0 +1,48 @@
+name: Android 手动构建
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: 构建并检查应用
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: 检出项目代码
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: 配置 JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: 配置 Android 开发环境
+        uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools
+          log-accepted-android-sdk-licenses: false
+      - name: 安装 Android SDK
+        run: sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0'
+      - name: 配置 Gradle 和构建缓存
+        uses: gradle/actions/setup-gradle@v4
+      - name: 构建调试版并检查发布版编译
+        run: bash ./gradlew :app:assembleDebug :app:assembleRelease --stacktrace
+      - name: 准备调试版 APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk "$RUNNER_TEMP/bdFun-debug-${GITHUB_SHA}.apk"
+      - name: 上传调试版 APK
+        uses: actions/upload-artifact@v7
+        with:
+          path: ${{ runner.temp }}/bdFun-debug-${{ github.sha }}.apk
+          # 直接上传 APK 文件，不再额外打包为 ZIP。
+          archive: false
+          if-no-files-found: error
+          retention-days: 14

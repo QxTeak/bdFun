@@ -9,6 +9,9 @@ plugins {
 /** 构建时刻，写进 BuildConfig 用于核对设备上装的是哪一次构建。 */
 val buildStamp: String = SimpleDateFormat("MM-dd HH:mm").format(Date())
 
+// 自动构建通过环境变量传入固定的发布签名密钥。
+val releaseStoreFile = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
+
 android {
     namespace = "com.aritxonly.bdfun"
     compileSdk = 37
@@ -36,6 +39,17 @@ android {
         buildConfig = true
     }
 
+    signingConfigs {
+        if (!releaseStoreFile.isNullOrBlank()) {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = providers.environmentVariable("ANDROID_KEYSTORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("ANDROID_KEY_ALIAS").get()
+                keyPassword = providers.environmentVariable("ANDROID_KEY_PASSWORD").get()
+            }
+        }
+    }
+
     buildTypes {
         debug {
             // 与 release 分开安装，避免相互覆盖
@@ -43,8 +57,10 @@ android {
             versionNameSuffix = "-debug"
         }
         release {
-            // 用 debug 签名，方便直接安装体验（正式发布再换 keystore）
-            signingConfig = signingConfigs.getByName("debug")
+            // 本地预览构建沿用调试签名；自动发布必须配置发布签名密钥。
+            signingConfig = signingConfigs.getByName(
+                if (releaseStoreFile.isNullOrBlank()) "debug" else "release"
+            )
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
