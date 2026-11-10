@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.layout.BoxWithConstraints
 import com.aritxonly.teak.common.chrome.TeakGlass
 
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -232,9 +233,9 @@ fun HomeScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         LazyVerticalGrid(
-            columns = GridCells.Fixed(if (largeCards) 1 else 2),
+            columns = if (maxWidth >= 600.dp) GridCells.Adaptive(if (largeCards) 320.dp else 240.dp) else GridCells.Fixed(if (largeCards) 1 else 2),
             state = state.gridState,
             modifier = Modifier
                 .fillMaxSize()

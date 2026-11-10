@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -100,7 +102,10 @@ fun MineScreen(
         MineProfileCache.at = now
     }
 
-    LazyColumn(
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(if (maxWidth >= 600.dp) 2 else 1),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(
             start = 14.dp,
@@ -162,7 +167,7 @@ fun MineScreen(
                 }
             }
             item(key = "settings-bar") { SettingsBar(onClick = onOpenSettings) }
-            return@LazyColumn
+            return@LazyVerticalGrid
         }
 
         val shown = liveProfile ?: profile
@@ -375,6 +380,7 @@ fun MineScreen(
         }
 
         item(key = "settings-bar") { SettingsBar(onClick = onOpenSettings) }
+    }
     }
 }
 

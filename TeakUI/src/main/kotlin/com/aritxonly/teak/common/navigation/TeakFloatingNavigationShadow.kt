@@ -9,6 +9,7 @@ import com.aritxonly.teak.common.material.teakGlassShadowTokens
 internal fun teakFloatingNavigationShadowTokens(isDark: Boolean): TeakGlassShadowTokens =
     teakGlassShadowTokens(isDark)
 
+@androidx.compose.runtime.Composable
 fun Modifier.teakFloatingNavigationShadow(
     shape: Shape,
     isDark: Boolean,

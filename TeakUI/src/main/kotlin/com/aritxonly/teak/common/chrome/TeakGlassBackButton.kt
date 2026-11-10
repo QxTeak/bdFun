@@ -46,7 +46,8 @@ fun TeakGlassBackButton(
     val recipe = TeakGlassRecipes.floatingNavigation(advancedMaterial.fineTuning)
     val glyph = if (light) Color.White else teakGlassGlyphColor()
     // 固定速率淡入/淡出（300ms），与页面滚动速度无关。
-    val reveal = rememberManualProgress(if (revealed) 1f else 0f, 300f)
+    val fallbackReveal = rememberManualProgress(if (revealed) 1f else 0f, 300f)
+    val reveal = if (LocalProgressiveTopBarMaterialHosted.current) LocalTopBarButtonMaterialProgress.current else fallbackReveal
 
     Box(modifier = modifier.size(size)) {
         if (reveal > 0.01f) {

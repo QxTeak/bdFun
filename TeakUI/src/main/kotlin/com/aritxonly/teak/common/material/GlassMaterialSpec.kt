@@ -26,6 +26,7 @@ data class GlassRefractionSpec(
 
 @Immutable
 data class GlassEdgeOpticsSpec(
+    val rimWidth: Dp = 0.6.dp,
     val highlightAlpha: Float = 0.95f,
     val highlightGray: Float = 1f,
     val darkHighlightMultiplier: Float = 0.20f,
@@ -48,6 +49,7 @@ data class GlassLayeringSpec(
 
 @Immutable
 data class GlassMaterialRecipe(
+    val surfaceRole: GlassSurfaceRole = GlassSurfaceRole.Control,
     val blur: GlassBlurSpec = GlassBlurSpec(),
     val refraction: GlassRefractionSpec = GlassRefractionSpec(),
     val edgeOptics: GlassEdgeOpticsSpec = GlassEdgeOpticsSpec(),
@@ -57,6 +59,7 @@ data class GlassMaterialRecipe(
 
 @Immutable
 data class GlassMaterialInteraction(
+    val neutralTintProgress: Float = 0f,
     val refractionScale: Float = 1f,
     val highlightScale: Float = 1f,
 )
@@ -75,6 +78,7 @@ enum class GlassTintStyle {
 
 object TeakGlassRecipes {
     val FloatingNavigation = GlassMaterialRecipe(
+        surfaceRole = GlassSurfaceRole.FloatingBar,
         blur = GlassBlurSpec(
             // 原版 0.25 倍只够糊图片，细笔画文字会透出"柔光"轮廓；
             // 原版 0.25 倍只够糊图片，细笔画文字会透出"柔光"轮廓；
@@ -86,6 +90,7 @@ object TeakGlassRecipes {
 
     /** A wider, denser lens so transient sheets read as frosted glass above their page. */
     val BottomSheet = GlassMaterialRecipe(
+        surfaceRole = GlassSurfaceRole.Panel,
         blur = GlassBlurSpec(
             // Resolves to 2x the global radius at the default 0.25 soft-glass tuning while still
             // preserving the user's custom tuning in bottomSheet(fineTuning).
@@ -99,6 +104,7 @@ object TeakGlassRecipes {
 
     /** A compact frosted lens for dialogs, with less distortion than a bottom sheet. */
     val Dialog = GlassMaterialRecipe(
+        surfaceRole = GlassSurfaceRole.Panel,
         blur = GlassBlurSpec(
             // Resolves to 1x the global radius at the default 0.25 soft-glass tuning; see
             // dialog(fineTuning).

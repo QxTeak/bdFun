@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.chrome.centeredListWidth
 import com.aritxonly.teak.common.chrome.TrackTeakPageScroll
 
 import androidx.activity.compose.BackHandler
@@ -157,7 +158,7 @@ fun SearchScreen(
             )
         }
 
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().centeredListWidth()) {
             if (!submitted) {
                 LazyColumn(
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 4.dp),

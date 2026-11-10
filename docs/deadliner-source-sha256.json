@@ -1,0 +1,17 @@
+{
+  "ui/material/glass/GlassBoundaryDefinition.kt": "3a2abef30671981f34c9a8b10a5f8e274e69e6cd22852b635c1dded6ca7aed9d",
+  "ui/material/glass/GlassEdgeHighlight.kt": "022308edadd3d2ce8face21b4f6ebf4252f0282c2f1c4827a7f734457660f61c",
+  "ui/material/glass/GlassSampling.kt": "e89d45d914058138ceaa173596fb55cdc27eb73a7b149ee7b6a90aa27c5b9390",
+  "ui/material/glass/GlassMaterialModifier.kt": "ad93a55d4de25c983a49431b8ec02846979b5c2f8480672faee7668fa3d0f2b3",
+  "ui/material/glass/GlassRefractionShader.kt": "cda540f377e00c24f8cd2b35ae5506925a8f38290e89cc4b3846d219505d7ead",
+  "ui/material/glass/OfficialMiuixGlassMaterial.kt": "f8479a50b9e5b46a5ad832d53430ba334858634f744733f605653087b49c6815",
+  "ui/material/glass/SoftGlassSurface.kt": "61cb8543bc12420bcd6fbfb42a8fa17dd5422437d694a5287d928a810eb3695c",
+  "ui/material/glass/SoftGlassButton.kt": "972dc6e23963faeecd8a90de181d3aab30883d4179d98aa05117324d5f1e186b",
+  "ui/material/glass/SoftGlassFloatingActionButton.kt": "311466b837fe55fedb7ac29b26815176661204f2d0935925497482d41d5f1de8",
+  "ui/material/glass/SoftGlassShadow.kt": "baa6a84f6bbd8654ea7f51a3b95110f052fdfa00c06c64fda6c340e6caafe0a3",
+  "ui/material/glass/TopBarGlassShadowHost.kt": "de0c12520aaca4eced9a84a26e43cc50fe4e7b6f04fd7dce14a0ce65e4198509",
+  "model/GlassShadowPreset.kt": "bb0bd9a83b35179a40b7b4d27bb61fdcd5cbcbee896450afc979f713c8e01569",
+  "ui/material/glass/ProgressiveTopBarMaterial.kt": "cfccc7edbd7278a61ef783850efe57c22538709b29d25f5fe52593636e1f4ec0",
+  "ui/base/ListContentWidth.kt": "bd36e4e73979418341a6c1efd30352a2d6c5faa42c0ed2c3249f66843bf1e252",
+  "ui/base/WideFoldTopAppBar.kt": "25c74fd009c82ceab23fa7b6a4d7d621f1a65e2f361ca5663cb502e3508e9333"
+}

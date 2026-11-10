@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.chrome.centeredListWidth
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -63,10 +64,11 @@ fun TermsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding()
+                .centeredListWidth()
                 .verticalScroll(rememberScrollState())
                 .padding(start = 24.dp, end = 24.dp, top = 0.dp, bottom = 150.dp),
         ) {
-            TeakLargeTitle(title = "使用须知")
+            Text(text = "使用须知", style = androidx.compose.material3.MaterialTheme.typography.headlineLarge)
             Spacer(Modifier.height(12.dp))
             TERMS_SECTIONS.forEach { section ->
                 Text(

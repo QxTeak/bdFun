@@ -1,19 +1,16 @@
 package com.aritxonly.teak.common.material
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
+import com.aritxonly.teak.common.material.miuixControlFeedback
 import androidx.compose.foundation.background
+import com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +47,6 @@ fun TeakGlassSurface(
     tintStyle: GlassTintStyle = GlassTintStyle.Neutral,
     interaction: GlassMaterialInteraction = GlassMaterialInteraction(),
     materialAlpha: Float = 1f,
-    /** 玻璃下面那层近白底的透明度；1 = 原来的不透明底，0 = 只保留模糊和 tint。 */
     baseAlpha: Float = 1f,
     backdrop: Backdrop? = LocalTeakBackdrop.current,
     contentAlignment: Alignment = Alignment.Center,
@@ -72,7 +68,7 @@ fun TeakGlassSurface(
         )
 
     Box(
-        modifier = modifier.clip(shape).background(resolvedTint.copy(alpha = baseAlpha.coerceIn(0f, 1f))),
+        modifier = modifier.clip(shape),
         contentAlignment = contentAlignment,
     ) {
         Box(
@@ -81,6 +77,7 @@ fun TeakGlassSurface(
                 .graphicsLayer {
                     alpha = materialAlpha.coerceIn(0f, 1f)
                 }
+                .background(resolvedTint.copy(alpha = baseAlpha.coerceIn(0f, 1f)))
                 .teakGlassMaterial(
                     advancedMaterial = advancedMaterial,
                     backdrop = backdrop,
@@ -108,62 +105,51 @@ fun TeakGlassIconButton(
     tintStyle: GlassTintStyle = GlassTintStyle.Neutral,
     backdrop: Backdrop? = LocalTeakBackdrop.current,
     materialAlpha: Float = 1f,
+    neutralTintProgress: Float = 0f,
     content: @Composable () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    val pressed by interactionSource.collectIsPressedAsState()
-    val pressProgress by animateFloatAsState(
-        targetValue = if (pressed && enabled) 1f else 0f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
-            stiffness = Spring.StiffnessMedium,
-        ),
-        label = "soft-glass-icon-press",
-    )
     val isDark = MaterialTheme.colorScheme.onSurface.luminance() > 0.5f
-    val highlightColor = MaterialTheme.colorScheme.onSurface.copy(
-        alpha = teakGlassPressHighlightAlpha(pressProgress, isDark),
-    )
 
-    TeakGlassSurface(
+    // Match floating navigation: elevation belongs to the outer frame, not the glass clip.
+    Box(
         modifier = modifier
             .size(size)
             .teakGlassShadow(
                 shape = TeakGlassDefaults.Shape,
                 isDark = isDark,
                 alpha = materialAlpha,
+                profile = if (LocalProgressiveTopBarMaterialHosted.current) TeakGlassShadowProfile.TopBarControl
+                    else TeakGlassShadowProfile.Standard,
             )
-            .graphicsLayer {
-                val scale = teakGlassPressScale(pressProgress)
-                scaleX = scale
-                scaleY = scale
-            },
-        shape = TeakGlassDefaults.Shape,
-        recipe = recipe,
-        tint = tint,
-        tintStyle = tintStyle,
-        backdrop = backdrop,
-        materialAlpha = materialAlpha,
-        interaction = teakGlassPressMaterialInteraction(pressProgress),
+            .miuixControlFeedback(enabled = enabled, shape = TeakGlassDefaults.Shape),
     ) {
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .background(highlightColor),
-        )
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    enabled = enabled,
-                    role = Role.Button,
-                    onClick = onClick,
-                ),
-            contentAlignment = Alignment.Center,
+        TeakGlassSurface(
+            modifier = Modifier.fillMaxSize(),
+            shape = TeakGlassDefaults.Shape,
+            recipe = (recipe ?: TeakGlassRecipes.floatingNavigation(
+                LocalTeakMaterialSpec.current.fineTuning,
+            )).copy(surfaceRole = GlassSurfaceRole.Control),
+            tint = tint,
+            tintStyle = tintStyle,
+            backdrop = backdrop,
+            materialAlpha = materialAlpha,
+            interaction = GlassMaterialInteraction(neutralTintProgress = neutralTintProgress),
         ) {
-            content()
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable(
+                        interactionSource = interactionSource,
+                        indication = null,
+                        enabled = enabled,
+                        role = Role.Button,
+                        onClick = onClick,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                content()
+            }
         }
     }
 }

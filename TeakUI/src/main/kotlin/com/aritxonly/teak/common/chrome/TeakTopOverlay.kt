@@ -99,7 +99,8 @@ fun TeakTopGlassButton(
     val recipe = remember(advancedMaterial) {
         TeakGlassRecipes.floatingNavigation(advancedMaterial.fineTuning)
     }
-    val reveal = rememberManualProgress(if (revealed) 1f else 0f, 300f)
+    val fallbackReveal = rememberManualProgress(if (revealed) 1f else 0f, 300f)
+    val reveal = if (LocalProgressiveTopBarMaterialHosted.current) LocalTopBarButtonMaterialProgress.current else fallbackReveal
 
     Box(modifier = modifier.size(40.dp)) {
         if (reveal > 0.01f) {

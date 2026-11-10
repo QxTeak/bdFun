@@ -1,5 +1,10 @@
 package com.aritxonly.bdfun
 
+import com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress
+import com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial
+import com.aritxonly.teak.common.chrome.TrackTeakPageScroll
+import com.aritxonly.teak.common.chrome.isWideFoldTopBar
+import com.aritxonly.teak.common.chrome.rememberTeakPageScrollState
 import com.aritxonly.teak.common.chrome.TeakChromeDefaults
 import com.aritxonly.teak.common.chrome.TeakGlassBackButton
 import com.aritxonly.teak.common.chrome.TeakPageChrome
@@ -228,6 +233,8 @@ fun BdFunApp(api: BiliApi, settings: SettingsStore) {
     // 三个 tab 用 HorizontalPager：页面之间横向相连，手拖和切换都是同一套非线性动画
     val tabPagerState = rememberPagerState(pageCount = { destinations.size })
     val selected = tabPagerState.currentPage
+    val homeChrome = rememberTeakPageScrollState()
+    val dynamicChrome = rememberTeakPageScrollState()
     // 登录态放在进程级单例，LoginActivity 登录成功后直接写，这里立即刷新
     var session by AppGraph.session
     var showSearch by remember { mutableStateOf(false) }
@@ -253,6 +260,8 @@ fun BdFunApp(api: BiliApi, settings: SettingsStore) {
     // 首页数据放在 App 层：进视频/搜索/设置再返回时不会重新拉取，滚动位置也保留。
     val homeFeed = rememberHomeFeedState(api)
     val dynamicFeed = rememberDynamicFeedState(api)
+    TrackTeakPageScroll(homeFeed.gridState, homeChrome)
+    TrackTeakPageScroll(dynamicFeed.listState, dynamicChrome)
     // 参考 HyperIsland 的做法：整屏一块 backdrop，录制时先铺一层 surface 再画内容
     val backdrop = rememberLayerBackdrop { drawRect(materialColors.background); drawContent() }
     // 搜索页自己一块：首页顶栏的渐变模糊和筛选菜单都采样它，复用同一套页面结构。
@@ -272,6 +281,9 @@ fun BdFunApp(api: BiliApi, settings: SettingsStore) {
 
     // 界面风格是全局对象：设置页改完后这里同步一次，所有 TeakUI 组件立即响应。
     SideEffect { TeakUiStyle.style = settings.interfaceStyle }
+
+    val wideNavigation = isWideFoldTopBar() && androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600
+    val navigationInset = if (wideNavigation && !showSearch) 96.dp else 0.dp
 
     TeakTheme(
         dark = dark,
@@ -307,7 +319,8 @@ fun BdFunApp(api: BiliApi, settings: SettingsStore) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .layerBackdrop(backdrop),
+                            .layerBackdrop(backdrop)
+                            .padding(start = navigationInset),
                     ) {
                         // 三个 tab：横向相连的 pager（可拖拽，切换是同一套非线性动画）
                         // 外面包一层更大的触摸阈值，手指轻抖不会误翻页。
@@ -401,6 +414,15 @@ fun BdFunApp(api: BiliApi, settings: SettingsStore) {
                                 LocalTeakBackdrop.current
                             },
                         ) {
+                        CompositionLocalProvider(LocalTopBarScrollProgress provides (if (showSearch) TeakPageChrome.state.materialProgress else homeChrome.materialProgress)) {
+                        ProgressiveTopBarMaterial(
+                            modifier = Modifier.align(Alignment.TopCenter)
+                                .padding(start = navigationInset)
+                                .graphicsLayer {
+                                    translationX = -pageFloat * size.width * 0.92f
+                                    alpha = (1f - pageFloat).coerceIn(0f, 1f)
+                                },
+                        ) {
                         HomeTopBar(
                             profile = session,
                             searchActive = showSearch,
@@ -427,13 +449,10 @@ fun BdFunApp(api: BiliApi, settings: SettingsStore) {
                             onOpenProfile = {
                                 if (session == null) TeakNavigator.openLogin(context) else appScope.launch { tabPagerState.animateScrollToPage(2) }
                             },
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .graphicsLayer {
-                                    translationX = -pageFloat * size.width * 0.92f
-                                    alpha = (1f - pageFloat).coerceIn(0f, 1f)
-                                },
+                            modifier = Modifier,
                         )
+                        }
+                        }
                         }
 
                         // 使用须知改由独立的 TermsActivity 在启动时展示。
@@ -460,17 +479,22 @@ fun BdFunApp(api: BiliApi, settings: SettingsStore) {
                     if (pageFloat > 0.01f && pageFloat < 1.99f &&
                         session != null && !showSearch
                     ) {
+                        CompositionLocalProvider(LocalTopBarScrollProgress provides dynamicChrome.materialProgress) {
+                        ProgressiveTopBarMaterial(
+                            modifier = Modifier.align(Alignment.TopCenter)
+                                .padding(start = navigationInset)
+                                .graphicsLayer {
+                                    translationX = (1f - pageFloat) * size.width * 0.92f
+                                    alpha = (1f - kotlin.math.abs(pageFloat - 1f)).coerceIn(0f, 1f)
+                                },
+                        ) {
                         DynamicTopBar(
                             state = dynamicFeed,
                             loggedIn = session != null,
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .graphicsLayer {
-                                    translationX = (1f - pageFloat) * size.width * 0.92f
-                                    alpha = (1f - kotlin.math.abs(pageFloat - 1f))
-                                        .coerceIn(0f, 1f)
-                                },
+                            modifier = Modifier,
                         )
+                    }
+                    }
                     }
 
                     // 视频详情页隐藏底栏，避免遮挡播放器控件
@@ -500,7 +524,16 @@ fun BdFunApp(api: BiliApi, settings: SettingsStore) {
                     }
 
                     if (tabBarAlpha > 0.01f) {
-                        if (TeakUiStyle.isClassic) {
+                        if (wideNavigation) {
+                            com.aritxonly.teak.common.navigation.TeakNavigationRail(
+                                items = tabItems,
+                                selectedKey = destinations[selected].key,
+                                onItemSelected = onBarItem,
+                                modifier = Modifier.align(Alignment.CenterStart)
+                                    .statusBarsPadding().navigationBarsPadding().padding(start = 8.dp)
+                                    .graphicsLayer { alpha = tabBarAlpha }.blockTouches(tabBarCovered),
+                            )
+                        } else if (TeakUiStyle.isClassic) {
                             // 经典样式：底栏贴着屏幕底边，上方一条分割线，不做悬浮胶囊。
                             ClassicTabBar(
                                 items = tabItems,

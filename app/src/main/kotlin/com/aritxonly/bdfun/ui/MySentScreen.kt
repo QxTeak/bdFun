@@ -51,6 +51,7 @@ import java.util.Locale
  */
 @Composable
 fun MySentScreen(onBack: () -> Unit) {
+    val pageChrome = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
     val records = remember { com.aritxonly.bdfun.AppGraph.sentHistory.all() }
@@ -78,10 +79,10 @@ fun MySentScreen(onBack: () -> Unit) {
                     modifier = Modifier
                         .padding(start = 10.dp)
                         .graphicsLayer {
-                            val p = (TeakPageChrome.state.collapse / 0.65f).coerceIn(0f, 1f)
+                            val p = (pageChrome.collapse / 0.65f).coerceIn(0f, 1f)
                             alpha = 1f - p
                         }
-                        .blur((12f * (TeakPageChrome.state.collapse / 0.65f).coerceIn(0f, 1f)).dp),
+                        .blur((12f * (pageChrome.collapse / 0.65f).coerceIn(0f, 1f)).dp),
                     color = colors.onBackground,
                     fontSize = 30.sp,
                     fontWeight = FontWeight.Normal,

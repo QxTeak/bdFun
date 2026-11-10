@@ -20,6 +20,8 @@ import top.yukonga.miuix.kmp.blur.textureBlur
 
 @Immutable
 data class TeakMaterialSpec(
+    val useOfficialMiuixGlass: Boolean = false,
+    val shadowPreset: GlassShadowPreset = GlassShadowPreset.Default,
     val enabled: Boolean = false,
     val blurEnabled: Boolean = true,
     val blurRadius: Float = TeakMaterialTuning.DefaultBlurRadius,

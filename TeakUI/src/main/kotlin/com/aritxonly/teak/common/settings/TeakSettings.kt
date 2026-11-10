@@ -95,7 +95,7 @@ private const val ExitHoldMs = 300L
 fun TeakSettingsPage(
     title: String,
     modifier: Modifier = Modifier,
-    pageState: TeakPageScrollState = TeakPageChrome.state,
+    pageState: TeakPageScrollState = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current,
     subtitle: String? = null,
     contentPadding: PaddingValues = PaddingValues(
         start = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {

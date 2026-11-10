@@ -87,7 +87,7 @@ fun TeakActivityScaffold(
             onBack = onBack,
             backRevealed = backRevealed,
             showBackButton = showBackButton,
-            pageState = pageState ?: TeakPageChrome.state,
+            pageState = pageState ?: com.aritxonly.teak.common.chrome.rememberTeakPageScrollState(),
             backgroundColor = materialColors.background,
             contentModifier = Modifier
                 .background(materialColors.background)

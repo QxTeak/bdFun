@@ -126,6 +126,7 @@ fun Modifier.teakProgressiveBarBlur(
     tintAlpha: Float = TeakChromeDefaults.BarTintAlpha,
     blurRadius: Float = TeakChromeDefaults.BarBlurRadius,
 ): Modifier {
+    if (LocalProgressiveTopBarMaterialHosted.current) return this
     val backdrop = LocalTeakBackdrop.current
     val material = LocalTeakMaterialSpec.current
     val blurColors = BlurDefaults.blurColors(
@@ -208,9 +209,10 @@ fun TeakLargeTitle(
     title: String,
     modifier: Modifier = Modifier,
     subtitle: String? = null,
-    pageState: TeakPageScrollState = TeakPageChrome.state,
+    pageState: TeakPageScrollState = LocalTeakPageScrollState.current,
     topSpacer: Dp = TeakChromeDefaults.LargeTitleTopSpacer,
 ) {
+    if (isWideFoldTopBar()) { Spacer(Modifier.height(TeakChromeDefaults.TopOverlayHeight)); return }
     val colors = MiuixTheme.colorScheme
     val p = (pageState.collapse / TeakChromeDefaults.CollapseFadeFraction).coerceIn(0f, 1f)
     Column(
@@ -253,7 +255,7 @@ fun TeakPageScaffold(
     title: String?,
     onBack: () -> Unit,
     modifier: Modifier = Modifier,
-    pageState: TeakPageScrollState = TeakPageChrome.state,
+    pageState: TeakPageScrollState = LocalTeakPageScrollState.current,
     backRevealed: Boolean? = null,
     showBackButton: Boolean = true,
     backgroundColor: Color = MaterialTheme.colorScheme.background,
@@ -267,12 +269,12 @@ fun TeakPageScaffold(
     titleAlwaysVisible: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    LaunchedEffect(pageState) { pageState.reset() }
+    val wide = isWideFoldTopBar()
     val backdrop = rememberLayerBackdrop {
         drawRect(backgroundColor)
         drawContent()
     }
-    CompositionLocalProvider(LocalTeakBackdrop provides backdrop) {
+    CompositionLocalProvider(LocalTeakBackdrop provides backdrop, LocalTeakPageScrollState provides pageState) {
         Box(
             modifier = modifier
                 .fillMaxSize()
@@ -282,29 +284,56 @@ fun TeakPageScaffold(
                 modifier = Modifier
                     .fillMaxSize()
                     .layerBackdrop(backdrop)
-                    .then(contentModifier),
+                    .then(contentModifier)
+                    .then(if (title != null) Modifier.centeredListWidth(scrollState = pageState.scrollableState) else Modifier),
             ) {
                 content()
             }
-            if (title != null) {
-                TeakTopBar(
-                    title = title,
-                    collapse = pageState.collapse,
-                    modifier = Modifier.align(Alignment.TopCenter),
-                    titleAlwaysVisible = titleAlwaysVisible,
-                )
+            Box(modifier = Modifier.fillMaxSize()) { overlay() }
+            CompositionLocalProvider(LocalTopBarScrollProgress provides pageState.materialProgress) {
+                ProgressiveTopBarMaterial {
+                    if (title != null && !wide) {
+                        TeakTopBar(
+                            title = title,
+                            collapse = pageState.collapse,
+                            titleAlwaysVisible = titleAlwaysVisible,
+                        )
+                    }
+                    if (wide && title != null) {
+                        WideFoldTopAppBar(
+                            title = title,
+                            navigationIcon = {
+                                androidx.compose.foundation.layout.Row {
+                                    if (showBackButton) TeakGlassBackButton(onClick = onBack)
+                                    topBarLeading()
+                                }
+                            },
+                            actions = {
+                                Box { topBarCenter() }
+                                topBarActions()
+                            },
+                            bottomContent = {},
+                        )
+                    } else {
+                    TeakTopOverlay(
+                        revealed = backRevealed ?: pageState.backRevealed,
+                        onBack = if (showBackButton) onBack else null,
+                        light = backRevealed == false,
+                        leading = topBarLeading,
+                        center = {
+                            if (wide && title != null) {
+                                Text(title, maxLines = 1,
+                                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                    modifier = Modifier.padding(horizontal = 56.dp),
+                                    fontSize = TeakChromeDefaults.SmallTitleFontSize)
+                            }
+                            topBarCenter()
+                        },
+                        trailing = topBarActions,
+                    )
+                    }
+                }
             }
-            Box(modifier = Modifier.fillMaxSize()) {
-                overlay()
-            }
-            TeakTopOverlay(
-                revealed = backRevealed ?: pageState.backRevealed,
-                onBack = if (showBackButton) onBack else null,
-                light = backRevealed == false,
-                leading = topBarLeading,
-                center = topBarCenter,
-                trailing = topBarActions,
-            )
             Box(modifier = Modifier.fillMaxSize()) {
                 menuOverlay()
             }

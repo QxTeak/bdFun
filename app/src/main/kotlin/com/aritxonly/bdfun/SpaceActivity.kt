@@ -183,7 +183,7 @@ private fun SpaceScreen(
     val verticalScroll = rememberScrollState()
     val horizontalScroll = rememberScrollState()
     TrackTeakPageScroll(verticalScroll)
-    val collapse = TeakPageChrome.state.collapse
+    val collapse = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current.collapse
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val pageWidth: Dp = maxWidth

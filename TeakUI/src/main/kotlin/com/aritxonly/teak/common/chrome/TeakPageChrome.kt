@@ -2,6 +2,8 @@ package com.aritxonly.teak.common.chrome
 
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
@@ -20,6 +22,8 @@ import androidx.compose.runtime.snapshotFlow
  */
 @Stable
 class TeakPageScrollState {
+    var scrollableState by mutableStateOf<androidx.compose.foundation.gestures.ScrollableState?>(null)
+        internal set
     /** 是否已经滚出顶部，决定返回键是否露出玻璃背景。 */
     var backRevealed by mutableStateOf(false)
         private set
@@ -28,7 +32,11 @@ class TeakPageScrollState {
     var collapse by mutableFloatStateOf(0f)
         private set
 
+    var materialProgress by mutableFloatStateOf(0f)
+        private set
+
     fun reset() {
+        materialProgress = 0f
         backRevealed = false
         collapse = 0f
     }
@@ -43,7 +51,10 @@ class TeakPageScrollState {
         offsetPx: Float,
         thresholdPx: Float = DefaultThresholdPx,
         collapseRangePx: Float = DefaultCollapseRangePx,
+        density: Float = 1f,
     ) {
+        val distance = if (firstVisibleItemIndex > 0) 28f else offsetPx / density
+        materialProgress = resolveTeakMaterialProgress(distance)
         backRevealed = firstVisibleItemIndex > 0 || offsetPx > thresholdPx
         collapse = if (firstVisibleItemIndex > 0) {
             1f
@@ -78,14 +89,16 @@ fun rememberTeakPageScrollState(): TeakPageScrollState = remember { TeakPageScro
 @Composable
 fun TrackTeakPageScroll(
     state: LazyListState,
-    pageState: TeakPageScrollState = TeakPageChrome.state,
+    pageState: TeakPageScrollState = LocalTeakPageScrollState.current,
     thresholdPx: Float = TeakPageScrollState.DefaultThresholdPx,
     collapseRangePx: Float = TeakPageScrollState.DefaultCollapseRangePx,
 ) {
-    LaunchedEffect(state, pageState, thresholdPx, collapseRangePx) {
+    androidx.compose.runtime.SideEffect { pageState.scrollableState = state }
+    val density = LocalDensity.current.density
+    LaunchedEffect(state, pageState, thresholdPx, collapseRangePx, density) {
         snapshotFlow { state.firstVisibleItemIndex to state.firstVisibleItemScrollOffset }
             .collect { (index, offset) ->
-                pageState.update(index, offset.toFloat(), thresholdPx, collapseRangePx)
+                pageState.update(index, offset.toFloat(), thresholdPx, collapseRangePx, density)
             }
     }
 }
@@ -94,14 +107,16 @@ fun TrackTeakPageScroll(
 @Composable
 fun TrackTeakPageScroll(
     state: androidx.compose.foundation.ScrollState,
-    pageState: TeakPageScrollState = TeakPageChrome.state,
+    pageState: TeakPageScrollState = LocalTeakPageScrollState.current,
     thresholdPx: Float = TeakPageScrollState.DefaultThresholdPx,
     collapseRangePx: Float = TeakPageScrollState.DefaultCollapseRangePx,
 ) {
-    LaunchedEffect(state, pageState, thresholdPx, collapseRangePx) {
+    androidx.compose.runtime.SideEffect { pageState.scrollableState = state }
+    val density = LocalDensity.current.density
+    LaunchedEffect(state, pageState, thresholdPx, collapseRangePx, density) {
         snapshotFlow { state.value }
             .collect { offset ->
-                pageState.update(0, offset.toFloat(), thresholdPx, collapseRangePx)
+                pageState.update(0, offset.toFloat(), thresholdPx, collapseRangePx, density)
             }
     }
 }
@@ -110,14 +125,24 @@ fun TrackTeakPageScroll(
 @Composable
 fun TrackTeakPageScroll(
     state: LazyGridState,
-    pageState: TeakPageScrollState = TeakPageChrome.state,
+    pageState: TeakPageScrollState = LocalTeakPageScrollState.current,
     thresholdPx: Float = TeakPageScrollState.DefaultThresholdPx,
     collapseRangePx: Float = TeakPageScrollState.DefaultCollapseRangePx,
 ) {
-    LaunchedEffect(state, pageState, thresholdPx, collapseRangePx) {
+    androidx.compose.runtime.SideEffect { pageState.scrollableState = state }
+    val density = LocalDensity.current.density
+    LaunchedEffect(state, pageState, thresholdPx, collapseRangePx, density) {
         snapshotFlow { state.firstVisibleItemIndex to state.firstVisibleItemScrollOffset }
             .collect { (index, offset) ->
-                pageState.update(index, offset.toFloat(), thresholdPx, collapseRangePx)
+                pageState.update(index, offset.toFloat(), thresholdPx, collapseRangePx, density)
             }
     }
 }
+
+/** Smoothstep from Deadliner's actual-position observer; never integrates gesture deltas. */
+internal fun resolveTeakMaterialProgress(distanceDp: Float): Float {
+    val p = ((distanceDp - 4f) / 24f).coerceIn(0f, 1f)
+    return p * p * (3f - 2f * p)
+}
+
+val LocalTeakPageScrollState = androidx.compose.runtime.staticCompositionLocalOf { TeakPageChrome.state }

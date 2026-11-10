@@ -201,7 +201,7 @@ private fun DynamicDetailScreen(dynamic: DynamicItem, onBack: () -> Unit) {
 @Composable
 private fun BigTitleHeader() {
     val colors = MiuixTheme.colorScheme
-    val collapse = TeakPageChrome.state.collapse
+    val collapse = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current.collapse
     Column(
         modifier = Modifier
             .fillMaxWidth()

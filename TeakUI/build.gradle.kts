@@ -28,6 +28,8 @@ kotlin {
 }
 
 dependencies {
+    implementation(libs.androidx.activity.compose)
+    testImplementation("junit:junit:4.13.2")
     // Public API exposes Compose / Miuix types (Backdrop, Shape, MiuixTheme colors).
     api(libs.compose.runtime)
     api(libs.compose.foundation)

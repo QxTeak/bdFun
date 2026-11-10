@@ -1,5 +1,8 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.width
+import com.aritxonly.teak.common.chrome.centeredListWidth
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -242,10 +245,20 @@ fun DynamicScreen(
             }
         }
 
+        BoxWithConstraints(Modifier.fillMaxSize()) {
+        val split = maxWidth >= 840.dp
+        Row(Modifier.fillMaxSize()) {
+        if (split) {
+            Box(Modifier.width(260.dp).padding(top = statusTop + DynamicTopBarHeight + 8.dp)) {
+                DynamicAvatarCard(state = state)
+            }
+        }
         LazyColumn(
             state = state.listState,
             modifier = Modifier
                 .fillMaxSize()
+                .weight(1f)
+                .centeredListWidth(scrollState = state.listState)
                 .offset { IntOffset(0, pull.roundToInt()) }
                 .nestedScroll(connection),
             contentPadding = PaddingValues(
@@ -258,7 +271,7 @@ fun DynamicScreen(
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             item(key = "avatar-card") {
-                DynamicAvatarCard(
+                if (!split) DynamicAvatarCard(
                     state = state,
                     modifier = Modifier.padding(bottom = 2.dp),
                 )
@@ -334,6 +347,9 @@ fun DynamicScreen(
                     }
                 }
             }
+        }
+
+        }
         }
 
         // 首页同款下拉小电视：只在真的下拉时出现，不压头像卡片
