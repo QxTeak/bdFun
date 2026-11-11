@@ -756,36 +756,23 @@ fun LibraryScreen(
 
     // 移动 / 复制：与视频页点「收藏」后弹出的收藏夹菜单同一套底部面板。
     val activeTransfer = transferMode
-    TeakActionSheet(
-        visible = activeTransfer != null,
+    val sourceId = folders.getOrNull(folderIndex)?.id
+    val targets = folders.filter { it.id != sourceId }
+    com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderSheet(
+        show = activeTransfer != null,
+        state = com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderSheetUiState(
+            title = if (activeTransfer == 1) "移动到收藏夹" else "复制到收藏夹",
+            description = "选择目标收藏夹 · 已选择 ${selected.size} 个视频",
+            folders = targets.map { folder ->
+                com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderOption(
+                    folder.id, folder.title, folder.count,
+                )
+            },
+            emptyMessage = "没有其他可用的收藏夹",
+        ),
         onDismiss = { transferMode = null },
-        title = if (activeTransfer == 1) "移动到收藏夹" else "复制到收藏夹",
-    ) {
-        val sourceId = folders.getOrNull(folderIndex)?.id
-        // 当前收藏夹不参与，避免“移动到自己”或复制出重复条目。
-        val targets = folders.filter { it.id != sourceId }
-        if (targets.isEmpty()) {
-            Text(
-                text = "没有其他可用的收藏夹",
-                color = colors.onBackgroundVariant,
-                fontSize = 13.sp,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 22.dp, vertical = 16.dp),
-            )
-        } else {
-            targets.forEach { folder ->
-                SheetActionRow(
-                    label = "${folder.title}  ${folder.count}",
-                    glyph = MenuGlyphKind.Star,
-                    color = colors.onBackground,
-                ) {
-                    transferSelected(activeTransfer ?: 2, folder)
-                }
-            }
-        }
-    }
+        onSelect = { id -> targets.firstOrNull { it.id == id }?.let { transferSelected(activeTransfer ?: 2, it) } },
+    )
     }
 }
 

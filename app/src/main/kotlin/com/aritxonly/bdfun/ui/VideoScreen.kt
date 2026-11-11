@@ -58,6 +58,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -411,6 +412,8 @@ fun VideoScreen(
     var folderIds by remember { mutableStateOf<Set<Long>>(emptySet()) }
     var favLoading by remember { mutableStateOf(false) }
     var favPrefetched by remember { mutableStateOf(false) }
+    val favoriteOperations = remember { com.aritxonly.bdfun.feature.library.application.FavoriteFolderOperations() }
+    val pendingFavoriteFolder by favoriteOperations.pending.collectAsState()
 
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -663,18 +666,23 @@ fun VideoScreen(
 
     fun toggleFolder(folderId: Long) {
         val d = detail ?: return
+        if (!favoriteOperations.tryStart(folderId)) return
         val contains = folderIds.contains(folderId)
         scope.launch {
-            val ok = runCatching { api.setFavorite(d.aid, folderId, !contains) }.isSuccess
-            if (ok) {
-                folderIds = if (contains) folderIds - folderId else folderIds + folderId
-                favorited = folderIds.isNotEmpty()
-                favoriteCount = (favoriteCount + if (contains) -1 else 1).coerceAtLeast(0)
-                syncInteractionCache()
-                context.showToast(if (contains) "已取消收藏" else "已收藏")
-            } else {
-                context.showToast(if (contains) "取消收藏失败" else "收藏失败")
-            }
+            try {
+                val ok = try { api.setFavorite(d.aid, folderId, !contains) }
+                catch (e: kotlinx.coroutines.CancellationException) { throw e }
+                catch (_: Exception) { false }
+                if (ok) {
+                    folderIds = if (contains) folderIds - folderId else folderIds + folderId
+                    favorited = folderIds.isNotEmpty()
+                    favoriteCount = (favoriteCount + if (contains) -1 else 1).coerceAtLeast(0)
+                    syncInteractionCache()
+                    context.showToast(if (contains) "已取消收藏" else "已收藏")
+                } else {
+                    context.showToast(if (contains) "取消收藏失败" else "收藏失败")
+                }
+            } finally { favoriteOperations.finish(folderId) }
         }
     }
 
@@ -1814,55 +1822,20 @@ fun VideoScreen(
         }
     }
 
-    TeakActionSheet(
-        visible = favSheet,
-        onDismiss = { favSheet = false },
-        title = "请选择收藏夹",
-    ) {
-        if (folders.isEmpty() && favLoading) {
-            // 预取还没回来：先占位，避免闪一下“没有收藏夹”；正常情况下看不到这一屏
-            repeat(2) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp, vertical = 5.dp)
-                        .height(46.dp)
-                        .clip(Capsule())
-                        .background(MiuixTheme.colorScheme.onBackground.copy(alpha = 0.06f)),
+    com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderSheet(
+        show = favSheet,
+        state = com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderSheetUiState(
+            title = "收藏到", description = "可选择多个收藏夹，点选后立即保存",
+            folders = folders.map { folder ->
+                com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderOption(
+                    folder.id, folder.title, folder.count, folder.id in folderIds,
                 )
-            }
-        } else if (folders.isEmpty()) {
-            Text(
-                text = "没有可用的收藏夹",
-                color = MiuixTheme.colorScheme.onBackgroundVariant,
-                fontSize = 13.sp,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 22.dp, vertical = 16.dp),
-            )
-        } else {
-            folders.forEach { folder ->
-                val checked = folderIds.contains(folder.id)
-                SheetActionRow(
-                    label = folder.title,
-                    glyph = MenuGlyphKind.Star,
-                    color = MiuixTheme.colorScheme.onBackground,
-                    trailing = {
-                        if (checked) {
-                            Text(
-                                text = "✓",
-                                color = BrandPink,
-                                fontSize = 16.sp,
-                            )
-                        }
-                    },
-                ) {
-                    toggleFolder(folder.id)
-                }
-            }
-        }
-    }
+            },
+            loading = favLoading, pendingFolderId = pendingFavoriteFolder,
+        ),
+        onDismiss = { favSheet = false },
+        onSelect = ::toggleFolder,
+    )
 }
 
 @Composable
