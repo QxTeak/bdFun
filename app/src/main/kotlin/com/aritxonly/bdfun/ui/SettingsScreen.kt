@@ -497,6 +497,9 @@ fun SettingsScreen(
                     }.onFailure { aboutContext.showToast("无法打开链接") }
                 }
                 if (BuildConfig.DEBUG) {
+                    TeakSettingsActionRow(title = "直播间（预览）", trailing = "调试") {
+                        com.aritxonly.bdfun.TeakNavigator.openLiveRoom(aboutContext)
+                    }
                     TeakSettingsActionRow(title = "日志抓取", trailing = "调试") {
                         com.aritxonly.bdfun.openLogs(aboutContext)
                     }

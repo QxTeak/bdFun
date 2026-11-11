@@ -3290,6 +3290,159 @@ class BiliApi(context: Context) : DynamicFeedSource {
         )
     }
 
+    // ---------------------------------------------------------------- live
+
+    private val liveBase = "https://api.live.bilibili.com"
+
+    /**
+     * 直播间信息（标题 / 主播 / 封面 / 人气 / 分区）。
+     * 接口不通时返回 null，界面会退回 mock 数据，不会白屏。
+     */
+    suspend fun liveRoomInfo(roomId: Long): LiveRoomInfo? = withContext(Dispatchers.IO) {
+        val referer = "https://live.bilibili.com/$roomId"
+        val json = runCatching {
+            rawRequest(
+                "/xlive/web-room/v1/index/getInfoByRoom",
+                mapOf("room_id" to roomId.toString()),
+                base = liveBase,
+                referer = referer,
+            )
+        }.getOrNull() ?: return@withContext null
+        if (json.optInt("code", -1) != 0) return@withContext null
+        val data = json.optJSONObject("data") ?: return@withContext null
+        val info = data.optJSONObject("room_info") ?: return@withContext null
+        val anchor = data.optJSONObject("anchor_info")?.optJSONObject("base_info")
+        LiveRoomInfo(
+            roomId = info.optLong("room_id", roomId),
+            title = info.optString("title"),
+            uname = anchor?.optString("uname").orEmpty(),
+            uid = info.optLong("uid"),
+            face = normalizeLiveUrl(anchor?.optString("face").orEmpty()),
+            cover = normalizeLiveUrl(
+                info.optString("cover").ifBlank { info.optString("keyframe") },
+            ),
+            onlineText = liveCountText(info.optLong("online")),
+            areaText = info.optString("area_name"),
+            following = false,
+            live = info.optInt("live_status", 1) == 1,
+        )
+    }
+
+    /**
+     * 随便挑一个正在直播的房间号（首页推荐列表第一条）。
+     * 用于「没有指定房间也能看看效果」；全站都没开播时返回 null。
+     */
+    suspend fun liveHotRoomId(): Long? = withContext(Dispatchers.IO) {
+        for (area in listOf("1", "9", "0")) {
+            val json = runCatching {
+                rawRequest(
+                    "/xlive/web-interface/v1/second/getList",
+                    mapOf(
+                        "platform" to "web",
+                        "parent_area_id" to area,
+                        "area_id" to "0",
+                        "sort_type" to "online",
+                        "page" to "1",
+                        "page_size" to "1",
+                    ),
+                    base = liveBase,
+                    referer = "https://live.bilibili.com/",
+                )
+            }.getOrNull() ?: continue
+            val id = json.optJSONObject("data")
+                ?.optJSONArray("list")
+                ?.optJSONObject(0)
+                ?.optLong("roomid", 0L) ?: 0L
+            if (id > 0L) return@withContext id
+        }
+        null
+    }
+
+    /**
+     * 直播流地址。先按 web 端参数要一遍；失败时再带 WBI 签名重试一次。
+     */
+    suspend fun livePlayUrl(roomId: Long, qn: Int = 10000): String? = withContext(Dispatchers.IO) {
+        val referer = "https://live.bilibili.com/$roomId"
+        val params = mapOf(
+            "room_id" to roomId.toString(),
+            "protocol" to "0,1",
+            "format" to "0,1,2",
+            "codec" to "0,1",
+            "qn" to qn.toString(),
+            "platform" to "web",
+            "ptype" to "8",
+            "dolby" to "5",
+            "panorama" to "1",
+            "web_location" to "444.8",
+        )
+        fun pick(json: JSONObject?): String? = json?.let(::parseLivePlayUrl)
+        val plain = runCatching {
+            rawRequest(
+                "/xlive/web-room/v2/index/getRoomPlayInfo",
+                params,
+                base = liveBase,
+                referer = referer,
+            )
+        }.getOrNull()
+        pick(plain)?.let { return@withContext it }
+        val signed = runCatching {
+            rawRequest(
+                "/xlive/web-room/v2/index/getRoomPlayInfo",
+                params,
+                signed = true,
+                base = liveBase,
+                referer = referer,
+            )
+        }.getOrNull()
+        pick(signed)
+    }
+
+    private fun parseLivePlayUrl(json: JSONObject): String? {
+        val streams = json.optJSONObject("data")
+            ?.optJSONObject("playurl_info")
+            ?.optJSONObject("playurl")
+            ?.optJSONArray("stream") ?: return null
+        var fallback: String? = null
+        for (i in 0 until streams.length()) {
+            val formats = streams.optJSONObject(i)?.optJSONArray("format") ?: continue
+            for (j in 0 until formats.length()) {
+                val codecs = formats.optJSONObject(j)?.optJSONArray("codec") ?: continue
+                for (k in 0 until codecs.length()) {
+                    val codec = codecs.optJSONObject(k) ?: continue
+                    val infos = codec.optJSONArray("url_info") ?: continue
+                    val first = infos.optJSONObject(0) ?: continue
+                    val url = first.optString("host") +
+                        codec.optString("base_url") +
+                        first.optString("extra")
+                    if (url.isBlank()) continue
+                    if (fallback == null) fallback = url
+                    // 直播优先 FLV + AVC：兼容性最好，Media3 直接能播
+                    if (codec.optString("codec_name") == "avc" &&
+                        codec.optString("format").ifBlank { formats.optJSONObject(j)?.optString("format") } == "flv"
+                    ) {
+                        return url
+                    }
+                }
+            }
+        }
+        return fallback
+    }
+
+    /** 直播接口有时返回 //i0.hdslb.com/... 这种省略协议头的地址。 */
+    private fun normalizeLiveUrl(url: String): String = when {
+        url.isBlank() -> ""
+        url.startsWith("//") -> "https:$url"
+        else -> url
+    }
+
+    /** 人气数：1.2 万 / 356 这种中文习惯写法。 */
+    private fun liveCountText(count: Long): String = when {
+        count <= 0 -> ""
+        count >= 100_000_000 -> String.format(java.util.Locale.US, "%.1f 亿", count / 100_000_000.0)
+        count >= 10_000 -> String.format(java.util.Locale.US, "%.1f 万", count / 10_000.0)
+        else -> count.toString()
+    }
+
     // ---------------------------------------------------------------- request
 
     private class WbiKeys(val imgKey: String, val subKey: String) {

@@ -49,6 +49,14 @@ object TeakNavigator {
         )
     }
 
+    /** 打开直播详情页。roomId 为 0 时先用 mock 房间。 */
+    fun openLiveRoom(context: Context, roomId: Long = 0L) {
+        context.startActivity(
+            Intent(context, LiveRoomActivity::class.java)
+                .putExtra(LiveRoomActivity.EXTRA_ROOM_ID, roomId),
+        )
+    }
+
     fun openLogin(context: Context) {
         context.startActivity(Intent(context, LoginActivity::class.java))
     }
