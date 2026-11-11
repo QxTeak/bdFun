@@ -43,7 +43,7 @@ private fun scrolledEnough(index: Int, offset: Int): Boolean =
     index >= 3 || (index == 2 && offset > 0)
 
 @Composable
-fun BoxScope.ScrollTopButton(settings: SettingsStore) {
+fun BoxScope.ScrollTopButton(settings: SettingsStore, bottomObstruction: androidx.compose.ui.unit.Dp = 0.dp) {
     val action = ScrollTopBus.action
     val page = ScrollTopBus.page
     val enabled = settings.scrollTopEnabled &&
@@ -53,15 +53,17 @@ fun BoxScope.ScrollTopButton(settings: SettingsStore) {
     val glyphColor = teakGlassGlyphColor()
     val screenHeight = LocalConfiguration.current.screenHeightDp.dp
     val start = settings.scrollTopSide == 0
+    val navigationBottom = rememberNavigationBarBottom()
+    val bottomPadding = navigationBottom + maxOf(screenHeight * 0.10f + 16.dp, bottomObstruction + 20.dp)
     AnimatedVisibility(
         visible = shown,
         modifier = Modifier
             .align(if (start) Alignment.BottomStart else Alignment.BottomEnd)
-            // 从下往上大约 10% 屏高的位置；不在底栏正上方。
+            // Keep at least 20dp above the actual bottom controls, including short landscape windows.
             .padding(
                 start = if (start) 12.dp else 0.dp,
                 end = if (start) 0.dp else 12.dp,
-                bottom = screenHeight * 0.10f,
+                bottom = bottomPadding,
             ),
         enter = fadeIn(tween(180)),
         exit = fadeOut(tween(140)),

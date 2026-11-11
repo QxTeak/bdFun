@@ -60,7 +60,7 @@ fun TeakSegmentedBar(
         modifier = modifier.height(40.dp),
         shape = Capsule(),
         materialAlpha = materialAlpha,
-        flatBackgroundAlpha = 0.8f,
+        flatBackgroundAlpha = 0.9f,
         recipe = recipe,
         backdrop = LocalTeakBackdrop.current,
     ) {

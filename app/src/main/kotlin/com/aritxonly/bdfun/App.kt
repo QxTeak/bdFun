@@ -411,7 +411,15 @@ fun BdFunApp(api: BiliApi, settings: SettingsStore) {
 
                     val pageFloat = (tabPagerState.currentPage + tabPagerState.currentPageOffsetFraction)
                         .coerceAtLeast(0f)
-                    ScrollTopButton(settings)
+                    ScrollTopButton(
+                        settings,
+                        bottomObstruction = if (showSearch) 0.dp else
+                            TeakFloatingTabBarDefaults.Height + when {
+                                wideNavigation -> 12.dp
+                                settings.bottomBarRaise -> 4.dp + TeakChromeDefaults.RaisedBottomBarExtra
+                                else -> 4.dp
+                            },
+                    )
 
                     // 搜索页：搜索框保持不动，下面整块换成纯白页（搜索记录 + 热搜 / 结果）
                     if (showSearch || searchReveal > 0.01f) {
