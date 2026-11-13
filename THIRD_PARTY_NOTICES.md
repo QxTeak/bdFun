@@ -26,6 +26,22 @@ bdFun 包含或参考了以下第三方项目的代码、材质和参数。分�
 - 使用方式：第三方依赖，以及经 Deadliner 调整的 Sheet 源码移植。依赖提供 `miuix-ui`、`miuix-blur`、`miuix-icons`、`MiuixTheme`、`LayerBackdrop`、`textureBlur`、`progressiveTextureBlur` 等。
 - 分发时按 Apache-2.0 保留 NOTICE / 许可证信息（如上游提供）。
 
+## AndroidLiquidGlass
+
+- 作者：Kyant0（https://github.com/Kyant0）
+- 仓库：https://github.com/Kyant0/AndroidLiquidGlass
+- 许可证：[Apache License 2.0](https://github.com/Kyant0/AndroidLiquidGlass/blob/kmp/LICENSE)
+- 使用方式：柔光玻璃组件使用其中部分渲染管线能力；`TeakUI` 的 `common/material/GlassRefractionShader.kt` 标注了圆形透镜轮廓与圆角矩形 SDF 思路的来源，并经本项目材质管线适配。
+- 分发时保留适用的版权、许可证与 NOTICE 信息（如上游提供）。
+
+## Shapes / Capsule
+
+- 作者：Kyant0（https://github.com/Kyant0）
+- 仓库：https://github.com/Kyant0/Shapes
+- 许可证：[Apache License 2.0](https://github.com/Kyant0/Shapes/blob/master/LICENSE)
+- 使用方式：通过 `io.github.kyant0:shapes:1.2.0` 依赖使用 `com.kyant.shapes.Capsule`，用于柔光玻璃表面、悬浮导航栏、Tab 指示器、播放器暂停图形等胶囊形状。
+- 分发时保留适用的版权、许可证与 NOTICE 信息（如上游提供）。
+
 ## Guiyuan / 归元
 
 - 仓库：https://github.com/CHS-Haple/Guiyuan

@@ -17,7 +17,7 @@ internal fun SettingsDevelopersCard(runtime: SettingsPageRuntime) {
 @Composable
 private fun SettingsDevelopersCardRows1(runtime: SettingsPageRuntime) {
     DeveloperRow(
-        name = "Artix",
+        name = "AritxOnly",
         avatar = R.drawable.dev_artix,
         url = "https://github.com/AritxOnly",
         onOpen = runtime.navigation.onDeveloper,

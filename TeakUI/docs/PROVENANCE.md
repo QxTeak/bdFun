@@ -1,6 +1,6 @@
 # TeakUI 来源清单
 
-更新时间：2026-11-02
+更新时间：2026-11-13
 
 这份清单按**文件**区分来源，避免把“直接移植”“同源重构”“参数参考”“自己新写”混在一起。
 
@@ -94,11 +94,21 @@
 - `TeakPageScaffold` 里的 `teakProgressiveBarBlur` 是 Teak 自己的 Miuix 封装；
 - 具体 `startFraction` 等参数是项目自己调过的，不应笼统说“全部来自 HyperIsland”。
 
+## F. AndroidLiquidGlass 与 Shapes（Kyant0）
+
+两者由 [Kyant0](https://github.com/Kyant0) 提供，均采用 Apache-2.0 许可证。
+
+- [AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass)：柔光玻璃组件使用其中部分渲染管线能力。`common/material/GlassRefractionShader.kt` 的来源注释明确记录了圆形透镜轮廓与圆角矩形 SDF 思路；该着色器经本项目材质管线适配。上述 Hyper-PiliPlus / Deadliner 的文件级来源并不替代此项底层来源说明。
+- [Shapes](https://github.com/Kyant0/Shapes)：通过 `io.github.kyant0:shapes:1.2.0` 使用 `com.kyant.shapes.Capsule`。调用点包括 `common/material/TeakGlassSurface.kt`、`common/navigation/TeakFloatingTabBar.kt`、`TeakPagerTabs.kt`、`TeakBatchActionBar.kt` 与 `common/player/PlayerGlyphs.kt`，分别用于玻璃表面、导航/Tab 形状与播放器暂停条。
+
+许可链接与分发说明见根目录 `THIRD_PARTY_NOTICES.md`。
+
 ## 一句话结论
 
 - **HyperPiliPlus**：玻璃材质核心、底栏/Tab 动画、ProgressiveTopBar 等，有直接移植，也有同源重构；
 - **Miuix**：模糊能力本身，第三方依赖，没有复制源码；
 - **HyperIsland**：只参考渐进模糊的部分参数/观感，没有复制源码；
+- **AndroidLiquidGlass / Shapes（Kyant0）**：柔光玻璃部分渲染管线能力与 `Capsule()` 胶囊形状，Apache-2.0；
 - **Teak 自己**：页面外壳、顶部 overlay、设置页、PagerTabs、主题适配层等。
 
 ## 2026-11-12 · 自有滚动视口

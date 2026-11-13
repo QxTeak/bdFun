@@ -33,6 +33,8 @@ private val CreditProjects = listOf(
     CreditProject("Hyper-PiliPlus（fork）", "https://github.com/Mutx163/Hyper-PiliPlus"),
     CreditProject("HyperIsland", "https://github.com/1812z/HyperIsland"),
     CreditProject("Miuix", "https://github.com/compose-miuix-ui/miuix"),
+    CreditProject("AndroidLiquidGlass（Kyant0）", "https://github.com/Kyant0/AndroidLiquidGlass"),
+    CreditProject("Shapes / Capsule（Kyant0）", "https://github.com/Kyant0/Shapes"),
     CreditProject("PiliPlus", "https://github.com/bggRGjQaUbCoE/PiliPlus"),
     CreditProject("Guiyuan", "https://github.com/CHS-Haple/Guiyuan"),
     CreditProject("BiliPai", "https://github.com/jay3-yy/BiliPai"),
