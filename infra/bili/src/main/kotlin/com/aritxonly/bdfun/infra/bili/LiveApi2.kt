@@ -16,7 +16,7 @@ private const val liveReferer = "https://live.bilibili.com/"
  * app 端 `/xlive/app-interface/v2/index/feed`，必须 AppSign，web 的 WBI 在这条接口上无效。
  */
 internal suspend fun BiliApiContext.liveHome(page: Int = 1): LiveHome = withContext(Dispatchers.IO) {
-    cancellableCatching {
+    val result = cancellableCatching {
         val params = liveAppParams(mapOf("page" to page.toString()))
         val data = dataRequest(
             "/xlive/app-interface/v2/index/feed",
@@ -40,6 +40,16 @@ internal suspend fun BiliApiContext.liveHome(page: Int = 1): LiveHome = withCont
         }
         LiveHome(following, areas, cards)
     }.getOrDefault(LiveHome())
+    // app 端整段拿不到时（签名被拒/接口调整），退回 web 分区列表，至少页面不是空的。
+    if (result.cards.isNotEmpty() || result.areas.isNotEmpty()) {
+        result
+    } else {
+        LiveHome(
+            following = result.following,
+            areas = liveAreaList(0L),
+            cards = webLiveList(1, 0L, 0L),
+        )
+    }
 }
 
 /** 分区直播流，照搬 PiliPlus 的 `LiveHttp.liveSecondList`（app 端 second/getList）。 */
@@ -66,7 +76,32 @@ internal suspend fun BiliApiContext.liveRecommend(
             headers = BILI_APP_HEADERS,
         )
         data.optJSONArray("list").toLiveCards()
+    }.getOrDefault(emptyList()).ifEmpty { webLiveList(page, parentAreaId, areaId) }
+}
+
+/** App 端接口异常时的兜底：老的 web 分区列表（有 buvid 时会话通常能过）。 */
+private suspend fun BiliApiContext.webLiveList(
+    page: Int, parentAreaId: Long, areaId: Long,
+): List<LiveCard> {
+    val params = mapOf(
+        "platform" to "web",
+        "parent_area_id" to parentAreaId.toString(),
+        "area_id" to areaId.toString(),
+        "sort_type" to "online",
+        "page" to page.toString(),
+        "page_size" to "20",
+    )
+    suspend fun once(signed: Boolean): List<LiveCard> = cancellableCatching {
+        val data = dataRequest(
+            "/xlive/web-interface/v1/second/getList",
+            params,
+            signed = signed,
+            base = livePageBase,
+            referer = liveReferer,
+        )
+        data.optJSONArray("list").toLiveCards()
     }.getOrDefault(emptyList())
+    return once(true).ifEmpty { once(false) }
 }
 
 /** 一级分区兜底列表（卡片里没有 area_entrance_v3 时用）。 */
