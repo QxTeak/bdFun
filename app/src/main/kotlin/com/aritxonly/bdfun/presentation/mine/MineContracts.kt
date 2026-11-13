@@ -7,7 +7,10 @@ import com.aritxonly.bdfun.core.model.user.SentRecord
 import com.aritxonly.bdfun.feature.mine.application.*
 
 internal data class MineScreenRequest(val profile: UserProfile?, val showSentHistory: Boolean, val sessionRevision: Long = 0)
-internal class MineDependencies(val createData: (UserProfile?) -> MineStateHolder, val recent: () -> List<SentRecord>)
+internal class MineDependencies(val createData: (UserProfile?) -> MineStateHolder, val recent: () -> List<SentRecord>,
+    val layout: com.aritxonly.bdfun.core.application.MineLayoutStateHolder,
+    val createPreview: (UserProfile?) -> MinePreviewStateHolder,
+)
 internal class MineNavigation(
     val onLogin: () -> Unit, val onOpenSettings: () -> Unit, val onOpenLibrary: () -> Unit,
     val onOpenHistory: () -> Unit, val onOpenWatchLater: () -> Unit, val onOpenCache: () -> Unit,

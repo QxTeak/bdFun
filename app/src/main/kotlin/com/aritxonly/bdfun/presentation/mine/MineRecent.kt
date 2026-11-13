@@ -32,7 +32,7 @@ internal fun MineRecent(cardShape: androidx.compose.ui.graphics.Shape, records: 
             .clip(cardShape)
             .background(colors.surface),
     ) {
-        MineRow("我的评论与弹幕", onClick = navigation.onOpenSentHistory)
+        MineRow("我的评论与弹幕", trailingText = "全部 ＞", onClick = navigation.onOpenSentHistory)
         // 最近三条评论 / 弹幕
         val recent = records
         recent.forEach { record ->

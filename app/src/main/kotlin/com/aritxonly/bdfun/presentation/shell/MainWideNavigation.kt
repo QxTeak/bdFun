@@ -2,7 +2,6 @@ package com.aritxonly.bdfun
 
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -21,6 +20,8 @@ import com.aritxonly.teak.common.navigation.TeakFloatingTabLayout
 import com.aritxonly.teak.common.interaction.blockTouches
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 
+internal val MainWideNavigationEdgePadding = 20.dp
+
 @Composable
 internal fun androidx.compose.foundation.layout.BoxScope.MainWideNavigation(
     tabItems: List<TeakFloatingTabItem>, selectedKey: String,
@@ -29,7 +30,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainWideNavigation(
 
     Row(
         modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth()
-            .navigationBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp)
+            .padding(MainWideNavigationEdgePadding)
             .graphicsLayer { alpha = visual.tabBarAlpha }.blockTouches(visual.tabBarCovered),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -19,7 +19,7 @@ import com.aritxonly.bdfun.ui.showToast
 
 @Composable
 internal fun SettingsScreenRoute(activity: ComponentActivity) {
-    val dependencies = remember { SettingsDependencies(AppGraph::settingsCdnStateHolder) }
+    val dependencies = remember { SettingsDependencies(AppGraph::settingsCdnStateHolder, AppGraph.mineLayout) }
     SettingsScreen(AppGraph.settings,
         SettingsNavigation({ activity.finish() }, { AppGraph.logout(); activity.finish() },
             { destination -> openSettingsDestination(activity, destination) },

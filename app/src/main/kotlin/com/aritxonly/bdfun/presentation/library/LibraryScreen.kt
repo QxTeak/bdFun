@@ -3,7 +3,6 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -33,7 +32,7 @@ private fun LibraryContent(runtime: LibraryRuntime) {
     val progress = remember { derivedStateOf { pagerState.currentPage + pagerState.currentPageOffsetFraction } }
     Box(modifier = Modifier.fillMaxSize()) {
         CompositionLocalProvider(LocalViewConfiguration provides rememberStricterSwipeConfiguration()) {
-            HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize().statusBarsPadding(),
+            HorizontalPager(state = pagerState, modifier = Modifier.fillMaxSize(),
                 beyondViewportPageCount = 0, overscrollEffect = null, pageSpacing = 12.dp) { page ->
                 LibraryPagerPage(runtime, data, interaction, progress, runtime.request.fixedMode ?: page)
             }

@@ -29,6 +29,7 @@ internal fun MainTabPager(
     homeFeed: com.aritxonly.bdfun.feature.home.presentation.HomeFeedState,
     dynamicFeed: com.aritxonly.bdfun.feature.dynamic.presentation.DynamicFeedState,
     session: UserProfile?, settings: SettingsBindings, dynamicRefreshTick: Int,
+    mineList: androidx.compose.foundation.lazy.LazyListState,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     CompositionLocalProvider(
@@ -57,14 +58,14 @@ internal fun MainTabPager(
                     refreshTick = dynamicRefreshTick,
                 )
 
-                else -> MainMineTab(session, settings)
+                else -> MainMineTab(session, settings, mineList)
             }
         }
     }
 }
 
 @Composable
-private fun MainMineTab(session: UserProfile?, settings: SettingsBindings) {
+private fun MainMineTab(session: UserProfile?, settings: SettingsBindings, mineList: androidx.compose.foundation.lazy.LazyListState) {
     val context = androidx.compose.ui.platform.LocalContext.current
     MineScreen(
         com.aritxonly.bdfun.ui.MineScreenRequest(session, settings.sentHistoryEntry, AppGraph.session.identity.revision),
@@ -75,6 +76,6 @@ private fun MainMineTab(session: UserProfile?, settings: SettingsBindings) {
             { navigateToMySent(context) }, { navigateToSpace(context, it) },
             { mid, fans -> RelationActivity.open(context, mid, fans) }, { navigateToVideo(context, it) },
         ),
-        AppGraph.mineDependencies,
+        AppGraph.mineDependencies, mineList,
     )
 }

@@ -3,6 +3,9 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,10 +51,11 @@ internal fun LibraryModePage(content: LibraryModeContent, layout: LibraryModeLay
 @Composable
 private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, actions: LibraryModeActions,
     gridState: androidx.compose.foundation.lazy.grid.LazyGridState) {
+    val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     LazyVerticalGrid(
         state = gridState, columns = GridCells.Fixed(2),
         contentPadding = PaddingValues(start = TeakChromeDefaults.ContentHorizontalPadding,
-            end = TeakChromeDefaults.ContentHorizontalPadding, top = TeakChromeDefaults.ContentTopPadding,
+            end = TeakChromeDefaults.ContentHorizontalPadding, top = statusBarTop + TeakChromeDefaults.ContentTopPadding,
             bottom = if (content.batchMode) 92.dp else TeakChromeDefaults.ContentBottomPadding),
         horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {

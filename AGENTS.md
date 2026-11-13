@@ -545,9 +545,33 @@ HyperOS 4只拥有独立展开/关闭转场，内部复用顶栏的HomeTopBar及
 
 消息运行时收件箱使用 PiliPlus 固定参考版本的 gRPC SessionMain/SessionSecondary 与复合 offsets；旧 HTTP 门面只供兼容，不能把长整型时间戳当作新游标。会话身份、设置载荷仅在 infra 解析，路由走 core/navigation 的 MessageInbox/MessageTools 快照。设置、点赞人员、关键词、通讯录与单聊设置由 MessageToolsStateHolder 管理，私信使用 gRPC 发送/历史及 biz=im 图片上传；保留账号/页面迟到守卫与取消解锁。协议字段表通过 tools/generate-im-schema.py 从固定上游 pbjson 提取，无新增 protobuf 运行库。离线样本和游客启动通过不能替代登录账号的真实收发/撤回/服务端设置回归，验收范围见 docs/HYPERPILI_MESSAGE_ALIGNMENT.md。
 
+### 2026-11-13 MY-01 我的页布局与预览卡片
+
+我的页竖屏头图必须从页面顶部通栏铺开，不加外边距或卡片圆角；资料卡内缩14dp并上压30dp，头像上压24dp。窄屏设置入口在采样树外的顶栏右上，复用AdaptiveMiuixTopAppBar/TeakGlassIconButton；宽屏在资料卡下使用Miuix Card+ArrowPreference进入设置；头图复用SpaceBanner及其解码工具。宽度600dp起使用45:55的资料与内容双栏。历史/收藏/稍后再看大卡的三个独立开关仅在设置「我的页」区块，默认关闭；core/application/MineLayoutStateHolder统一发布，infra/storage独立mine_layout文件保存，不向旧SettingsStore追加字段。预览由feature/mine/application经LibraryRepository按需读取，每项最多两条；账号、页面关闭及配置代数拒收迟到结果。个人头图复用空间资料读取；收藏预览只使用真实FavoriteFolder字段，不猜公开性。游客不加载预览或展示本机发送记录正文。
+
 ### 2026-11-13 表情缓存约束
 
 表情面板列表通过 core/domain 的 EmoteCache 端口按账号持久化，infra/storage 保存 JSON；
 EmoteStore 先读缓存，24 小时内复用，过期保留旧列表并刷新，账号切换拒收迟到结果。
 图片由 app 装配的独立 Coil loader 按显示需求缓存，不预下载整包；磁盘位于 filesDir/emote_images，
 上限 128MiB。面板使用固定 220dp 的懒网格，禁止恢复一次组合全包图片的 Column。
+
+### 2026-11-13 我的页玻璃采样循环修复
+
+MainTabPager位于主壳layerBackdrop的录制树内，因此MineScreen及其资料/列表子组件不得读取该主壳Backdrop绘制玻璃。我的页窄屏设置TopAppBar由MainScaffold的MainMineChrome挂在录制树外，与首页顶栏同层；空间入口使用不采样的Miuix普通胶囊按钮。不得把设置顶栏重新放回MinePage，否则可能形成RenderNode循环，在RenderThread出现原生栈溢出（libhwui prepareTreeImpl/prepareListAndChildren递归）。
+
+### 2026-11-13 我的页沉浸与宽屏设置入口
+
+窄屏头图从状态栏后通栏绘制；主壳持有mineList与mine的TeakPageScrollState，经TrackTeakPageScroll接入采样树外的ProgressiveTopBarMaterial，不能只画透明TopAppBar而不接滚动进度。宽度600dp起顶栏仅保留滚动渐进模糊、不显示设置按钮，左45%资料栏下方使用Miuix Card+ArrowPreference进入设置，右55%保留功能内容。宽屏设置卡为普通组件，不读取主壳Backdrop。
+
+### 2026-11-13 滚动视口与平板底栏 Insets
+
+我的页宽屏LazyColumn、媒体库收藏/历史/稍后再看共用的HorizontalPager和LazyVerticalGrid必须铺满窗口；状态栏初始避让加入滚动容器的contentPadding，禁止在容器外加statusBarsPadding截断滚动视口，避免顶栏渐进模糊下留下固定空带。我的页设置ArrowPreference不带副标题，Card显式使用与资料卡一致的surface/onSurface。平板MainWideNavigation不叠加navigationBarsPadding，左右及底部均使用MainWideNavigationEdgePadding（20dp）；手机底栏规则不变。
+
+### 2026-11-13 我的页预览刷新与高度
+
+宽屏头图仅上角圆角，底角为直角。MinePreviewStateHolder前台刷新保留已成功的区块，失败/取消不清旧内容；关闭区块或账号失效仍清理并拒收迟到响应。展示按实际窗口宽度和字体缩放预留固定内容槽，初次加载用等高骨架，空/错误状态保留该高度；视频封面16:9、单项最大180dp、标题固定两行占位。不得恢复先清空列表再显示单行加载文字的收缩/膨胀行为。
+
+### 2026-11-13 我的页五视频与四收藏夹
+
+最近播放/稍后再看按HistoryItem.viewedAt倒序展示最近5项（分别为view_at/add_at的既有映射），以固定高度LazyRow横向滚动。收藏保留纵向4行，显示「共 n 视频」；封面使用现有LibraryRepository.videos(folderId,1)按mtime返回的第一条视频，不按pubdate排序。仅补全前4个收藏夹，空夹不请求；单项封面失败复用该账号上次封面，首次失败留空。所有详情请求前后核对页面/账号/代数，取消释放busy；初始骨架与加载完成占位高度相同，刷新保留旧内容。

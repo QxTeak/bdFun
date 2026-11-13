@@ -22,6 +22,8 @@ internal data class MainShellChrome(
     val home: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val dynamic: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val search: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    val mine: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    val mineList: androidx.compose.foundation.lazy.LazyListState,
 )
 internal data class MainShellFeeds(
     val session: com.aritxonly.bdfun.core.model.user.UserProfile?,

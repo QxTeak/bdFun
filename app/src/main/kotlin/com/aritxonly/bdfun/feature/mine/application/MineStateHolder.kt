@@ -30,8 +30,9 @@ internal class MineStateHolder(
             val nav = request { repository.profile() }
             val relation = request { repository.relationStat(profile.mid) }
             val likes = request { repository.likes(profile.mid) }
+            val decoration = request { repository.decoration(profile.mid) }
             val selected = nav ?: profile
-            val merged = selected.copy(stats = selected.stats.copy(
+            val merged = selected.copy(decoration = decoration ?: selected.decoration, stats = selected.stats.copy(
                 following = relation?.first ?: profile.following,
                 follower = relation?.second ?: profile.follower, likes = likes ?: profile.likes))
             mutable.value = MineUiState(merged)

@@ -44,7 +44,7 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
             ) {
                 // 三个 tab：横向相连的 pager（可拖拽，切换是同一套非线性动画）
                 // 外面包一层更大的触摸阈值，手指轻抖不会误翻页。
-                MainTabPager(tabPagerState, homeFeed, dynamicFeed, session, settings, ui.dynamicRefreshTick)
+                MainTabPager(tabPagerState, homeFeed, dynamicFeed, session, settings, ui.dynamicRefreshTick, shell.chrome.mineList)
 
             }
 
@@ -52,7 +52,7 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
                 settings,
                 bottomObstruction = if (ui.showSearch || shell.bottom.showBottomSearch) 0.dp else
                 TeakFloatingTabBarDefaults.Height + when {
-                    wideNavigation -> 12.dp
+                    wideNavigation -> MainWideNavigationEdgePadding
                     settings.bottomBarRaise -> 4.dp + TeakChromeDefaults.RaisedBottomBarExtra
                     else -> 4.dp
                 },
@@ -62,6 +62,7 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
             MainDynamicChrome(shell, pageFloat)
         }
         MainHomeChrome(settings, shell, pageFloat)
+        MainMineChrome(shell, pageFloat)
 
         Box(Modifier.fillMaxSize().graphicsLayer {
                 val progress = shell.bottom.bottomTabBarProgress.value
