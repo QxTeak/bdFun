@@ -44,7 +44,7 @@ internal fun HomeTopBarRight(content: HomeTopBarContent, search: HomeTopBarSearc
         UnreadBadgeHost(count = unreadCount) {
             TeakGlassIconButton(
                 materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
-                flatBackgroundAlpha = 0.9f,
+                flatBackgroundAlpha = com.aritxonly.teak.common.material.TeakGlassDefaults.flatBackgroundAlpha(),
                 onClick = onOpenMessages, size = 40.dp, recipe = recipe, backdrop = backdrop,
             ) {
                 Icon(MiuixIcons.Messages, contentDescription = "消息", tint = BrandPink,

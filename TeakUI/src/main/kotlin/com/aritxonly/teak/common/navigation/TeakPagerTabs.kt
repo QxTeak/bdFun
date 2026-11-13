@@ -217,7 +217,7 @@ fun TeakPagerTabs(
             recipe = recipe,
             backdrop = backdrop,
             materialAlpha = materialProgress,
-            flatBackgroundAlpha = 0.9f,
+            flatBackgroundAlpha = com.aritxonly.teak.common.material.TeakGlassDefaults.flatBackgroundAlpha(),
         ) {
             content()
         }
