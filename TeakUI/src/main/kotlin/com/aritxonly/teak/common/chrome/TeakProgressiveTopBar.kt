@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -98,6 +99,17 @@ internal fun resolveProgressiveTopBarHeightMetrics(
 fun ProgressiveTopBarMaterial(
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
+    /**
+     * 底层页面正在做一镜到底时，内容被整体上移了多少（px）。
+     *
+     * backdrop 录的是变换之前的画面，而顶栏画在变换之外；不补偿的话，
+     * 顶栏采样到的是"还没上移"的内容，接缝就出现在两者交界处。
+     * 这里把采样区域的布局位置下移同样的距离，再用绘制位移抵消回来：
+     * 画面不动，取景跟着内容走。
+     */
+    underlayLiftPx: Float = 0f,
+    /** 内容自身叠加的模糊半径（px）；顶栏要补上同样的量，否则两边清晰度不一致。 */
+    underlayBlurPx: Float = 0f,
     content: @Composable BoxScope.() -> Unit,
 ) {
     if (!enabled) { Box(modifier, content = content); return }
@@ -153,6 +165,8 @@ fun ProgressiveTopBarMaterial(
         val backgroundPlaceables = subcompose(ProgressiveTopBarSlot.Background) {
             ProgressiveTopBarBackground(
                 materialProgress = materialProgress,
+                underlayLiftPx = underlayLiftPx,
+                underlayBlurPx = underlayBlurPx,
                 modifier = Modifier.fillMaxSize(),
             )
         }.map { measurable -> measurable.measure(materialConstraints) }
@@ -167,9 +181,21 @@ fun ProgressiveTopBarMaterial(
 @Composable
 private fun ProgressiveTopBarBackground(
     materialProgress: Float,
+    underlayLiftPx: Float = 0f,
+    underlayBlurPx: Float = 0f,
     modifier: Modifier = Modifier,
 ) {
     if (materialProgress <= 0f) return
+
+    val density = LocalDensity.current
+    val lift = underlayLiftPx.coerceAtLeast(0f)
+    val shiftDp = with(density) { lift.toDp() }
+    val extraBlurDp = with(density) { underlayBlurPx.coerceAtLeast(0f).toDp().value }
+    val blurRadius = ProgressiveTopBarBlurRadiusDp + extraBlurDp
+    // 布局下移、绘制上移，净位移为 0；被移动的只是"取景框"。
+    val samplingShift = Modifier
+        .offset(y = shiftDp)
+        .graphicsLayer { translationY = -lift }
 
     val surface = MaterialTheme.colorScheme.surface
     val advancedMaterial = LocalTeakMaterialSpec.current
@@ -177,7 +203,7 @@ private fun ProgressiveTopBarBackground(
     if (advancedMaterial.useOfficialMiuixGlass && advancedMaterial.textureBlurEnabled &&
         backdrop != null && top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported()) {
         // Keep the app's edge fade and scroll ownership, with the official action-bar body.
-        Box(modifier.graphicsLayer {
+        Box(modifier.then(samplingShift).graphicsLayer {
             alpha = materialProgress
             compositingStrategy = CompositingStrategy.Offscreen
         }.drawWithContent {
@@ -205,8 +231,10 @@ private fun ProgressiveTopBarBackground(
             Box(
                 modifier = Modifier
                     .matchParentSize()
+                    .then(if (lift > 0f) samplingShift else Modifier)
                     .progressiveTopBarBackdrop(
                         backdrop = requireNotNull(backdrop),
+                        blurRadius = blurRadius,
                     ),
             )
         }
@@ -233,10 +261,11 @@ private enum class ProgressiveTopBarSlot {
 
 private fun Modifier.progressiveTopBarBackdrop(
     backdrop: Backdrop,
+    blurRadius: Float = ProgressiveTopBarBlurRadiusDp,
 ): Modifier = progressiveTextureBlur(
     backdrop = backdrop,
     shape = RectangleShape,
-    blurRadius = ProgressiveTopBarBlurRadiusDp,
+    blurRadius = blurRadius,
     gradient = ProgressiveBlur.Top.copy(
         startFraction = ProgressiveTopBarBlurFadeStart,
         endFraction = TeakChromeDefaults.BarBlurEndFraction,
