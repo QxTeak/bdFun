@@ -20,7 +20,7 @@ fun MessageDetailScreen(kind: MessageFeedKind, initialTab: Int = 0) {
     val listState = rememberLazyListState()
     val ui = remember(kind, initialTab) { MessageFeedPresentationStateHolder().apply { tab = initialTab } }
     val menu = remember(controller) { MessageFeedMenuStateHolder() }
-    val actions = MessageFeedActions(controller, scope, context, menu)
+    val actions = MessageFeedActions(controller, scope, context, menu, messageRouteAction())
     RegisterScrollTop(listState, "message_detail")
     TrackTeakPageScroll(listState)
     MessageFeedEffects(controller, ui, scope)

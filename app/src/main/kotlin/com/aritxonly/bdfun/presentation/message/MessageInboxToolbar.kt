@@ -19,28 +19,30 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun MessageInboxToolbar(snapshot: MessageSessionsUiState, menu: MessageSessionMenuStateHolder) {
     val context = LocalContext.current
-    Row(Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+    val navigate = messageRouteAction()
+    Row(Modifier.fillMaxWidth().padding(top = 18.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        Text("私信", color = MiuixTheme.colorScheme.onBackgroundVariant, modifier = Modifier.weight(1f))
         snapshot.outside.forEach { item ->
             Text(item.title, color = MiuixTheme.colorScheme.primary, modifier = Modifier.clickable {
-                messageMenuAction(context, item, menu)
+                messageMenuAction(context, item, menu, navigate)
             }.padding(12.dp))
         }
-        Spacer(Modifier.weight(1f))
-        Text("更多", color = MiuixTheme.colorScheme.primary, modifier = Modifier.clickable { menu.showMore = true }.padding(12.dp))
+        if (snapshot.outside.none { it.type == 8 }) Text("联系人", color = MiuixTheme.colorScheme.primary,
+            modifier = Modifier.clickable { navigate(Route.MessageTools("contacts")) }.padding(12.dp))
     }
 }
 
-internal fun messageMenuAction(context: Context, item: MessageMenuItem, menu: MessageSessionMenuStateHolder) {
+internal fun messageMenuAction(context: Context, item: MessageMenuItem, menu: MessageSessionMenuStateHolder,
+    navigate: (Route) -> Unit = { context.startActivity(createRouteIntent(context, it)) }) {
     menu.showMore = false
     when (item.type) {
         1 -> menu.confirmRead = true
         9 -> menu.confirmClear = true
-        2 -> context.startActivity(createRouteIntent(context, Route.MessageTools("settings")))
-        8 -> context.startActivity(createRouteIntent(context, Route.MessageTools("contacts")))
+        2 -> navigate(Route.MessageTools("settings"))
+        8 -> navigate(Route.MessageTools("contacts"))
         4 -> {
             val talker = Regex("/(\\d{3,})").find(item.url)?.groupValues?.get(1)?.toLongOrNull()
-            if (talker != null) com.aritxonly.bdfun.navigateToPrivateChat(context,
-                MessageSession("1_$talker", talker, 1, item.title, item.icon, "", 0, 0, false))
+            if (talker != null) navigate(MessageSession("1_$talker", talker, 1, item.title, item.icon, "", 0, 0, false).chatRoute())
         }
         else -> if (item.url.startsWith("http")) context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.url)))
             else context.showToast("暂不支持此入口：${item.title}")

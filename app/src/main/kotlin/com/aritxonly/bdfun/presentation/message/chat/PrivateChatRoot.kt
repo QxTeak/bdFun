@@ -21,7 +21,8 @@ import com.aritxonly.bdfun.ui.showToast
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun PrivateChatRoot(session: MessageSession) {
+internal fun PrivateChatRoot(session: MessageSession, onBack: (() -> Unit)? = null) {
+    val navigation = com.aritxonly.bdfun.ui.LocalMessageNavigation.current
     val context = LocalContext.current
     val runtime = rememberPrivateChatRuntime(session)
     val controller = runtime.controller
@@ -36,17 +37,18 @@ internal fun PrivateChatRoot(session: MessageSession) {
     val image = remember(content.composer.pendingImage) { content.composer.pendingImage?.let(android.net.Uri::parse) }
     TeakActivityScaffold(
         settings = AppGraph.settings,
-        onBack = { (context as? android.app.Activity)?.finish() },
+        onBack = { onBack?.invoke() ?: (context as? android.app.Activity)?.finish() },
         options = ActivityPageOptions(
             title = session.name.ifBlank { session.talkerId.toString() },
             backRevealed = true,
             titleAlwaysVisible = true,
+            limitContentWidth = navigation == null,
         ),
         slots = ActivityPageSlots(
             topBarActions = {
                 androidx.compose.material3.Text("设置", modifier = Modifier.padding(12.dp).clickable {
-                    context.startActivity(com.aritxonly.bdfun.navigation.createRouteIntent(context,
-                        com.aritxonly.bdfun.core.navigation.Route.MessageTools("chat", session.talkerId.toString())))
+                    val route = com.aritxonly.bdfun.core.navigation.Route.MessageTools("chat", session.talkerId.toString())
+                    navigation?.route?.invoke(route) ?: context.startActivity(com.aritxonly.bdfun.navigation.createRouteIntent(context, route))
                 }, color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.primary)
             },
             overlay = {

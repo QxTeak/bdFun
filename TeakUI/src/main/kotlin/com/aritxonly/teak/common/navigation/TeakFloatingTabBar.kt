@@ -49,7 +49,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
@@ -58,6 +57,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,7 +71,6 @@ import com.aritxonly.teak.common.material.GlassMaterialInteraction
 import com.aritxonly.teak.common.material.TeakGlassSurface
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
 import com.aritxonly.teak.common.material.LocalTeakMaterialSpec
-import com.kyant.shapes.Capsule
 import top.yukonga.miuix.kmp.blur.Backdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlinx.coroutines.launch
@@ -93,21 +93,6 @@ data class TeakFloatingTabItem(
 enum class TeakFloatingTabLayout {
     Horizontal,
     Stacked,
-}
-
-object TeakFloatingTabBarDefaults {
-    val Height = 54.dp
-    val HorizontalContentPadding = 7.dp
-    val VerticalContentPadding = 3.dp
-    val IndicatorHorizontalOverflow = 3.dp
-    val MaximumWidth = 380.dp
-    /** Keeps each tab compact when the bar is used beside a standalone action capsule. */
-    val MaximumItemWidth = 80.dp
-    val TabIconSize = 26.dp
-    val DetachedIconSize = 28.dp
-
-    val ContainerShape: Shape = Capsule()
-    val IndicatorShape: Shape = Capsule()
 }
 
 /**
@@ -176,7 +161,7 @@ fun TeakFloatingTabBar(
                 ),
             )
             .fillMaxWidth()
-            .height(TeakFloatingTabBarDefaults.Height),
+            .height(TeakFloatingTabBarDefaults.CurrentHeight),
     ) {
         val density = LocalDensity.current
         val panelDragFraction = floatingTabPanelDragFraction(
@@ -397,6 +382,7 @@ private fun FloatingTabItemContent(
     val interactionSource = remember { MutableInteractionSource() }
     val itemModifier = modifier
         .clip(TeakFloatingTabBarDefaults.IndicatorShape)
+        .semantics { contentDescription = item.label }
         .selectable(
             selected = selected,
             enabled = item.enabled,
@@ -445,6 +431,7 @@ private fun FloatingTabItemContent(
     val label: @Composable () -> Unit = {
         Text(
             text = item.label,
+            modifier = Modifier.teakDockLabel(layout),
             color = animatedContentColor,
             style = when (layout) {
                 TeakFloatingTabLayout.Horizontal -> MaterialTheme.typography.labelMedium

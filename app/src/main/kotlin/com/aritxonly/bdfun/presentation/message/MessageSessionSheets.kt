@@ -21,6 +21,7 @@ internal fun MessageSessionSheets(
     onClearList: () -> Unit,
     onMutate: (SessionAction) -> Unit,
 ) {
+    val navigate = messageRouteAction()
     val colors = MiuixTheme.colorScheme
     val context = androidx.compose.ui.platform.LocalContext.current
     val loading = snapshot.loading
@@ -28,11 +29,10 @@ internal fun MessageSessionSheets(
     TeakActionSheet(menu.showMore, onDismiss = { menu.showMore = false }, title = "消息") {
         ActionSheetRow("刷新消息", !loading && !busy) { menu.showMore = false; onRefresh() }
         snapshot.menu.forEach { item ->
-            ActionSheetRow(item.title, !loading && !busy) { messageMenuAction(context, item, menu) }
+            ActionSheetRow(item.title, !loading && !busy) { messageMenuAction(context, item, menu, navigate) }
         }
         if (snapshot.menu.isEmpty()) {
-            ActionSheetRow("消息设置", !busy) { context.startActivity(com.aritxonly.bdfun.navigation.createRouteIntent(context,
-                com.aritxonly.bdfun.core.navigation.Route.MessageTools("settings"))); menu.showMore = false }
+            ActionSheetRow("消息设置", !busy) { navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("settings")); menu.showMore = false }
         }
     }
     TeakActionSheet(menu.confirmRead, onDismiss = { if (!busy) menu.confirmRead = false }, title = "一键已读") {

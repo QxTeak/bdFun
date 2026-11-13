@@ -1,8 +1,11 @@
 package com.aritxonly.bdfun
 
 import com.aritxonly.teak.common.chrome.TeakChromeDefaults
+import com.aritxonly.teak.common.chrome.isWideFoldTopBar
 
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -13,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.aritxonly.teak.common.navigation.TeakFloatingTabBar
+import com.aritxonly.teak.common.navigation.TeakFloatingTabBarDefaults
 import com.aritxonly.teak.common.navigation.TeakFloatingTabItem
 import com.aritxonly.teak.common.navigation.TeakFloatingTabLayout
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
@@ -24,6 +28,14 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainFloatingNavigation(
     onBarItem: (TeakFloatingTabItem) -> Unit, visual: MainBottomNavigationVisual, onBottomSearch: () -> Unit,
 ) {
 
+    val wideFold = isWideFoldTopBar()
+    val bottomSpacing = if (wideFold) 0.dp else 4.dp
+    val hasSearch = settings.interfaceStyle == 2
+    val maximumDockWidth = minOf(
+        TeakFloatingTabBarDefaults.MaximumWidth,
+        TeakFloatingTabBarDefaults.MaximumItemWidth * tabItems.size,
+    ) + (if (hasSearch) TeakFloatingTabBarDefaults.Height + TeakFloatingTabBarDefaults.DetachedSpacing else 0.dp) +
+        TeakFloatingTabBarDefaults.DockHorizontalPadding * 2
     Column(
         modifier = Modifier
             .align(Alignment.BottomCenter)
@@ -35,29 +47,34 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainFloatingNavigation(
             .blockTouches(visual.tabBarCovered)
             .navigationBarsPadding()
             .padding(
-                start = 16.dp,
+                start = if (wideFold) 12.dp else 16.dp,
                 top = 12.dp,
-                end = 16.dp,
+                end = if (wideFold) 12.dp else 16.dp,
                 bottom = if (settings.bottomBarRaise) {
-                    4.dp + TeakChromeDefaults.RaisedBottomBarExtra
+                    bottomSpacing + TeakChromeDefaults.RaisedBottomBarExtra
                 } else {
-                    4.dp
+                    bottomSpacing
                 },
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        androidx.compose.foundation.layout.Row(verticalAlignment = Alignment.CenterVertically) {
-        TeakFloatingTabBar(
-            items = tabItems,
-            selectedKey = selectedKey,
-            onItemSelected = onBarItem,
-            layout = TeakFloatingTabLayout.Stacked,
-            selectedContentColor = visual.barSelectedColor,
-        )
-        if (settings.interfaceStyle == 2) {
-            androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
-            MainBottomSearchButton(visual.tabBarAlpha, onBottomSearch)
-        }
+        androidx.compose.foundation.layout.Row(
+            modifier = Modifier.wrapContentWidth().widthIn(max = maximumDockWidth).fillMaxWidth()
+                .padding(horizontal = TeakFloatingTabBarDefaults.DockHorizontalPadding),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TeakFloatingTabBar(
+                items = tabItems,
+                selectedKey = selectedKey,
+                onItemSelected = onBarItem,
+                modifier = Modifier.weight(1f, fill = false),
+                layout = TeakFloatingTabLayout.Stacked,
+                selectedContentColor = visual.barSelectedColor,
+            )
+            if (hasSearch) {
+                androidx.compose.foundation.layout.Spacer(Modifier.width(TeakFloatingTabBarDefaults.DetachedSpacing))
+                MainBottomSearchButton(visual.tabBarAlpha, onBottomSearch)
+            }
         }
     }
 }

@@ -23,6 +23,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainBottomNavigation(
 ) {
     val visual = rememberMainBottomNavigationVisual(settings, dark, wideNavigation, searchVisible, tabItems.size)
     if (visual.tabBarAlpha > 0.01f) {
+        MainBottomNavigationShade(settings, wideNavigation, visual.tabBarAlpha)
         if (wideNavigation) {
             MainWideNavigation(tabItems, selectedKey, onBarItem, visual, onSearch)
         } else if (TeakUiStyle.isClassic) {

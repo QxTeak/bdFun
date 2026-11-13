@@ -36,6 +36,7 @@ internal fun MessageFeedList(
     menu: MessageFeedMenuStateHolder,
     actions: MessageFeedActions,
 ) {
+    val navigate = messageRouteAction()
     val colors = MiuixTheme.colorScheme
     val itemsByTab = snapshot.itemsByTab
     val loadingByTab = snapshot.loadingByTab
@@ -60,11 +61,9 @@ internal fun MessageFeedList(
                     itemWidth = if (tabs.size > 2) 76.dp else 96.dp, backdrop = null, plain = true, position = ui.tabProgress)
                 Spacer(Modifier.weight(1f))
                 if (kind == MessageFeedKind.Reply || kind == MessageFeedKind.Like) {
-                    val context = androidx.compose.ui.platform.LocalContext.current
                     Text("设置", color = colors.primary, fontSize = 13.sp, modifier = Modifier.clickable {
-                        context.startActivity(com.aritxonly.bdfun.navigation.createRouteIntent(context,
-                            com.aritxonly.bdfun.core.navigation.Route.MessageTools("settings",
-                                type = if (kind == MessageFeedKind.Like) 19 else if (ui.tab == 2) 18 else 17)))
+                        navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("settings",
+                                type = if (kind == MessageFeedKind.Like) 19 else if (ui.tab == 2) 18 else 17))
                     }.padding(12.dp))
                 }
                 Text("刷新", color = colors.primary, fontSize = 13.sp,
@@ -75,24 +74,20 @@ internal fun MessageFeedList(
             val onMenu = { menu.selected = key to item; menu.confirmDelete = false; menu.confirmMute = false }
             val sectionStart = index == 0 || kind == MessageFeedKind.Like &&
                 item.presentation.latestLike != pageItems[index - 1].presentation.latestLike
-            val sectionEnd = index == pageItems.lastIndex || kind == MessageFeedKind.Like &&
-                item.presentation.latestLike != pageItems[index + 1].presentation.latestLike
             if (kind == MessageFeedKind.Like && sectionStart) {
                 Text(if (item.presentation.latestLike) "最新" else "累计",
                     color = colors.onBackgroundVariant, fontSize = 13.sp,
                     modifier = Modifier.padding(start = 12.dp, top = 14.dp, bottom = 8.dp))
             }
-            MessageRowSurface(sectionStart, sectionEnd) {
-                Column {
-                when (kind) {
-                    MessageFeedKind.Reply -> ReplyRow(item, onClick = { actions.open(item) }, onMore = onMenu)
-                    MessageFeedKind.Like -> LikeRow(item, onClick = { actions.open(item) }, onMore = onMenu)
-                    MessageFeedKind.Fans -> FanRow(item, followedOverride[item.userMid] ?: item.followed,
-                        item.userMid in followBusy, onFollow = { actions.toggleFollow(item) })
-                    MessageFeedKind.System -> SystemNotificationRow(item, onMore = onMenu)
-                }
-                if (!sectionEnd && kind in listOf(MessageFeedKind.Reply, MessageFeedKind.Like)) Box(Modifier.fillMaxWidth().padding(start = 72.dp, end = 16.dp)
-                    .height(0.5.dp).background(colors.onBackgroundVariant.copy(alpha = 0.08f)))
+            Box(Modifier.padding(bottom = 12.dp)) {
+                MessageRowSurface(true, true) {
+                    when (kind) {
+                        MessageFeedKind.Reply -> ReplyRow(item, onClick = { actions.open(item) }, onMore = onMenu)
+                        MessageFeedKind.Like -> LikeRow(item, onClick = { actions.open(item) }, onMore = onMenu)
+                        MessageFeedKind.Fans -> FanRow(item, followedOverride[item.userMid] ?: item.followed,
+                            item.userMid in followBusy, onFollow = { actions.toggleFollow(item) })
+                        MessageFeedKind.System -> SystemNotificationRow(item, onMore = onMenu)
+                    }
                 }
             }
         }

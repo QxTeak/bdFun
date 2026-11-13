@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -46,9 +48,12 @@ internal fun MessageActorHeadline(item: MessageItem, aggregate: Boolean = false)
 
 @Composable
 internal fun MessageOriginalText(text: String) {
-    EmoteText(content = EmoteTextContent(text = "│ $text"),
-        style = EmoteTextStyle(color = MiuixTheme.colorScheme.onBackgroundVariant,
-            fontSize = 13.sp, lineHeight = 20.sp, maxLines = 1))
+    androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth()
+        .clip(com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(10.dp))
+        .background(MiuixTheme.colorScheme.surfaceContainerHigh.copy(alpha = .45f))
+        .padding(horizontal = 12.dp, vertical = 10.dp)) {
+        QuoteBlock("", text)
+    }
 }
 
 @Composable

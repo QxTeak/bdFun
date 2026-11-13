@@ -80,6 +80,9 @@ data class MessagePresentation(
     val atMe: Boolean = false,
     /** 别人在我的视频下发了评论。 */
     val commentOnMyVideo: Boolean = false,
+    /** 原视频封面，与原评论/动态自带图片分开，避免展示错误来源。 */
+    val originalVideoCover: String = "",
+
 )
 
 data class MessageNotice(
