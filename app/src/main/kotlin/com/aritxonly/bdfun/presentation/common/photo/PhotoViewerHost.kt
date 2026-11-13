@@ -46,6 +46,7 @@ import kotlinx.coroutines.launch
 internal fun PhotoViewerHost(
     state: PhotoViewerStateHolder,
     modifier: Modifier = Modifier,
+    onVisibilityChanged: (Boolean) -> Unit = {},
     content: @Composable () -> Unit,
 ) {
     val incoming = state.request
@@ -62,6 +63,12 @@ internal fun PhotoViewerHost(
         durationMillis = if (animations) 250 else 0,
         easing = CubicBezierEasing(0f, 0f, 0.2f, 1f),
     )
+
+    // 宿主不一定知道查看器什么时候开合（比如底栏要隐藏），所以把可见性抛出去。
+    androidx.compose.runtime.DisposableEffect(displayed != null) {
+        onVisibilityChanged(displayed != null)
+        onDispose { onVisibilityChanged(false) }
+    }
 
     LaunchedEffect(incoming, animations) {
         if (incoming != null) {

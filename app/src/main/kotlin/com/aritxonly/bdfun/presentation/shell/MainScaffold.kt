@@ -47,7 +47,8 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
                 // 分段只在 HyperOS 4 风格下可见；切回官方/经典时强制回到推荐，
                 // 否则会停在一个没有入口可以离开的空页面上。
                 MainTabPager(tabPagerState, homeFeed, dynamicFeed, session, settings, ui.dynamicRefreshTick,
-                    homeSection = if (settings.interfaceStyle == 2) ui.homeSection else 0)
+                    homeSection = if (settings.interfaceStyle == 2) ui.homeSection else 0,
+                    onPhotoOpenChange = { ui.photoOpen = it })
 
             }
 
@@ -71,7 +72,7 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
                 translationY = 96.dp.toPx() * progress
                 scaleX = 1f - 0.4f * progress
                 scaleY = scaleX
-                alpha = 1f - progress
+                alpha = ((1f - progress) * if (ui.photoOpen) 0f else 1f)
         }) { MainShellNavigation(settings, shell, dark) }
         MainBottomSearchLayer(settings, shell)
         // 换页时返回键回到"纯箭头"状态（pageKey / pageEnter 在上面声明）
