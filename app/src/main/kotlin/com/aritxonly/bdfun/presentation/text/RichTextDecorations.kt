@@ -22,8 +22,9 @@ internal fun AnnotatedString.Builder.appendRichPrefix(runtime: RichTextRenderCon
     val prefixColor = runtime.style.prefixColor
     val prefixWeight = runtime.style.prefixWeight
     val fontSize = runtime.style.fontSize
+    val prefixSize = runtime.style.prefixFontSize.takeOrElse { fontSize }
     if (!prefix.isNullOrBlank()) {
-        withStyle(SpanStyle(color = prefixColor, fontWeight = prefixWeight)) {
+        withStyle(SpanStyle(color = prefixColor, fontWeight = prefixWeight, fontSize = prefixSize)) {
             append(prefix)
         }
         if (prefixBadge != null) {
@@ -31,8 +32,8 @@ internal fun AnnotatedString.Builder.appendRichPrefix(runtime: RichTextRenderCon
             appendInlineContent("prefixBadge", "UP")
             inline["prefixBadge"] = InlineTextContent(
                 Placeholder(
-                    width = fontSize * 1.9f,
-                    height = fontSize * 1.35f,
+                    width = prefixSize * 1.9f,
+                    height = prefixSize * 1.35f,
                     placeholderVerticalAlign = PlaceholderVerticalAlign.Center,
                 ),
             ) { _ ->
@@ -44,7 +45,7 @@ internal fun AnnotatedString.Builder.appendRichPrefix(runtime: RichTextRenderCon
                 }
             }
         }
-        withStyle(SpanStyle(color = prefixColor, fontWeight = prefixWeight)) {
+        withStyle(SpanStyle(color = prefixColor, fontWeight = prefixWeight, fontSize = prefixSize)) {
             append("：")
         }
     }

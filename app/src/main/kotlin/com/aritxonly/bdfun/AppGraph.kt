@@ -70,6 +70,8 @@ object AppGraph {
                 it.videoReadCache.scope(), it.automaticVideoQuality, it.settings, it.videoPageDependencies)
         }
     val homeFeedState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.homeFeedState
+    internal val livePageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.livePageState
+    internal val bangumiPageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.bangumiPageState
 
     /** 登录态：MainActivity 与 LoginActivity 共享，登录成功直接写这里。 */
     val session get() = checkNotNull(container) { "AppGraph 尚未初始化" }.session

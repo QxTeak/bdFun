@@ -139,6 +139,9 @@ internal class AppContainer(
         HomeSlot(job, view)
     }, { it.view.close(); it.job.cancel() })
     val homeFeedState: HomeFeedState get() = homeSlot.get().view
+    // 首页「直播」「番剧」两段的状态：进程内单例，切 tab 不丢列表与滚动位置。
+    val livePageState by lazy { com.aritxonly.bdfun.feature.discover.application.LivePageStateHolder(api) }
+    val bangumiPageState by lazy { com.aritxonly.bdfun.feature.discover.application.BangumiPageStateHolder(api) }
     private val dynamicRepository by lazy {
         BiliFeedPageRepository({ type, offset, mid -> api.dynamicPage(type, offset, mid) }, api::dynamicPortal, api::dynamicUpList, api::likeFeed)
     }

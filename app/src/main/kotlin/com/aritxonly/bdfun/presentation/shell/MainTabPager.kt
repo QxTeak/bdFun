@@ -50,10 +50,15 @@ internal fun MainTabPager(
                         onOpenVideo = { navigateToVideo(context, it) },
                         cardStyle = settings.homeCardStyle,
                     )
+                } else if (homeSection == 1) {
+                    com.aritxonly.bdfun.presentation.discover.LivePage(
+                        state = AppGraph.livePageState,
+                        loggedIn = session != null,
+                    )
                 } else {
-                    // 直播 / 番剧：页面还没做，先留空。顶栏 tab 可以切换到这里，
-                    // 不显示任何占位文案，避免以后接入真实页面时还要删一遍。
-                    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize())
+                    com.aritxonly.bdfun.presentation.discover.BangumiPage(
+                        state = AppGraph.bangumiPageState,
+                    )
                 }
 
                 1 -> FeedScreen(
