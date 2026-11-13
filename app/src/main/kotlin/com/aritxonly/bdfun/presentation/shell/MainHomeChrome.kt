@@ -56,9 +56,10 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(settings
                     underlayBlurPx = underlayBlurPx,
                     modifier = Modifier.align(Alignment.TopCenter)
                         .graphicsLayer {
-                            val searchScale = 1f - 0.1f * shell.bottom.bottomSearchProgress.value
-                            scaleX = searchScale
-                            scaleY = searchScale
+                            // 不要在这里缩放顶栏。玻璃是拿着 backdrop 纹理按自身坐标采样的，
+                            // 一旦父层被缩放，采样区域会跟着缩水，采到的不是正下方的内容，
+                            // 边缘就会错出一条带子——底栏搜索动画里那条"撕裂"就是这么来的。
+                            // 顶栏本来就在 150ms 内淡出，不缩也看不出来。
                             translationX = -pageFloat * size.width * 0.92f
                             alpha = (1f - pageFloat).coerceIn(0f, 1f) * (1f - shell.bottom.bottomTopBarAlpha.value)
                         },
