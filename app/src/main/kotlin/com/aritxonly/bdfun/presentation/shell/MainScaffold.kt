@@ -44,7 +44,10 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
             ) {
                 // 三个 tab：横向相连的 pager（可拖拽，切换是同一套非线性动画）
                 // 外面包一层更大的触摸阈值，手指轻抖不会误翻页。
-                MainTabPager(tabPagerState, homeFeed, dynamicFeed, session, settings, ui.dynamicRefreshTick)
+                // 分段只在 HyperOS 4 风格下可见；切回官方/经典时强制回到推荐，
+                // 否则会停在一个没有入口可以离开的空页面上。
+                MainTabPager(tabPagerState, homeFeed, dynamicFeed, session, settings, ui.dynamicRefreshTick,
+                    homeSection = if (settings.interfaceStyle == 2) ui.homeSection else 0)
 
             }
 

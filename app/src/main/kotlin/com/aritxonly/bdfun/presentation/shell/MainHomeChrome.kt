@@ -64,7 +64,10 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(settings
         // 透明度直接由下拉位移决定：位移 58dp 开始淡入、84dp 全显；
         // 卡片在位移 <46dp 时才会撞到小电视，因此永远追不上。
         HomePullIndicator(
-            reveal = if (homeFeed.refreshing) {
+            // 直播 / 番剧还没接入下拉刷新，切到这两段时不要把推荐的下拉指示器带过去。
+            reveal = if (ui.homeSection != 0) {
+                0f
+            } else if (homeFeed.refreshing) {
                 1f
             } else {
                 ((homeFeed.pullOffsetDp - 58f) / 26f).coerceIn(0f, 1f)

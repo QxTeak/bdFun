@@ -29,6 +29,7 @@ internal fun MainTabPager(
     homeFeed: com.aritxonly.bdfun.feature.home.presentation.HomeFeedState,
     dynamicFeed: com.aritxonly.bdfun.feature.dynamic.presentation.DynamicFeedState,
     session: UserProfile?, settings: SettingsBindings, dynamicRefreshTick: Int,
+    homeSection: Int = 0,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     CompositionLocalProvider(
@@ -42,11 +43,17 @@ internal fun MainTabPager(
             overscrollEffect = null,
         ) { page ->
             when (page) {
-                0 -> HomeScreenRoute(
-                    state = homeFeed,
-                    onOpenVideo = { navigateToVideo(context, it) },
-                    cardStyle = settings.homeCardStyle,
-                )
+                0 -> if (homeSection == 0) {
+                    HomeScreenRoute(
+                        state = homeFeed,
+                        onOpenVideo = { navigateToVideo(context, it) },
+                        cardStyle = settings.homeCardStyle,
+                    )
+                } else {
+                    // 直播 / 番剧：页面还没做，先留空。顶栏 tab 可以切换到这里，
+                    // 不显示任何占位文案，避免以后接入真实页面时还要删一遍。
+                    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize())
+                }
 
                 1 -> DynamicScreen(
                     state = dynamicFeed,
