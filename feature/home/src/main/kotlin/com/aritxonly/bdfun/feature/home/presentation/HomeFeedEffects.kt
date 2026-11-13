@@ -48,7 +48,8 @@ internal fun HomeFeedEffects(state: HomeFeedState, ui: HomePresentationStateHold
             // 进入页面/从视频页返回时首次布局会重发一次当前索引，不能把它当成用户滑到底。
             .drop(1)
             .collect { last ->
-                if (state.videos.isNotEmpty() && last >= state.videos.size - 2) state.loadMore()
+                if (state.videos.isNotEmpty() && last >= state.videos.size - (if (state.optimizationEnabled)
+                    maxOf(2, state.gridState.layoutInfo.visibleItemsInfo.size * 2) else 2)) state.loadMore()
             }
     }
 

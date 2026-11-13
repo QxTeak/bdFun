@@ -11,8 +11,14 @@ import kotlinx.coroutines.launch
 
 /** 仅持有视图投影、下拉手势和列表滚动；业务状态由纯应用层控制器持有。 */
 @Stable
-class HomeFeedState internal constructor(private val controller: HomeFeedStateHolder, internal val actions: HomeActionsStateHolder, scope: CoroutineScope) {
+class HomeFeedState internal constructor(private val controller: HomeFeedStateHolder, internal val actions: HomeActionsStateHolder, scope: CoroutineScope,
+    private val optimizer: com.aritxonly.bdfun.core.application.RecommendationOptimizer? = null,
+) {
     val gridState = LazyGridState()
+    val optimizationEnabled get() = optimizer?.state?.value?.enabled == true
+    internal fun exposureTicket() = controller.exposureTicket()
+    internal fun expose(video: VideoItem, ticket: com.aritxonly.bdfun.core.application.RecommendationTicket) = controller.expose(video, ticket)
+    internal fun open(video: VideoItem) = controller.open(video)
     private var observed by mutableStateOf(controller.state.value)
     var pullFraction by mutableFloatStateOf(0f)
     var pullOffsetDp by mutableFloatStateOf(0f)
@@ -27,6 +33,15 @@ class HomeFeedState internal constructor(private val controller: HomeFeedStateHo
     val loadMoreError get() = observed.loadMoreError?.messageOr("加载失败")
         ?: if (observed.filteredPage) "本页内容已过滤，点击继续加载" else null
     init {
+        optimizer?.let { optimization -> scope.launch {
+            var previous = optimization.state.value.generation
+            optimization.state.collect { mode ->
+                if (mode.generation != previous) {
+                    previous = mode.generation
+                    controller.modeChanged()
+                }
+            }
+        } }
         scope.launch {
             controller.state.collect { next ->
                 val scroll = next.scrollRevision != observed.scrollRevision
@@ -50,8 +65,9 @@ fun createHomeFeedState(
     videos: com.aritxonly.bdfun.core.domain.VideoRepository,
     actions: com.aritxonly.bdfun.core.domain.RecommendationActionsRepository,
     scope: CoroutineScope,
+    optimizer: com.aritxonly.bdfun.core.application.RecommendationOptimizer? = null,
 ): HomeFeedState {
-    val controller = HomeFeedStateHolder(feed, videos)
+    val controller = HomeFeedStateHolder(feed, videos, optimizer)
     val feedback = HomeActionsStateHolder(videos, actions, controller)
-    return HomeFeedState(controller, feedback, scope)
+    return HomeFeedState(controller, feedback, scope, optimizer)
 }

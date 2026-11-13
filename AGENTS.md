@@ -584,4 +584,8 @@ HyperOS 中性色以 Deadliner 的 HyperOS 适配为准：surface 为页面层�
 
 ### 2026-11-13 首页推荐优化设计入口
 
-新增业务设计见 docs/HOME_RECOMMENDATION_DESIGN.md（REC-00 至 REC-05）。当前仅方案落稿；实现按阶段独立 PR。“推荐算法优化”计划默认关闭，关闭旁路新增排序与学习、保持既有推荐源和行为；账号/模式/清除代数拒收迟到事件，禁止伪造曝光或猜测推荐协议。不得将本设计检查点写成已实现。
+新增业务设计见 docs/HOME_RECOMMENDATION_DESIGN.md（REC-00 至 REC-05）。2026-11-14 用户要求在 PR #52 同一分支实现；阶段验收状态见 docs/HOME_RECOMMENDATION_IMPLEMENTATION.md。“推荐算法优化”计划默认关闭，关闭旁路新增排序与学习、保持既有推荐源和行为；账号/模式/清除代数拒收迟到事件，禁止伪造曝光或猜测推荐协议。不得将本设计检查点写成全部阶段均已验收。
+
+### 2026-11-14 推荐优化本地 v1
+
+推荐开关与学习归属由 core/application/RecommendationOptimizer 管理，存储为 infra/storage/FileRecommendationStorage 的独立 v1 文件；默认关闭，游客不落盘。首页只在新批次执行 core/domain 的有界排序，已发布条目不重排。关闭、清除和账号变化使旧 ticket 失效；播放学习仅关联首页真实点击，通过共享 PlaybackSessionStateHolder 观察，不改播放行为。不开新推荐接口、不伪造曝光/上报；本地算法实现不等于官方协议、登录账号体验或质量收益已验收。具体剩余项见实现记录。

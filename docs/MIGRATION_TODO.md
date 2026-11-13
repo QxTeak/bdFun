@@ -460,4 +460,4 @@ P5-* 依赖 P4-05，且需要团队同意
 
 ## 首页推荐优化（新增业务，独立于迁移完成度）
 
-方案与验收以 [HOME_RECOMMENDATION_DESIGN.md](HOME_RECOMMENDATION_DESIGN.md) 为准。REC-00 为设计落稿，待评审；REC-01 至 REC-05 均未开始。任务依次为协议基线、开关与事件底座、轻量优化 MVP、兴趣适应、探索与评估；每阶段独立 PR，不计入原 P0–P5 迁移完成数量。
+方案以 [HOME_RECOMMENDATION_DESIGN.md](HOME_RECOMMENDATION_DESIGN.md) 为准，实际范围与验证见 [HOME_RECOMMENDATION_IMPLEMENTATION.md](HOME_RECOMMENDATION_IMPLEMENTATION.md)。按 2026-11-14 用户要求在 PR #52 实现：REC-00 已落稿，REC-02/03 与 REC-04 的本地 v1 已接入；REC-01 真实协议/账号对照、REC-04 完整播放场景与明确互动反馈、REC-05 探索和效果实验尚待完成或验收，不计入原 P0–P5 迁移数量。

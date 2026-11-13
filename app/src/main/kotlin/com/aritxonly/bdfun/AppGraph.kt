@@ -47,6 +47,7 @@ object AppGraph {
     internal fun messageFeedStateHolder(kind: com.aritxonly.bdfun.feature.message.application.MessageFeedKind) =
         checkNotNull(container) { "AppGraph 尚未初始化" }.messageFeedStateHolder(kind)
     internal fun settingsCdnStateHolder() = checkNotNull(container) { "AppGraph 尚未初始化" }.settingsCdnStateHolder()
+    internal val recommendationOptimizer get() = checkNotNull(container).recommendationOptimizer
     internal val mineLayout get() = checkNotNull(container) { "AppGraph 尚未初始化" }.mineLayout
     internal val mineDependencies get() = checkNotNull(container) { "AppGraph 尚未初始化" }.mineDependencies
     internal val libraryDependencies get() = checkNotNull(container) { "AppGraph 尚未初始化" }.libraryDependencies

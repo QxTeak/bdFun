@@ -31,6 +31,7 @@ internal fun MainTabPager(
     session: UserProfile?, settings: SettingsBindings, dynamicRefreshTick: Int,
     mineList: androidx.compose.foundation.lazy.LazyListState,
     homeSection: Int = 0,
+    homeInteractive: Boolean = true,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     CompositionLocalProvider(
@@ -49,6 +50,7 @@ internal fun MainTabPager(
                         state = homeFeed,
                         onOpenVideo = { navigateToVideo(context, it) },
                         cardStyle = settings.homeCardStyle,
+                        interactive = homeInteractive && pager.settledPage == 0 && !pager.isScrollInProgress,
                     )
                 } else {
                     // 直播 / 番剧：页面还没做，先留空。顶栏 tab 可以切换到这里，

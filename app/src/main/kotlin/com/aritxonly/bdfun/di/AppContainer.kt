@@ -88,6 +88,10 @@ internal class AppContainer(
     fun createPlaybackController(context: Context, decoderMode: Int): com.aritxonly.bdfun.feature.video.presentation.VideoPlaybackPlatform =
         com.aritxonly.bdfun.playback.AndroidVideoPlaybackPlatform(
             com.aritxonly.bdfun.infra.playback.Media3PlaybackController(context.applicationContext, decoderMode), mediaControls)
+    val recommendationOptimizer = createRecommendationOptimizer(context, presentationScope) {
+        val identity = sessionController.identity
+        (identity.mid?.takeIf { it > 0 }?.toString().orEmpty()) to identity.revision
+    }
     private val playbackSession = com.aritxonly.bdfun.core.application.PlaybackSessionStateHolder(presentationScope)
     val backgroundPlayback by lazy {
         com.aritxonly.bdfun.ui.BackgroundPlaybackStateHolder(playbackSession, presentationScope,
@@ -135,7 +139,7 @@ internal class AppContainer(
         val scope = CoroutineScope(presentationScope.coroutineContext + job)
         val view = com.aritxonly.bdfun.feature.home.presentation.createHomeFeedState(
             feedRepository, videoRepository,
-            BiliRecommendationActionsRepository(api::addWatchLater, api::dislikeRecommendation), scope)
+            BiliRecommendationActionsRepository(api::addWatchLater, api::dislikeRecommendation), scope, recommendationOptimizer)
         HomeSlot(job, view)
     }, { it.view.close(); it.job.cancel() })
     val homeFeedState: HomeFeedState get() = homeSlot.get().view
@@ -268,10 +272,13 @@ internal class AppContainer(
     val sentHistory: SentHistoryStore? = context?.let { SentHistoryStore(it.applicationContext) }
 
     init {
+        com.aritxonly.bdfun.core.application.observeRecommendationPlayback(
+            recommendationOptimizer, playbackSession, presentationScope, android.os.SystemClock::elapsedRealtime)
         presentationScope.launch {
             var previousIdentity = sessionController.identity
             sessionController.state.collect { state ->
                 if (state.identity != previousIdentity) {
+                    recommendationOptimizer.accountChanged()
                     mineProfileStore.clear()
                     commentLikesStore.clear()
                     emoteStore.clear()
