@@ -160,7 +160,7 @@ private fun NoticeConsentRow(accepted: Boolean, onAcceptedChange: (Boolean) -> U
             text = "我已阅读并理解以上提醒",
             modifier = Modifier.weight(1f),
             style = MiuixTheme.textStyles.body2,
-            color = colors.onSurface,
+            color = colors.onSurfaceContainer,
         )
     }
 }

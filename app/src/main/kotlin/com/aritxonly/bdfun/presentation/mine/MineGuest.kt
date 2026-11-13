@@ -28,7 +28,7 @@ internal fun MineGuest(cardShape: androidx.compose.ui.graphics.Shape, onLogin: (
         modifier = Modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .padding(22.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {

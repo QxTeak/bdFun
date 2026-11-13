@@ -92,7 +92,7 @@ internal fun SpaceShopCard(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(14.dp))
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .clickable(interactionSource = null, indication = null, onClick = onClick),
     ) {
         Box(

@@ -60,7 +60,7 @@ internal fun VideoCollectionEpisodeCover(episode: com.aritxonly.bdfun.core.model
             .width(84.dp)
             .aspectRatio(16f / 9f)
             .clip(RoundedCornerShape(8.dp))
-            .background(colors.surface),
+            .background(colors.surfaceContainer),
     ) {
         slots.cover(episode.cover, Modifier.fillMaxSize())
         if (episode.duration > 0) {

@@ -32,7 +32,7 @@ internal fun VideoGridCard(
     Column(
         modifier = modifier
             .clip(FeedCardShape)
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .combinedClickable(interactionSource = null, indication = null, onClick = onClick, onLongClick = onLongClick),
     ) {
         GridVideoCover(video, progress, selectionEnabled, selected, reserveMeta)

@@ -551,3 +551,7 @@ HyperOS 4只拥有独立展开/关闭转场，内部复用顶栏的HomeTopBar及
 EmoteStore 先读缓存，24 小时内复用，过期保留旧列表并刷新，账号切换拒收迟到结果。
 图片由 app 装配的独立 Coil loader 按显示需求缓存，不预下载整包；磁盘位于 filesDir/emote_images，
 上限 128MiB。面板使用固定 220dp 的懒网格，禁止恢复一次组合全包图片的 Column。
+
+### 2026-11-13 HyperOS 中性色对齐
+
+HyperOS 中性色以 Deadliner 的 HyperOS 适配为准：surface 为页面层（浅色 F3F3F3 / 深色 000000），surfaceContainer 为卡片层（FFFFFF / 242424）。应用层旧 surface/surfaceContainer 引用及配对前景已交换，TeakUI 标准组件仍遵循自身语义；不要再次把两个 token 的定义反转。独立 Activity、直播与主壳 Material 色板统一由 appMaterialColors 投影，粉/蓝品牌设置保持。

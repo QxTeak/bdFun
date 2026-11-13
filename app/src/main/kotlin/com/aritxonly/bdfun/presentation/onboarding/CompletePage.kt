@@ -33,7 +33,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun CompletePage(onStart: () -> Unit) {
-    val surface = MiuixTheme.colorScheme.surface
+    val surface = MiuixTheme.colorScheme.surfaceContainer
     val accent = MiuixTheme.colorScheme.primary
     val fallback = Brush.linearGradient(
         listOf(

@@ -248,7 +248,7 @@ fun ChangelogScreen(onBack: () -> Unit) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(cardShape)
-                            .background(colors.surface)
+                            .background(colors.surfaceContainer)
                             .padding(horizontal = 16.dp, vertical = 14.dp),
                     ) {
                         entry.changes.forEachIndexed { index, line ->

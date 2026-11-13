@@ -63,14 +63,14 @@ internal fun WideSpaceProfile(
                 }
             }
             Text(profile?.sign.orEmpty().ifBlank { "这个人很神秘，什么都没有写" }, color = colors.onBackgroundVariant,
-                modifier = Modifier.fillMaxWidth().clip(ContinuousCornerShape(18.dp)).background(colors.surface).padding(16.dp), fontSize = 13.sp)
+                modifier = Modifier.fillMaxWidth().clip(ContinuousCornerShape(18.dp)).background(colors.surfaceContainer).padding(16.dp), fontSize = 13.sp)
             if (!profile?.officialTitle.isNullOrBlank()) Text(profile?.officialTitle.orEmpty(), color = colors.onBackgroundVariant, fontSize = 12.sp)
             if (!profile?.officialDesc.isNullOrBlank()) Text(profile?.officialDesc.orEmpty(), color = colors.onBackgroundVariant, fontSize = 12.sp)
             if (!profile?.fansMedalName.isNullOrBlank()) Text("${profile?.fansMedalName} · Lv${profile?.fansMedalLevel}", color = colors.primary, fontSize = 12.sp)
             Text("UID：$mid", color = colors.onBackgroundVariant, fontSize = 12.sp, modifier = Modifier.fillMaxWidth())
             Text("充电 · ${formatCountNoDecimal(profile?.chargingCount ?: 0)}人已为其充电", color = colors.onBackgroundVariant,
                 fontSize = 13.sp, modifier = Modifier.fillMaxWidth().clip(ContinuousCornerShape(18.dp))
-                    .background(colors.surface).clickable {
+                    .background(colors.surfaceContainer).clickable {
                         runCatching { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW,
                             android.net.Uri.parse("https://space.bilibili.com/$mid/upower/rank"))) }
                             .onFailure { context.showToast("无法打开充电页") }

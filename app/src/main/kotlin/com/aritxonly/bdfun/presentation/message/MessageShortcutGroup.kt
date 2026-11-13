@@ -28,7 +28,7 @@ internal fun MessageShortcutGroup(unread: Map<String, Int>, events: MessageScree
             .fillMaxWidth()
             .padding(top = 18.dp)
             .clip(com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(22.dp))
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {

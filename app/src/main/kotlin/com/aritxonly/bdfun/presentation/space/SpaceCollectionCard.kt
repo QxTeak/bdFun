@@ -39,7 +39,7 @@ internal fun SpaceCollectionGridCard(
     Column(
         modifier = modifier
             .clip(com.aritxonly.bdfun.ui.FeedCardShape)
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .clickable(interactionSource = null, indication = null, onClick = onClick),
     ) {
         Box(

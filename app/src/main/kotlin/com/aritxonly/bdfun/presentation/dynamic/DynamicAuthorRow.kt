@@ -30,7 +30,7 @@ internal fun DynamicAuthorRow(name: String, face: String, selected: Boolean, upd
     live: Boolean = false, onClick: () -> Unit) {
     val colors = MiuixTheme.colorScheme
     Row(Modifier.fillMaxWidth().clip(ContinuousCornerShape(14.dp))
-        .background(if (selected) colors.surface else Color.Transparent)
+        .background(if (selected) colors.surfaceContainer else Color.Transparent)
         .clickable(onClick = onClick).padding(8.dp), verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         Box(Modifier.size(38.dp).semantics { stateDescription = if (updated) "有更新" else if (live) "直播中" else "" }) {

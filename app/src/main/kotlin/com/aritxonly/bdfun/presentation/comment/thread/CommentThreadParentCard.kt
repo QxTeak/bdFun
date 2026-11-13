@@ -19,7 +19,7 @@ internal fun CommentThreadParentCard(comment: CommentItem, transient: CommentThr
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(colors.surface),
+            .background(colors.surfaceContainer),
     ) {
         CommentRow(
             item = comment.copy(

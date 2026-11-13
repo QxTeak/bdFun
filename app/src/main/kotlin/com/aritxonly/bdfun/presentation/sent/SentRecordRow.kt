@@ -37,7 +37,7 @@ internal fun SentRecordRow(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 12.dp),
     ) {

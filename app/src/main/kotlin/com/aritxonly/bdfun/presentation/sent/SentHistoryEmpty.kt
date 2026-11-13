@@ -21,7 +21,7 @@ internal fun SentHistoryEmpty(cardShape: androidx.compose.ui.graphics.Shape) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .padding(vertical = 44.dp),
         contentAlignment = Alignment.Center,
     ) {

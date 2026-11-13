@@ -63,7 +63,7 @@ internal fun LibraryFolderChip(text: String, selected: Boolean, onClick: () -> U
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
-            .background(if (selected) colors.primary else colors.surface)
+            .background(if (selected) colors.primary else colors.surfaceContainer)
             .border(
                 width = if (selected) 1.dp else 0.dp,
                 color = if (selected) Color.White.copy(alpha = 0.45f) else Color.Transparent,

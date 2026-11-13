@@ -32,7 +32,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchSuggestionItem
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
-                    .background(colors.surface)
+                    .background(colors.surfaceContainer)
                     .padding(horizontal = 14.dp, vertical = 4.dp),
             ) {
                 suggestions.forEach { word ->
@@ -77,7 +77,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHistoryItems(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
-                    .background(colors.surface)
+                    .background(colors.surfaceContainer)
                     .padding(horizontal = 14.dp, vertical = 8.dp),
             ) {
                 history.chunked(2).forEach { row ->
@@ -114,7 +114,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHotItems(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(18.dp))
-                    .background(colors.surface)
+                    .background(colors.surfaceContainer)
                     .padding(horizontal = 14.dp, vertical = 6.dp),
             ) {
                 hot.forEachIndexed { index, word ->

@@ -59,7 +59,7 @@ private fun MineGrid(request: MineScreenRequest, shown: UserProfile?, navigation
 @Composable
 private fun MineSentEntry(cardShape: androidx.compose.ui.graphics.Shape, onOpenSentHistory: () -> Unit) {
     val colors = MiuixTheme.colorScheme
-    Column(modifier = Modifier.fillMaxWidth().clip(cardShape).background(colors.surface)) {
+    Column(modifier = Modifier.fillMaxWidth().clip(cardShape).background(colors.surfaceContainer)) {
         MineRow("我的评论与弹幕", onClick = onOpenSentHistory)
     }
 }

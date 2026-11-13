@@ -20,7 +20,7 @@ internal fun OnboardingBackground(
     modifier: Modifier = Modifier,
     content: @Composable androidx.compose.foundation.layout.BoxScope.() -> Unit = {},
 ) {
-    val surface = MiuixTheme.colorScheme.surface
+    val surface = MiuixTheme.colorScheme.surfaceContainer
     val shader = remember { isRuntimeShaderSupported() }
     BgEffectBackground(
         dynamicBackground = playing,

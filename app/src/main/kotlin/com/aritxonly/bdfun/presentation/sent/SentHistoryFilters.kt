@@ -28,7 +28,7 @@ internal fun SentHistoryFilters(state: SentHistoryState, onSelect: (Int) -> Unit
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(if (active) colors.primary else colors.surface)
+                    .background(if (active) colors.primary else colors.surfaceContainer)
                     .clickable { onSelect(index) }
                     .padding(horizontal = 16.dp, vertical = 7.dp),
             ) {

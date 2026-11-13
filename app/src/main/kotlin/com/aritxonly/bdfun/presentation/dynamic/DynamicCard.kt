@@ -33,7 +33,7 @@ internal fun DynamicCard(
             .then(oneTake.modifier)
             .fillMaxWidth()
             .clip(shape)
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .clickable(interactionSource = null, indication = null) {
                 if (presentation.animatedOpen && item.mid > 0L) {
                     oneTake.openDynamic(context, item, cardRadiusPx) { actions.onOpen() }

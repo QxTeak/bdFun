@@ -37,7 +37,7 @@ internal fun MineProfileCard(shown: UserProfile, cardShape: androidx.compose.ui.
         modifier = Modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .padding(16.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
