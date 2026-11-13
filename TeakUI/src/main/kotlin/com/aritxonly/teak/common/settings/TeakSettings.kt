@@ -190,7 +190,7 @@ fun TeakSettingsCard(
                 .then(
                     if (classic) {
                         Modifier
-                            .background(colors.surface)
+                            .background(colors.surfaceContainer)
                             .drawBehind {
                                 val y = size.height - 1.dp.toPx() / 2f
                                 drawLine(
@@ -201,7 +201,7 @@ fun TeakSettingsCard(
                                 )
                             }
                     } else {
-                        Modifier.clip(CardShape).background(colors.surface)
+                        Modifier.clip(CardShape).background(colors.surfaceContainer)
                     },
                 ),
             content = content,
