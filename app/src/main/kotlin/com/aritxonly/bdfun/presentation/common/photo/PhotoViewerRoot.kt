@@ -43,12 +43,11 @@ internal fun PhotoViewerRoot(content: @Composable () -> Unit) {
         }
     }
     Box(Modifier.fillMaxSize().onSizeChanged { view.size = it }) {
-        // 底层页面：打开时随入场进度一起缩到 0.9，关闭时回到 1.0。
-        // 这是 Telegram 的层次感来源——图片浮起来，页面往后退。
-        // 返回键的拦截放在覆盖层里（后注册才优先），不能放在这里。
+        // 底层页面：打开时随进度放大一点点，关闭时按同样倍数缩回；
+        // 跟手拖动时再缩到 0.9。返回键的拦截放在覆盖层里（后注册才优先）。
         Box(
             modifier = Modifier.fillMaxSize().graphicsLayer {
-                val scale = photoBackdropScale(view.progress.value)
+                val scale = photoBackdropScaleAt(view.progress.value, view.dismissProgress)
                 scaleX = scale
                 scaleY = scale
             },
