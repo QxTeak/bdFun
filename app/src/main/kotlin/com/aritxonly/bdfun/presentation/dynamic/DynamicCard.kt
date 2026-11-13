@@ -27,7 +27,7 @@ internal fun DynamicCard(
     val shape = ContinuousCornerShape(16.dp)
     val oneTake = rememberOneTakeAnchor()
     val cardRadiusPx = with(LocalDensity.current) { 16.dp.toPx() }
-    val viewer = remember { DynamicImageSelectionStateHolder() }
+    val photo = LocalPhotoViewer.current
     Column(
         modifier = modifier
             .then(oneTake.modifier)
@@ -47,8 +47,25 @@ internal fun DynamicCard(
         DynamicCardText(item, presentation.expanded)
         if (item.images.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
-            DynamicImageGrid(images = item.images, onOpen = { url, rect ->
-                viewer.viewerUrl = url; viewer.viewerOrigin = rect
+            DynamicImageGrid(images = item.images, onOpen = { url, rect, radius ->
+                // 查看器由页面级宿主统一持有：这样关闭动画能作用在整页上（背后页面缩小），
+                // 卡片只负责把缩略图矩形和圆角交出去。
+                photo.open(
+                    images = item.images,
+                    index = item.images.indexOf(url),
+                    origin = rect,
+                    originRadiusPx = radius,
+                    footer = { dismiss ->
+                        DynamicViewerFooter(
+                            item = item,
+                            liked = presentation.liked,
+                            dismissAnimated = dismiss,
+                            onLike = actions.onLike,
+                            onComment = actions.onComment,
+                            onRepost = actions.onRepost,
+                        )
+                    },
+                )
             })
         }
         DynamicCardPgc(item, actions.onOpen)
@@ -56,10 +73,5 @@ internal fun DynamicCard(
             oneTake.open(context, video, cardRadiusPx) { actions.onOpenVideo(video) }
         }
         DynamicCardFooter(item, presentation.liked, actions)
-    }
-    viewer.viewerUrl?.let { url ->
-        DynamicImageViewer(item, url, viewer.viewerOrigin, presentation.liked,
-            onDismiss = { viewer.viewerUrl = null }, onLike = actions.onLike,
-            onComment = actions.onComment, onRepost = actions.onRepost)
     }
 }

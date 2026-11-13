@@ -24,10 +24,13 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun DynamicImageGrid(
     images: List<String>,
-    onOpen: (String, Rect) -> Unit,
+    onOpen: (String, Rect, Float) -> Unit,
 ) {
     if (images.isEmpty()) return
     val colors = MiuixTheme.colorScheme
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val singleRadiusPx = with(density) { 12.dp.toPx() }
+    val gridRadiusPx = with(density) { 10.dp.toPx() }
     val bounds = remember { DynamicImageBoundsStateHolder() }.bounds
     if (images.size == 1) {
         val url = images.first()
@@ -42,7 +45,7 @@ internal fun DynamicImageGrid(
                 .background(colors.surfaceContainerHigh)
                 .onGloballyPositioned { bounds[url] = it.boundsInRoot() }
                 .clickable(interactionSource = null, indication = null) {
-                    onOpen(url, bounds[url] ?: Rect.Zero)
+                    onOpen(url, bounds[url] ?: Rect.Zero, singleRadiusPx)
                 },
         )
         return
@@ -64,7 +67,7 @@ internal fun DynamicImageGrid(
                         .background(colors.surfaceContainerHigh)
                         .onGloballyPositioned { bounds[url] = it.boundsInRoot() }
                         .clickable(interactionSource = null, indication = null) {
-                            onOpen(url, bounds[url] ?: Rect.Zero)
+                            onOpen(url, bounds[url] ?: Rect.Zero, gridRadiusPx)
                         },
                 )
             }

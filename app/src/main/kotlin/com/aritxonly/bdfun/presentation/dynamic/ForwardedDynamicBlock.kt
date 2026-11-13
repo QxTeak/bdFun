@@ -31,7 +31,7 @@ internal fun ForwardedDynamicBlock(
     val context = LocalContext.current
     val forwardedOneTake = rememberOneTakeAnchor()
     val forwardedRadiusPx = with(LocalDensity.current) { 12.dp.toPx() }
-    val viewer = remember { DynamicImageSelectionStateHolder() }
+    val photo = LocalPhotoViewer.current
     Column(
         modifier = Modifier
             .then(forwardedOneTake.modifier)
@@ -49,9 +49,16 @@ internal fun ForwardedDynamicBlock(
             Spacer(Modifier.height(6.dp))
             DynamicImageGrid(
                 images = item.images,
-                onOpen = { url, rect ->
-                    viewer.viewerUrl = url
-                    viewer.viewerOrigin = rect
+                onOpen = { url, rect, radius ->
+                    photo.open(
+                        images = item.images,
+                        index = item.images.indexOf(url),
+                        origin = rect,
+                        originRadiusPx = radius,
+                        footer = { dismiss ->
+                            DynamicViewerFooter(item, item.liked, dismiss, {}, onOpen, onOpen)
+                        },
+                    )
                 },
             )
         }
@@ -70,17 +77,5 @@ internal fun ForwardedDynamicBlock(
                 onToggleMute = onToggleMute,
             )
         }
-    }
-    viewer.viewerUrl?.let { url ->
-        DynamicImageViewer(
-            item = item,
-            url = url,
-            origin = viewer.viewerOrigin,
-            liked = item.liked,
-            onDismiss = { viewer.viewerUrl = null },
-            onLike = {},
-            onComment = onOpen,
-            onRepost = onOpen,
-        )
     }
 }

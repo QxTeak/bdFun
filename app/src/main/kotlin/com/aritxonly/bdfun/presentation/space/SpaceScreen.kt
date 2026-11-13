@@ -1,7 +1,14 @@
 package com.aritxonly.bdfun
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import com.aritxonly.bdfun.ui.LocalPhotoViewer
+import com.aritxonly.bdfun.ui.PhotoViewerHost
+import com.aritxonly.bdfun.ui.PhotoViewerStateHolder
 
 @Composable
 internal fun SpaceScreen(
@@ -23,5 +30,12 @@ internal fun SpaceScreen(
     SpacePagerSyncEffects(content, scroll, scrollActions)
     val actions = SpaceScreenActions(context, scrollActions::selectTab, contentActions::loadCollection,
         contentActions::loadArticles, contentActions::follow, scrollActions::applyPageDrag)
-    SpaceScreenBody(content, scroll.layout, actions)
+    // 空间页也会渲染动态卡片，所以同样需要页面级查看器宿主，
+    // 否则点缩略图时 LocalPhotoViewer 会取不到值。
+    val photo = remember { PhotoViewerStateHolder() }
+    CompositionLocalProvider(LocalPhotoViewer provides photo) {
+        PhotoViewerHost(state = photo, modifier = Modifier.fillMaxSize()) {
+            SpaceScreenBody(content, scroll.layout, actions)
+        }
+    }
 }
