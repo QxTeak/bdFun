@@ -57,8 +57,11 @@ internal fun MessageFeedList(
         item(key = "header") { TeakLargeTitle(title = title) }
         item(key = "tabs") {
             Row(Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (tabs.isNotEmpty()) TeakPagerTabs(options = tabs, selected = if (ui.tab == 2) 1 else 0, onSelect = { ui.tab = if (it == 1) 2 else 0 },
-                    itemWidth = if (tabs.size > 2) 76.dp else 96.dp, backdrop = null, plain = true, position = ui.tabProgress)
+                if (tabs.isNotEmpty()) TeakPagerTabs(
+                    options = tabs, selected = if (ui.tab == 2) 1 else 0,
+                    onSelect = { ui.tab = if (it == 1) 2 else 0 },
+                    itemWidth = 96.dp, backdrop = null, plain = true,
+                )
                 Spacer(Modifier.weight(1f))
                 if (kind == MessageFeedKind.Reply || kind == MessageFeedKind.Like) {
                     Text("设置", color = colors.primary, fontSize = 13.sp, modifier = Modifier.clickable {

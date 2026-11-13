@@ -26,7 +26,7 @@ internal suspend fun BiliApiContext.imRequest(method: String, requestType: Strin
     val buvid = cookieJar.value("buvid3")
     val metadata = JSONObject().put("access_key", access).put("mobi_app", "android_hd").put("device", "android")
         .put("build", 2001100).put("channel", "master").put("buvid", buvid).put("platform", "android")
-    val device = JSONObject(metadata.toString()).put("app_id", 5).put("osver", "15").put("version_name", "2.0.1")
+    val device = JSONObject(metadata.toString()).put("app_id", 5).put("brand", "android").put("model", "android").put("osver", "15").put("version_name", "2.0.1")
     val prefix = if (legacy) "bilibili.im.interfaces.v1." else "bilibili.app.im.v1."
     val service = if (legacy) "bilibili.im.interface.v1.ImInterface" else "bilibili.app.im.v1.im"
     val bytes = imCodec.encode(prefix + requestType, value)
@@ -45,7 +45,11 @@ internal suspend fun BiliApiContext.imRequest(method: String, requestType: Strin
         val body = checkNotNull(response.body) { "消息服务返回空响应" }.bytes()
         val trailers = response.trailers()
         val status = response.header("grpc-status") ?: trailers["grpc-status"]
-        check(status == "0") { response.header("grpc-message") ?: trailers["grpc-message"] ?: "消息服务失败 ($status)" }
+        check(status == "0") {
+            if (debug) log("MSG", "grpc method=$method status=$status")
+            imGrpcFailureText(status, response.header("grpc-message") ?: trailers["grpc-message"],
+                response.header("grpc-status-details-bin") ?: trailers["grpc-status-details-bin"])
+        }
         imCodec.decode(prefix + replyType, decodeImFrame(body))
     }
 }

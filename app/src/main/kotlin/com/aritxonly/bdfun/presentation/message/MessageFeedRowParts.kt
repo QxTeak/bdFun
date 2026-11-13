@@ -43,7 +43,7 @@ internal fun MessageActorHeadline(item: MessageItem, aggregate: Boolean = false)
         withStyle(SpanStyle(color = colors.primary)) { append(item.name.ifBlank { "用户" }) }
         if (aggregate && item.likeCount > 1) append(" 等${item.likeCount}人")
         withStyle(SpanStyle(color = colors.onBackgroundVariant)) { append(" ${item.action}") }
-    }, fontSize = 14.sp, lineHeight = 21.sp)
+    }, color = colors.onBackground, fontSize = 14.sp, lineHeight = 21.sp)
 }
 
 @Composable

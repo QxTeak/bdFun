@@ -34,7 +34,7 @@ fun MessageScreen(
     val actions = MessageSessionActions(controller, scope, context, loggedIn, menu)
     RegisterScrollTop(listState, "message")
     MessageSessionsEffects(controller, loggedIn, ui, menu, scope)
-    BackHandler(onBack = onBack)
+    BackHandler(enabled = LocalMessageNavigation.current == null, onBack = onBack)
     TrackTeakPageScroll(listState)
     MessageSessionList(listState, loggedIn, snapshot, ui, menu, events, actions::loadFooter, title, pageType, actions::load)
     MessageSessionSheets(snapshot, menu, onRefresh = { actions.load() },
