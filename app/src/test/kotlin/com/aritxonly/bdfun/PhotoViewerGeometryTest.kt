@@ -51,16 +51,10 @@ class PhotoViewerGeometryTest {
         assertEquals(0f, photoDismissProgress(100f, 0f), 0.0001f)
     }
 
-    @Test fun backdropZoomsInOnOpenAndShrinksOnDrag() {
-        assertEquals(1f, photoBackdropScaleAt(0f, 0f), 0.0001f)
-        assertEquals(1f + PhotoViewerBackdropZoomIn, photoBackdropScaleAt(1f, 0f), 0.0001f)
-        assertEquals(1f - PhotoViewerDragShrink, photoBackdropScaleAt(1f, 1f), 0.0001f)
-    }
-
-    @Test fun backdropShrinksToNinetyPercent() {
-        assertEquals(1f, photoBackdropScale(0f), 0.0001f)
-        assertEquals(0.9f, photoBackdropScale(1f), 0.0001f)
-        assertEquals(0.9f, photoBackdropScale(2f), 0.0001f)
+    @Test fun backdropZoomsInOnOpen() {
+        assertEquals(1f, photoBackdropScaleAt(0f), 0.0001f)
+        assertEquals(1f + PhotoViewerBackdropZoomIn, photoBackdropScaleAt(1f), 0.0001f)
+        assertEquals(1f + PhotoViewerBackdropZoomIn, photoBackdropScaleAt(2f), 0.0001f)
     }
 
     @Test fun dismissalNeedsDistanceOrSpeed() {

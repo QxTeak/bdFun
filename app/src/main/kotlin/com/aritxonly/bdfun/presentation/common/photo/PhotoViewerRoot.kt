@@ -47,7 +47,7 @@ internal fun PhotoViewerRoot(content: @Composable () -> Unit) {
         // 跟手拖动时再缩到 0.9。返回键的拦截放在覆盖层里（后注册才优先）。
         Box(
             modifier = Modifier.fillMaxSize().graphicsLayer {
-                val scale = photoBackdropScaleAt(view.progress.value, view.dismissProgress)
+                val scale = photoBackdropScaleAt(view.progress.value)
                 scaleX = scale
                 scaleY = scale
             },

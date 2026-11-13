@@ -54,24 +54,16 @@ internal fun photoDismissProgress(dragY: Float, screenHeight: Float): Float =
 /** 打开时背景放大的幅度。Telegram 关闭时容器缩到 0.9，反向即打开从 0.9 回到 1.0。 */
 internal const val PhotoViewerBackdropZoomIn = 0.1f
 
-/** 拖动时背景下沉的幅度。 */
-internal const val PhotoViewerDragShrink = 0.1f
-
 /**
- * 底层页面的缩放：
- * - 打开过程中随进度从 1.0 放大到 1.0 + ZoomIn；
- * - 跟手拖动时从当前值缩到 1.0 - DragShrink。
- * 两条时间线同时存在时以后者为准（拖动只发生在已经完全打开时）。
+ * 底层页面的缩放：打开过程中随进度从 1.0 放大到 1.0 + ZoomIn，关闭时对称缩回。
+ *
+ * 拖动不改变底层页面——这版 Telegram 的 PhotoViewer 里对底层只有「重置为 1.0」，
+ * 没有任何跟随拖动进度缩放的代码。
  */
-internal fun photoBackdropScaleAt(progress: Float, dismissProgress: Float): Float {
+internal fun photoBackdropScaleAt(progress: Float): Float {
     val p = progress.coerceIn(0f, 1f)
-    val d = dismissProgress.coerceIn(0f, 1f)
-    return 1f + PhotoViewerBackdropZoomIn * p - (PhotoViewerBackdropZoomIn + PhotoViewerDragShrink) * d
+    return 1f + PhotoViewerBackdropZoomIn * p
 }
-
-/** 拖动时背后的页面缩到 0.9，产生「大图浮起来」的层次感。 */
-internal fun photoBackdropScale(dismissProgress: Float): Float =
-    1f - 0.1f * dismissProgress.coerceIn(0f, 1f)
 
 /** 拖动时大图本身略微缩小，避免显得像一块贴纸。 */
 internal fun photoDragScale(dismissProgress: Float): Float =
