@@ -68,7 +68,7 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
         // 顶栏只跟着缩放和淡出，不应该再跟着上下位移一次，否则会双重运动。
         MainHomeChrome(settings, shell, pageFloat)
         MainMineChrome(shell, pageFloat)
-        MainDynamicChrome(shell, pageFloat)
+        MainFeedChrome(shell, pageFloat)
 
         Box(Modifier.fillMaxSize().graphicsLayer {
                 val progress = shell.bottom.bottomTabBarProgress.value

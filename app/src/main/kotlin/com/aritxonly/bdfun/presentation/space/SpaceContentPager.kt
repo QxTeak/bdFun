@@ -41,7 +41,7 @@ internal fun SpaceContentPager(
             ) {
         when (page) {
             0 -> spaceHomeItems(content, actions)
-            1 -> spaceDynamicItems(content, actions)
+            1 -> spaceFeedItems(content, actions)
             2 -> spaceSubmissionItems(content, actions)
             else -> spaceShopItems(content, actions)
         }

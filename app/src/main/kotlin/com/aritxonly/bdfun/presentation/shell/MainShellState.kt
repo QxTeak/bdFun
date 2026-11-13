@@ -32,7 +32,7 @@ internal data class MainShellChrome(
 internal data class MainShellFeeds(
     val session: com.aritxonly.bdfun.core.model.user.UserProfile?,
     val home: com.aritxonly.bdfun.feature.home.presentation.HomeFeedState,
-    val dynamic: com.aritxonly.bdfun.feature.dynamic.presentation.DynamicFeedState,
+    val dynamic: com.aritxonly.bdfun.feature.feed.presentation.FeedState,
     val unreadMessageCount: Int,
 )
 internal data class MainShellBackdrops(

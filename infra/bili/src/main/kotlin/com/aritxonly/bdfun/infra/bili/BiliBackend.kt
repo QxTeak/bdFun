@@ -15,7 +15,7 @@ import com.aritxonly.bdfun.infra.bili.BILI_APP_API
 import com.aritxonly.bdfun.infra.bili.BILI_APP
 import com.aritxonly.bdfun.infra.bili.BILI_API
 import android.content.Context
-import com.aritxonly.bdfun.core.domain.DynamicFeedSource
+import com.aritxonly.bdfun.core.domain.FeedSource
 import com.aritxonly.bdfun.core.model.video.*
 import com.aritxonly.bdfun.core.model.comment.*
 import com.aritxonly.bdfun.core.model.user.*
@@ -24,7 +24,7 @@ import com.aritxonly.bdfun.core.model.message.*
 import com.aritxonly.bdfun.core.model.library.*
 
 /** 迁移期兼容门面；业务实现位于各网络分片。 */
-open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -> Unit, cdnResolver: (String) -> CdnService) : DynamicFeedSource {
+open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -> Unit, cdnResolver: (String) -> CdnService) : FeedSource {
     internal val api = BiliApiContext(context, debug, log, cdnResolver)
     val webSocketClient get() = api.webSocketClient
     val cookieJar get() = api.cookieJar
@@ -92,7 +92,7 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
     suspend fun favoriteFolders() = api.favoriteFolders()
     suspend fun favoriteVideos(folderId: Long) = api.favoriteVideos(folderId)
     suspend fun favoriteVideosPage(folderId: Long, page: Int) = api.favoriteVideosPage(folderId, page)
-    suspend fun userDynamics(mid: Long, offset: String = "") = api.userDynamics(mid, offset)
+    suspend fun userFeeds(mid: Long, offset: String = "") = api.userFeeds(mid, offset)
     suspend fun upVideoCount(mid: Long) = api.upVideoCount(mid)
     suspend fun onlineTotal(aid: Long, cid: Long) = api.onlineTotal(aid, cid)
     suspend fun relationStat(mid: Long) = api.relationStat(mid)
@@ -105,9 +105,9 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
     override suspend fun dynamicPortal() = api.dynamicPortal()
     override suspend fun dynamicUpList(offset: String) = api.dynamicUpList(offset)
     suspend fun dynamicDetail(id: String) = api.dynamicDetail(id)
-    suspend fun likeDynamic(id: String, like: Boolean) = api.likeDynamic(id, like)
+    suspend fun likeFeed(id: String, like: Boolean) = api.likeFeed(id, like)
     suspend fun dynamicComments(id: String, page: Int = 1) = api.dynamicComments(id, page)
-    suspend fun sendDynamicComment(id: String, message: String) = api.sendDynamicComment(id, message)
+    suspend fun sendFeedComment(id: String, message: String) = api.sendFeedComment(id, message)
     suspend fun spaceChargeCount(mid: Long) = api.spaceChargeCount(mid)
     suspend fun space(mid: Long) = api.space(mid)
     suspend fun spaceSeasonsSeries(mid: Long) = api.spaceSeasonsSeries(mid)

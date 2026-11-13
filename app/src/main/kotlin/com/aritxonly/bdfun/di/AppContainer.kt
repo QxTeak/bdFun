@@ -2,9 +2,9 @@ package com.aritxonly.bdfun.di
 
 import com.aritxonly.bdfun.navigateToVideoByBvid
 import android.content.Context
-import com.aritxonly.bdfun.feature.dynamic.application.DynamicFeedStateHolder
-import com.aritxonly.bdfun.feature.dynamic.presentation.DynamicFeedState
-import com.aritxonly.bdfun.infra.bili.BiliDynamicRepository
+import com.aritxonly.bdfun.feature.feed.application.FeedStateHolder
+import com.aritxonly.bdfun.feature.feed.presentation.FeedState
+import com.aritxonly.bdfun.infra.bili.BiliFeedPageRepository
 import com.aritxonly.bdfun.infra.bili.BiliRecommendationActionsRepository
 import com.aritxonly.bdfun.feature.home.presentation.HomeFeedState
 import kotlinx.coroutines.*
@@ -140,15 +140,15 @@ internal class AppContainer(
     }, { it.view.close(); it.job.cancel() })
     val homeFeedState: HomeFeedState get() = homeSlot.get().view
     private val dynamicRepository by lazy {
-        BiliDynamicRepository({ type, offset, mid -> api.dynamicPage(type, offset, mid) }, api::dynamicPortal, api::dynamicUpList, api::likeDynamic)
+        BiliFeedPageRepository({ type, offset, mid -> api.dynamicPage(type, offset, mid) }, api::dynamicPortal, api::dynamicUpList, api::likeFeed)
     }
-    private data class DynamicSlot(val job: Job, val view: DynamicFeedState)
+    private data class FeedSlot(val job: Job, val view: FeedState)
     private val dynamicSlot = SessionResourceSlot({ sessionController.identity }, {
         val job = SupervisorJob(presentationScope.coroutineContext[Job])
         val scope = CoroutineScope(presentationScope.coroutineContext + job)
-        DynamicSlot(job, DynamicFeedState(DynamicFeedStateHolder(dynamicRepository), scope))
+        FeedSlot(job, FeedState(FeedStateHolder(dynamicRepository), scope))
     }, { it.view.close(); it.job.cancel() })
-    val dynamicFeedState: DynamicFeedState get() = dynamicSlot.get().view
+    val dynamicFeedState: FeedState get() = dynamicSlot.get().view
     private val commentImageRepository by lazy { com.aritxonly.bdfun.infra.bili.BiliCommentImageRepository(api) }
     private val inlineVideoRepository by lazy {
         com.aritxonly.bdfun.infra.bili.BiliInlineVideoRepository(api::view) { detail, preferences ->
@@ -157,7 +157,7 @@ internal class AppContainer(
         }
     }
     fun inlineVideoStateHolder(bvid: String) =
-        com.aritxonly.bdfun.feature.dynamic.application.InlineVideoStateHolder(inlineVideoRepository, bvid) {
+        com.aritxonly.bdfun.feature.feed.application.InlineVideoStateHolder(inlineVideoRepository, bvid) {
             InlineVideoPreferences(settings.dynamicAutoPlayQuality, settings.codecPreference, settings.cdnService)
         }
     fun createInlinePlayback(context: Context, bvid: String, muted: Boolean): com.aritxonly.bdfun.ui.InlinePlaybackRuntime {
@@ -166,10 +166,10 @@ internal class AppContainer(
         return com.aritxonly.bdfun.ui.InlinePlaybackRuntime(controller, controller::bindSurface)
     }
     private val dynamicDetailRepository by lazy {
-        com.aritxonly.bdfun.infra.bili.BiliDynamicDetailRepository(api::dynamicDetail, api::userIpLocation, api::likeDynamic)
+        com.aritxonly.bdfun.infra.bili.BiliFeedDetailRepository(api::dynamicDetail, api::userIpLocation, api::likeFeed)
     }
-    fun dynamicDetailStateHolder(initial: com.aritxonly.bdfun.data.DynamicItem) =
-        com.aritxonly.bdfun.feature.dynamic.application.DynamicDetailStateHolder(dynamicDetailRepository, initial)
+    fun dynamicDetailStateHolder(initial: com.aritxonly.bdfun.data.FeedItem) =
+        com.aritxonly.bdfun.feature.feed.application.FeedDetailStateHolder(dynamicDetailRepository, initial)
     private val privateChatRepository = com.aritxonly.bdfun.infra.bili.BiliPrivateChatRepository(api)
     fun privateChatStateHolder(session: MessageSession): com.aritxonly.bdfun.feature.message.application.PrivateChatStateHolder {
         val identity = sessionController.identity

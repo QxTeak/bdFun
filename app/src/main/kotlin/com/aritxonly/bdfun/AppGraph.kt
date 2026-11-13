@@ -34,7 +34,7 @@ object AppGraph {
         checkNotNull(container) { "AppGraph 尚未初始化" }.inlineVideoStateHolder(bvid)
     internal fun inlinePlayback(context: Context, bvid: String, muted: Boolean) =
         checkNotNull(container) { "AppGraph 尚未初始化" }.createInlinePlayback(context, bvid, muted)
-    internal fun dynamicDetailStateHolder(initial: com.aritxonly.bdfun.data.DynamicItem) =
+    internal fun dynamicDetailStateHolder(initial: com.aritxonly.bdfun.data.FeedItem) =
         checkNotNull(container) { "AppGraph 尚未初始化" }.dynamicDetailStateHolder(initial)
     internal fun privateChatStateHolder(session: com.aritxonly.bdfun.data.MessageSession) =
         checkNotNull(container) { "AppGraph 尚未初始化" }.privateChatStateHolder(session)
