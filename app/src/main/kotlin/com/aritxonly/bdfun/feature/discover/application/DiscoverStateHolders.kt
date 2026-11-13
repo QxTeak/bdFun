@@ -17,6 +17,8 @@ import com.aritxonly.bdfun.data.BiliApi
  * 刷新/加载失败只写到 error，不改动已有列表，界面按「空态 + 重试」处理。
  */
 internal class LivePageStateHolder(private val api: BiliApi) {
+    /** 与推荐页一样由 shell 的 TrackTeakPageScroll 接管，驱动顶栏渐进模糊与玻璃。 */
+    val gridState = LazyGridState()
     var following by mutableStateOf<List<LiveCard>>(emptyList())
         private set
     var areas by mutableStateOf<List<LiveArea>>(emptyList())
@@ -128,6 +130,7 @@ internal class LivePageStateHolder(private val api: BiliApi) {
 
 /** 首页「番剧」段的状态：最近追番 + 推荐。 */
 internal class BangumiPageStateHolder(private val api: BiliApi) {
+    val gridState = LazyGridState()
     var following by mutableStateOf<List<BangumiCard>>(emptyList())
         private set
     var cards by mutableStateOf<List<BangumiCard>>(emptyList())
@@ -206,8 +209,4 @@ internal class BangumiPageStateHolder(private val api: BiliApi) {
     }
 }
 
-/** 两个页面共用的网格滚动状态缓存，避免切段/返回时丢位置。 */
-internal object DiscoverGridStates {
-    var live: LazyGridState? = null
-    var bangumi: LazyGridState? = null
-}
+/** 两个页面共用的网格滚动状态由各自的 StateHolder 持有（见 gridState）。 */

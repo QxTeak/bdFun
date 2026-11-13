@@ -23,6 +23,16 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(settings
     val ui = shell.ui
     val homeFeed = shell.feeds.home
     val homeChrome = shell.chrome.home
+    val activeChrome = when (ui.homeSection) {
+        1 -> shell.chrome.live
+        2 -> shell.chrome.bangumi
+        else -> homeChrome
+    }
+    // 下拉刷新指示器：三段各自一份状态，但都画在 App 层同一个位置。
+    val liveState = if (ui.homeSection == 1) AppGraph.livePageState else null
+    val bangumiState = if (ui.homeSection == 2) AppGraph.bangumiPageState else null
+    val pullRefreshing = liveState?.refreshing ?: bangumiState?.refreshing ?: homeFeed.refreshing
+    val pullOffsetDp = liveState?.pullOffsetDp ?: bangumiState?.pullOffsetDp ?: homeFeed.pullOffsetDp
     val searchChrome = shell.chrome.search
     val searchBackdrop = shell.backdrops.search
     // 底栏搜索的一镜到底会把内容整体上移并模糊；顶栏画在变换之外，
@@ -48,22 +58,29 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(settings
                 LocalTopBarScrollProgress provides if (ui.showSearch) {
                     searchChrome.materialProgress
                 } else {
-                    homeChrome.materialProgress
+                    activeChrome.materialProgress
                 },
             ) {
                 ProgressiveTopBarMaterial(
                     underlayLiftPx = underlayLiftPx,
                     underlayBlurPx = underlayBlurPx,
+                    // 只把淡出交给材质层。缩放/横移放到内容层：渐进模糊的采样矩形如果跟着
+                    // 缩到 0.9，边缘会在搜索动画里切出一条清晰/模糊的硬边。
                     modifier = Modifier.align(Alignment.TopCenter)
                         .graphicsLayer {
+                            alpha = (1f - pageFloat).coerceIn(0f, 1f) * (1f - shell.bottom.bottomTopBarAlpha.value)
+                        },
+                ) {
+                    androidx.compose.foundation.layout.Box(
+                        modifier = Modifier.graphicsLayer {
                             val searchScale = 1f - 0.1f * shell.bottom.bottomSearchProgress.value
                             scaleX = searchScale
                             scaleY = searchScale
                             translationX = -pageFloat * size.width * 0.92f
-                            alpha = (1f - pageFloat).coerceIn(0f, 1f) * (1f - shell.bottom.bottomTopBarAlpha.value)
                         },
-                ) {
-                    MainHomeBarContent(settings, shell)
+                    ) {
+                        MainHomeBarContent(settings, shell)
+                    }
                 }
             }
         }
@@ -74,15 +91,12 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(settings
         // 透明度直接由下拉位移决定：位移 58dp 开始淡入、84dp 全显；
         // 卡片在位移 <46dp 时才会撞到小电视，因此永远追不上。
         HomePullIndicator(
-            // 直播 / 番剧还没接入下拉刷新，切到这两段时不要把推荐的下拉指示器带过去。
-            reveal = if (ui.homeSection != 0) {
-                0f
-            } else if (homeFeed.refreshing) {
+            reveal = if (pullRefreshing) {
                 1f
             } else {
-                ((homeFeed.pullOffsetDp - 58f) / 26f).coerceIn(0f, 1f)
+                ((pullOffsetDp - 58f) / 26f).coerceIn(0f, 1f)
             },
-            animated = homeFeed.refreshing,
+            animated = pullRefreshing,
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()

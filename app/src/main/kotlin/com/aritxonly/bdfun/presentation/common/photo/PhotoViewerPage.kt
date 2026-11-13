@@ -42,6 +42,10 @@ internal fun PhotoViewerPage(
     url: String,
     request: PhotoViewerRequest,
     view: PhotoViewerTransitionState,
+    /** 只有从缩略图打开的那一页才有起点矩形；翻到别的图片后不再借用它的位置。 */
+    origin: androidx.compose.ui.geometry.Rect?,
+    originRadiusPx: Float,
+    onDismiss: () -> Unit,
 ) {
     val page = remember(url) { PhotoViewerPageState() }
     LaunchedEffect(page.zoom) { view.zoom = page.zoom }
@@ -51,7 +55,6 @@ internal fun PhotoViewerPage(
     val screenHeight = view.size.height.toFloat()
     if (screenWidth <= 0f || screenHeight <= 0f) return
 
-    val origin = request.origin
     val morph = photoMorphFrame(
         progress = view.progress.value,
         originX = origin?.left ?: 0f,
@@ -61,7 +64,7 @@ internal fun PhotoViewerPage(
         screenWidth = screenWidth,
         screenHeight = screenHeight,
         imageAspect = page.aspect,
-        originRadius = request.originRadiusPx,
+        originRadius = originRadiusPx,
     )
     // 拖动位移随进度衰减：进度归零时正好落在缩略图上，不会带着偏移落地再跳回去。
     val dragY = view.dragY * view.progress.value
@@ -73,9 +76,22 @@ internal fun PhotoViewerPage(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(Unit) {
+            .pointerInput(morph.clipLeft, morph.clipTop, morph.clipWidth, morph.clipHeight) {
                 detectTapGestures(
-                    onTap = { view.chromeVisible = !view.chromeVisible },
+                    // 点图片本体还是原来的「显隐 chrome」；点图片外的空白等同返回键，
+                    // 不再落给 Pager 或拖动判定。
+                    onTap = { tap ->
+                        val insideImage = view.progress.value > 0.99f &&
+                            tap.x >= morph.clipLeft &&
+                            tap.x <= morph.clipLeft + morph.clipWidth &&
+                            tap.y >= morph.clipTop &&
+                            tap.y <= morph.clipTop + morph.clipHeight
+                        if (insideImage) {
+                            view.chromeVisible = !view.chromeVisible
+                        } else {
+                            onDismiss()
+                        }
+                    },
                     onDoubleTap = { tap -> page.zoom = toggleZoom(page.zoom, tap, view.size) },
                 )
             }

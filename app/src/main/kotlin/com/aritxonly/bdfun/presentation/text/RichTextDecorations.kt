@@ -14,6 +14,7 @@ import androidx.compose.ui.text.Placeholder
 import androidx.compose.ui.text.PlaceholderVerticalAlign
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.takeOrElse
 import com.aritxonly.bdfun.core.application.*
 
 internal fun AnnotatedString.Builder.appendRichPrefix(runtime: RichTextRenderContext, inline: MutableMap<String, InlineTextContent>) {

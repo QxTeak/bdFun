@@ -43,25 +43,32 @@ internal suspend fun BiliApiContext.liveFollowing(page: Int = 1): List<LiveCard>
 internal suspend fun BiliApiContext.liveRecommend(
     page: Int = 1, parentAreaId: Long = 0L, areaId: Long = 0L,
 ): List<LiveCard> = withContext(Dispatchers.IO) {
-    cancellableCatching {
+    // 这个 web 接口现在不带 WBI 会直接 -352（风控），和 getDanmuInfo 一样：
+    // 先签名请求，失败就清一次密钥再签一遍。
+    val params = mapOf(
+        "platform" to "web",
+        "parent_area_id" to parentAreaId.toString(),
+        "area_id" to areaId.toString(),
+        "sort_type" to "online",
+        "page" to page.toString(),
+        "page_size" to "20",
+    )
+    suspend fun load(signed: Boolean): List<LiveCard> = cancellableCatching {
         val data = dataRequest(
             "/xlive/web-interface/v1/second/getList",
-            mapOf(
-                "platform" to "web",
-                "parent_area_id" to parentAreaId.toString(),
-                "area_id" to areaId.toString(),
-                "sort_type" to "online",
-                "page" to page.toString(),
-                "page_size" to "20",
-            ),
+            params,
+            signed = signed,
             base = livePageBase,
             referer = liveReferer,
         )
         val list = data.optJSONArray("list") ?: return@cancellableCatching emptyList()
-        (0 until list.length()).mapNotNull { i ->
-            list.optJSONObject(i)?.toLiveCard()
-        }
+        (0 until list.length()).mapNotNull { i -> list.optJSONObject(i)?.toLiveCard() }
     }.getOrDefault(emptyList())
+
+    load(signed = true).ifEmpty { load(signed = false) }.ifEmpty {
+        wbiSigner.clear()
+        load(signed = true)
+    }
 }
 
 /** 直播分区：web 端 /room/v1/Area/getList，data 本身是数组。parentId=0 取一级分区。 */

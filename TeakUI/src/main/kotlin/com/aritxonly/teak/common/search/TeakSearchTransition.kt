@@ -117,8 +117,9 @@ fun Modifier.teakSearchUnderlay(
     val a = alpha.coerceIn(0f, 1f)
     val b = blurProgress.coerceIn(0f, 1f)
     if (p <= 0.001f && a >= 0.999f) return this
-    // 完全展开 / 已经全透明：不需要位移和模糊，只保留透明度，省掉每帧一遍全屏模糊。
-    if (p >= 0.999f || a <= 0.001f) return this.graphicsLayer { this.alpha = a }
+    // 只按「是否完全不可见」跳过：退出动画开头 p 还停在 1、alpha 已经回升，
+    // 这里如果因为 p>=0.999 就省掉模糊，会出现"先清晰一下再变模糊"的跳变。
+    if (a <= 0.001f) return this.graphicsLayer { this.alpha = a }
     val density = LocalDensity.current
     val liftPx = with(density) { TeakSearchTransitionDefaults.ContentLift.toPx() }
     val blurRadius = with(density) {

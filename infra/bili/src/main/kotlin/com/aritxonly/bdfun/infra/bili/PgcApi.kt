@@ -13,11 +13,15 @@ private const val pgcReferer = "https://www.bilibili.com/anime/"
  */
 internal suspend fun BiliApiContext.pgcFollowing(page: Int = 1): List<BangumiCard> =
     withContext(Dispatchers.IO) {
+        // 这个接口必须带自己的 mid；未登录时直接返回空，别把 -101 当成页面错误。
+        if (!isLoggedIn || mid <= 0L) return@withContext emptyList()
         cancellableCatching {
             val data = dataRequest(
                 "/x/space/bangumi/follow/list",
                 mapOf(
+                    "vmid" to mid.toString(),
                     "type" to "1",
+                    "follow_status" to "0",
                     "pn" to page.toString(),
                     "ps" to "15",
                 ),
@@ -76,7 +80,14 @@ private fun JSONObject.toBangumiCard(): BangumiCard? {
         indexShow = optString("index_show").orEmpty().ifBlank {
             optJSONObject("new_ep")?.optString("index_show").orEmpty()
         },
-        followText = optString("order").orEmpty().takeIf { it.isNotBlank() }?.let { "$it追番" }.orEmpty(),
+        // order 已经是「1770.2万追番」这种成品文案，别再拼一次后缀。
+        followText = optString("order").orEmpty().let { raw ->
+            when {
+                raw.isBlank() -> ""
+                raw.contains("追番") -> raw
+                else -> "${raw}追番"
+            }
+        },
         vip = badge.contains("会员"),
     )
 }

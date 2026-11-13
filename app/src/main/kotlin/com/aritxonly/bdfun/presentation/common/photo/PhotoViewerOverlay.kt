@@ -53,7 +53,7 @@ internal fun PhotoViewerOverlay(
 
     Box(Modifier.fillMaxSize().photoViewerDragGestures(view, scope, onDismiss)) {
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = backgroundAlpha)))
-        PhotoViewerPager(request, view)
+        PhotoViewerPager(request, view, onDismiss)
         PhotoViewerChrome(request, view, onDismiss)
     }
 }
@@ -105,13 +105,27 @@ private fun PhotoViewerTopBar(onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun PhotoViewerPager(request: PhotoViewerRequest, view: PhotoViewerTransitionState) {
+private fun PhotoViewerPager(
+    request: PhotoViewerRequest,
+    view: PhotoViewerTransitionState,
+    onDismiss: () -> Unit,
+) {
     val pager = rememberPagerState(
         initialPage = request.index.coerceIn(0, request.images.lastIndex),
         pageCount = { request.images.size },
     )
     HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
-        PhotoViewerPage(url = request.images[page], request = request, view = view)
+        // 起点矩形只属于点开的那一张：滑到别的图后不能再借用它的位置，
+        // 否则退出时会往第一张缩略图飞。
+        val isSource = page == request.index
+        PhotoViewerPage(
+            url = request.images[page],
+            request = request,
+            view = view,
+            origin = if (isSource) request.origin else null,
+            originRadiusPx = if (isSource) request.originRadiusPx else 0f,
+            onDismiss = onDismiss,
+        )
     }
 }
 
