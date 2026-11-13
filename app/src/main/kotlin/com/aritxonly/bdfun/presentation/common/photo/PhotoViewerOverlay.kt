@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
@@ -59,7 +60,11 @@ internal fun PhotoViewerOverlay(
     val cornerDp = with(density) { geometry.cornerRadius.toDp() }
     val scope = rememberCoroutineScope()
 
-    Box(Modifier.fillMaxSize()) {
+    // 返回键在这里拦：覆盖层在内容之后组合，BackHandler 后注册才优先，
+    // 否则会被页面自己的返回处理器抢走，直接退出 Activity。
+    BackHandler { onDismiss() }
+
+    Box(Modifier.fillMaxSize().photoViewerDragGestures(view, scope, onDismiss)) {
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = backgroundAlpha)))
         Box(
             modifier = Modifier
@@ -71,8 +76,7 @@ internal fun PhotoViewerOverlay(
                     translationY = geometry.translationY + view.dragY,
                     shape = RoundedCornerShape(cornerDp),
                     clip = true,
-                )
-                .photoViewerDragGestures(view, scope, onDismiss),
+                ),
         ) {
             PhotoViewerPager(request, view)
         }

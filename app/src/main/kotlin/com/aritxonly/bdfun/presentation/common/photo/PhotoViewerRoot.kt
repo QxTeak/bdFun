@@ -1,6 +1,5 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.CubicBezierEasing
@@ -8,7 +7,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.onSizeChanged
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -19,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 
 /**
@@ -43,15 +42,13 @@ internal fun PhotoViewerRoot(content: @Composable () -> Unit) {
             view.displayed != null -> view.hide(spec)
         }
     }
-    BackHandler(enabled = view.displayed != null) { state.close() }
-
     Box(Modifier.fillMaxSize().onSizeChanged { view.size = it }) {
-        // 底层：跟手时缩到 0.9，松手回弹。这是 Telegram 拖动关闭的层次感来源。
+        // 底层页面：打开时随入场进度一起缩到 0.9，关闭时回到 1.0。
+        // 这是 Telegram 的层次感来源——图片浮起来，页面往后退。
+        // 返回键的拦截放在覆盖层里（后注册才优先），不能放在这里。
         Box(
             modifier = Modifier.fillMaxSize().graphicsLayer {
-                val scale = photoBackdropScale(
-                    if (view.displayed != null) view.dismissProgress else 0f,
-                )
+                val scale = photoBackdropScale(view.progress.value)
                 scaleX = scale
                 scaleY = scale
             },
