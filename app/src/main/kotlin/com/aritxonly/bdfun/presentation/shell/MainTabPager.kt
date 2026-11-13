@@ -8,7 +8,7 @@ import com.aritxonly.bdfun.navigateToMySent
 import com.aritxonly.bdfun.navigateToLogin
 import com.aritxonly.bdfun.navigateToLibrary
 import com.aritxonly.bdfun.navigateToHistory
-import com.aritxonly.bdfun.navigateToDynamic
+import com.aritxonly.bdfun.navigateToFeed
 import com.aritxonly.bdfun.navigateToCache
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
@@ -19,7 +19,7 @@ import androidx.compose.ui.platform.LocalViewConfiguration
 import com.aritxonly.bdfun.ui.rememberStricterSwipeConfiguration
 import com.aritxonly.bdfun.core.model.user.UserProfile
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
-import com.aritxonly.bdfun.ui.DynamicScreen
+import com.aritxonly.bdfun.ui.FeedScreen
 import com.aritxonly.bdfun.ui.MineScreen
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
@@ -27,9 +27,10 @@ import com.aritxonly.bdfun.ui.MineScreen
 internal fun MainTabPager(
     pager: androidx.compose.foundation.pager.PagerState,
     homeFeed: com.aritxonly.bdfun.feature.home.presentation.HomeFeedState,
-    dynamicFeed: com.aritxonly.bdfun.feature.dynamic.presentation.DynamicFeedState,
+    dynamicFeed: com.aritxonly.bdfun.feature.feed.presentation.FeedState,
     session: UserProfile?, settings: SettingsBindings, dynamicRefreshTick: Int,
     mineList: androidx.compose.foundation.lazy.LazyListState,
+    homeSection: Int = 0,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     CompositionLocalProvider(
@@ -43,18 +44,24 @@ internal fun MainTabPager(
             overscrollEffect = null,
         ) { page ->
             when (page) {
-                0 -> HomeScreenRoute(
-                    state = homeFeed,
-                    onOpenVideo = { navigateToVideo(context, it) },
-                    cardStyle = settings.homeCardStyle,
-                )
+                0 -> if (homeSection == 0) {
+                    HomeScreenRoute(
+                        state = homeFeed,
+                        onOpenVideo = { navigateToVideo(context, it) },
+                        cardStyle = settings.homeCardStyle,
+                    )
+                } else {
+                    // 直播 / 番剧：页面还没做，先留空。顶栏 tab 可以切换到这里，
+                    // 不显示任何占位文案，避免以后接入真实页面时还要删一遍。
+                    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize())
+                }
 
-                1 -> DynamicScreen(
+                1 -> FeedScreen(
                     state = dynamicFeed,
                     loggedIn = session != null,
                     onNeedLogin = { navigateToLogin(context) },
                     onOpenVideo = { navigateToVideo(context, it) },
-                    onOpenDynamic = { navigateToDynamic(context, it) },
+                    onOpenFeed = { navigateToFeed(context, it) },
                     refreshTick = dynamicRefreshTick,
                 )
 

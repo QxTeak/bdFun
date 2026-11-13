@@ -1,7 +1,7 @@
 package com.aritxonly.bdfun.feature.space.application
 
 import com.aritxonly.bdfun.core.model.user.*
-import com.aritxonly.bdfun.core.model.feed.DynamicItem
+import com.aritxonly.bdfun.core.model.feed.FeedItem
 import com.aritxonly.bdfun.core.model.video.VideoItem
 
 internal data class SpaceContentState<T>(
@@ -9,8 +9,8 @@ internal data class SpaceContentState<T>(
     val loading: Boolean = false, val loaded: Boolean = false, val error: String? = null,
     val revision: Int = 0,
 )
-internal data class SpaceDynamicState(
-    val items: List<DynamicItem> = emptyList(), val offset: String = "", val end: Boolean = false,
+internal data class SpaceFeedState(
+    val items: List<FeedItem> = emptyList(), val offset: String = "", val end: Boolean = false,
     val loading: Boolean = false, val error: String? = null,
 )
 internal data class SpaceProfileState(
@@ -24,5 +24,5 @@ internal data class SpaceUiState(
     val bangumi: SpaceContentState<SpaceBangumi> = SpaceContentState(),
     val shop: SpaceContentState<SpaceShopItem> = SpaceContentState(),
     val collection: SpaceContentState<VideoItem> = SpaceContentState(),
-    val dynamics: SpaceDynamicState = SpaceDynamicState(),
+    val dynamics: SpaceFeedState = SpaceFeedState(),
 )

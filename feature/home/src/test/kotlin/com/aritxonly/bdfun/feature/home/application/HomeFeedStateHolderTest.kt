@@ -4,7 +4,7 @@ import com.aritxonly.bdfun.core.model.video.VideoItemExtras
 
 import com.aritxonly.bdfun.core.common.*
 import com.aritxonly.bdfun.core.domain.*
-import com.aritxonly.bdfun.core.model.feed.DynamicPage
+import com.aritxonly.bdfun.core.model.feed.FeedPage
 import com.aritxonly.bdfun.core.model.video.*
 import kotlinx.coroutines.*
 import org.junit.Assert.*
@@ -32,7 +32,7 @@ class HomeFeedStateHolderTest {
         val requests = mutableListOf<Int>()
         var load: suspend (Int) -> Outcome<List<VideoItem>> = { Outcome.Success(emptyList()) }
         override suspend fun recommend(page: Int): Outcome<List<VideoItem>> { requests += page; return load(page) }
-        override suspend fun dynamics(offset: String): Outcome<DynamicPage> = error("unused")
+        override suspend fun dynamics(offset: String): Outcome<FeedPage> = error("unused")
     }
     private val videoRepository = object : VideoRepository {
         override suspend fun videoDetail(bvid: String): Outcome<VideoDetail> = Outcome.Failure(AppError.Network("offline"))

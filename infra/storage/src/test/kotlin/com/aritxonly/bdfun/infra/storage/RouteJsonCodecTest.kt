@@ -1,12 +1,12 @@
 package com.aritxonly.bdfun.infra.storage
 
-import com.aritxonly.bdfun.core.model.feed.DynamicItemAuthor
+import com.aritxonly.bdfun.core.model.feed.FeedItemAuthor
 
-import com.aritxonly.bdfun.core.model.feed.DynamicCounts
+import com.aritxonly.bdfun.core.model.feed.FeedCounts
 
-import com.aritxonly.bdfun.core.model.feed.DynamicAuthor
+import com.aritxonly.bdfun.core.model.feed.FeedAuthor
 
-import com.aritxonly.bdfun.core.model.feed.DynamicAttachments
+import com.aritxonly.bdfun.core.model.feed.FeedAttachments
 
 import com.aritxonly.bdfun.core.model.video.VideoItemExtras
 
@@ -40,9 +40,9 @@ class RouteJsonCodecTest {
             dislikeReasons = listOf(RecommendationReason(1, "原因")),
         ),
     )
-    private val dynamic = DynamicItem(
+    private val dynamic = FeedItem(
         id = "id",
-        author = DynamicItemAuthor(
+        author = FeedItemAuthor(
             name = "UP",
             face = "face",
             mid = 88,
@@ -53,7 +53,7 @@ class RouteJsonCodecTest {
         text = "内容\n😀",
         images = listOf("a", "b"),
         video = video,
-        counts = DynamicCounts(
+        counts = FeedCounts(
             like = 11,
             comment = 12,
             forward = 13,
@@ -61,14 +61,14 @@ class RouteJsonCodecTest {
         ),
         commentOid = "oid",
         commentType = 11,
-        attachments = DynamicAttachments(
+        attachments = FeedAttachments(
             title = "文章",
             isCollection = true,
             pgcCover = "pc",
             pgcTitle = "pt",
             pgcLabel = "pl",
             moduleTag = "tag",
-            liveRecommendation = DynamicLiveRecommendation(1, "直播", "封面", true, "分区", "观看"),
+            liveRecommendation = FeedLiveRecommendation(1, "直播", "封面", true, "分区", "观看"),
         ),
     )
     private val codec = RouteJsonCodec()
@@ -77,9 +77,9 @@ class RouteJsonCodecTest {
         val route = Route.Video(video.bvid, video.aid, video, true, 21, 22, 23)
         assertEquals(route, RouteJsonCodec().decode(codec.encode(route)))
     }
-    @Test fun nestedForwardAndAllDynamicMetadataSurviveRoundTrip() {
+    @Test fun nestedForwardAndAllFeedMetadataSurviveRoundTrip() {
         val forwarded = dynamic.copy(id = "forward", attachments = dynamic.attachments.copy(orig = dynamic))
-        val route = Route.Dynamic(forwarded.id, forwarded)
+        val route = Route.Feed(forwarded.id, forwarded)
         assertEquals(route, RouteJsonCodec().decode(codec.encode(route)))
     }
     @Test fun independentlyOpenedPagesDoNotShareSnapshot() {

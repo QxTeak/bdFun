@@ -29,7 +29,7 @@ internal fun SettingsScreen(settings: SettingsBindings, navigation: SettingsNavi
         item(key = "player") { SettingsPlayerCard(runtime) }
         item(key = "video_detail") { SettingsVideoDetailCard(runtime) }
         item(key = "danmaku") { SettingsDanmakuCard(runtime) }
-        item(key = "dynamics") { SettingsDynamicCard(runtime) }
+        item(key = "dynamics") { SettingsFeedCard(runtime) }
         item(key = "search") { SettingsSearchCard(runtime) }
         item(key = "mine") { SettingsMineCard(runtime) }
         item(key = "developers") { SettingsDevelopersCard(runtime) }

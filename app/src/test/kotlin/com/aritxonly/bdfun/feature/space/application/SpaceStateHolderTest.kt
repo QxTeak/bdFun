@@ -1,16 +1,16 @@
 package com.aritxonly.bdfun.feature.space.application
 
-import com.aritxonly.bdfun.core.model.feed.DynamicItemAuthor
+import com.aritxonly.bdfun.core.model.feed.FeedItemAuthor
 
-import com.aritxonly.bdfun.core.model.feed.DynamicCounts
+import com.aritxonly.bdfun.core.model.feed.FeedCounts
 
-import com.aritxonly.bdfun.core.model.feed.DynamicAuthor
+import com.aritxonly.bdfun.core.model.feed.FeedAuthor
 
 import com.aritxonly.bdfun.core.common.*
 import com.aritxonly.bdfun.core.domain.SpaceRepository
 import com.aritxonly.bdfun.core.model.user.*
-import com.aritxonly.bdfun.core.model.feed.DynamicPage
-import com.aritxonly.bdfun.core.model.feed.DynamicItem
+import com.aritxonly.bdfun.core.model.feed.FeedPage
+import com.aritxonly.bdfun.core.model.feed.FeedItem
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import kotlinx.coroutines.*
 import org.junit.Assert.*
@@ -18,9 +18,9 @@ import org.junit.Test
 
 class SpaceStateHolderTest {
     private fun video(id: Long) = VideoItem("BV$id", id, "标题", "", "UP", "", 1, 0, 0, 1, 0)
-    private fun dynamic(id: String) = DynamicItem(
+    private fun dynamic(id: String) = FeedItem(
         id = id,
-        author = DynamicItemAuthor(
+        author = FeedItemAuthor(
             name = "UP",
             face = "",
             mid = 1,
@@ -29,7 +29,7 @@ class SpaceStateHolderTest {
         text = "正文",
         images = emptyList(),
         video = null,
-        counts = DynamicCounts(
+        counts = FeedCounts(
             like = 0,
             comment = 0,
             forward = 0,
@@ -41,7 +41,7 @@ class SpaceStateHolderTest {
         var hook: suspend (String) -> Unit = {}
         val requests = mutableListOf<String>()
         suspend fun visit(name: String) { requests += name; hook(name) }
-        var dynamicResult: Outcome<DynamicPage> = Outcome.Success(DynamicPage(emptyList(), "", false))
+        var dynamicResult: Outcome<FeedPage> = Outcome.Success(FeedPage(emptyList(), "", false))
         var relation: Int? = null
         var followResult: Outcome<Boolean> = Outcome.Success(true)
         var followGate: CompletableDeferred<Unit>? = null
@@ -49,7 +49,7 @@ class SpaceStateHolderTest {
         var videosGate: CompletableDeferred<Unit>? = null
         override suspend fun profile(mid: Long): Outcome<SpaceInfo> { visit("profile"); return profile }
         override suspend fun seasons(mid: Long): Outcome<List<SpaceSeason>> { visit("seasons"); return Outcome.Success(emptyList()) }
-        override suspend fun dynamics(mid: Long, offset: String): Outcome<DynamicPage> { visit("dynamics"); return dynamicResult }
+        override suspend fun dynamics(mid: Long, offset: String): Outcome<FeedPage> { visit("dynamics"); return dynamicResult }
         override suspend fun relation(mid: Long): Outcome<Int?> { visit("relation"); return Outcome.Success(relation) }
         override suspend fun videos(mid: Long, page: Int): Outcome<List<VideoItem>> {
             visit("videos:$page"); videosGate?.await()
@@ -162,8 +162,8 @@ class SpaceStateHolderTest {
 
     @Test fun dynamicEndIsReadAtTheNextScrollEvent() = runBlocking {
         val holder = SpaceStateHolder(1, Fake())
-        assertEquals(SpacePageRequest.Dynamics, holder.nextPage(1, 0))
-        holder.loadMoreDynamics()
+        assertEquals(SpacePageRequest.Feeds, holder.nextPage(1, 0))
+        holder.loadMoreFeeds()
         assertNull(holder.nextPage(1, 0))
     }
 
@@ -191,7 +191,7 @@ class SpaceStateHolderTest {
                 "bangumi:2" -> holder.loadBangumi(2)
                 "shop" -> holder.loadShop()
                 "collection" -> holder.loadCollection(SpaceSeason(1, "一", ""))
-                else -> holder.loadMoreDynamics()
+                else -> holder.loadMoreFeeds()
             } }
             entered.await(); holder.close(); val stopped = holder.state.value
             gate.complete(Unit); job.join()
@@ -202,7 +202,7 @@ class SpaceStateHolderTest {
     @Test fun closedPageCannotStartAnyNewReadOrFollow() = runBlocking {
         val source = Fake(); val holder = SpaceStateHolder(1, source); holder.close(); holder.close()
         holder.load(false, true); holder.loadVideos(1); holder.loadArticles(1); holder.loadBangumi(1)
-        holder.loadShop(); holder.loadCollection(SpaceSeason(1, "一", "")); holder.loadMoreDynamics()
+        holder.loadShop(); holder.loadCollection(SpaceSeason(1, "一", "")); holder.loadMoreFeeds()
         assertNull(holder.toggleFollow()); assertNull(holder.nextPage(1, 0)); assertTrue(source.requests.isEmpty())
     }
     @Test fun closedFollowRestoresOptimisticValueAndRejectsLateSuccess() = runBlocking {
@@ -242,19 +242,19 @@ class SpaceStateHolderTest {
         assertEquals(listOf(video(1), video(2)), holder.state.value.videos.items); assertEquals(3, holder.state.value.videos.page)
     }
 
-    @Test fun bootstrapDynamicFailureKeepsInitialPageRetryableAsInMain() = runBlocking {
+    @Test fun bootstrapFeedFailureKeepsInitialPageRetryableAsInMain() = runBlocking {
         val source = Fake(); source.dynamicResult = Outcome.Failure(AppError.Network("temporary"))
         val holder = SpaceStateHolder(1, source); holder.load(false, false)
         assertFalse(holder.state.value.dynamics.end); assertEquals("", holder.state.value.dynamics.offset)
-        assertNull(holder.state.value.dynamics.error); assertEquals(SpacePageRequest.Dynamics, holder.nextPage(1, 0))
-        source.dynamicResult = Outcome.Success(DynamicPage(listOf(dynamic("retry")), "next", true))
-        holder.loadMoreDynamics()
+        assertNull(holder.state.value.dynamics.error); assertEquals(SpacePageRequest.Feeds, holder.nextPage(1, 0))
+        source.dynamicResult = Outcome.Success(FeedPage(listOf(dynamic("retry")), "next", true))
+        holder.loadMoreFeeds()
         assertEquals("next", holder.state.value.dynamics.offset); assertFalse(holder.state.value.dynamics.end)
         assertEquals(listOf(dynamic("retry")), holder.state.value.dynamics.items)
         assertEquals(2, source.requests.count { it == "dynamics" })
     }
-    @Test fun failedBootstrapRefreshKeepsPreviouslyLoadedDynamicCursorAndItems() = runBlocking {
-        val source = Fake(); source.dynamicResult = Outcome.Success(DynamicPage(listOf(dynamic("kept")), "kept", true))
+    @Test fun failedBootstrapRefreshKeepsPreviouslyLoadedFeedCursorAndItems() = runBlocking {
+        val source = Fake(); source.dynamicResult = Outcome.Success(FeedPage(listOf(dynamic("kept")), "kept", true))
         val holder = SpaceStateHolder(1, source); holder.load(false, false)
         val original = holder.state.value.dynamics
         source.dynamicResult = Outcome.Failure(AppError.Network("temporary")); holder.load(false, false)
@@ -262,8 +262,8 @@ class SpaceStateHolderTest {
     }
     @Test fun dynamicPaginationFailureStillStopsFurtherAutomaticRequestsAsInMain() = runBlocking {
         val source = Fake(); source.dynamicResult = Outcome.Failure(AppError.Network("temporary"))
-        val holder = SpaceStateHolder(1, source); holder.loadMoreDynamics()
+        val holder = SpaceStateHolder(1, source); holder.loadMoreFeeds()
         assertTrue(holder.state.value.dynamics.end); assertNull(holder.nextPage(1, 0))
-        holder.loadMoreDynamics(); assertEquals(1, source.requests.count { it == "dynamics" })
+        holder.loadMoreFeeds(); assertEquals(1, source.requests.count { it == "dynamics" })
     }
 }

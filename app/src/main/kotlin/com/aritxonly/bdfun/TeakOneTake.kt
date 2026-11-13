@@ -77,9 +77,9 @@ object TeakOneTake {
 
     /** 动态详情也用同一套系统放大动画；起点是整张动态卡片。 */
     @JvmStatic
-    fun openDynamic(
+    fun openFeed(
         context: Context,
-        dynamic: com.aritxonly.bdfun.data.DynamicItem,
+        dynamic: com.aritxonly.bdfun.data.FeedItem,
         anchor: Rect?,
         radiusPx: Float,
         foregroundColor: Int = 0,
@@ -88,7 +88,7 @@ object TeakOneTake {
         openWith(context, anchor, radiusPx, foregroundColor, fallback) { activity, opts ->
             activity.startActivity(
                 createRouteIntent(activity,
-                    com.aritxonly.bdfun.core.navigation.Route.Dynamic(dynamic.id, dynamic)),
+                    com.aritxonly.bdfun.core.navigation.Route.Feed(dynamic.id, dynamic)),
                 opts.toBundle(),
             )
         }

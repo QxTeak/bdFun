@@ -28,7 +28,7 @@ class MessageOpenTargetTest {
                 ),
             ), MessageFeedKind.Reply))
         }
-        assertEquals(MessageOpenTarget.Dynamic, messageOpenTarget(item.copy(
+        assertEquals(MessageOpenTarget.Feed, messageOpenTarget(item.copy(
             navigation = item.navigation.copy(
                 aid = 10_000_000_000,
                 businessId = 17,
@@ -36,8 +36,8 @@ class MessageOpenTargetTest {
         ), MessageFeedKind.Reply))
     }
 
-    @Test fun nonVideoBusinessUsesDynamicEvenWithBvid() {
-        assertEquals(MessageOpenTarget.Dynamic, messageOpenTarget(item.copy(
+    @Test fun nonVideoBusinessUsesFeedEvenWithBvid() {
+        assertEquals(MessageOpenTarget.Feed, messageOpenTarget(item.copy(
             navigation = item.navigation.copy(
                 aid = 0,
                 bvid = "BV1",

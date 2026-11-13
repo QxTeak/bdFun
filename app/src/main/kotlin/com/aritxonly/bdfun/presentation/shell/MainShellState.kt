@@ -11,6 +11,10 @@ internal class MainShellUiStateHolder {
     var searchQuery by mutableStateOf("")
     var searchSubmitted by mutableStateOf<String?>(null)
     var dynamicRefreshTick by mutableIntStateOf(0)
+    // 首页顶部分段：0 推荐 / 1 直播 / 2 番剧。只在 HyperOS 4 风格下由顶栏切换。
+    // 放在 shell 而不是 feature:home，是因为顶栏（shell chrome）和页面内容（pager）分属两层，
+    // 中间隔了一次组合，没有共同的父级可以提升状态。
+    var homeSection by mutableIntStateOf(0)
 
     fun closeSearch() { showSearch = false; searchQuery = ""; searchSubmitted = null }
 }
@@ -28,7 +32,7 @@ internal data class MainShellChrome(
 internal data class MainShellFeeds(
     val session: com.aritxonly.bdfun.core.model.user.UserProfile?,
     val home: com.aritxonly.bdfun.feature.home.presentation.HomeFeedState,
-    val dynamic: com.aritxonly.bdfun.feature.dynamic.presentation.DynamicFeedState,
+    val dynamic: com.aritxonly.bdfun.feature.feed.presentation.FeedState,
     val unreadMessageCount: Int,
 )
 internal data class MainShellBackdrops(

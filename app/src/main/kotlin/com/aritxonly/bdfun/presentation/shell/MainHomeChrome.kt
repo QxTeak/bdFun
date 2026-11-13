@@ -16,6 +16,7 @@ import com.aritxonly.teak.common.material.LocalTeakBackdrop
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
 import com.aritxonly.bdfun.ui.HomePullIndicator
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
+import com.aritxonly.teak.common.search.TeakSearchTransitionDefaults
 
 @Composable
 internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(settings: SettingsBindings, shell: MainShellState, pageFloat: Float) {
@@ -24,6 +25,13 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(settings
     val homeChrome = shell.chrome.home
     val searchChrome = shell.chrome.search
     val searchBackdrop = shell.backdrops.search
+    // 底栏搜索的一镜到底会把内容整体上移并模糊；顶栏画在变换之外，
+    // 要把这两个量交给它，采样才不会和画面对不上。
+    val bottomProgress = shell.bottom.bottomSearchProgress.value
+    val underlayLiftPx = with(androidx.compose.ui.platform.LocalDensity.current) {
+        TeakSearchTransitionDefaults.ContentLift.toPx()
+    } * bottomProgress
+    val underlayBlurPx = TeakSearchTransitionDefaults.UnderlayBlurPx * shell.bottom.bottomBlurProgress.value
     // 首页顶栏：挂在采集层之外，所以能直接用底栏同款玻璃（真模糊）+ 渐变式模糊
     // 顶栏跟首页一起走：位置随 pager 偏移平移，透明度同步降低
     if (pageFloat < 0.99f) {
@@ -44,6 +52,8 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(settings
                 },
             ) {
                 ProgressiveTopBarMaterial(
+                    underlayLiftPx = underlayLiftPx,
+                    underlayBlurPx = underlayBlurPx,
                     modifier = Modifier.align(Alignment.TopCenter)
                         .graphicsLayer {
                             val searchScale = 1f - 0.1f * shell.bottom.bottomSearchProgress.value
@@ -64,7 +74,10 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(settings
         // 透明度直接由下拉位移决定：位移 58dp 开始淡入、84dp 全显；
         // 卡片在位移 <46dp 时才会撞到小电视，因此永远追不上。
         HomePullIndicator(
-            reveal = if (homeFeed.refreshing) {
+            // 直播 / 番剧还没接入下拉刷新，切到这两段时不要把推荐的下拉指示器带过去。
+            reveal = if (ui.homeSection != 0) {
+                0f
+            } else if (homeFeed.refreshing) {
                 1f
             } else {
                 ((homeFeed.pullOffsetDp - 58f) / 26f).coerceIn(0f, 1f)

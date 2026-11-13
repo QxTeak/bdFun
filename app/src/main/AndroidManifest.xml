@@ -119,7 +119,7 @@
             android:exported="false"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|smallestScreenSize|density" />
         <activity
-            android:name=".DynamicDetailActivity"
+            android:name=".FeedDetailActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|smallestScreenSize|density" />

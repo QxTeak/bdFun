@@ -84,8 +84,8 @@ fun navigateToSpace(context: Context, mid: Long) {
     context.startActivity(createRouteIntent(context, Route.Space(mid)))
 }
 
-fun navigateToDynamic(context: Context, dynamic: com.aritxonly.bdfun.data.DynamicItem) {
-    context.startActivity(createRouteIntent(context, Route.Dynamic(dynamic.id, dynamic)))
+fun navigateToFeed(context: Context, dynamic: com.aritxonly.bdfun.data.FeedItem) {
+    context.startActivity(createRouteIntent(context, Route.Feed(dynamic.id, dynamic)))
 }
 
 fun navigateToVideo(context: Context, video: VideoItem, fromVideoPage: Boolean = false) {

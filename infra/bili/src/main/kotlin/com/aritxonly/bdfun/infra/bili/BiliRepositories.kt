@@ -4,7 +4,7 @@ import com.aritxonly.bdfun.core.common.AppError
 import com.aritxonly.bdfun.core.common.Outcome
 import com.aritxonly.bdfun.core.domain.*
 import com.aritxonly.bdfun.core.model.comment.CommentPage
-import com.aritxonly.bdfun.core.model.feed.DynamicPage
+import com.aritxonly.bdfun.core.model.feed.FeedPage
 import com.aritxonly.bdfun.core.model.user.*
 import com.aritxonly.bdfun.core.model.video.*
 import kotlinx.coroutines.CancellationException
@@ -30,10 +30,10 @@ class BiliCommentRepository(
 
 class BiliFeedRepository(
     private val loadRecommendations: suspend (Int) -> List<VideoItem>,
-    private val loadDynamics: suspend (String) -> DynamicPage,
+    private val loadFeeds: suspend (String) -> FeedPage,
 ) : FeedRepository {
     override suspend fun recommend(page: Int) = biliOutcome { loadRecommendations(page) }
-    override suspend fun dynamics(offset: String) = biliOutcome { loadDynamics(offset) }
+    override suspend fun dynamics(offset: String) = biliOutcome { loadFeeds(offset) }
 }
 
 class BiliAccountRepository(

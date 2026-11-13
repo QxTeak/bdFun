@@ -1,12 +1,12 @@
 package com.aritxonly.bdfun.infra.storage
 
-import com.aritxonly.bdfun.core.model.feed.DynamicItemAuthor
+import com.aritxonly.bdfun.core.model.feed.FeedItemAuthor
 
-import com.aritxonly.bdfun.core.model.feed.DynamicCounts
+import com.aritxonly.bdfun.core.model.feed.FeedCounts
 
-import com.aritxonly.bdfun.core.model.feed.DynamicAuthor
+import com.aritxonly.bdfun.core.model.feed.FeedAuthor
 
-import com.aritxonly.bdfun.core.model.feed.DynamicAttachments
+import com.aritxonly.bdfun.core.model.feed.FeedAttachments
 
 import com.aritxonly.bdfun.core.model.video.VideoItemExtras
 
@@ -37,7 +37,7 @@ class RouteJsonCodec {
                 put("fromVideoPage", route.fromVideoPage); put("commentRoot", route.commentRoot)
                 put("commentTarget", route.commentTarget); put("seekMs", route.seekMs)
             }
-            is Route.Dynamic -> {
+            is Route.Feed -> {
                 put("type", "dynamic"); put("id", route.id); put("snapshot", route.snapshot?.let(::dynamic))
             }
         }
@@ -55,7 +55,7 @@ class RouteJsonCodec {
             "video" -> Route.Video(value.optString("bvid"), value.optLong("aid"),
                 value.optJSONObject("snapshot")?.let(::readVideo), value.optBoolean("fromVideoPage"),
                 value.optLong("commentRoot"), value.optLong("commentTarget"), value.optLong("seekMs"))
-            "dynamic" -> Route.Dynamic(value.getString("id"), value.optJSONObject("snapshot")?.let(::readDynamic))
+            "dynamic" -> Route.Feed(value.getString("id"), value.optJSONObject("snapshot")?.let(::readFeed))
             else -> null
         }
     } catch (_: Exception) { null }
@@ -102,7 +102,7 @@ class RouteJsonCodec {
         ),
     )
 
-    private fun dynamic(d: DynamicItem): JSONObject = JSONObject().apply {
+    private fun dynamic(d: FeedItem): JSONObject = JSONObject().apply {
         put("id", d.id); put("name", d.name); put("face", d.face); put("mid", d.mid); put("time", d.time)
         put("text", d.text); put("images", JSONArray(d.images)); put("video", d.video?.let(::video))
         put("like", d.like); put("comment", d.comment); put("forward", d.forward); put("liked", d.liked)
@@ -116,9 +116,9 @@ class RouteJsonCodec {
         })
     }
 
-    private fun readDynamic(d: JSONObject): DynamicItem = DynamicItem(
+    private fun readFeed(d: JSONObject): FeedItem = FeedItem(
         id = d.getString("id"),
-        author = DynamicItemAuthor(
+        author = FeedItemAuthor(
             name = d.getString("name"),
             face = d.getString("face"),
             mid = d.getLong("mid"),
@@ -129,7 +129,7 @@ class RouteJsonCodec {
         text = d.getString("text"),
         images = d.getJSONArray("images").let { a -> List(a.length()) { a.getString(it) } },
         video = d.optJSONObject("video")?.let(::readVideo),
-        counts = DynamicCounts(
+        counts = FeedCounts(
             like = d.getInt("like"),
             comment = d.getInt("comment"),
             forward = d.getInt("forward"),
@@ -137,16 +137,16 @@ class RouteJsonCodec {
         ),
         commentOid = d.getString("commentOid"),
         commentType = d.getInt("commentType"),
-        attachments = DynamicAttachments(
+        attachments = FeedAttachments(
             title = d.optString("title"),
-            orig = d.optJSONObject("orig")?.let(::readDynamic),
+            orig = d.optJSONObject("orig")?.let(::readFeed),
             isCollection = d.optBoolean("isCollection"),
             pgcCover = d.optString("pgcCover"),
             pgcTitle = d.optString("pgcTitle"),
             pgcLabel = d.optString("pgcLabel"),
             moduleTag = d.optString("moduleTag"),
             liveRecommendation = d.optJSONObject("liveRecommendation")?.let {
-            DynamicLiveRecommendation(it.getLong("roomId"), it.getString("title"), it.getString("cover"),
+            FeedLiveRecommendation(it.getLong("roomId"), it.getString("title"), it.getString("cover"),
                 it.getBoolean("live"), it.getString("areaName"), it.getString("watched"))
         },
         ),

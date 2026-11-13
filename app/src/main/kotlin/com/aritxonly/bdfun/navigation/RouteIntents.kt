@@ -4,7 +4,7 @@ import android.content.Context
 import android.content.Intent
 import com.aritxonly.bdfun.VideoActivity
 import com.aritxonly.bdfun.SpaceActivity
-import com.aritxonly.bdfun.DynamicDetailActivity
+import com.aritxonly.bdfun.FeedDetailActivity
 import com.aritxonly.bdfun.core.navigation.Route
 import com.aritxonly.bdfun.infra.storage.RouteJsonCodec
 
@@ -18,7 +18,7 @@ internal fun createRouteIntent(context: Context, route: Route): Intent {
         is Route.MessageTools -> com.aritxonly.bdfun.MessageToolsActivity::class.java
         is Route.Video -> VideoActivity::class.java
         is Route.Space -> SpaceActivity::class.java
-        is Route.Dynamic -> DynamicDetailActivity::class.java
+        is Route.Feed -> FeedDetailActivity::class.java
         is Route.PrivateChat -> com.aritxonly.bdfun.PrivateChatActivity::class.java
     }
     return Intent(context, target).putExtra(EXTRA_ROUTE, codec.encode(route)).apply {
