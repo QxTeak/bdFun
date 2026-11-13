@@ -19,11 +19,14 @@ internal const val PhotoViewerBackdropZoomIn = 0.1f
  * 底层页面的缩放：
  * - 打开：随入场进度从 1.0 放大到 1.0 + ZoomIn（实测约 1.1）；
  * - 跟手拖动：按拖动进度从放大值退回 1.0，不是继续缩小到 0.9。
- * 两条时间线相减，关闭过程中两者都会回到 0，最终稳定在 1.0。
+ *
+ * 拖动进度要再乘一次入场进度：松手退出时 dragY 是冻结的，进度却在往 0 走，
+ * 如果直接用 dragY，退场会把底层一路压到 1 - ZoomIn（也就是 0.9），动画结束再弹回 1.0。
+ * 乘上进度后，两条时间线同时归零，最终稳定在 1.0。
  */
 internal fun photoBackdropScaleAt(progress: Float, dismissProgress: Float): Float {
     val p = progress.coerceIn(0f, 1f)
-    val d = dismissProgress.coerceIn(0f, 1f)
+    val d = (dismissProgress * p).coerceIn(0f, 1f)
     return 1f + PhotoViewerBackdropZoomIn * (p - d)
 }
 

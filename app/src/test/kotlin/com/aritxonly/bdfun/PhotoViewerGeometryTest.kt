@@ -101,6 +101,17 @@ class PhotoViewerGeometryTest {
         assertEquals(1f, photoBackdropScaleAt(1f, 1f), 0.0001f)
     }
 
+    @Test fun backdropNeverShrinksBelowNormal() {
+        // 松手退出时 dragY 是冻结的，进度还在往 0 走；底层只能回到 1.0，不能缩到 0.9。
+        for (p in listOf(0f, 0.25f, 0.5f, 0.75f, 1f)) {
+            for (d in listOf(0f, 0.4f, 0.8f, 1f)) {
+                assertTrue("p=$p d=$d", photoBackdropScaleAt(p, d) >= 1f - 0.0001f)
+            }
+        }
+        assertEquals(1f, photoBackdropScaleAt(0f, 1f), 0.0001f)
+        assertEquals(1.1f, photoBackdropScaleAt(1f, 0f), 0.0001f)
+    }
+
     @Test fun dismissalNeedsDistanceOrSpeed() {
         assertFalse(photoShouldDismiss(dismissProgress = 0.1f, velocityY = 100f))
         assertTrue(photoShouldDismiss(dismissProgress = 0.2f, velocityY = 0f))
