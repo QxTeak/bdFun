@@ -9,6 +9,7 @@ import com.aritxonly.bdfun.ui.HomeTopBar
 import com.aritxonly.bdfun.ui.HomeTopBarContent
 import com.aritxonly.bdfun.ui.HomeTopBarSearch
 import com.aritxonly.bdfun.ui.HomeTopBarActions
+import com.aritxonly.bdfun.ui.HomeTopBarTabs
 import kotlinx.coroutines.launch
 
 @Composable
@@ -23,6 +24,13 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
     val appScope = shell.navigation.scope
     val searchChrome = shell.chrome.search
     val searchReveal = input.reveal
+    // HyperOS 4 风格：首页顶栏没有搜索框，中间换成「推荐 / 直播 / 番剧」分段。
+    // 底栏搜索态（bottomSearch）仍然用原来的搜索输入，不套分段。
+    val tabs = if (!bottomSearch && settings.interfaceStyle == 2) {
+        HomeTopBarTabs(selected = ui.homeSection, onSelect = { ui.homeSection = it })
+    } else {
+        null
+    }
     HomeTopBar(
         content = HomeTopBarContent(
             profile = session,
@@ -65,6 +73,7 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
             if (session == null) navigateToLogin(context) else appScope.launch { tabPagerState.animateScrollToPage(2) }
         },
         ),
+        tabs = tabs,
         modifier = Modifier,
     )
 }
