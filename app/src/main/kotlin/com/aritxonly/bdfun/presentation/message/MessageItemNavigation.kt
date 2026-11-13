@@ -1,7 +1,7 @@
 package com.aritxonly.bdfun.ui
 
 import com.aritxonly.bdfun.navigateToVideoAtComment
-import com.aritxonly.bdfun.navigateToDynamic
+import com.aritxonly.bdfun.navigateToFeed
 import com.aritxonly.bdfun.core.common.Outcome
 import com.aritxonly.bdfun.core.common.messageOr
 import com.aritxonly.bdfun.core.model.message.MessageItem
@@ -21,7 +21,7 @@ internal fun openMessageItem(
             "kind=$kind",
     )
     val target = messageOpenTarget(item, kind)
-    if (target == MessageOpenTarget.Dynamic) {
+    if (target == MessageOpenTarget.Feed) {
         val id = Regex("(?:dynamic|opus)/([0-9]+)").find(item.nativeUri)?.groupValues?.get(1)
             ?: android.net.Uri.parse(item.nativeUri).getQueryParameter("dynamic_id")
         if (!id.isNullOrBlank()) scope.launch {
@@ -30,7 +30,7 @@ internal fun openMessageItem(
                     is Outcome.Success -> result.value ?: error("动态已删除或暂不可用")
                     is Outcome.Failure -> error(result.error.messageOr("动态加载失败"))
                 }
-                navigateToDynamic(context, dynamic)
+                navigateToFeed(context, dynamic)
             } catch (e: kotlinx.coroutines.CancellationException) { throw e }
             catch (e: Exception) { context.showToast(e.message ?: "动态加载失败") }
         } else context.showToast("这条消息未提供可打开的动态链接")

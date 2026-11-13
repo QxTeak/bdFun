@@ -10,7 +10,7 @@ import com.aritxonly.bdfun.core.model.video.VideoItemExtras
 
 import com.aritxonly.bdfun.core.common.*
 import com.aritxonly.bdfun.core.domain.*
-import com.aritxonly.bdfun.core.model.feed.DynamicPage
+import com.aritxonly.bdfun.core.model.feed.FeedPage
 import com.aritxonly.bdfun.core.model.video.*
 import kotlinx.coroutines.*
 import org.junit.Assert.*
@@ -49,7 +49,7 @@ class HomeActionsStateHolderTest {
     }
     private fun feed(vararg items: VideoItem) = HomeFeedStateHolder(object : FeedRepository {
         override suspend fun recommend(page: Int): Outcome<List<VideoItem>> = Outcome.Success(items.toList())
-        override suspend fun dynamics(offset: String): Outcome<DynamicPage> = error("unused")
+        override suspend fun dynamics(offset: String): Outcome<FeedPage> = error("unused")
     }, videos)
 
     @Test fun webFeedbackUsesExistingReasonAndOnlyThenFilters() = runBlocking {

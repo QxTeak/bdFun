@@ -59,14 +59,14 @@ private fun SettingsDanmakuCardRows1(runtime: SettingsPageRuntime) {
 }
 
 @Composable
-internal fun SettingsDynamicCard(runtime: SettingsPageRuntime) {
+internal fun SettingsFeedCard(runtime: SettingsPageRuntime) {
     TeakSettingsCard(title = "动态页") {
-        SettingsDynamicCardRows1(runtime)
+        SettingsFeedCardRows1(runtime)
     }
 }
 
 @Composable
-private fun SettingsDynamicCardRows1(runtime: SettingsPageRuntime) {
+private fun SettingsFeedCardRows1(runtime: SettingsPageRuntime) {
     val settings = runtime.settings
     TeakSettingsSwitchRow(
         title = "动态视频自动播放",

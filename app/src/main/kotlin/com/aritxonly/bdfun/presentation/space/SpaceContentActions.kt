@@ -16,14 +16,14 @@ internal class SpaceContentActions(runtime: SpaceScreenRuntime, private val cont
     fun loadVideos(page: Int) { scope.launch { controller.loadVideos(page) } }
     fun loadArticles(page: Int) { scope.launch { controller.loadArticles(page) } }
     fun loadShop() { scope.launch { controller.loadShop() } }
-    fun loadMoreDynamics() { scope.launch { controller.loadMoreDynamics() } }
+    fun loadMoreFeeds() { scope.launch { controller.loadMoreFeeds() } }
     fun loadBangumi(page: Int) { scope.launch { controller.loadBangumi(page) } }
     fun loadMore(tab: Int, submissionMode: Int) {
         when (val request = controller.nextPage(tab, submissionMode)) {
             is com.aritxonly.bdfun.feature.space.application.SpacePageRequest.Videos -> loadVideos(request.page)
             is com.aritxonly.bdfun.feature.space.application.SpacePageRequest.Articles -> loadArticles(request.page)
             is com.aritxonly.bdfun.feature.space.application.SpacePageRequest.Bangumi -> loadBangumi(request.page)
-            com.aritxonly.bdfun.feature.space.application.SpacePageRequest.Dynamics -> loadMoreDynamics()
+            com.aritxonly.bdfun.feature.space.application.SpacePageRequest.Feeds -> loadMoreFeeds()
             null -> Unit
         }
     }

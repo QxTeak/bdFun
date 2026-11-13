@@ -50,6 +50,7 @@ class SpaceActivity : ComponentActivity() {
         setContent {
             val settings = AppGraph.settings
             val chrome = remember { SpaceChromeState() }
+            com.aritxonly.bdfun.ui.PhotoViewerRoot(animationsEnabled = settings.animationsEnabled) {
             TeakActivityScaffold(
                 settings = settings,
                 onBack = { finish() },
@@ -64,6 +65,7 @@ class SpaceActivity : ComponentActivity() {
                 SpaceScreen(mid = mid, session = AppGraph.session.value, controller = page.currentState(),
                     onTitleChange = {}, chrome = chrome,
                     onBarBlurFractionChange = {}, onBannerDarkChange = { chrome.bannerIsDark = it })
+            }
             }
         }
     }

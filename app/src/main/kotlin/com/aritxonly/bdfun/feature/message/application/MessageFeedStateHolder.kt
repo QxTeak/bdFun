@@ -3,7 +3,7 @@ package com.aritxonly.bdfun.feature.message.application
 import com.aritxonly.bdfun.core.common.*
 import com.aritxonly.bdfun.core.domain.MessageFeedRepository
 import com.aritxonly.bdfun.core.model.message.*
-import com.aritxonly.bdfun.core.model.feed.DynamicItem
+import com.aritxonly.bdfun.core.model.feed.FeedItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
@@ -96,7 +96,7 @@ internal class MessageFeedStateHolder(private val repository: MessageFeedReposit
         }
     }
 
-    suspend fun dynamic(id: String): Outcome<DynamicItem?> {
+    suspend fun dynamic(id: String): Outcome<FeedItem?> {
         if (!ownerIsCurrent()) throw kotlinx.coroutines.CancellationException("消息页面已关闭")
         val result = repository.dynamic(id)
         if (!ownerIsCurrent()) throw kotlinx.coroutines.CancellationException("消息页面已关闭")

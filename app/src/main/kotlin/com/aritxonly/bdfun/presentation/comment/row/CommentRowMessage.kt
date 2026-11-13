@@ -17,7 +17,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun CommentRowMessage(item: CommentItem) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
-    val CommentImageViewer = LocalCommentImageViewer.current
+    val photo = LocalPhotoViewer.current
     EmoteText(
         content = EmoteTextContent(
             text = item.message,
@@ -42,8 +42,8 @@ internal fun CommentRowMessage(item: CommentItem) {
     )
     if (item.pictures.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
-        CommentPictures(item.pictures) { index ->
-            CommentImageViewer.open(item.pictures, index)
+        CommentPictures(item.pictures) { index, rect, radius ->
+            photo.open(item.pictures, index, rect, radius)
         }
     }
 }

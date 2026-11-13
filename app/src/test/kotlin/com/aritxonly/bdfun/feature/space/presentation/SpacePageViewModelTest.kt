@@ -8,7 +8,7 @@ import com.aritxonly.bdfun.core.application.SessionIdentity
 import com.aritxonly.bdfun.core.application.SessionResourceSlot
 import com.aritxonly.bdfun.core.common.Outcome
 import com.aritxonly.bdfun.core.domain.SpaceRepository
-import com.aritxonly.bdfun.core.model.feed.DynamicPage
+import com.aritxonly.bdfun.core.model.feed.FeedPage
 import com.aritxonly.bdfun.core.model.user.*
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import com.aritxonly.bdfun.feature.space.application.*
@@ -19,7 +19,7 @@ class SpacePageViewModelTest {
     private val unused = object : SpaceRepository {
         override suspend fun profile(mid: Long): Outcome<SpaceInfo> = error("unused")
         override suspend fun seasons(mid: Long): Outcome<List<SpaceSeason>> = error("unused")
-        override suspend fun dynamics(mid: Long, offset: String): Outcome<DynamicPage> = error("unused")
+        override suspend fun dynamics(mid: Long, offset: String): Outcome<FeedPage> = error("unused")
         override suspend fun relation(mid: Long): Outcome<Int?> = error("unused")
         override suspend fun videos(mid: Long, page: Int): Outcome<List<VideoItem>> = error("unused")
         override suspend fun articles(mid: Long, page: Int): Outcome<List<SpaceArticle>> = error("unused")

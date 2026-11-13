@@ -51,15 +51,15 @@ class OneTakeAnchor internal constructor() {
     }
 
     /** 从整张动态卡片放大到动态详情。 */
-    fun openDynamic(
+    fun openFeed(
         context: Context,
-        dynamic: com.aritxonly.bdfun.data.DynamicItem,
+        dynamic: com.aritxonly.bdfun.data.FeedItem,
         radiusPx: Float,
         backgroundColor: Int = 0,
         fallback: () -> Unit,
     ) {
         val color = if (backgroundColor != 0) backgroundColor else this.backgroundColor
-        TeakOneTake.openDynamic(context, dynamic, rect, radiusPx, color, fallback)
+        TeakOneTake.openFeed(context, dynamic, rect, radiusPx, color, fallback)
     }
 }
 

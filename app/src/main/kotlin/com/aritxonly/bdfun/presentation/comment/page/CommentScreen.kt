@@ -1,7 +1,10 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import com.aritxonly.bdfun.core.common.messageOr
 import com.aritxonly.teak.common.chrome.TrackTeakPageScroll
 import kotlinx.coroutines.launch
@@ -11,16 +14,14 @@ internal fun CommentScreen(
     request: CommentScreenRequest, onBack: () -> Unit,
     layout: CommentScreenLayout = CommentScreenLayout(), header: CommentScreenHeader? = null,
 ) {
-    val imageViewer = remember { CommentImageViewerStateHolder() }
-    CompositionLocalProvider(LocalCommentImageViewer provides imageViewer) {
-        val runtime = rememberCommentPageRuntime(request)
-        CommentPageEffects(runtime, layout)
-        if (layout.trackBackProgress) TrackTeakPageScroll(runtime.listState)
-        if (!layout.bare) BackHandler(onBack = onBack)
+    val runtime = rememberCommentPageRuntime(request)
+    CommentPageEffects(runtime, layout)
+    if (layout.trackBackProgress) TrackTeakPageScroll(runtime.listState)
+    if (!layout.bare) BackHandler(onBack = onBack)
+    Box(Modifier.fillMaxSize()) {
         CommentPageList(runtime, layout, header)
         CommentMenu(runtime.menu, LocalVideoPageState.current.dependencies.comments.session.value?.mid ?: 0L)
         CommentPageThread(runtime, layout)
-        CommentImageDialog()
     }
 }
 

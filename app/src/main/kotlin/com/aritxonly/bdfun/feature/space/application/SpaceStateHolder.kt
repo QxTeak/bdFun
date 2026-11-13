@@ -55,7 +55,7 @@ internal class SpaceStateHolder(
         if (!active) return null
         val current = mutable.value
         return when {
-            tab == 1 && !current.dynamics.loading && !current.dynamics.end -> SpacePageRequest.Dynamics
+            tab == 1 && !current.dynamics.loading && !current.dynamics.end -> SpacePageRequest.Feeds
             tab == 2 && submissionMode == 0 && !current.videos.loading && !current.videos.end ->
                 SpacePageRequest.Videos(current.videos.page + 1)
             tab == 2 && submissionMode == 1 && !current.articles.loading && !current.articles.end ->
@@ -86,7 +86,7 @@ internal class SpaceStateHolder(
                 if (seasonResult is Outcome.Success) mutable.update { it.copy(seasons = seasonResult.value) }
                 val dynamicResult = dynamics.awaitCurrent()
                 // main首轮失败保留原游标/可继续状态，进入动态Tab仍可重试。
-                if (dynamicResult is Outcome.Success) applyDynamics(dynamicResult, append = false)
+                if (dynamicResult is Outcome.Success) applyFeeds(dynamicResult, append = false)
                 val attribute = relation.awaitCurrent()
                 mutable.update { it.copy(profile = it.profile.copy(followed = when {
                     isSelf -> false
@@ -151,15 +151,15 @@ internal class SpaceStateHolder(
         } finally { if (!closed) mutable.update { set(it, get(it).copy(loading = false)) } }
     }
 
-    suspend fun loadMoreDynamics() {
+    suspend fun loadMoreFeeds() {
         val initial = mutable.value.dynamics
         if (!active || initial.loading || initial.end) return
         mutable.update { it.copy(dynamics = it.dynamics.copy(loading = true, error = null)) }
-        try { applyDynamics(requestCurrent { repository.dynamics(mid, initial.offset) }, initial.offset.isNotBlank()) }
+        try { applyFeeds(requestCurrent { repository.dynamics(mid, initial.offset) }, initial.offset.isNotBlank()) }
         finally { if (!closed) mutable.update { it.copy(dynamics = it.dynamics.copy(loading = false)) } }
     }
 
-    private fun applyDynamics(result: Outcome<com.aritxonly.bdfun.core.model.feed.DynamicPage>, append: Boolean) {
+    private fun applyFeeds(result: Outcome<com.aritxonly.bdfun.core.model.feed.FeedPage>, append: Boolean) {
         mutable.update { it.copy(dynamics = when (result) {
             is Outcome.Success -> it.dynamics.copy(items = if (append) (it.dynamics.items + result.value.items).distinctBy { item -> item.id }
                 else result.value.items, offset = result.value.offset, end = !result.value.hasMore || result.value.offset.isBlank())
