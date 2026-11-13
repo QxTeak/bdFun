@@ -1,4 +1,4 @@
-package com.aritxonly.bdfun.presentation.discover
+package com.aritxonly.bdfun.presentation.live
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,7 +37,9 @@ import coil.compose.AsyncImage
 import com.aritxonly.bdfun.core.model.feed.FeedLiveRecommendation
 import com.aritxonly.bdfun.core.model.live.LiveArea
 import com.aritxonly.bdfun.core.model.live.LiveCard
-import com.aritxonly.bdfun.feature.discover.application.LivePageStateHolder
+import com.aritxonly.bdfun.feature.live.application.LivePageStateHolder
+import com.aritxonly.bdfun.presentation.common.discover.DiscoverErrorState
+import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.navigateToLogin
 import com.aritxonly.bdfun.ui.FeedCardShape
 import com.aritxonly.bdfun.ui.FeedLiveCard
@@ -221,36 +223,6 @@ internal fun LiveGridCard(live: LiveCard, onClick: () -> Unit) {
                 fontSize = 11.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-            )
-        }
-    }
-}
-
-@Composable
-internal fun DiscoverSectionTitle(text: String) {
-    Text(
-        text = text,
-        color = MiuixTheme.colorScheme.onBackground,
-        fontSize = 15.sp,
-        fontWeight = FontWeight.Medium,
-        modifier = Modifier.padding(start = 2.dp, bottom = 8.dp),
-    )
-}
-
-@Composable
-internal fun DiscoverErrorState(message: String, onRetry: () -> Unit) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 60.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(message, color = MiuixTheme.colorScheme.onBackgroundVariant, fontSize = 14.sp)
-        Spacer(Modifier.height(10.dp))
-        TeakGlass(modifier = Modifier.height(34.dp), shape = Capsule(), onClick = onRetry) {
-            Text(
-                text = "重试",
-                color = MiuixTheme.colorScheme.primary,
-                fontSize = 13.sp,
-                modifier = Modifier.padding(horizontal = 18.dp).align(Alignment.Center),
             )
         }
     }

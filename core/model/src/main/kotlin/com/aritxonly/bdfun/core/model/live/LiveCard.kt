@@ -12,6 +12,13 @@ data class LiveCard(
     val watchedText: String = "",
 )
 
+/** 直播首页一屏：关注直播 + 分区入口 + 推荐卡片（对应 PiliPlus 的 card_list）。 */
+data class LiveHome(
+    val following: List<LiveCard> = emptyList(),
+    val areas: List<LiveArea> = emptyList(),
+    val cards: List<LiveCard> = emptyList(),
+)
+
 /** 直播分区（第二行横向列表）。parentId 为 0 表示这是一级分区本身。 */
 data class LiveArea(
     val id: Long,

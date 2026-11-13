@@ -1,4 +1,4 @@
-package com.aritxonly.bdfun.presentation.discover
+package com.aritxonly.bdfun.presentation.pgc
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
@@ -22,8 +23,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.aritxonly.bdfun.feature.discover.application.BangumiPageStateHolder
+import com.aritxonly.bdfun.feature.pgc.application.BangumiPageStateHolder
+import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
+import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullSession
+import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullUi
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -42,22 +46,27 @@ internal fun BangumiPage(state: BangumiPageStateHolder) {
     BangumiPageEffects(state, pull, pullUi)
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+        columns = GridCells.Fixed(3),
         state = gridState,
         modifier = Modifier
             .fillMaxSize()
             .offset { IntOffset(0, pullUi.offset.roundToInt()) }
             .nestedScroll(pull.connection()),
         contentPadding = PaddingValues(
-            start = 12.dp,
-            end = 12.dp,
+            start = 10.dp,
+            end = 10.dp,
             top = HomeTopBarHeight + statusBarTop + 6.dp,
             bottom = 104.dp,
         ),
-        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         bangumiFollowSection(state, context)
+        if (state.cards.isNotEmpty()) {
+            item(key = "pgc-recommend-title", span = { GridItemSpan(maxLineSpan) }) {
+                DiscoverSectionTitle("推荐")
+            }
+        }
         items(state.cards, key = { it.seasonId }) { item ->
             BangumiCardItem(item) { openBangumi(context, item.seasonId) }
         }
@@ -85,8 +94,12 @@ private fun rememberBangumiPullSession(
             },
             onPullDp = { state.pullOffsetDp = it },
             canScrollBackward = { !state.gridState.canScrollBackward },
-            isRefreshing = { state.refreshing },
-            onRefresh = { scope.launch { state.refresh() } },
+            isRefreshing = { state.refreshing || state.loading },
+            onRefresh = {
+                // 与推荐页一致：松手立即把指示器顶到阈值，再开始刷新。
+                state.pullFraction = 1f
+                scope.launch { state.refresh() }
+            },
         )
     }
 }

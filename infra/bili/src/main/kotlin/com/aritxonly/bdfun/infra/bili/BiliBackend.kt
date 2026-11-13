@@ -40,7 +40,7 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
     suspend fun liveDanmuInfo(roomId: Long) = api.liveDanmuInfo(roomId)
     suspend fun livePlayUrl(roomId: Long, qn: Int = 10000) = api.livePlayUrl(roomId, qn)
     // 直播页 / 番剧页（PiliPlus 同款接口）
-    suspend fun liveFollowing(page: Int = 1) = api.liveFollowing(page)
+    suspend fun liveHome(page: Int = 1) = api.liveHome(page)
     suspend fun liveRecommend(page: Int = 1, parentAreaId: Long = 0L, areaId: Long = 0L) =
         api.liveRecommend(page, parentAreaId, areaId)
     suspend fun liveAreaList(parentId: Long = 0L) = api.liveAreaList(parentId)

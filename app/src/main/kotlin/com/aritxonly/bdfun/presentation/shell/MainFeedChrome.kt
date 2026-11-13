@@ -33,23 +33,28 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainFeedChrome(shell: M
             ProgressiveTopBarMaterial(
                 underlayLiftPx = underlayLiftPx,
                 underlayBlurPx = underlayBlurPx,
+                // 与首页同一条规则：材质层只做淡出，缩放/横移放到内容层，
+                // 避免渐进模糊的采样矩形被缩小后在搜索动画里切出硬边。
                 modifier = Modifier.align(Alignment.TopCenter)
                     .graphicsLayer {
-                        // 和首页顶栏对齐：底栏搜索时同样缩到 0.9 并淡出。
-                        // 之前这里少了这两句，两个页面的过渡观感不一致。
-                        val searchScale = 1f - 0.1f * shell.bottom.bottomSearchProgress.value
-                        scaleX = searchScale
-                        scaleY = searchScale
-                        translationX = (1f - pageFloat) * size.width * 0.92f
                         alpha = (1f - kotlin.math.abs(pageFloat - 1f)).coerceIn(0f, 1f) *
                             (1f - shell.bottom.bottomTopBarAlpha.value)
                     },
             ) {
-                FeedTopBar(
-                    state = dynamicFeed,
-                    loggedIn = session != null,
-                    modifier = Modifier,
-                )
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier.graphicsLayer {
+                        val searchScale = 1f - 0.1f * shell.bottom.bottomSearchProgress.value
+                        scaleX = searchScale
+                        scaleY = searchScale
+                        translationX = (1f - pageFloat) * size.width * 0.92f
+                    },
+                ) {
+                    FeedTopBar(
+                        state = dynamicFeed,
+                        loggedIn = session != null,
+                        modifier = Modifier,
+                    )
+                }
             }
         }
     }

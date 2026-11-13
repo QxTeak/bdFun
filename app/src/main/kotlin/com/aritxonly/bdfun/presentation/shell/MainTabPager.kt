@@ -51,12 +51,12 @@ internal fun MainTabPager(
                         cardStyle = settings.homeCardStyle,
                     )
                 } else if (homeSection == 1) {
-                    com.aritxonly.bdfun.presentation.discover.LivePage(
+                    com.aritxonly.bdfun.presentation.live.LivePage(
                         state = AppGraph.livePageState,
                         loggedIn = session != null,
                     )
                 } else {
-                    com.aritxonly.bdfun.presentation.discover.BangumiPage(
+                    com.aritxonly.bdfun.presentation.pgc.BangumiPage(
                         state = AppGraph.bangumiPageState,
                     )
                 }

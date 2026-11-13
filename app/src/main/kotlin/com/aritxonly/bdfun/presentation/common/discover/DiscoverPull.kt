@@ -1,4 +1,4 @@
-package com.aritxonly.bdfun.presentation.discover
+package com.aritxonly.bdfun.presentation.common.discover
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf

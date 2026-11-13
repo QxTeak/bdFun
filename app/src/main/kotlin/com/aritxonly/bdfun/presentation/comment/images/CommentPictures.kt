@@ -42,7 +42,7 @@ internal fun CommentPictures(urls: List<String>, onOpen: (Int, Rect, Float, List
                     .background(colors.surfaceContainerHigh)
                     .onGloballyPositioned { bounds[index] = it.boundsInRoot() }
                     .clickable(interactionSource = null, indication = null) {
-                        onOpen(index, bounds[index] ?: Rect.Zero, radiusPx, urls.map { bounds[it] })
+                        onOpen(index, bounds[index] ?: Rect.Zero, radiusPx, urls.indices.map { bounds[it] })
                     },
             )
         }

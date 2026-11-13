@@ -1,4 +1,4 @@
-package com.aritxonly.bdfun.presentation.discover
+package com.aritxonly.bdfun.presentation.pgc
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,7 +34,9 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.aritxonly.bdfun.BrandPink
 import com.aritxonly.bdfun.core.model.pgc.BangumiCard
-import com.aritxonly.bdfun.feature.discover.application.BangumiPageStateHolder
+import com.aritxonly.bdfun.feature.pgc.application.BangumiPageStateHolder
+import com.aritxonly.bdfun.presentation.common.discover.DiscoverErrorState
+import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.ui.FeedCardShape
 import com.aritxonly.bdfun.ui.TeakLoading
 import com.aritxonly.bdfun.ui.rememberImageRequest
@@ -55,7 +57,7 @@ internal fun LazyGridScope.bangumiFollowSection(
                 contentPadding = PaddingValues(bottom = 2.dp),
             ) {
                 items(state.following, key = { it.seasonId }) { item ->
-                    Box(Modifier.width(116.dp)) {
+                    Box(Modifier.width(104.dp)) {
                         BangumiCardItem(item) { openBangumi(context, item.seasonId) }
                     }
                 }
@@ -127,25 +129,28 @@ internal fun BangumiCardItem(item: BangumiCard, onClick: () -> Unit) {
             }
             if (item.vip) BangumiVipBadge()
         }
-        Column(Modifier.padding(start = 8.dp, end = 8.dp, top = 7.dp, bottom = 8.dp)) {
+        Column(Modifier.padding(start = 6.dp, end = 6.dp, top = 6.dp, bottom = 6.dp)) {
             Text(
                 text = item.title,
                 color = colors.onBackground,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
-                fontSize = 13.5.sp,
-                lineHeight = 18.sp,
-                modifier = Modifier.heightIn(min = 36.dp),
+                fontSize = 12.5.sp,
+                lineHeight = 16.5.sp,
+                modifier = Modifier.heightIn(min = 33.dp),
             )
-            if (item.indexShow.isNotBlank()) {
-                Spacer(Modifier.height(5.dp))
-                Text(
-                    text = item.indexShow,
-                    color = colors.onBackgroundVariant,
-                    fontSize = 11.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+            Spacer(Modifier.height(2.dp))
+            // 固定高度：没有「全x话」的卡片也留出同样空间，保证一排卡片底边齐平。
+            Box(Modifier.height(15.dp), contentAlignment = Alignment.CenterStart) {
+                if (item.indexShow.isNotBlank()) {
+                    Text(
+                        text = item.indexShow,
+                        color = colors.onBackgroundVariant,
+                        fontSize = 10.5.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
             }
         }
     }

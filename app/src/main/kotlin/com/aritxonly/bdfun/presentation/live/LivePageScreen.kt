@@ -1,4 +1,4 @@
-package com.aritxonly.bdfun.presentation.discover
+package com.aritxonly.bdfun.presentation.live
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -22,9 +22,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.aritxonly.bdfun.feature.discover.application.LivePageStateHolder
+import com.aritxonly.bdfun.feature.live.application.LivePageStateHolder
 import com.aritxonly.bdfun.navigateToLiveRoom
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
+import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullSession
+import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullUi
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -88,8 +90,12 @@ private fun rememberLivePullSession(
             },
             onPullDp = { state.pullOffsetDp = it },
             canScrollBackward = { !state.gridState.canScrollBackward },
-            isRefreshing = { state.refreshing },
-            onRefresh = { scope.launch { state.refresh() } },
+            isRefreshing = { state.refreshing || state.loading },
+            onRefresh = {
+                // 与推荐页一致：松手立即把指示器顶到阈值，再开始刷新。
+                state.pullFraction = 1f
+                scope.launch { state.refresh() }
+            },
         )
     }
 }
