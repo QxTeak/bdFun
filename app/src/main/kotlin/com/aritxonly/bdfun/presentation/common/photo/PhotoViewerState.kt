@@ -27,7 +27,7 @@ internal data class PhotoViewerRequest(
 /**
  * 图片查看器的页面级状态。
  *
- * 只在 request 变化时驱动动画；入场/退场的进度由 [PhotoViewerHost] 自己持有，
+ * 只在 request 变化时驱动动画；入场/退场的进度由 [PhotoViewerRoot] 自己持有，
  * 因为它是纯展示状态，页面不需要知道。
  */
 internal class PhotoViewerStateHolder {
@@ -57,5 +57,5 @@ internal class PhotoViewerStateHolder {
 }
 
 internal val LocalPhotoViewer = staticCompositionLocalOf<PhotoViewerStateHolder> {
-    error("图片查看器必须放在 PhotoViewerHost 里面")
+    error("图片查看器必须放在 PhotoViewerRoot 里面")
 }

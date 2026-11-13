@@ -14,20 +14,14 @@ internal fun CommentScreen(
     request: CommentScreenRequest, onBack: () -> Unit,
     layout: CommentScreenLayout = CommentScreenLayout(), header: CommentScreenHeader? = null,
 ) {
-    val photo = remember { PhotoViewerStateHolder() }
-    CompositionLocalProvider(LocalPhotoViewer provides photo) {
-        val runtime = rememberCommentPageRuntime(request)
-        CommentPageEffects(runtime, layout)
-        if (layout.trackBackProgress) TrackTeakPageScroll(runtime.listState)
-        if (!layout.bare) BackHandler(onBack = onBack)
-        // 大图不再是 Dialog，而是这一页里的覆盖层：关闭动画能作用在评论列表上。
-        PhotoViewerHost(state = photo, modifier = Modifier.fillMaxSize()) {
-            Box(Modifier.fillMaxSize()) {
-                CommentPageList(runtime, layout, header)
-                CommentMenu(runtime.menu, LocalVideoPageState.current.dependencies.comments.session.value?.mid ?: 0L)
-                CommentPageThread(runtime, layout)
-            }
-        }
+    val runtime = rememberCommentPageRuntime(request)
+    CommentPageEffects(runtime, layout)
+    if (layout.trackBackProgress) TrackTeakPageScroll(runtime.listState)
+    if (!layout.bare) BackHandler(onBack = onBack)
+    Box(Modifier.fillMaxSize()) {
+        CommentPageList(runtime, layout, header)
+        CommentMenu(runtime.menu, LocalVideoPageState.current.dependencies.comments.session.value?.mid ?: 0L)
+        CommentPageThread(runtime, layout)
     }
 }
 

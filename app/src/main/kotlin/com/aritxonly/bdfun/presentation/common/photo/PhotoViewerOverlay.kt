@@ -1,0 +1,164 @@
+package com.aritxonly.bdfun.ui
+
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
+import kotlin.math.max
+
+/**
+ * 图片层 + 黑底 + 上方 chrome。
+ *
+ * 三层共用同一个进度 [PhotoViewerTransitionState.progress]：
+ * 图片从缩略图矩形放大到全屏，黑底同步从不透明到全黑，chrome 最后一段才淡入。
+ */
+@Composable
+internal fun PhotoViewerOverlay(
+    request: PhotoViewerRequest,
+    view: PhotoViewerTransitionState,
+    onDismiss: () -> Unit,
+) {
+    val density = LocalDensity.current
+    val width = view.size.width.toFloat()
+    val height = view.size.height.toFloat()
+    val origin: Rect? = request.origin
+    val geometry = photoGeometryAt(
+        progress = view.progress.value,
+        screenWidth = width,
+        screenHeight = height,
+        originX = origin?.left ?: (width * 0.05f),
+        originY = origin?.top ?: (height * 0.05f),
+        originWidth = origin?.width ?: (width * 0.9f),
+        originHeight = origin?.height ?: (height * 0.9f),
+        originRadius = request.originRadiusPx,
+    )
+    val backgroundAlpha = (view.progress.value * (1f - view.dismissProgress)).coerceIn(0f, 1f)
+    val cornerDp = with(density) { geometry.cornerRadius.toDp() }
+    val scope = rememberCoroutineScope()
+
+    Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = backgroundAlpha)))
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer(
+                    scaleX = geometry.scale * photoDragScale(view.dismissProgress),
+                    scaleY = geometry.scale * photoDragScale(view.dismissProgress),
+                    translationX = geometry.translationX,
+                    translationY = geometry.translationY + view.dragY,
+                    shape = RoundedCornerShape(cornerDp),
+                    clip = true,
+                )
+                .photoViewerDragGestures(view, scope, onDismiss),
+        ) {
+            PhotoViewerPager(request, view)
+        }
+        PhotoViewerChrome(request, view, onDismiss)
+    }
+}
+
+/** Telegram 的顶部只有一个关闭按钮，底部是发起方提供的操作区，两者一起淡入淡出。 */
+@Composable
+private fun PhotoViewerChrome(
+    request: PhotoViewerRequest,
+    view: PhotoViewerTransitionState,
+    onDismiss: () -> Unit,
+) {
+    val reveal = ((view.progress.value - 0.6f) / 0.4f).coerceIn(0f, 1f)
+    val alpha = if (view.chromeVisible) reveal else 0f
+    Box(Modifier.fillMaxSize().graphicsLayer { this.alpha = alpha }) {
+        Box(Modifier.align(Alignment.TopCenter).fillMaxWidth()) {
+            PhotoViewerTopBar(onDismiss)
+        }
+        request.footer?.let { footer ->
+            Box(Modifier.align(Alignment.BottomCenter)) { footer(onDismiss) }
+        }
+    }
+}
+
+@Composable
+private fun PhotoViewerTopBar(onDismiss: () -> Unit) {
+    Box(Modifier.fillMaxWidth().statusBarsPadding()) {
+        Text(
+            text = "✕",
+            color = Color.White,
+            fontSize = 26.sp,
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .clip(androidx.compose.foundation.shape.CircleShape)
+                .pointerInput(Unit) { detectTapGestures(onTap = { onDismiss() }) }
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+        )
+    }
+}
+
+@Composable
+private fun PhotoViewerPager(request: PhotoViewerRequest, view: PhotoViewerTransitionState) {
+    val pager = rememberPagerState(
+        initialPage = request.index.coerceIn(0, request.images.lastIndex),
+        pageCount = { request.images.size },
+    )
+    HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
+        PhotoViewerPage(url = request.images[page], view = view)
+    }
+}
+
+/**
+ * 下滑关闭：镜像 Telegram 的判定——拖到半屏算走完全程，
+ * 松手时看位移和速度，任一到阈值就退出。
+ */
+private fun Modifier.photoViewerDragGestures(
+    view: PhotoViewerTransitionState,
+    scope: kotlinx.coroutines.CoroutineScope,
+    onDismiss: () -> Unit,
+): Modifier = pointerInput(view.progress.value, view.zoom) {
+    if (view.progress.value < 0.99f || view.zoom > 1.01f) return@pointerInput
+    var startTime = 0L
+    var totalY = 0f
+    fun settle() {
+        scope.launch {
+            animate(view.dragY, 0f, animationSpec = spring()) { value, _ -> view.dragY = value }
+        }
+    }
+    detectVerticalDragGestures(
+        onDragStart = {
+            startTime = System.currentTimeMillis()
+            totalY = 0f
+        },
+        onVerticalDrag = { change, dragAmount ->
+            change.consume()
+            totalY += dragAmount
+            view.dragY = totalY
+        },
+        onDragEnd = {
+            val elapsed = max(1L, System.currentTimeMillis() - startTime)
+            val velocity = totalY / elapsed * 1000f
+            val progress = photoDismissProgress(totalY, view.size.height.toFloat())
+            if (photoShouldDismiss(progress, velocity)) onDismiss() else settle()
+        },
+        onDragCancel = { settle() },
+    )
+}

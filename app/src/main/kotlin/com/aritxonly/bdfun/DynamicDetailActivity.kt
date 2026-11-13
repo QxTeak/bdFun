@@ -58,7 +58,11 @@ class DynamicDetailActivity : ComponentActivity() {
             finishForMissingRoute("动态详情数据")
             return
         }
-        setContent { DynamicDetailContent(dynamic, onBack = { finish() }) }
+        setContent {
+            com.aritxonly.bdfun.ui.PhotoViewerRoot {
+                DynamicDetailContent(dynamic, onBack = { finish() })
+            }
+        }
 
     }
 }

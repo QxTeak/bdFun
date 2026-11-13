@@ -49,9 +49,12 @@ class MainActivity : ComponentActivity() {
         }
         handleIntent(intent)
         setContent {
-            androidx.compose.foundation.layout.Box {
-                BdFunApp(settings = settings)
-                com.aritxonly.bdfun.ui.SplashWallpaper(settings.splashWallpaper)
+            // 图片查看器挂在窗口最外层，才能盖住底栏、顶栏和状态栏（和 Telegram 一致）。
+            com.aritxonly.bdfun.ui.PhotoViewerRoot {
+                androidx.compose.foundation.layout.Box {
+                    BdFunApp(settings = settings)
+                    com.aritxonly.bdfun.ui.SplashWallpaper(settings.splashWallpaper)
+                }
             }
         }
     }

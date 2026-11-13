@@ -289,6 +289,7 @@ class VideoActivity : ComponentActivity() {
             return
         }
         setContent {
+            com.aritxonly.bdfun.ui.PhotoViewerRoot {
             androidx.compose.runtime.CompositionLocalProvider(LocalVideoPageState provides pageState,
                 com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings provides settings,
                 com.aritxonly.bdfun.ui.LocalRichTextDependencies provides AppGraph.richTextDependencies) {
@@ -303,6 +304,7 @@ class VideoActivity : ComponentActivity() {
                     openedFromVideoPage = { intent?.getBooleanExtra("fromVideoPage", false) == true },
                     hasWindow = { window != null },
                 ))
+            }
             }
         }
     }

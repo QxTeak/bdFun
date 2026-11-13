@@ -15,9 +15,6 @@ internal class MainShellUiStateHolder {
     // 放在 shell 而不是 feature:home，是因为顶栏（shell chrome）和页面内容（pager）分属两层，
     // 中间隔了一次组合，没有共同的父级可以提升状态。
     var homeSection by mutableIntStateOf(0)
-    // 大图打开时底栏要让位：查看器挂在页面里，而底栏画在页面之上，
-    // 不隐藏的话会浮在黑底上。
-    var photoOpen by mutableStateOf(false)
 
     fun closeSearch() { showSearch = false; searchQuery = ""; searchSubmitted = null }
 }
