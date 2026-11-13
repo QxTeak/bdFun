@@ -10,37 +10,80 @@ class PhotoViewerGeometryTest {
     private val screenW = 1080f
     private val screenH = 2400f
 
-    @Test fun fullProgressFillsScreenWithoutOffset() {
-        val g = photoGeometryAt(
-            progress = 1f, screenWidth = screenW, screenHeight = screenH,
-            originX = 100f, originY = 200f, originWidth = 500f, originHeight = 300f,
-            originRadius = 30f,
-        )
-        assertEquals(1f, g.scale, 0.0001f)
-        assertEquals(0f, g.translationX, 0.0001f)
-        assertEquals(0f, g.translationY, 0.0001f)
-        assertEquals(0f, g.cornerRadius, 0.0001f)
-    }
+    /** 4:3 横图：全屏 Contain 后宽 1080、高 810，上下各留 795。 */
+    private val landscape = 4f / 3f
+
+    private fun landscapeFrame(progress: Float) = photoMorphFrame(
+        progress = progress,
+        originX = 100f,
+        originY = 200f,
+        originWidth = 540f,
+        originHeight = 300f,
+        screenWidth = screenW,
+        screenHeight = screenH,
+        imageAspect = landscape,
+        originRadius = 30f,
+    )
 
     @Test fun zeroProgressSitsOnThumbnailRect() {
-        val g = photoGeometryAt(
-            progress = 0f, screenWidth = screenW, screenHeight = screenH,
-            originX = 100f, originY = 200f, originWidth = 540f, originHeight = 300f,
-            originRadius = 30f,
+        val f = landscapeFrame(0f)
+        // 裁剪框与卡片完全重合
+        assertEquals(100f, f.clipLeft, 0.001f)
+        assertEquals(200f, f.clipTop, 0.001f)
+        assertEquals(540f, f.clipWidth, 0.001f)
+        assertEquals(300f, f.clipHeight, 0.001f)
+        // 图片要铺满这个框：按较长的一边算倍率（540/1080 = 300/810 = 0.5）
+        assertEquals(0.5f, f.imageScale, 0.001f)
+        assertEquals(370f, f.imageCenterX, 0.001f)
+        assertEquals(350f, f.imageCenterY, 0.001f)
+        assertEquals(30f, f.cornerRadius, 0.001f)
+    }
+
+    @Test fun fullProgressShowsWholeImage() {
+        val f = landscapeFrame(1f)
+        // 裁剪框就是图片在全屏里 Contain 后的矩形
+        assertEquals(0f, f.clipLeft, 0.001f)
+        assertEquals(795f, f.clipTop, 0.001f)
+        assertEquals(1080f, f.clipWidth, 0.001f)
+        assertEquals(810f, f.clipHeight, 0.001f)
+        // 倍率为 1，不裁切、不变形
+        assertEquals(1f, f.imageScale, 0.001f)
+        assertEquals(540f, f.imageCenterX, 0.001f)
+        assertEquals(1200f, f.imageCenterY, 0.001f)
+        assertEquals(0f, f.cornerRadius, 0.001f)
+    }
+
+    @Test fun middleFrameStaysProportional() {
+        val f = landscapeFrame(0.5f)
+        // 图片本身的尺寸不随进度变化，只有倍率变化——所以等比，永远不会被压扁
+        assertEquals(1080f, f.imageWidth, 0.001f)
+        assertEquals(810f, f.imageHeight, 0.001f)
+        assertEquals(0.75f, f.imageScale, 0.001f)
+        assertEquals(50f, f.clipLeft, 0.001f)
+        assertEquals(497.5f, f.clipTop, 0.001f)
+        assertEquals(810f, f.clipWidth, 0.001f)
+        assertEquals(555f, f.clipHeight, 0.001f)
+        assertEquals(15f, f.cornerRadius, 0.001f)
+    }
+
+    @Test fun portraitImageUsesWidthWhenTall() {
+        // 9:16 竖图比屏幕更窄：宽度撑满 1080，高度按比例到 1920
+        val f = photoMorphFrame(
+            progress = 1f,
+            originX = 0f, originY = 0f, originWidth = 540f, originHeight = 960f,
+            screenWidth = screenW, screenHeight = screenH,
+            imageAspect = 9f / 16f,
+            originRadius = 0f,
         )
-        // 单一缩放系数：按宽度比，X/Y 相同，图片不会被压扁
-        assertEquals(0.5f, g.scale, 0.0001f)
-        // 缩放后中心对齐缩略图中心：(370, 350) 与屏幕中心之差
-        assertEquals(370f - screenW / 2f, g.translationX, 0.0001f)
-        assertEquals(350f - screenH / 2f, g.translationY, 0.0001f)
-        assertEquals(30f, g.cornerRadius, 0.0001f)
+        assertEquals(1080f, f.clipWidth, 0.01f)
+        assertEquals(1920f, f.clipHeight, 0.01f)
+        assertEquals(0f, f.clipLeft, 0.01f)
+        assertEquals(240f, f.clipTop, 0.01f)
     }
 
     @Test fun progressIsClamped() {
-        val below = photoGeometryAt(-1f, screenW, screenH, 0f, 0f, 540f, 300f, 12f)
-        val above = photoGeometryAt(2f, screenW, screenH, 0f, 0f, 540f, 300f, 12f)
-        assertEquals(photoGeometryAt(0f, screenW, screenH, 0f, 0f, 540f, 300f, 12f), below)
-        assertEquals(photoGeometryAt(1f, screenW, screenH, 0f, 0f, 540f, 300f, 12f), above)
+        assertEquals(landscapeFrame(0f), landscapeFrame(-1f))
+        assertEquals(landscapeFrame(1f), landscapeFrame(2f))
     }
 
     @Test fun dismissProgressUsesHalfScreen() {

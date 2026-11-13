@@ -13,18 +13,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
@@ -33,8 +30,8 @@ import kotlin.math.max
 /**
  * 图片层 + 黑底 + 上方 chrome。
  *
- * 三层共用同一个进度 [PhotoViewerTransitionState.progress]：
- * 图片从缩略图矩形放大到全屏，黑底同步从不透明到全黑，chrome 最后一段才淡入。
+ * 这里不再对整层做统一缩放：每页自己在 [PhotoViewerPage] 里算「裁剪框 + 图片倍率」，
+ * 才能让缩略图里被裁掉的部分自然展开。本层只负责黑底、chrome、跟手位移。
  */
 @Composable
 internal fun PhotoViewerOverlay(
@@ -42,22 +39,8 @@ internal fun PhotoViewerOverlay(
     view: PhotoViewerTransitionState,
     onDismiss: () -> Unit,
 ) {
-    val density = LocalDensity.current
-    val width = view.size.width.toFloat()
-    val height = view.size.height.toFloat()
-    val origin: Rect? = request.origin
-    val geometry = photoGeometryAt(
-        progress = view.progress.value,
-        screenWidth = width,
-        screenHeight = height,
-        originX = origin?.left ?: (width * 0.05f),
-        originY = origin?.top ?: (height * 0.05f),
-        originWidth = origin?.width ?: (width * 0.9f),
-        originHeight = origin?.height ?: (height * 0.9f),
-        originRadius = request.originRadiusPx,
-    )
+    // 底色随进度淡入；拖动时同步变透明，松手退出会自然回到页面。
     val backgroundAlpha = (view.progress.value * (1f - view.dismissProgress)).coerceIn(0f, 1f)
-    val cornerDp = with(density) { geometry.cornerRadius.toDp() }
     val scope = rememberCoroutineScope()
 
     // 返回键在这里拦：覆盖层在内容之后组合，BackHandler 后注册才优先，
@@ -66,20 +49,7 @@ internal fun PhotoViewerOverlay(
 
     Box(Modifier.fillMaxSize().photoViewerDragGestures(view, scope, onDismiss)) {
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = backgroundAlpha)))
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .graphicsLayer(
-                    scaleX = geometry.scale * photoDragScale(view.dismissProgress),
-                    scaleY = geometry.scale * photoDragScale(view.dismissProgress),
-                    translationX = geometry.translationX,
-                    translationY = geometry.translationY + view.dragY,
-                    shape = RoundedCornerShape(cornerDp),
-                    clip = true,
-                ),
-        ) {
-            PhotoViewerPager(request, view)
-        }
+        PhotoViewerPager(request, view)
         PhotoViewerChrome(request, view, onDismiss)
     }
 }
@@ -126,7 +96,7 @@ private fun PhotoViewerPager(request: PhotoViewerRequest, view: PhotoViewerTrans
         pageCount = { request.images.size },
     )
     HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
-        PhotoViewerPage(url = request.images[page], view = view)
+        PhotoViewerPage(url = request.images[page], request = request, view = view)
     }
 }
 
