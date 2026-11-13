@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -18,12 +17,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import coil.compose.AsyncImage
@@ -33,8 +36,10 @@ import kotlin.math.roundToInt
 /**
  * 大图单页：从缩略图的裁切画面展开成完整图片，并支持双指缩放、双击放大、放大后平移。
  *
- * 关键点和之前的实现不同：不是把整层统一缩放，而是每帧算「裁剪框 + 图片倍率」，
- * 起点与缩略图的 Crop 完全重合，终点是完整图，中间的过渡是被裁掉的部分自然展开。
+ * 关键点：每一帧同时插值「裁剪窗口」和「图片倍率」。起点窗口就是缩略图那个矩形、
+ * 倍率是刚好铺满它的裁切倍率，所以第一帧和列表里的缩略图完全重合；终点倍率为 1。
+ * 注意裁剪窗口不能用 size 去约束图片——那样图片会被父约束压小，再乘裁切倍率就成了一个点。
+ * 这里图片始终按完整尺寸布局，只在绘制阶段用路径裁剪。
  */
 @Composable
 internal fun PhotoViewerPage(
@@ -66,9 +71,8 @@ internal fun PhotoViewerPage(
     )
     // 拖动位移随进度衰减：进度归零时正好落在缩略图上，不会带着偏移落地再跳回去。
     val dragY = view.dragY * view.progress.value
-    val cornerDp = with(density) { morph.cornerRadius.toDp() }
-    val clipWidthDp = with(density) { morph.clipWidth.toDp() }
-    val clipHeightDp = with(density) { morph.clipHeight.toDp() }
+    // 完全展开后不再裁剪：否则放大后的图片会被自身矩形（比屏幕小）切掉。
+    val inTransition = view.progress.value < 0.999f
     val imageWidthDp = with(density) { morph.imageWidth.toDp() }
     val imageHeightDp = with(density) { morph.imageHeight.toDp() }
 
@@ -90,42 +94,82 @@ internal fun PhotoViewerPage(
             )
             .graphicsLayer { translationY = dragY },
     ) {
-        Box(
-            modifier = Modifier
-                .offset { IntOffset(morph.clipLeft.roundToInt(), morph.clipTop.roundToInt()) }
-                .size(clipWidthDp, clipHeightDp)
-                .clip(RoundedCornerShape(cornerDp)),
-        ) {
-            AsyncImage(
-                model = rememberImageRequest(url, crossfade = false),
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                onSuccess = { state ->
-                    // 用 drawable 的固有尺寸而不是 painter.intrinsicSize：Coil 2.x 里前者一定有，
-                    // 后者在部分请求类型下会是 Unspecified。
-                    val drawable = state.result.drawable
-                    val width = drawable.intrinsicWidth
-                    val height = drawable.intrinsicHeight
-                    if (width > 0 && height > 0) aspect = width.toFloat() / height
-                },
-                modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            (morph.imageCenterX - morph.imageWidth / 2f - morph.clipLeft).roundToInt(),
-                            (morph.imageCenterY - morph.imageHeight / 2f - morph.clipTop).roundToInt(),
-                        )
-                    }
-                    .size(imageWidthDp, imageHeightDp)
-                    .graphicsLayer {
-                        val scale = morph.imageScale * zoom
-                        scaleX = scale
-                        scaleY = scale
-                        translationX = pan.x
-                        translationY = pan.y
-                    },
+        Box(Modifier.fillMaxSize().morphClip(morph, skipClip = !inTransition)) {
+            MorphImage(
+                url = url,
+                morph = morph,
+                width = imageWidthDp,
+                height = imageHeightDp,
+                zoom = zoom,
+                pan = pan,
+                onAspect = { aspect = it },
             )
         }
     }
+}
+
+/** 图片按完整尺寸布局，用 offset 定位中心、graphicsLayer 做裁切倍率，布局约束永远不参与裁剪。 */
+@Composable
+private fun MorphImage(
+    url: String,
+    morph: PhotoMorphFrame,
+    width: Dp,
+    height: Dp,
+    zoom: Float,
+    pan: Offset,
+    onAspect: (Float) -> Unit,
+) {
+    AsyncImage(
+        model = rememberImageRequest(url, crossfade = false),
+        contentDescription = null,
+        contentScale = ContentScale.Fit,
+        onSuccess = { state ->
+            // 用 drawable 的固有尺寸而不是 painter.intrinsicSize：Coil 2.x 里前者一定有，
+            // 后者在部分请求类型下会是 Unspecified。
+            val drawable = state.result.drawable
+            val imageWidth = drawable.intrinsicWidth
+            val imageHeight = drawable.intrinsicHeight
+            if (imageWidth > 0 && imageHeight > 0) onAspect(imageWidth.toFloat() / imageHeight)
+        },
+        modifier = Modifier
+            .offset {
+                IntOffset(
+                    (morph.imageCenterX - morph.imageWidth / 2f).roundToInt(),
+                    (morph.imageCenterY - morph.imageHeight / 2f).roundToInt(),
+                )
+            }
+            .size(width, height)
+            .graphicsLayer {
+                val scale = morph.imageScale * zoom
+                scaleX = scale
+                scaleY = scale
+                translationX = pan.x
+                translationY = pan.y
+            },
+    )
+}
+
+/**
+ * 只在绘制阶段裁剪，图片布局尺寸不受影响。
+ */
+private fun Modifier.morphClip(morph: PhotoMorphFrame, skipClip: Boolean): Modifier = drawWithContent {
+    if (skipClip) {
+        drawContent()
+        return@drawWithContent
+    }
+    val path = Path().apply {
+        addRoundRect(
+            RoundRect(
+                left = morph.clipLeft,
+                top = morph.clipTop,
+                right = morph.clipLeft + morph.clipWidth,
+                bottom = morph.clipTop + morph.clipHeight,
+                radiusX = morph.cornerRadius,
+                radiusY = morph.cornerRadius,
+            ),
+        )
+    }
+    clipPath(path) { this@drawWithContent.drawContent() }
 }
 
 private fun toggleZoom(zoom: Float, tap: Offset, size: IntSize): Float {
