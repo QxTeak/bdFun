@@ -17,6 +17,7 @@ import com.aritxonly.bdfun.core.model.video.VideoItem
 fun DynamicScreen(
     state: DynamicFeedState, loggedIn: Boolean, onNeedLogin: () -> Unit,
     onOpenVideo: (VideoItem) -> Unit, onOpenDynamic: (DynamicItem) -> Unit, refreshTick: Int = 0,
+    onPhotoOpenChange: (Boolean) -> Unit = {},
 ) {
     val scope = rememberDynamicFeedTaskScope(state)
     val context = LocalContext.current
@@ -37,7 +38,11 @@ fun DynamicScreen(
     // 这样拖动关闭时背后的动态列表才会跟着缩到 0.9（Dialog 做不到这一点）。
     val photo = remember { PhotoViewerStateHolder() }
     CompositionLocalProvider(LocalPhotoViewer provides photo) {
-        PhotoViewerHost(state = photo, modifier = Modifier.fillMaxSize()) {
+        PhotoViewerHost(
+            state = photo,
+            modifier = Modifier.fillMaxSize(),
+            onVisibilityChanged = onPhotoOpenChange,
+        ) {
             Box(modifier = Modifier.fillMaxSize()) {
                 if (!loggedIn) {
                     EmptyHint(

@@ -31,6 +31,7 @@ internal fun MainTabPager(
     session: UserProfile?, settings: SettingsBindings, dynamicRefreshTick: Int,
     mineList: androidx.compose.foundation.lazy.LazyListState,
     homeSection: Int = 0,
+    onPhotoOpenChange: (Boolean) -> Unit = {},
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     CompositionLocalProvider(
@@ -63,6 +64,7 @@ internal fun MainTabPager(
                     onOpenVideo = { navigateToVideo(context, it) },
                     onOpenDynamic = { navigateToDynamic(context, it) },
                     refreshTick = dynamicRefreshTick,
+                    onPhotoOpenChange = onPhotoOpenChange,
                 )
 
                 else -> MainMineTab(session, settings, mineList)
