@@ -50,7 +50,7 @@ class SpaceActivity : ComponentActivity() {
         setContent {
             val settings = AppGraph.settings
             val chrome = remember { SpaceChromeState() }
-            com.aritxonly.bdfun.ui.PhotoViewerRoot {
+            com.aritxonly.bdfun.ui.PhotoViewerRoot(animationsEnabled = settings.animationsEnabled) {
             TeakActivityScaffold(
                 settings = settings,
                 onBack = { finish() },

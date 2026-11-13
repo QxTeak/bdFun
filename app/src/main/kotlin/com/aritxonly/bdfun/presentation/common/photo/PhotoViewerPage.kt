@@ -11,11 +11,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
@@ -47,10 +43,8 @@ internal fun PhotoViewerPage(
     request: PhotoViewerRequest,
     view: PhotoViewerTransitionState,
 ) {
-    var aspect by remember(url) { mutableFloatStateOf(0f) }
-    var zoom by remember(url) { mutableFloatStateOf(1f) }
-    var pan by remember(url) { mutableStateOf(Offset.Zero) }
-    LaunchedEffect(zoom) { view.zoom = zoom }
+    val page = remember(url) { PhotoViewerPageState() }
+    LaunchedEffect(page.zoom) { view.zoom = page.zoom }
 
     val density = LocalDensity.current
     val screenWidth = view.size.width.toFloat()
@@ -66,7 +60,7 @@ internal fun PhotoViewerPage(
         originHeight = origin?.height ?: 0f,
         screenWidth = screenWidth,
         screenHeight = screenHeight,
-        imageAspect = aspect,
+        imageAspect = page.aspect,
         originRadius = request.originRadiusPx,
     )
     // 拖动位移随进度衰减：进度归零时正好落在缩略图上，不会带着偏移落地再跳回去。
@@ -82,14 +76,14 @@ internal fun PhotoViewerPage(
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { view.chromeVisible = !view.chromeVisible },
-                    onDoubleTap = { tap -> zoom = toggleZoom(zoom, tap, view.size) },
+                    onDoubleTap = { tap -> page.zoom = toggleZoom(page.zoom, tap, view.size) },
                 )
             }
             .photoZoomGestures(
-                onZoom = { zoom = it },
-                onPan = { pan = it },
-                currentZoom = { zoom },
-                currentPan = { pan },
+                onZoom = { page.zoom = it },
+                onPan = { page.pan = it },
+                currentZoom = { page.zoom },
+                currentPan = { page.pan },
                 size = { view.size },
             )
             .graphicsLayer { translationY = dragY },
@@ -100,9 +94,9 @@ internal fun PhotoViewerPage(
                 morph = morph,
                 width = imageWidthDp,
                 height = imageHeightDp,
-                zoom = zoom,
-                pan = pan,
-                onAspect = { aspect = it },
+                zoom = page.zoom,
+                pan = page.pan,
+                onAspect = { page.aspect = it },
             )
         }
     }

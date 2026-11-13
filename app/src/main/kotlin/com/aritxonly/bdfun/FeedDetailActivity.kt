@@ -59,7 +59,9 @@ class FeedDetailActivity : ComponentActivity() {
             return
         }
         setContent {
-            com.aritxonly.bdfun.ui.PhotoViewerRoot {
+            com.aritxonly.bdfun.ui.PhotoViewerRoot(
+                animationsEnabled = AppGraph.settings.animationsEnabled,
+            ) {
                 FeedDetailContent(dynamic, onBack = { finish() })
             }
         }

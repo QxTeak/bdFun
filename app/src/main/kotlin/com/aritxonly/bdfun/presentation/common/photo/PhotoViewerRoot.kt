@@ -28,13 +28,17 @@ import androidx.compose.ui.unit.IntSize
  * 拖动关闭时"背后页面缩到 0.9"也只会缩那一页，不是整窗。
  *
  * 页面只需要 `LocalPhotoViewer.current.open(...)`，不需要自己创建状态或渲染覆盖层。
+ * 动效开关由 Activity 装配层显式传入，展示层不直接读全局设置。
  */
 @Composable
-internal fun PhotoViewerRoot(content: @Composable () -> Unit) {
+internal fun PhotoViewerRoot(
+    animationsEnabled: Boolean,
+    content: @Composable () -> Unit,
+) {
     val state = remember { PhotoViewerStateHolder() }
     val view = remember { PhotoViewerTransitionState() }
     val incoming = state.request
-    val spec: AnimationSpec<Float> = rememberPhotoAnimationSpec()
+    val spec: AnimationSpec<Float> = rememberPhotoAnimationSpec(animationsEnabled)
 
     LaunchedEffect(incoming) {
         when {
@@ -62,15 +66,13 @@ internal fun PhotoViewerRoot(content: @Composable () -> Unit) {
 
 /** Telegram 的入场/退场是 250ms 的 decelerate，没有回弹、没有过冲。 */
 @Composable
-private fun rememberPhotoAnimationSpec(): AnimationSpec<Float> {
-    val animations = com.aritxonly.bdfun.AppGraph.settings.animationsEnabled
-    return remember(animations) {
+private fun rememberPhotoAnimationSpec(animationsEnabled: Boolean): AnimationSpec<Float> =
+    remember(animationsEnabled) {
         tween(
-            durationMillis = if (animations) PhotoViewerDurationMs else 0,
+            durationMillis = if (animationsEnabled) PhotoViewerDurationMs else 0,
             easing = CubicBezierEasing(0f, 0f, 0.2f, 1f),
         )
     }
-}
 
 internal const val PhotoViewerDurationMs = 250
 
