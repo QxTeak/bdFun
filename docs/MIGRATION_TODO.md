@@ -457,3 +457,7 @@ P5-* 依赖 P4-05，且需要团队同意
 ## MSG-01 · PiliPlus 消息行为对齐
 
 本任务为已迁移消息域上的行为补齐，不改变 Teak 页面风格。范围、固定参考版本、协议来源及实机验收清单见 HYPERPILI_MESSAGE_ALIGNMENT.md。自动测试与构建结果在对应 PR 中记录；完整登录行为须由实机回归确认。
+
+## 首页推荐优化（新增业务，独立于迁移完成度）
+
+方案与验收以 [HOME_RECOMMENDATION_DESIGN.md](HOME_RECOMMENDATION_DESIGN.md) 为准。REC-00 为设计落稿，待评审；REC-01 至 REC-05 均未开始。任务依次为协议基线、开关与事件底座、轻量优化 MVP、兴趣适应、探索与评估；每阶段独立 PR，不计入原 P0–P5 迁移完成数量。
