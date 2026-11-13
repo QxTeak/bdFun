@@ -63,10 +63,12 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
             )
 
             MainSearchLayer(settings, shell)
-            MainDynamicChrome(shell, pageFloat)
         }
+        // 两个顶栏都挂在采集层之外：底栏搜索的一镜到底会把内容整体上移并模糊，
+        // 顶栏只跟着缩放和淡出，不应该再跟着上下位移一次，否则会双重运动。
         MainHomeChrome(settings, shell, pageFloat)
         MainMineChrome(shell, pageFloat)
+        MainDynamicChrome(shell, pageFloat)
 
         Box(Modifier.fillMaxSize().graphicsLayer {
                 val progress = shell.bottom.bottomTabBarProgress.value
