@@ -97,12 +97,16 @@ internal fun PhotoViewerPage(
                 .clip(RoundedCornerShape(cornerDp)),
         ) {
             AsyncImage(
-                model = rememberImageRequest(url),
+                model = rememberImageRequest(url, crossfade = false),
                 contentDescription = null,
                 contentScale = ContentScale.Fit,
                 onSuccess = { state ->
-                    val size = state.painter.intrinsicSize
-                    if (size.width > 0f && size.height > 0f) aspect = size.width / size.height
+                    // 用 drawable 的固有尺寸而不是 painter.intrinsicSize：Coil 2.x 里前者一定有，
+                    // 后者在部分请求类型下会是 Unspecified。
+                    val drawable = state.result.drawable
+                    val width = drawable.intrinsicWidth
+                    val height = drawable.intrinsicHeight
+                    if (width > 0 && height > 0) aspect = width.toFloat() / height
                 },
                 modifier = Modifier
                     .offset {
