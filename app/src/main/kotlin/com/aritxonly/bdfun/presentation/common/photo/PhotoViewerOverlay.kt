@@ -115,15 +115,14 @@ private fun PhotoViewerPager(
         pageCount = { request.images.size },
     )
     HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
-        // 起点矩形只属于点开的那一张：滑到别的图后不能再借用它的位置，
-        // 否则退出时会往第一张缩略图飞。
-        val isSource = page == request.index
+        // 每一页用自己的缩略图矩形收拢：滑到第二张再退出，就落到第二张的位置。
+        val origin = request.originFor(page)
         PhotoViewerPage(
             url = request.images[page],
             request = request,
             view = view,
-            origin = if (isSource) request.origin else null,
-            originRadiusPx = if (isSource) request.originRadiusPx else 0f,
+            origin = origin,
+            originRadiusPx = if (origin != null) request.originRadiusPx else 0f,
             onDismiss = onDismiss,
         )
     }

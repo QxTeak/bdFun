@@ -24,7 +24,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun FeedImageGrid(
     images: List<String>,
-    onOpen: (String, Rect, Float) -> Unit,
+    /** origins 与 images 同序：查看器靠它把每一页分别收拢回自己的缩略图。 */
+    onOpen: (String, Rect, Float, List<Rect?>) -> Unit,
 ) {
     if (images.isEmpty()) return
     val colors = MiuixTheme.colorScheme
@@ -45,7 +46,7 @@ internal fun FeedImageGrid(
                 .background(colors.surfaceContainerHigh)
                 .onGloballyPositioned { bounds[url] = it.boundsInRoot() }
                 .clickable(interactionSource = null, indication = null) {
-                    onOpen(url, bounds[url] ?: Rect.Zero, singleRadiusPx)
+                    onOpen(url, bounds[url] ?: Rect.Zero, singleRadiusPx, images.map { bounds[it] })
                 },
         )
         return
@@ -67,7 +68,7 @@ internal fun FeedImageGrid(
                         .background(colors.surfaceContainerHigh)
                         .onGloballyPositioned { bounds[url] = it.boundsInRoot() }
                         .clickable(interactionSource = null, indication = null) {
-                            onOpen(url, bounds[url] ?: Rect.Zero, gridRadiusPx)
+                            onOpen(url, bounds[url] ?: Rect.Zero, gridRadiusPx, images.map { bounds[it] })
                         },
                 )
             }
