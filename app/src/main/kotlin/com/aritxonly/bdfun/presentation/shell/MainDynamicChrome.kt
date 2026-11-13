@@ -35,8 +35,14 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainDynamicChrome(shell
                 underlayBlurPx = underlayBlurPx,
                 modifier = Modifier.align(Alignment.TopCenter)
                     .graphicsLayer {
+                        // 和首页顶栏对齐：底栏搜索时同样缩到 0.9 并淡出。
+                        // 之前这里少了这两句，两个页面的过渡观感不一致。
+                        val searchScale = 1f - 0.1f * shell.bottom.bottomSearchProgress.value
+                        scaleX = searchScale
+                        scaleY = searchScale
                         translationX = (1f - pageFloat) * size.width * 0.92f
-                        alpha = (1f - kotlin.math.abs(pageFloat - 1f)).coerceIn(0f, 1f)
+                        alpha = (1f - kotlin.math.abs(pageFloat - 1f)).coerceIn(0f, 1f) *
+                            (1f - shell.bottom.bottomTopBarAlpha.value)
                     },
             ) {
                 DynamicTopBar(
