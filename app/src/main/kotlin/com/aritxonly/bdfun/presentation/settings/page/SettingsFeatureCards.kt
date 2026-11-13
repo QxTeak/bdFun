@@ -1,6 +1,8 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import com.aritxonly.teak.common.settings.TeakSettingsActionRow
 import com.aritxonly.teak.common.settings.TeakSettingsCard
@@ -104,6 +106,13 @@ private fun SettingsSearchCardRows1(runtime: SettingsPageRuntime) {
 internal fun SettingsMineCard(runtime: SettingsPageRuntime) {
     TeakSettingsCard(title = "我的页") {
         SettingsMineCardRows1(runtime)
+        val layout by runtime.mineLayout.state.collectAsState()
+        TeakSettingsSwitchRow(title = "展开历史记录", checked = layout.history,
+            onCheckedChange = runtime.mineLayout::setHistory)
+        TeakSettingsSwitchRow(title = "展开我的收藏", checked = layout.favorites,
+            onCheckedChange = runtime.mineLayout::setFavorites)
+        TeakSettingsSwitchRow(title = "展开稍后再看", checked = layout.watchLater,
+            onCheckedChange = runtime.mineLayout::setWatchLater)
     }
 }
 

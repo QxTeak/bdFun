@@ -32,6 +32,8 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     val homeChrome = rememberTeakPageScrollState()
     val dynamicChrome = rememberTeakPageScrollState()
     val searchChrome = rememberTeakPageScrollState()
+    val mineChrome = rememberTeakPageScrollState()
+    val mineList = androidx.compose.foundation.lazy.rememberLazyListState()
     // 登录态放在进程级单例，LoginActivity 登录成功后直接写，这里立即刷新
     val session by AppGraph.session
     val ui = remember { MainShellUiStateHolder() }
@@ -55,6 +57,7 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     }
     TrackTeakPageScroll(homeFeed.gridState, homeChrome)
     TrackTeakPageScroll(dynamicFeed.listState, dynamicChrome)
+    TrackTeakPageScroll(mineList, mineChrome)
     // 参考 HyperIsland 的做法：整屏一块 backdrop，录制时先铺一层 surface 再画内容
     val backdrop = rememberLayerBackdrop { drawRect(background); drawContent() }
     // 搜索页自己一块：首页顶栏的渐变模糊和筛选菜单都采样它，复用同一套页面结构。
@@ -76,7 +79,7 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     val bottom = remember { BottomSearchShellStateHolder(ui, appScope, { searchChrome.reset() }) { AppGraph.settings.animationsEnabled } }
     return MainShellState(
         ui, MainShellNavigation(tabPagerState, destinations, tabItems, appScope),
-        MainShellChrome(homeChrome, dynamicChrome, searchChrome),
+        MainShellChrome(homeChrome, dynamicChrome, searchChrome, mineChrome, mineList),
         MainShellFeeds(session, homeFeed, dynamicFeed, unreadMessageCount),
         MainShellBackdrops(backdrop, searchBackdrop, wideNavigation), searchReveal,
         bottom, { AppGraph.searchStateHolder() },

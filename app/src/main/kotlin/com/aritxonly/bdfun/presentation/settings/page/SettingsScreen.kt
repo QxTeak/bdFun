@@ -23,7 +23,7 @@ internal fun SettingsScreen(settings: SettingsBindings, navigation: SettingsNavi
     androidx.compose.runtime.DisposableEffect(cdn) { onDispose { cdn.close() } }
     LaunchedEffect(cdn) { cdn.load() }
     val pickWallpaper = rememberSettingsWallpaperPicker(settings)
-    val runtime = SettingsPageRuntime(settings, cdn, cdnState, navigation, scope, pickWallpaper)
+    val runtime = SettingsPageRuntime(settings, cdn, cdnState, navigation, scope, pickWallpaper, dependencies.mineLayout)
     TeakSettingsPage(title = "设置") {
         item(key = "appearance") { SettingsAppearanceCard(runtime) }
         item(key = "player") { SettingsPlayerCard(runtime) }

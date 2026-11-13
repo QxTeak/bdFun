@@ -12,12 +12,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.model.comment.CommentItem
-import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.aritxonly.teak.common.theme.LocalTeakContentColors
 
 @Composable
 internal fun ReplyBlock(item: CommentItem, actions: CommentPreviewActions) {
     if (item.replyCount <= 0) return
-    val colors = MiuixTheme.colorScheme
+    val replyBackground = LocalTeakContentColors.current.groupedBackground
     val preview = item.previewReplies.take(2)
     Spacer(Modifier.height(8.dp))
     Column(
@@ -29,8 +29,8 @@ internal fun ReplyBlock(item: CommentItem, actions: CommentPreviewActions) {
                 } else {
                     Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        // 更淡、更接近页面背景的灰
-                        .background(colors.onBackground.copy(alpha = 0.045f))
+                        // 与详情合集共用分组底色，避免透明叠色随父背景变化。
+                        .background(replyBackground)
                 },
             )
             .padding(

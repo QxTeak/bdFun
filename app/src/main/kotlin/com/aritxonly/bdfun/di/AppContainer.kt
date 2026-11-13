@@ -205,6 +205,13 @@ internal class AppContainer(
     val automaticCdn = com.aritxonly.bdfun.infra.bili.AutoCdnSelector(api::cdnSampleUrl,
         context?.let { com.aritxonly.bdfun.infra.storage.AndroidAutoCdnCache(it) }, LogCollector::record)
     fun settingsCdnStateHolder() = com.aritxonly.bdfun.feature.settings.application.CdnSettingsStateHolder(automaticCdn)
+    val mineLayout = com.aritxonly.bdfun.core.application.MineLayoutStateHolder(
+        context?.let { com.aritxonly.bdfun.infra.storage.AndroidMineLayoutPreferences(it) }
+            ?: object : MineLayoutPreferences {
+                private var layout = com.aritxonly.bdfun.core.model.settings.MineLayout()
+                override fun read() = layout
+                override fun write(layout: com.aritxonly.bdfun.core.model.settings.MineLayout) { this.layout = layout }
+            })
     private val mineProfileStore = com.aritxonly.bdfun.feature.mine.application.MineProfileStore(System::currentTimeMillis)
     private val mineRepository = com.aritxonly.bdfun.infra.bili.BiliMineRepository(api)
     val mineDependencies by lazy {
@@ -212,7 +219,12 @@ internal class AppContainer(
             val identity = sessionController.identity
             com.aritxonly.bdfun.feature.mine.application.MineStateHolder(profile, mineRepository, mineProfileStore,
                 { sessionController.identity == identity && identity.mid == profile?.mid })
-        }, { sentHistory?.all()?.take(3).orEmpty() })
+        }, { sentHistory?.all()?.take(3).orEmpty() }, mineLayout, { profile ->
+            val identity = sessionController.identity
+            com.aritxonly.bdfun.feature.mine.application.MinePreviewStateHolder(
+                com.aritxonly.bdfun.infra.bili.BiliLibraryRepository(api),
+                { !closed && sessionController.identity == identity && identity.mid == profile?.mid })
+        })
     }
     val libraryDependencies by lazy {
         com.aritxonly.bdfun.ui.LibraryDependencies(::libraryStateHolder, { scope ->

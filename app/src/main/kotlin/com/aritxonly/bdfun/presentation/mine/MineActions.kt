@@ -40,7 +40,7 @@ internal fun MineQuickActions(cardShape: androidx.compose.ui.graphics.Shape, nav
             .fillMaxWidth()
             .clip(cardShape)
             .background(colors.surfaceContainer)
-            .padding(vertical = 14.dp),
+            .padding(vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         QuickAction("离线缓存", Modifier.weight(1f), onClick = navigation.onOpenCache) {
@@ -68,7 +68,8 @@ internal fun StatCell(label: String, value: Long, modifier: Modifier = Modifier)
         Text(
             text = formatCount(value),
             color = colors.onBackground,
-            fontSize = 18.sp,
+            fontSize = 20.sp,
+            lineHeight = 28.sp,
             fontWeight = FontWeight.Medium,
         )
         Text(text = label, color = colors.onBackgroundVariant, fontSize = 11.sp)
@@ -88,7 +89,7 @@ private fun QuickAction(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(modifier = Modifier.size(34.dp), contentAlignment = Alignment.Center) { icon() }
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(11.dp))
         Text(text = label, color = colors.onBackground, fontSize = 11.5.sp)
     }
 }
@@ -97,6 +98,7 @@ private fun QuickAction(
 internal fun MineRow(
     text: String,
     color: Color? = null,
+    trailingText: String = "＞",
     onClick: () -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
@@ -113,26 +115,6 @@ internal fun MineRow(
             fontSize = 14.sp,
             modifier = Modifier.weight(1f),
         )
-        Text(text = "＞", color = colors.outline, fontSize = 12.sp)
-    }
-}
-
-@Composable
-internal fun SettingsBar(onClick: () -> Unit) {
-    val colors = MiuixTheme.colorScheme
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                // 去掉默认的水波纹
-                .clickable(interactionSource = null, indication = null, onClick = onClick)
-                .padding(vertical = 14.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(text = "⚙", color = colors.onBackgroundVariant, fontSize = 14.sp)
-            Spacer(Modifier.width(6.dp))
-            Text(text = "设置", color = colors.onBackgroundVariant, fontSize = 13.sp)
-        }
+        Text(text = trailingText, color = colors.outline, fontSize = 12.sp)
     }
 }

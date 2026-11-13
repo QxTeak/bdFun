@@ -11,6 +11,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.border
+import com.aritxonly.bdfun.trimBottom
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
@@ -36,34 +42,27 @@ internal fun MineProfileCard(shown: UserProfile, cardShape: androidx.compose.ui.
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(cardShape)
-            .background(colors.surfaceContainer)
-            .padding(16.dp),
+            .background(colors.surfaceContainer, cardShape)
+            .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().trimBottom(24.dp), verticalAlignment = Alignment.Bottom) {
             AsyncImage(
-                model = rememberImageRequest(shown.face),
-                contentDescription = null,
+                model = rememberImageRequest(shown.face), contentDescription = "头像",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(58.dp)
-                    .clip(CircleShape)
-                    .background(colors.surfaceContainerHigh),
+                modifier = Modifier.size(76.dp).clip(CircleShape).background(colors.surfaceContainerHigh)
+                    .border(5.dp, colors.surfaceContainer, CircleShape),
             )
-            Spacer(Modifier.width(12.dp))
-            // 三行整体高度压在头像（58dp）以内：ID / 大会员 / 硬币，首字左对齐
-            MineIdentity(shown)
-            Text(
-                text = "空间 ＞",
-                color = colors.onBackgroundVariant,
-                fontSize = 12.sp,
-                modifier = Modifier.clickable(interactionSource = null, indication = null) {
-                    navigation.onOpenSpace(shown.mid)
-                },
-            )
+            Spacer(Modifier.weight(1f))
+            Button(onClick = { navigation.onOpenSpace(shown.mid) }, cornerRadius = 16.dp, minWidth = 0.dp,
+                colors = ButtonDefaults.buttonColors(color = colors.surfaceContainerHigh, contentColor = colors.onBackground),
+                minHeight = 32.dp, insideMargin = PaddingValues(horizontal = 12.dp, vertical = 6.dp)) {
+                Text("个人空间 ↗", fontSize = 11.sp, color = colors.onBackground)
+            }
         }
+        Spacer(Modifier.height(12.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) { MineIdentity(shown) }
 
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(22.dp))
         Row(modifier = Modifier.fillMaxWidth()) {
             StatCell("关注", shown.following, Modifier.weight(1f).clickable { navigation.onOpenRelation(shown.mid, false) })
             StatCell("粉丝", shown.follower, Modifier.weight(1f).clickable { navigation.onOpenRelation(shown.mid, true) })
@@ -77,33 +76,17 @@ private fun androidx.compose.foundation.layout.RowScope.MineIdentity(shown: User
     val colors = MiuixTheme.colorScheme
     Column(modifier = Modifier.weight(1f)) {
         MineNameAndLevel(shown)
-        Spacer(Modifier.height(4.dp))
-        if (shown.vip) {
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(com.aritxonly.bdfun.BrandPink)
-                    .padding(horizontal = 5.dp, vertical = 1.dp),
-            ) {
-                Text(
-                    text = shown.vipLabel.ifBlank { "大会员" },
-                    color = Color.White,
-                    fontSize = 8.5.sp,
-                    lineHeight = 11.sp,
-                    fontWeight = FontWeight.Normal,
-                    maxLines = 1,
-                )
+        Spacer(Modifier.height(9.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (shown.vip) {
+                Text(shown.vipLabel.ifBlank { "大会员" }, color = com.aritxonly.bdfun.BrandPink,
+                    fontSize = 11.sp, modifier = Modifier.clip(CircleShape)
+                        .background(com.aritxonly.bdfun.BrandPink.copy(alpha = 0.12f))
+                        .padding(horizontal = 7.dp, vertical = 3.dp))
+                Spacer(Modifier.width(9.dp))
             }
-        } else {
-            Spacer(Modifier.height(14.dp))
+            Text("硬币 ${"%.1f".format(shown.coins)}", color = colors.onBackgroundVariant, fontSize = 11.sp)
         }
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = "硬币 ${"%.1f".format(shown.coins)}",
-            color = colors.onBackgroundVariant,
-            fontSize = 11.sp,
-            lineHeight = 13.sp,
-        )
     }
 }
 
@@ -114,8 +97,8 @@ private fun MineNameAndLevel(shown: UserProfile) {
         Text(
             text = shown.name,
             color = colors.onBackground,
-            fontSize = 17.sp,
-            lineHeight = 20.sp,
+            fontSize = 23.sp,
+            lineHeight = 28.sp,
             fontWeight = FontWeight.Medium,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
