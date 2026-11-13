@@ -17,11 +17,11 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun MineSettingsCard(onSettings: () -> Unit) {
     val colors = MiuixTheme.colorScheme
     Card(modifier = Modifier.fillMaxWidth(), cornerRadius = 22.dp,
-        colors = CardDefaults.defaultColors(color = colors.surface, contentColor = colors.onSurface)) {
+        colors = CardDefaults.defaultColors(color = colors.surfaceContainer, contentColor = colors.onSurfaceContainer)) {
         ArrowPreference(title = "设置", onClick = onSettings,
             startAction = {
                 Icon(MiuixIcons.Settings, contentDescription = null,
-                    tint = MiuixTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))
+                    tint = MiuixTheme.colorScheme.onSurfaceContainer, modifier = Modifier.size(22.dp))
             })
     }
 }

@@ -5,8 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -16,7 +14,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.aritxonly.bdfun.BrandPink
+import com.aritxonly.bdfun.appMaterialColors
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
 import com.aritxonly.bdfun.hyperDarkColors
 import com.aritxonly.bdfun.hyperLightColors
@@ -131,25 +129,7 @@ fun TeakBareTheme(
     }
     val lightColors = remember(settings.colorStyle) { hyperLightColors() }
     val darkColors = remember(settings.colorStyle) { hyperDarkColors() }
-    val materialColors = if (dark) {
-        darkColorScheme(
-            primary = BrandPink,
-            background = Color(0xFF0D0E11),
-            surface = Color(0xFF121317),
-            surfaceVariant = Color(0xFF1A1C21),
-            onSurface = Color(0xFFF2F3F5),
-            outline = Color(0xFF2B2E35),
-        )
-    } else {
-        lightColorScheme(
-            primary = BrandPink,
-            background = Color(0xFFF3F3F3),
-            surface = Color(0xFFFFFFFF),
-            surfaceVariant = Color(0xFFF7F7F7),
-            onSurface = Color(0xFF16181D),
-            outline = Color(0xFFE6E6E6),
-        )
-    }
+    val materialColors = appMaterialColors(dark)
     androidx.compose.runtime.SideEffect {
         com.aritxonly.teak.common.theme.TeakUiStyle.style = settings.interfaceStyle
     }

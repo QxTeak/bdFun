@@ -31,7 +31,7 @@ internal fun CommentThreadReplyCard(
         targetValue = if (reply.rpid == transient.flashRpid) {
             colors.onBackground.copy(alpha = 0.10f)
         } else {
-            colors.surface
+            colors.surfaceContainer
         },
         animationSpec = androidx.compose.animation.core.tween(120),
         label = "thread-reply-flash",

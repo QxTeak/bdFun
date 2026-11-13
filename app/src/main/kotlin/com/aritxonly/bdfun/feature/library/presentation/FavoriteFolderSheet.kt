@@ -113,12 +113,12 @@ private fun FolderRow(folder: FavoriteFolderOption, pending: Boolean, enabled: B
     val input = if (folder.selected != null) Modifier.toggleable(
         value = selected, enabled = enabled, role = Role.Checkbox, onValueChange = { onClick() },
     ) else Modifier.clickable(enabled = enabled, role = Role.Button, onClick = onClick)
-    Row(Modifier.fillMaxWidth().squircleSurface(colors.surfaceContainer.copy(alpha = 0.65f), 24.dp)
+    Row(Modifier.fillMaxWidth().squircleSurface(colors.surface.copy(alpha = 0.65f), 24.dp)
         .then(input).heightIn(min = 80.dp).padding(18.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         Icon(MiuixIcons.Folder, null, Modifier.size(28.dp), tint = if (selected) colors.primary else colors.onSurfaceVariantSummary)
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            Text(folder.title, color = colors.onSurface, fontWeight = FontWeight.Medium,
+            Text(folder.title, color = colors.onSurfaceContainer, fontWeight = FontWeight.Medium,
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(if (pending) "正在保存…" else "${folder.count} 个内容", fontSize = 12.sp, color = colors.onSurfaceVariantSummary)
         }

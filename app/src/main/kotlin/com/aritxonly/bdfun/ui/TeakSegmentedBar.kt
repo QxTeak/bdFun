@@ -60,7 +60,7 @@ fun TeakSegmentedBar(
         modifier = modifier.height(40.dp),
         shape = Capsule(),
         materialAlpha = materialAlpha,
-        flatBackgroundAlpha = 0.9f,
+        flatBackgroundAlpha = com.aritxonly.teak.common.material.TeakGlassDefaults.flatBackgroundAlpha(),
         recipe = recipe,
         backdrop = LocalTeakBackdrop.current,
     ) {

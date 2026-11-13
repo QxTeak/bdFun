@@ -575,3 +575,9 @@ MainTabPager位于主壳layerBackdrop的录制树内，因此MineScreen及其资
 ### 2026-11-13 我的页五视频与四收藏夹
 
 最近播放/稍后再看按HistoryItem.viewedAt倒序展示最近5项（分别为view_at/add_at的既有映射），以固定高度LazyRow横向滚动。收藏保留纵向4行，显示「共 n 视频」；封面使用现有LibraryRepository.videos(folderId,1)按mtime返回的第一条视频，不按pubdate排序。仅补全前4个收藏夹，空夹不请求；单项封面失败复用该账号上次封面，首次失败留空。所有详情请求前后核对页面/账号/代数，取消释放busy；初始骨架与加载完成占位高度相同，刷新保留旧内容。
+
+### 2026-11-13 HyperOS 中性色对齐
+
+HyperOS 中性色以 Deadliner 的 HyperOS 适配为准：surface 为页面层（浅色 F3F3F3 / 深色 000000），surfaceContainer 为卡片层（FFFFFF / 242424）。应用层旧 surface/surfaceContainer 引用及配对前景已交换，TeakUI 标准组件仍遵循自身语义；不要再次把两个 token 的定义反转。独立 Activity、直播与主壳 Material 色板统一由 appMaterialColors 投影，粉/蓝品牌设置保持。
+
+原本显式启用平面背景的玻璃控件统一通过 TeakGlassDefaults.flatBackgroundAlpha 读取深色 0.9 / 浅色 0.96；无平面背景的默认值仍为 0，不要为纯图标按钮补背景。

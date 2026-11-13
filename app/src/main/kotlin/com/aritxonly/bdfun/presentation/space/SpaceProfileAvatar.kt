@@ -117,7 +117,7 @@ internal fun SpaceAvatarStats(
                     .fillMaxWidth()
                     .padding(start = 16.dp)
                     .clip(RoundedCornerShape(18.dp))
-                    .background(colors.surface)
+                    .background(colors.surfaceContainer)
                     .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,

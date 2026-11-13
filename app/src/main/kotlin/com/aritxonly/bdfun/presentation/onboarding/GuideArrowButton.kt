@@ -32,11 +32,11 @@ internal fun GuideArrowButton(
     backdrop: LayerBackdrop,
     onClick: () -> Unit,
 ) {
-    val surface = MiuixTheme.colorScheme.surface
+    val surface = MiuixTheme.colorScheme.surfaceContainer
     val shader = remember { isRuntimeShaderSupported() }
     val scrim = lerp(
-        MiuixTheme.colorScheme.onSurface,
         MiuixTheme.colorScheme.onSurfaceContainer,
+        MiuixTheme.colorScheme.onSurface,
         0.35f,
     ).copy(alpha = 0.34f)
     Box(
@@ -73,7 +73,7 @@ internal fun GuideArrowButton(
 
 @Composable
 private fun guideBlendColors(): List<BlendColorEntry> {
-    val dark = MiuixTheme.colorScheme.surface.luminance() < 0.5f
+    val dark = MiuixTheme.colorScheme.surfaceContainer.luminance() < 0.5f
     return remember(dark) {
         if (dark) {
             listOf(

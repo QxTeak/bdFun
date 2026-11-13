@@ -17,7 +17,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun androidx.compose.foundation.layout.BoxScope.HomeTopBarBackground(classic: Boolean) {
-    val classicSurface = MiuixTheme.colorScheme.surface
+    val classicSurface = MiuixTheme.colorScheme.surfaceContainer
     val classicLine = MiuixTheme.colorScheme.onBackground.copy(alpha = 0.12f)
     Box(
         modifier = Modifier

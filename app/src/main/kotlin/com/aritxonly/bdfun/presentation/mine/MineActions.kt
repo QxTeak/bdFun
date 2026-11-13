@@ -39,7 +39,7 @@ internal fun MineQuickActions(cardShape: androidx.compose.ui.graphics.Shape, nav
         modifier = Modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .padding(vertical = 18.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {

@@ -143,7 +143,7 @@ internal fun CommentListCard(
                         } else if (flatList) {
                             androidx.compose.ui.graphics.Color.Transparent
                         } else {
-                            colors.surface
+                            colors.surfaceContainer
                         },
                         animationSpec = androidx.compose.animation.core.tween(90),
                         label = "comment-focus-flash",

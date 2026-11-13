@@ -98,7 +98,7 @@ fun DonationScreen() {
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(14.dp))
-                            .background(colors.surface),
+                            .background(colors.surfaceContainer),
                     )
                 }
             }

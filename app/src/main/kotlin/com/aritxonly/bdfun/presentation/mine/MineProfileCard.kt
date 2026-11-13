@@ -42,7 +42,7 @@ internal fun MineProfileCard(shown: UserProfile, cardShape: androidx.compose.ui.
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(colors.surface, cardShape)
+            .background(colors.surfaceContainer, cardShape)
             .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
     ) {
         Row(Modifier.fillMaxWidth().trimBottom(24.dp), verticalAlignment = Alignment.Bottom) {
@@ -50,7 +50,7 @@ internal fun MineProfileCard(shown: UserProfile, cardShape: androidx.compose.ui.
                 model = rememberImageRequest(shown.face), contentDescription = "头像",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(76.dp).clip(CircleShape).background(colors.surfaceContainerHigh)
-                    .border(5.dp, colors.surface, CircleShape),
+                    .border(5.dp, colors.surfaceContainer, CircleShape),
             )
             Spacer(Modifier.weight(1f))
             Button(onClick = { navigation.onOpenSpace(shown.mid) }, cornerRadius = 16.dp, minWidth = 0.dp,

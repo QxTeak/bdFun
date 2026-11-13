@@ -44,7 +44,7 @@ internal fun MessageResumeEffect(scope: kotlinx.coroutines.CoroutineScope, onRes
 @Composable
 internal fun MessageRowSurface(first: Boolean, last: Boolean, content: @Composable () -> Unit) {
     val shape = remember(first, last) { MessageGroupShape(first, last) }
-    Box(Modifier.fillMaxWidth().clip(shape).background(MiuixTheme.colorScheme.surface)) { content() }
+    Box(Modifier.fillMaxWidth().clip(shape).background(MiuixTheme.colorScheme.surfaceContainer)) { content() }
 }
 
 @Composable
@@ -64,7 +64,7 @@ internal fun SystemNotificationRow(item: MessageItem, onMore: () -> Unit) {
     val colors = MiuixTheme.colorScheme
     Column(Modifier.fillMaxWidth().padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(item.title, Modifier.weight(1f), color = colors.onSurface, fontSize = 16.sp)
+            Text(item.title, Modifier.weight(1f), color = colors.onSurfaceContainer, fontSize = 16.sp)
             Text("⋮", Modifier.clickable(onClick = onMore).padding(12.dp), color = colors.onBackgroundVariant)
         }
         // Notification bodies contain HTML links. Render text and links, never a WebView or script.
@@ -81,7 +81,7 @@ internal fun SystemNotificationRow(item: MessageItem, onMore: () -> Unit) {
                     if (scheme != "http" && scheme != "https") html.removeSpan(it)
                 }
                 view.text = html
-                view.setTextColor(colors.onSurface.toArgb())
+                view.setTextColor(colors.onSurfaceContainer.toArgb())
                 view.setLinkTextColor(colors.primary.toArgb())
             }, modifier = Modifier.fillMaxWidth())
         Text(item.source, color = colors.onBackgroundVariant, fontSize = 11.sp, modifier = Modifier.padding(top = 10.dp))

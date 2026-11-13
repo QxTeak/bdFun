@@ -26,7 +26,7 @@ internal fun VideoLargeCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(ContinuousCornerShape(14.dp))
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .combinedClickable(interactionSource = null, indication = null, onClick = onClick, onLongClick = onLongClick),
     ) {
         LargeVideoCover(video, progress)

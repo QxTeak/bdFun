@@ -86,7 +86,7 @@ fun TermsScreen(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .background(colors.surface.copy(alpha = 0.96f))
+                .background(colors.surfaceContainer.copy(alpha = 0.96f))
                 .navigationBarsPadding()
                 .padding(horizontal = 24.dp, vertical = 14.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),

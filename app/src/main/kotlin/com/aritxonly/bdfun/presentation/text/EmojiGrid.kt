@@ -110,11 +110,11 @@ internal class EmojiPreviewStateHolder { var visible by mutableStateOf(false) }
 @Composable
 private fun EmojiPreview(item: EmojiCell, onDismiss: () -> Unit) {
     androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
-        Column(Modifier.background(top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surface,
+        Column(Modifier.background(top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainer,
             RoundedCornerShape(24.dp)).padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             AsyncImage(model = item.url, imageLoader = emoteImageLoader(), contentDescription = item.pick,
                 modifier = Modifier.size(180.dp), contentScale = ContentScale.Fit)
-            Text(item.pick, color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurface)
+            Text(item.pick, color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onSurfaceContainer)
         }
     }
 }

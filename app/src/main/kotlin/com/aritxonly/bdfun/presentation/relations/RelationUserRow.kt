@@ -34,9 +34,9 @@ internal fun RelationUserRow(user: RelationUser, busy: Boolean, showAction: Bool
         Row(Modifier.weight(1f).clickable(onClick = onOpen), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             AsyncImage(model = rememberImageRequest(user.face), contentDescription = "${user.name}的头像",
-                contentScale = ContentScale.Crop, modifier = Modifier.size(48.dp).clip(CircleShape).background(colors.surfaceContainer))
+                contentScale = ContentScale.Crop, modifier = Modifier.size(48.dp).clip(CircleShape).background(colors.surface))
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(user.name, color = colors.onSurface, fontSize = 16.sp, fontWeight = FontWeight.Medium,
+                Text(user.name, color = colors.onSurfaceContainer, fontSize = 16.sp, fontWeight = FontWeight.Medium,
                     maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Text(user.sign.ifBlank { "这个人很神秘，什么都没有写" }, color = colors.onBackgroundVariant,
                     fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)

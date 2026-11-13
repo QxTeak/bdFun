@@ -31,6 +31,11 @@ import com.aritxonly.teak.common.material.LocalTeakMaterialSpec
 import top.yukonga.miuix.kmp.blur.Backdrop
 
 object TeakGlassDefaults {
+    /** 仅供原本有平面底色的控件使用，跟随应用主题而非系统主题。 */
+    @Composable
+    fun flatBackgroundAlpha(): Float =
+        if (MaterialTheme.colorScheme.onSurface.luminance() > 0.5f) 0.9f else 0.96f
+
     val Shape: Shape = Capsule()
     val IconButtonSize: Dp = 44.dp
 }

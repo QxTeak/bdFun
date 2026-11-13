@@ -75,7 +75,7 @@ internal fun BdFunMark(
 
     val pressure = onboardingMarkPressure(interactive, ui)
 
-    val tint = MiuixTheme.colorScheme.onSurfaceContainer
+    val tint = MiuixTheme.colorScheme.onSurface
     val airflow = lerp(tint, MiuixTheme.colorScheme.primary, 0.55f)
 
     Box(

@@ -35,7 +35,7 @@ internal fun MinePreviewCard(kind: MinePreviewKind, section: MinePreviewSection,
         MinePreviewKind.WatchLater -> "稍后再看"
     }
     Column(Modifier.fillMaxWidth().clip(ContinuousCornerShape(22.dp))
-        .background(MiuixTheme.colorScheme.surface).padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        .background(MiuixTheme.colorScheme.surfaceContainer).padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(title, Modifier.weight(1f), fontSize = 15.sp, lineHeight = 18.sp, color = MiuixTheme.colorScheme.onBackground,
                 minLines = 1, maxLines = 1, overflow = TextOverflow.Ellipsis)

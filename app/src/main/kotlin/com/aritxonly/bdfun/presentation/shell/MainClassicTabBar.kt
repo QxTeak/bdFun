@@ -37,7 +37,7 @@ internal fun ClassicTabBar(
     Row(
         modifier = modifier
             .height(58.dp)
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .drawBehind {
                 if (showDivider) {
                     drawLine(

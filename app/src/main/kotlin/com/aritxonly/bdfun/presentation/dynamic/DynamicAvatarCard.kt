@@ -48,11 +48,11 @@ fun DynamicAvatarCard(
             if (count > 0 && last >= count - 3 && state.authorsError == null) state.loadMoreAuthors()
         }
     }
-    Column(modifier.fillMaxWidth().clip(ContinuousCornerShape(18.dp)).background(colors.surface)) {
+    Column(modifier.fillMaxWidth().clip(ContinuousCornerShape(18.dp)).background(colors.surfaceContainer)) {
         if (state.liveCount > 0) {
             Row(Modifier.fillMaxWidth().clickable { state.showLive = !state.showLive }
                 .padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("正在直播 · ${state.liveCount}", color = colors.onSurface, fontSize = 14.sp,
+                Text("正在直播 · ${state.liveCount}", color = colors.onSurfaceContainer, fontSize = 14.sp,
                     modifier = Modifier.weight(1f))
                 Text(if (state.showLive) "收起" else "展开", color = colors.onSurfaceVariantSummary, fontSize = 12.sp)
             }

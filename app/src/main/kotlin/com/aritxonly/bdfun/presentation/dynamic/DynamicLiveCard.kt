@@ -38,7 +38,7 @@ internal fun DynamicLiveCard(live: DynamicLiveRecommendation) {
                 modifier = Modifier.align(Alignment.TopEnd).padding(8.dp).clip(Capsule())
                     .background(colors.primary).padding(horizontal = 10.dp, vertical = 4.dp), fontSize = 11.sp)
         }
-        Text(live.title, color = colors.onSurface, maxLines = 2, overflow = TextOverflow.Ellipsis,
+        Text(live.title, color = colors.onSurfaceContainer, maxLines = 2, overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 8.dp))
         Text(listOf(live.areaName, live.watched).filter { it.isNotBlank() }.joinToString(" · "),
             color = colors.onSurfaceVariantSummary, fontSize = 12.sp, modifier = Modifier.padding(12.dp))

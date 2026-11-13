@@ -112,7 +112,7 @@ private fun VideoSummary(state: HomeActionSheetUiState) {
         AsyncImage(model = state.cover, contentDescription = null, contentScale = ContentScale.Crop,
             modifier = Modifier.width(104.dp).aspectRatio(16f / 10f).clip(RoundedCornerShape(16.dp)))
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(state.title, color = MiuixTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium,
+            Text(state.title, color = MiuixTheme.colorScheme.onSurfaceContainer, fontWeight = FontWeight.Medium,
                 maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(state.creator, color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
@@ -123,7 +123,7 @@ private fun VideoSummary(state: HomeActionSheetUiState) {
 @Composable
 private fun SheetGroup(content: @Composable ColumnScope.() -> Unit) {
     Column(Modifier.fillMaxWidth().squircleSurface(
-        MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.65f), 24.dp), content = content)
+        MiuixTheme.colorScheme.surface.copy(alpha = 0.65f), 24.dp), content = content)
 }
 
 @Composable
@@ -133,7 +133,7 @@ private fun HomeSheetAction(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    val color = MiuixTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.45f)
+    val color = MiuixTheme.colorScheme.onSurfaceContainer.copy(alpha = if (enabled) 1f else 0.45f)
     Row(Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onClick)
         .heightIn(min = 64.dp).padding(horizontal = 18.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {

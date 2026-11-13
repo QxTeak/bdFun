@@ -91,7 +91,7 @@ internal fun SubmissionChip(text: String, selected: Boolean, onClick: () -> Unit
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
-            .background(if (selected) colors.primary else colors.surface)
+            .background(if (selected) colors.primary else colors.surfaceContainer)
             .border(
                 width = if (selected) 1.dp else 0.dp,
                 color = if (selected) Color.White.copy(alpha = 0.45f) else Color.Transparent,
@@ -135,7 +135,7 @@ internal fun SpaceSubmissionCard(
                 bottom = if (isLast) 6.dp else 0.dp,
             )
             .clip(shape)
-            .background(colors.surface),
+            .background(colors.surfaceContainer),
     ) {
         content()
     }

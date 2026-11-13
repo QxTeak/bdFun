@@ -37,7 +37,7 @@ internal fun SearchUserRow(user: SearchUser, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(colors.surface)
+            .background(colors.surfaceContainer)
             .clickable(onClick = onClick)
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically,

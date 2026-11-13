@@ -3,8 +3,6 @@ package com.aritxonly.bdfun
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.*
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
@@ -17,9 +15,7 @@ import com.aritxonly.teak.common.theme.TeakTheme
 internal fun LiveRoomTheme(settings: SettingsBindings, content: @Composable () -> Unit) {
     CompositionLocalProvider(LocalSettingsBindings provides settings) {
         TeakTheme(dark = true, lightColors = hyperLightColors(), darkColors = hyperDarkColors(),
-            materialColors = darkColorScheme(primary = BrandPink, background = Color(0xFF0D0E11),
-                surface = Color(0xFF121317), surfaceVariant = Color(0xFF1A1C21),
-                onSurface = Color(0xFFF2F3F5), outline = Color(0xFF2B2E35)),
+            materialColors = appMaterialColors(dark = true),
             blurEnabled = settings.blurEnabled, refractionEnabled = settings.refractionEnabled, fontScale = settings.fontScale,
         ) { content() }
     }

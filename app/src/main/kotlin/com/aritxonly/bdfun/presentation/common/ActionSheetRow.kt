@@ -19,9 +19,9 @@ internal fun ActionSheetRow(label: String, enabled: Boolean = true, icon: ImageV
     Row(Modifier.fillMaxWidth().clickable(enabled = enabled, onClick = onClick)
         .padding(horizontal = 18.dp, vertical = 18.dp), verticalAlignment = Alignment.CenterVertically) {
         if (icon != null) {
-            Icon(icon, null, Modifier.size(24.dp), tint = colors.onSurface)
+            Icon(icon, null, Modifier.size(24.dp), tint = colors.onSurfaceContainer)
             Spacer(Modifier.width(14.dp))
         }
-        Text(label, color = if (enabled) colors.onSurface else colors.onBackgroundVariant, fontSize = 16.sp)
+        Text(label, color = if (enabled) colors.onSurfaceContainer else colors.onBackgroundVariant, fontSize = 16.sp)
     }
 }
