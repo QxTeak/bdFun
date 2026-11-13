@@ -22,22 +22,22 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun MessageLoginPrompt(onNeedLogin: () -> Unit) {
     val colors = MiuixTheme.colorScheme
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Text("登录后可查看消息", color = colors.onBackgroundVariant, fontSize = 13.sp)
-                        Spacer(Modifier.height(16.dp))
-                        Box(
-                            modifier = Modifier
-                                .clip(CircleShape)
-                                .background(colors.primary)
-                                .clickable(onClick = onNeedLogin)
-                                .padding(horizontal = 26.dp, vertical = 11.dp),
-                        ) {
-                            Text("扫码登录", color = Color.White, fontSize = 14.sp)
-                        }
-                    }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text("登录后可查看消息", color = colors.onBackgroundVariant, fontSize = 13.sp)
+        Spacer(Modifier.height(16.dp))
+        Box(
+            modifier = Modifier
+                .clip(CircleShape)
+                .background(colors.primary)
+                .clickable(onClick = onNeedLogin)
+                .padding(horizontal = 26.dp, vertical = 11.dp),
+        ) {
+            Text("扫码登录", color = Color.White, fontSize = 14.sp)
+        }
+    }
 }

@@ -23,36 +23,36 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun MessageShortcutGroup(unread: Map<String, Int>, events: MessageScreenEvents) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 18.dp)
-                        .clip(com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(22.dp))
-                        .background(colors.surface)
-                        .padding(vertical = 10.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
-                ) {
-                    MessageShortcut(
-                        label = "回复与@",
-                        modifier = Modifier.weight(1f),
-                        onClick = events.onOpenReplies,
-                        unread = (unread["reply"] ?: 0) + (unread["at"] ?: 0),
-                    ) { androidx.compose.material3.Icon(MiuixIcons.Messages, null, Modifier.size(ShortcutGlyphSize), tint = MessageGreen) }
-                    MessageShortcut(
-                        label = "收到喜欢",
-                        modifier = Modifier.weight(1f),
-                        onClick = events.onOpenLikes,
-                        unread = unread["like"] ?: 0,
-                    ) { ResourceGlyph(res = TeakIcon.Like, tint = MessagePink, size = ShortcutGlyphSize) }
-                    MessageShortcut(
-                        label = "新增粉丝",
-                        modifier = Modifier.weight(1f),
-                        onClick = events.onOpenFans,
-                    ) { androidx.compose.material3.Icon(MiuixIcons.Contacts, null, Modifier.size(ShortcutGlyphSize), tint = MessageBlue) }
-                    MessageShortcut(label = "系统通知", modifier = Modifier.weight(1f),
-                        unread = unread["sys_msg"] ?: 0,
-                        onClick = { navigateToMessageFeed(context, "system") }) {
-                        androidx.compose.material3.Icon(MiuixIcons.Messages, null, Modifier.size(ShortcutGlyphSize), tint = colors.primary)
-                    }
-                }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 18.dp)
+            .clip(com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(22.dp))
+            .background(colors.surface)
+            .padding(vertical = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        MessageShortcut(
+            label = "回复与@",
+            modifier = Modifier.weight(1f),
+            onClick = events.onOpenReplies,
+            unread = (unread["reply"] ?: 0) + (unread["at"] ?: 0),
+        ) { androidx.compose.material3.Icon(MiuixIcons.Messages, null, Modifier.size(ShortcutGlyphSize), tint = MessageGreen) }
+        MessageShortcut(
+            label = "收到喜欢",
+            modifier = Modifier.weight(1f),
+            onClick = events.onOpenLikes,
+            unread = unread["like"] ?: 0,
+        ) { ResourceGlyph(res = TeakIcon.Like, tint = MessagePink, size = ShortcutGlyphSize) }
+        MessageShortcut(
+            label = "新增粉丝",
+            modifier = Modifier.weight(1f),
+            onClick = events.onOpenFans,
+        ) { androidx.compose.material3.Icon(MiuixIcons.Contacts, null, Modifier.size(ShortcutGlyphSize), tint = MessageBlue) }
+        MessageShortcut(label = "系统通知", modifier = Modifier.weight(1f),
+            unread = unread["sys_msg"] ?: 0,
+            onClick = { navigateToMessageFeed(context, "system") }) {
+            androidx.compose.material3.Icon(MiuixIcons.Messages, null, Modifier.size(ShortcutGlyphSize), tint = colors.primary)
+        }
+    }
 }

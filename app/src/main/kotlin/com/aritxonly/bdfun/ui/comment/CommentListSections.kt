@@ -33,62 +33,62 @@ import androidx.compose.runtime.getValue
 @Composable
 internal fun CommentListTitle(bare: Boolean, title: String, total: Int) {
     val colors = MiuixTheme.colorScheme
-        if (!bare) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Spacer(Modifier.size(40.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = if (total > 0) "评论 $total" else "评论",
-                        color = colors.onBackground,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium,
-                    )
-                    Text(
-                        text = title,
-                        color = colors.onBackgroundVariant,
-                        fontSize = 11.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
+    if (!bare) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp, end = 16.dp, top = 8.dp, bottom = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Spacer(Modifier.size(40.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (total > 0) "评论 $total" else "评论",
+                    color = colors.onBackground,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    text = title,
+                    color = colors.onBackgroundVariant,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
+    }
 }
 
 @Composable
 internal fun CommentSortRow(total: Int, sortHot: Boolean, onSort: () -> Unit) {
     val colors = MiuixTheme.colorScheme
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(start = 4.dp, end = 4.dp, top = 2.dp, bottom = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
-                            text = "共 ${formatCount(total.toLong())} 条评论",
-                            color = colors.onBackgroundVariant,
-                            fontSize = 11.sp,
-                        )
-                        Spacer(Modifier.weight(1f))
-                        Text(
-                            text = if (sortHot) "按热度" else "按时间",
-                            color = colors.onBackgroundVariant,
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Normal,
-                            modifier = Modifier
-                                .clip(Capsule())
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = null,
-                                ) { onSort() }
-                                .padding(horizontal = 8.dp, vertical = 3.dp),
-                        )
-                    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 4.dp, end = 4.dp, top = 2.dp, bottom = 8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(
+            text = "共 ${formatCount(total.toLong())} 条评论",
+            color = colors.onBackgroundVariant,
+            fontSize = 11.sp,
+        )
+        Spacer(Modifier.weight(1f))
+        Text(
+            text = if (sortHot) "按热度" else "按时间",
+            color = colors.onBackgroundVariant,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Normal,
+            modifier = Modifier
+                .clip(Capsule())
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                ) { onSort() }
+                .padding(horizontal = 8.dp, vertical = 3.dp),
+        )
+    }
 }
 
 @Composable
@@ -175,40 +175,40 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.commentListFooter(
     val comments = state.comments
     val loading = state.loading
     val error = state.error
-                if (loadingMore && showLoading) {
-                    item(key = "loading-more") {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            TeakLoading(size = 36.dp)
-                        }
-                    }
-                }
+    if (loadingMore && showLoading) {
+        item(key = "loading-more") {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                TeakLoading(size = 36.dp)
+            }
+        }
+    }
 
-                if (comments.isEmpty() && !loading && error == null) {
-                    item(key = "empty") {
-                        Box(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 60.dp),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text(
-                                text = "还没有评论",
-                                color = textColor,
-                                fontSize = 13.sp,
-                            )
-                        }
-                    }
-                }
+    if (comments.isEmpty() && !loading && error == null) {
+        item(key = "empty") {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 60.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "还没有评论",
+                    color = textColor,
+                    fontSize = 13.sp,
+                )
+            }
+        }
+    }
 
-                error?.let { message ->
-                    item(key = "error") {
-                        Text(
-                            text = message,
-                            modifier = Modifier.padding(vertical = 20.dp, horizontal = 4.dp),
-                            color = textColor,
-                            fontSize = 13.sp,
-                        )
-                    }
-                }
+    error?.let { message ->
+        item(key = "error") {
+            Text(
+                text = message,
+                modifier = Modifier.padding(vertical = 20.dp, horizontal = 4.dp),
+                color = textColor,
+                fontSize = 13.sp,
+            )
+        }
+    }
 }

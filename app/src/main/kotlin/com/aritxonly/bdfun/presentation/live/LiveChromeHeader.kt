@@ -32,20 +32,20 @@ import top.yukonga.miuix.kmp.icon.extended.ChevronBackward
 @Composable
 internal fun BoxScope.LiveChromeShade(render: LiveChromeRender) {
     val landscape = render.landscape
-                // 底部压暗，保证白字在亮画面上仍然可读
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .height(if (landscape) 235.dp else 80.dp)
-                        .background(
-                            Brush.verticalGradient(
-                                0f to Color.Transparent,
-                                (if (landscape) 0.45f else 0.35f) to Color.Black.copy(alpha = 0.35f),
-                                1f to Color.Black.copy(alpha = if (landscape) 0.82f else 0.65f),
-                            ),
-                        ),
-                )
+    // 底部压暗，保证白字在亮画面上仍然可读
+    Box(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            .fillMaxWidth()
+            .height(if (landscape) 235.dp else 80.dp)
+            .background(
+                Brush.verticalGradient(
+                    0f to Color.Transparent,
+                    (if (landscape) 0.45f else 0.35f) to Color.Black.copy(alpha = 0.35f),
+                    1f to Color.Black.copy(alpha = if (landscape) 0.82f else 0.65f),
+                ),
+            ),
+    )
 
 }
 

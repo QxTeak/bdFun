@@ -26,6 +26,8 @@ val keystoreProps = Properties().apply {
     }
 }
 
+val releaseStoreFile = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
+
 android {
     namespace = "com.aritxonly.bdfun"
     compileSdk = 37
@@ -54,7 +56,18 @@ android {
     }
 
     signingConfigs {
-        if (keystorePropsFile.isFile) {
+        if (!releaseStoreFile.isNullOrBlank()) {
+            create("release") {
+                storeFile = file(releaseStoreFile)
+                storePassword = providers.environmentVariable("KEYSTORE_PASSWORD").get()
+                keyAlias = providers.environmentVariable("KEY_ALIAS").get()
+                keyPassword = providers.environmentVariable("KEY_PASSWORD").get()
+                enableV1Signing = false
+                enableV2Signing = true
+                enableV3Signing = false
+                enableV4Signing = false
+            }
+        } else if (keystorePropsFile.isFile) {
             create("release") {
                 storeFile = file(keystoreProps.getProperty("storeFile"))
                 storePassword = keystoreProps.getProperty("storePassword")
@@ -72,7 +85,7 @@ android {
         }
         release {
             // 正式包使用 release keystore；没配置时退回 debug 签名仅用于本地调试。
-            signingConfig = if (keystorePropsFile.isFile) {
+            signingConfig = if (!releaseStoreFile.isNullOrBlank() || keystorePropsFile.isFile) {
                 signingConfigs.getByName("release")
             } else {
                 signingConfigs.getByName("debug")

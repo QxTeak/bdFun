@@ -26,35 +26,35 @@ internal fun LargeVideoContent(video: VideoItem) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
 
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp)) {
-            Text(
-                text = video.title,
-                color = colors.onBackground,
-                fontSize = 14.sp,
-                lineHeight = 19.sp,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(5.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                UpBadge()
-                if (video.isFollowed) {
-                    Spacer(Modifier.width(4.dp))
-                    FollowedBadge()
-                }
-                Spacer(Modifier.width(5.dp))
-                Text(
-                    text = video.ownerName,
-                    color = colors.onBackgroundVariant,
-                    fontSize = 11.5.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable(interactionSource = null, indication = null) {
-                            navigateToSpace(context, video.ownerMid)
-                        },
-                )
+    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp)) {
+        Text(
+            text = video.title,
+            color = colors.onBackground,
+            fontSize = 14.sp,
+            lineHeight = 19.sp,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.height(5.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            UpBadge()
+            if (video.isFollowed) {
+                Spacer(Modifier.width(4.dp))
+                FollowedBadge()
             }
+            Spacer(Modifier.width(5.dp))
+            Text(
+                text = video.ownerName,
+                color = colors.onBackgroundVariant,
+                fontSize = 11.5.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .weight(1f)
+                    .clickable(interactionSource = null, indication = null) {
+                        navigateToSpace(context, video.ownerMid)
+                    },
+            )
         }
+    }
 }

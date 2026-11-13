@@ -134,14 +134,14 @@ private fun LogIntro() {
     val context = LocalContext.current
     val colors = MiuixTheme.colorScheme
 
-            Text(
-                text = "复现问题前先点「开始新一轮抓取」，然后按平时操作复现；" +
-                    "完成后回来点「导出日志并分享」。日志只保存在本机，不会自动上传。",
-                modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
-                color = colors.onBackgroundVariant,
-                fontSize = 13.sp,
-                lineHeight = 20.sp,
-            )
+    Text(
+        text = "复现问题前先点「开始新一轮抓取」，然后按平时操作复现；" +
+            "完成后回来点「导出日志并分享」。日志只保存在本机，不会自动上传。",
+        modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+        color = colors.onBackgroundVariant,
+        fontSize = 13.sp,
+        lineHeight = 20.sp,
+    )
 
 }
 
@@ -150,26 +150,26 @@ private fun LogActions(onClear: () -> Unit) {
     val context = LocalContext.current
     val colors = MiuixTheme.colorScheme
 
-            TeakSettingsCard {
-                TeakSettingsActionRow(title = "开始新一轮抓取", trailing = "清空旧日志") {
-                    LogCollector.beginSession()
-                    context.showToast("已开始记录，请复现问题")
-                }
-                TeakSettingsActionRow(title = "复制最近日志") {
-                    val text = LogCollector.snapshot()
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
-                        as android.content.ClipboardManager
-                    clipboard.setPrimaryClip(
-                        android.content.ClipData.newPlainText("bdFun log", text),
-                    )
-                    context.showToast("已复制 ${LogCollector.size()} 行")
-                }
-                TeakSettingsActionRow(title = "清空日志") {
-                    LogCollector.clear()
-                    onClear()
-                    context.showToast("日志已清空")
-                }
-            }
+    TeakSettingsCard {
+        TeakSettingsActionRow(title = "开始新一轮抓取", trailing = "清空旧日志") {
+            LogCollector.beginSession()
+            context.showToast("已开始记录，请复现问题")
+        }
+        TeakSettingsActionRow(title = "复制最近日志") {
+            val text = LogCollector.snapshot()
+            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
+                as android.content.ClipboardManager
+            clipboard.setPrimaryClip(
+                android.content.ClipData.newPlainText("bdFun log", text),
+            )
+            context.showToast("已复制 ${LogCollector.size()} 行")
+        }
+        TeakSettingsActionRow(title = "清空日志") {
+            LogCollector.clear()
+            onClear()
+            context.showToast("日志已清空")
+        }
+    }
 
 }
 
@@ -178,35 +178,35 @@ private fun LogFreezeActions() {
     val context = LocalContext.current
     val colors = MiuixTheme.colorScheme
 
-            TeakSettingsCard {
-                TeakSettingsActionRow(
-                    title = "复制卡住日志",
-                    trailing = "${com.aritxonly.bdfun.data.FreezeWatchdog.size(context) / 1024} KB",
-                ) {
-                    val text = com.aritxonly.bdfun.data.FreezeWatchdog.readTail(context, 20000)
-                    if (text.isBlank()) {
-                        context.showToast("还没有卡住日志")
-                    } else {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
-                            as android.content.ClipboardManager
-                        clipboard.setPrimaryClip(
-                            android.content.ClipData.newPlainText("bdFun freeze log", text),
-                        )
-                        context.showToast("已复制卡住日志")
-                    }
-                }
-                TeakSettingsActionRow(title = "导出卡住日志并分享") {
-                    runCatching {
-                        shareLog(context, exportFreezeLog(context))
-                    }.onFailure {
-                        context.showToast("导出失败：${it.message}")
-                    }
-                }
-                TeakSettingsActionRow(title = "清空卡住日志") {
-                    com.aritxonly.bdfun.data.FreezeWatchdog.clear(context)
-                    context.showToast("卡住日志已清空")
-                }
+    TeakSettingsCard {
+        TeakSettingsActionRow(
+            title = "复制卡住日志",
+            trailing = "${com.aritxonly.bdfun.data.FreezeWatchdog.size(context) / 1024} KB",
+        ) {
+            val text = com.aritxonly.bdfun.data.FreezeWatchdog.readTail(context, 20000)
+            if (text.isBlank()) {
+                context.showToast("还没有卡住日志")
+            } else {
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE)
+                    as android.content.ClipboardManager
+                clipboard.setPrimaryClip(
+                    android.content.ClipData.newPlainText("bdFun freeze log", text),
+                )
+                context.showToast("已复制卡住日志")
             }
+        }
+        TeakSettingsActionRow(title = "导出卡住日志并分享") {
+            runCatching {
+                shareLog(context, exportFreezeLog(context))
+            }.onFailure {
+                context.showToast("导出失败：${it.message}")
+            }
+        }
+        TeakSettingsActionRow(title = "清空卡住日志") {
+            com.aritxonly.bdfun.data.FreezeWatchdog.clear(context)
+            context.showToast("卡住日志已清空")
+        }
+    }
 
 }
 
@@ -215,29 +215,29 @@ private fun LogExport() {
     val context = LocalContext.current
     val colors = MiuixTheme.colorScheme
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .clip(Capsule())
-                    .background(colors.primary)
-                    .clickable {
-                        runCatching {
-                            val file = LogCollector.export(context)
-                            shareLog(context, file)
-                        }.onFailure {
-                            context.showToast("导出失败：${it.message}")
-                        }
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = "导出日志并分享",
-                    color = Color.White,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Normal,
-                )
-            }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(48.dp)
+            .clip(Capsule())
+            .background(colors.primary)
+            .clickable {
+                runCatching {
+                    val file = LogCollector.export(context)
+                    shareLog(context, file)
+                }.onFailure {
+                    context.showToast("导出失败：${it.message}")
+                }
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = "导出日志并分享",
+            color = Color.White,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Normal,
+        )
+    }
 
 }
 
@@ -246,31 +246,31 @@ private fun LogPreview(preview: String, count: Int) {
     val context = LocalContext.current
     val colors = MiuixTheme.colorScheme
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(colors.surface)
-                    .padding(12.dp),
-            ) {
-                Text(
-                    text = "最近日志（${count} 行）",
-                    color = colors.onBackground,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Normal,
-                )
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    text = preview.ifBlank { "暂无日志，先开始抓取并操作一下" },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(220.dp)
-                        .verticalScroll(rememberScrollState()),
-                    color = colors.onBackgroundVariant,
-                    fontSize = 10.sp,
-                    lineHeight = 14.sp,
-                    fontFamily = FontFamily.Monospace,
-                )
-            }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(colors.surface)
+            .padding(12.dp),
+    ) {
+        Text(
+            text = "最近日志（${count} 行）",
+            color = colors.onBackground,
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Normal,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            text = preview.ifBlank { "暂无日志，先开始抓取并操作一下" },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(220.dp)
+                .verticalScroll(rememberScrollState()),
+            color = colors.onBackgroundVariant,
+            fontSize = 10.sp,
+            lineHeight = 14.sp,
+            fontFamily = FontFamily.Monospace,
+        )
+    }
 
 }

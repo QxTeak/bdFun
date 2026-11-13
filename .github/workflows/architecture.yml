@@ -1,6 +1,7 @@
-name: Architecture and debug
+name: Android CI
 on:
   pull_request:
+  workflow_dispatch:
   push:
     branches: [main, 'codex/**']
 permissions:
@@ -10,14 +11,19 @@ concurrency:
   cancel-in-progress: true
 jobs:
   check:
-    runs-on: ubuntu-latest
-    timeout-minutes: 40
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
           distribution: zulu
           java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
       - name: Install pinned Android tools
         # Runner自带新版sdkmanager，API37的包名包含次版本号。
         run: |
@@ -25,14 +31,15 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-37.0' 'build-tools;37.0.0'
       - name: Prepare pinned Miuix source
         run: python3 tools/setup-miuix.py
-      - name: Check architecture and compile debug
-        run: bash ./gradlew checkLayering :app:assembleDebug --no-parallel --max-workers=2
+      - name: Check architecture, lint and build test APKs
+        run: bash ./gradlew checkLayering :app:lintDebug :app:assembleDebug :app:assembleRelease --no-parallel --max-workers=2
       - name: Verify forbidden production dependency is rejected
         run: bash tools/check-module-graph-negative.sh --no-parallel --max-workers=2
-      - name: Run core policies and video state regression tests
+      - name: Run core policies
+        run: bash ./gradlew :core:domain:test :core:application:test --no-parallel --max-workers=2
+      - name: Run video state regression tests
         run: >-
-          bash ./gradlew :core:domain:test :core:application:test
-          :feature:video:testDebugUnitTest
+          bash ./gradlew :feature:video:testDebugUnitTest
           --tests '*VideoDetailStateHolderTest'
           --tests '*VideoReadCacheTest'
           --tests '*VideoInteractionStateHolderTest'
@@ -42,3 +49,93 @@ jobs:
           --tests '*VideoPlayerViewportTest'
           --tests '*PlayerGestureSessionTest'
           --no-parallel --max-workers=2
+      - name: Upload lint and test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-reports
+          path: |
+            **/build/reports/lint-results-*
+            **/build/reports/tests/
+          retention-days: 14
+      - name: Upload release mapping
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-mapping
+          path: app/build/outputs/mapping/release/mapping.txt
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload release candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate
+          path: app/build/outputs/apk/release/*.apk
+          if-no-files-found: error
+          retention-days: 7
+
+  signed-release:
+    # fork/Dependabot 不接触密钥；构建与签名分开，签名任务不执行 PR 的 Gradle/脚本。
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.actor != 'dependabot[bot]'
+    needs: check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment: pr-signing
+    steps:
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: zulu
+          java-version: '21'
+      - name: Install signing tools
+        run: '"$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "build-tools;37.0.0"'
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate
+          path: candidate
+      - name: Sign and verify release APK
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing signing secret: $name (see docs/CI.md)"
+              exit 1
+            fi
+          done
+          umask 077
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/pr-release.jks"
+          mkdir -p signed
+          shopt -s nullglob
+          apks=(candidate/*.apk)
+          [[ ${#apks[@]} -eq 1 ]]
+          signer="$ANDROID_HOME/build-tools/37.0.0/apksigner"
+          "$signer" sign --ks "$RUNNER_TEMP/pr-release.jks" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEY_PASSWORD \
+            --v1-signing-enabled false --v2-signing-enabled true \
+            --v3-signing-enabled false --v4-signing-enabled false \
+            --out signed/bdFun-pr-release.apk "${apks[0]}"
+          "$signer" verify --verbose --print-certs signed/bdFun-pr-release.apk | tee "$RUNNER_TEMP/pr-cert.txt"
+          grep -Fqi 'Signer #1 certificate SHA-256 digest: a34f7803b15c3ebba2e6c4c7bc9646ae14bffb15abad4fe58aaf2ca46566e5db' "$RUNNER_TEMP/pr-cert.txt"
+          (cd signed && sha256sum bdFun-pr-release.apk > SHA256SUMS.txt)
+      - name: Remove signing key
+        if: always()
+        run: rm -f -- "$RUNNER_TEMP/pr-release.jks"
+      - uses: actions/upload-artifact@v4
+        id: apk
+        with:
+          name: signed-release-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+          path: signed/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Link test APK in run summary
+        env:
+          ARTIFACT_URL: ${{ steps.apk.outputs.artifact-url }}
+        run: echo "[Download signed release APK]($ARTIFACT_URL)" >> "$GITHUB_STEP_SUMMARY"

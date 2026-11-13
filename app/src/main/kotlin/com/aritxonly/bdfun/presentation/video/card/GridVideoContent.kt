@@ -32,55 +32,55 @@ internal fun GridVideoContent(video: VideoItem, showOwner: Boolean) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
 
-        Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 7.dp, bottom = 8.dp)) {
-            Text(
-                text = video.title,
-                color = colors.onBackground,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                style = TextStyle(
-                    fontSize = 13.5.sp,
-                    lineHeight = 18.sp,
-                    fontWeight = FontWeight.Normal,
-                ),
-                modifier = Modifier.heightIn(min = TitleBlockHeight),
-            )
+    Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 7.dp, bottom = 8.dp)) {
+        Text(
+            text = video.title,
+            color = colors.onBackground,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            style = TextStyle(
+                fontSize = 13.5.sp,
+                lineHeight = 18.sp,
+                fontWeight = FontWeight.Normal,
+            ),
+            modifier = Modifier.heightIn(min = TitleBlockHeight),
+        )
 
-            if (showOwner) {
-                Spacer(Modifier.height(5.dp))
+        if (showOwner) {
+            Spacer(Modifier.height(5.dp))
 
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // UP 名称可点：进 UP 空间页（点击被这里消费，不会触发整卡进视频）
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .clip(Capsule())
+                        .clickable(interactionSource = null, indication = null) {
+                            navigateToSpace(
+                                context,
+                                video.ownerMid,
+                            )
+                        }
+                        .padding(vertical = 2.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // UP 名称可点：进 UP 空间页（点击被这里消费，不会触发整卡进视频）
-                    Row(
-                        modifier = Modifier
-                            .clip(Capsule())
-                            .clickable(interactionSource = null, indication = null) {
-                                navigateToSpace(
-                                    context,
-                                    video.ownerMid,
-                                )
-                            }
-                            .padding(vertical = 2.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        UpBadge()
-                        if (video.isFollowed) {
-                            Spacer(Modifier.width(4.dp))
-                            FollowedBadge()
-                        }
-                        Spacer(Modifier.width(5.dp))
-                        Text(
-                            text = video.ownerName,
-                            color = colors.onBackgroundVariant,
-                            fontSize = 11.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                    UpBadge()
+                    if (video.isFollowed) {
+                        Spacer(Modifier.width(4.dp))
+                        FollowedBadge()
                     }
+                    Spacer(Modifier.width(5.dp))
+                    Text(
+                        text = video.ownerName,
+                        color = colors.onBackgroundVariant,
+                        fontSize = 11.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                 }
             }
         }
+    }
 }

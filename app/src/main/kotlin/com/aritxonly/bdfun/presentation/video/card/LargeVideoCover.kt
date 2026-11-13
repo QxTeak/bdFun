@@ -22,36 +22,36 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun LargeVideoCover(video: VideoItem, progress: Float) {
     val colors = MiuixTheme.colorScheme
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(16f / 9f)
+            .background(colors.surfaceContainerHigh),
+    ) {
+        AsyncImage(
+            model = rememberImageRequest(video.cover),
+            contentDescription = video.title,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize(),
+        )
         Box(
             modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .aspectRatio(16f / 9f)
-                .background(colors.surfaceContainerHigh),
-        ) {
-            AsyncImage(
-                model = rememberImageRequest(video.cover),
-                contentDescription = video.title,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize(),
-            )
+                .height(48.dp)
+                .background(
+                    Brush.verticalGradient(listOf(Color.Transparent, Color(0x66000000))),
+                ),
+        )
+        LargeCoverMetrics(video)
+        if (progress > 0f) {
             Box(
                 modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .background(
-                        Brush.verticalGradient(listOf(Color.Transparent, Color(0x66000000))),
-                    ),
+                    .align(Alignment.BottomStart)
+                    .fillMaxWidth(progress.coerceIn(0f, 1f))
+                    .height(2.dp)
+                    .background(colors.primary),
             )
-            LargeCoverMetrics(video)
-            if (progress > 0f) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .fillMaxWidth(progress.coerceIn(0f, 1f))
-                        .height(2.dp)
-                        .background(colors.primary),
-                )
-            }
         }
+    }
 }
