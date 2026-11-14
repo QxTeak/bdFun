@@ -13,7 +13,7 @@ function validate(candidate,baseline){
  const text=(value,label)=>{if(typeof value!=='string'||!value.trim()||value.length>200)throw Error(label+'不能为空或超过200字');};
  candidate.forEach(c=>{text(c.name,'分类名称');text(c.route,'分类路由');if(routes.has(c.route))throw Error('分类路由重复：'+c.route);routes.add(c.route);
   if(!['settings','about','root_footer'].includes(c.layout||'settings'))throw Error('未知页面布局');
-  if(c.icon!=null)throw Error('第一阶段不配置分类图标');
+  if(c.icon!=null)throw Error('一级图标请在seperation中配置');
   if(!Array.isArray(c.groups)||c.groups.length>100)throw Error('分组格式不正确');
   c.groups.forEach(g=>{text(g.title,'分组标题');if(!Array.isArray(g.settings))throw Error('设置列表格式不正确');
    g.settings.forEach(s=>{if(s.pref_name==='logout'&&c.layout!=='root_footer')throw Error('退出登录必须保留在一级页面底部');if(c.layout==='root_footer'&&(s.type!=='action'||s.storage!=='none'))throw Error('一级底部仅允许独立操作');text(s.title,'设置名称');if(s.subtitle!=null&&(typeof s.subtitle!=='string'||s.subtitle.length>1000))throw Error('说明格式不正确');

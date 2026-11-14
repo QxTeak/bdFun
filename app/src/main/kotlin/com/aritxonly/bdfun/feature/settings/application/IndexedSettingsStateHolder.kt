@@ -23,6 +23,7 @@ internal class IndexedSettingsStateHolder(
     repository: SettingsRepository,
     changes: StateFlow<SettingsUiState>,
     scope: CoroutineScope,
+    val seperation: List<SettingsSeperation> = emptyList(),
 ) {
     private val bindings = indexedSettingBindings(repository)
     private val stored = index.settings.filterValues { it.storage == "settings" }

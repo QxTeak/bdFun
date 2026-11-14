@@ -43,3 +43,31 @@ missing[0].groups[0].settings.pop();
 assert.throws(() => validate(missing, baseline));
 assert.equal(JSON.stringify(baseline), snapshot, '失败校验不能更改输入基准');
 console.log(`PASS: ${flatten(baseline).length} components, full catalog sync, reorganization, contract guards, property order and failed import isolation`);
+for (const file of ['seperation-catalog.js', 'seperation.js']) {
+    vm.runInContext(fs.readFileSync(path.join(root, 'docs/settings-organizer', file), 'utf8'), context);
+}
+const seperation = context.SETTINGS_SEPERATION;
+const rootIndex = JSON.parse(fs.readFileSync(path.join(root, 'app/src/main/assets/settings-seperation.json'), 'utf8'));
+assert.equal(JSON.stringify(seperation), JSON.stringify(rootIndex), '一级索引必须与App同步');
+context.SettingsSeperation.validate(seperation, baseline);
+for (const mutate of [
+    value => value[0].entries.pop(),
+    value => value[0].entries.push(clone(value[1].entries[0])),
+    value => value[0].entries[0].route = 'settings/account',
+    value => value[0].entries[0].icon = 'Unknown',
+    value => value[0].entries[0].color = 'red',
+    value => value[0].id = value[1].id,
+]) {
+    const invalid = clone(seperation); mutate(invalid);
+    assert.throws(() => context.SettingsSeperation.validate(invalid, baseline));
+}
+const grouped = clone(seperation);
+grouped[1].entries.push(grouped[0].entries.pop());grouped.shift();
+context.SettingsSeperation.validate(grouped, baseline);
+const extended = clone(baseline);extended.push({name:'新页面',route:'settings/new',groups:[]});
+context.SettingsSeperation.validate(context.SettingsSeperation.reconcile(seperation, extended), extended);
+for (const group of seperation) for (const entry of group.entries) {
+    const svg=fs.readFileSync(path.join(root,'docs/settings-organizer/assets/miuix',entry.icon+'.svg'),'utf8');
+    assert(svg.includes('<path d="'));assert(svg.includes('Apache-2.0'));
+}
+console.log('PASS: seperation catalog sync, regrouping, route coverage, footer exclusion, Miuix icon/color guards and SVG assets');

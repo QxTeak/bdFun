@@ -46,3 +46,7 @@ layout=about使用Deadliner实际关于页的身份区、三层浮动光晕与32
 用户调整索引保留分类/分组/排序；删除补偿延迟、查看开始页、直播间预览。补回首页卡片样式与播放器末尾后台播放组，继续使用原存储键和dropdown；唱片灯及封面取色按控件选择显隐。visible_when支持&&和整数选项比较（key=value），由领域策略验证。
 
 SET-04验证：SettingsActivity显式adjustResize，避免系统自动pan与Compose imePadding叠加；输入法仅由底部Dock消费一次。新增同版本miuix-nav依赖以采用NavTransitions.MiuixDefault，避免另写一套动画；不引入序列化插件，保存恢复仍归SettingsBrowserStateHolder。内页复用帮助/更新日志/捐赠/引用原内容，外链和日志导出继续交给原宿主。
+
+SET-05：新增settings-seperation.json（名称沿用需求中的seperation），格式为分组数组，每组id/title/entries，每个入口只保存route/icon/color。一级卡片按数组顺序呈现，卡片间留白，不复制二级设置或纳入root_footer。一级图标使用Miuix extended Normal图标和彩色圆角底板。宽屏chrome用显式CompositionLocal覆盖测量判断，popup仍按每栏真实窗口尺寸定位。
+
+退出登录先设置页面作用域confirmLogout，显示原Teak/MIUIX AlertDialog；取消、关闭或系统返回均只清此状态。只有确认按钮执行原宿主logout，先清状态以阻止重复点击。对话框显示状态随设置导航保存恢复。

@@ -13,6 +13,7 @@ internal data class SettingsBrowserState(
     val query: String = "",
     val highlight: String? = null,
     val detail: String? = null,
+    val confirmLogout: Boolean = false,
 )
 
 /** 页面拥有自己的搜索和导航；旋转只改变布局，不另建一份选择状态。 */
@@ -27,10 +28,13 @@ internal class SettingsBrowserStateHolder(initial: SettingsBrowserState = Settin
         mutable.update { it.copy(searching = true, searchRoute = route, query = "", highlight = null) }
     }
     fun openDetail(destination: String) { mutable.update { it.copy(detail = destination, searching = false, searchRoute = null, query = "") } }
+    fun requestLogout() { mutable.update { it.copy(confirmLogout = true) } }
+    fun cancelLogout() { mutable.update { it.copy(confirmLogout = false) } }
     fun query(value: String) { mutable.update { it.copy(query = value) } }
     fun closeSearch() { mutable.update { it.copy(searching = false, query = "", searchRoute = null) } }
     fun clearHighlight(key: String) { mutable.update { if (it.highlight == key) it.copy(highlight = null) else it } }
     fun back(): Boolean = when {
+        state.value.confirmLogout -> { cancelLogout(); true }
         state.value.searching -> { closeSearch(); true }
         state.value.detail != null -> { mutable.update { it.copy(detail = null) }; true }
         state.value.route != null -> { mutable.value = SettingsBrowserState(); true }

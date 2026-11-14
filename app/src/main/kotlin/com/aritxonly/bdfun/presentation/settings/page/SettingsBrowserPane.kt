@@ -54,9 +54,10 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
                 if (searching) session.browser.closeSearch() else runtime.navigation.onBack()
             } else if (!session.browser.back()) runtime.navigation.onBack()
         }
-        CompositionLocalProvider(LocalWindowInfo provides window, LocalConfiguration provides configuration) {
+        CompositionLocalProvider(LocalWindowInfo provides window, LocalConfiguration provides configuration,
+            com.aritxonly.teak.common.chrome.LocalWideFoldTopBarOverride provides if (session.wide) true else null) {
             val navigation = runtime.navigation
-            val embedded = SettingsNavigation(navigation.onBack, navigation.onLogout, { destination ->
+            val embedded = SettingsNavigation(navigation.onBack, session.browser::requestLogout, { destination ->
                 if (destination in settingsEmbeddedDestinations) session.browser.openDetail(destination.name)
                 else navigation.onAbout(destination)
             }, navigation.onDeveloper, navigation.onNotify)
@@ -67,6 +68,7 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
             ) {
                 if (detail != null) SettingsDetailContent(detail, back)
                 else SettingsPaneBody(local, values, localRuntime, controller, categories)
+                if (categories) SettingsLogoutDialog(session.browser, runtime.navigation.onLogout)
             }
         }
     }

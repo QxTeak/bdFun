@@ -30,7 +30,7 @@ internal fun SettingsBrowser(controller: IndexedSettingsStateHolder, runtime: Se
     LaunchedEffect(navigation.highlight) {
         navigation.highlight?.let { kotlinx.coroutines.delay(1800); browser.clearHighlight(it) }
     }
-    val session = SettingsBrowserSession(browser, navigation, selected, wide, categories, footers)
+    val session = SettingsBrowserSession(browser, navigation, selected, wide, categories, footers, controller.seperation)
     if (wide) SettingsSplitLayout(session, settings.values, runtime, controller)
     else SettingsPaneNavigation(session, settings.values, runtime, controller, SettingsPane.Single, Modifier.fillMaxSize())
 }
@@ -40,10 +40,11 @@ internal fun rememberSettingsBrowser(): SettingsBrowserStateHolder {
     val saver = remember {
         Saver<SettingsBrowserStateHolder, List<String>>(save = {
             val s = it.state.value
-            listOf(s.route.orEmpty(), s.searching.toString(), s.searchRoute.orEmpty(), s.query, s.detail.orEmpty())
+            listOf(s.route.orEmpty(), s.searching.toString(), s.searchRoute.orEmpty(), s.query, s.detail.orEmpty(), s.confirmLogout.toString())
         }, restore = {
             SettingsBrowserStateHolder(SettingsBrowserState(it[0].ifEmpty { null }, it[1].toBoolean(),
-                it[2].ifEmpty { null }, it[3], detail = it.getOrNull(4)?.takeIf { name -> name in setOf("Help", "Changelog", "Credits", "Donation", "Logs") }))
+                it[2].ifEmpty { null }, it[3], detail = it.getOrNull(4)?.takeIf { name -> name in setOf("Help", "Changelog", "Credits", "Donation") },
+                confirmLogout = it.getOrNull(5)?.toBoolean() ?: false))
         })
     }
     return rememberSaveable(saver = saver) { SettingsBrowserStateHolder() }

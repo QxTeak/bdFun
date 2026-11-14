@@ -79,6 +79,18 @@ class SettingsBrowserStateHolderTest {
         assertNull(page.state.value.detail)
     }
 
+    @Test fun logoutRequestOnlyShowsDialogAndBackCancelsWithoutChangingPage() {
+        val page = SettingsBrowserStateHolder()
+        page.search()
+        page.query("退出")
+        page.requestLogout()
+        assertTrue(page.state.value.confirmLogout)
+        assertTrue(page.back())
+        assertFalse(page.state.value.confirmLogout)
+        assertTrue(page.state.value.searching)
+        assertEquals("退出", page.state.value.query)
+    }
+
     @Test fun restoredNavigationDoesNotNeedASecondLayoutState() {
         val saved = SettingsBrowserState("settings/player", true, "settings/player", "蓝牙")
         assertEquals(saved, SettingsBrowserStateHolder(saved).state.value)

@@ -25,6 +25,7 @@ internal data class SettingsBrowserSession(
     val wide: Boolean,
     val categories: List<SettingsCategory>,
     val footers: List<SettingsCategory> = emptyList(),
+    val seperation: List<SettingsSeperation> = emptyList(),
 )
 
 @Composable
@@ -34,13 +35,19 @@ internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Mod
     if (!session.navigation.searching) TrackTeakPageScroll(list, chrome)
     LazyColumn(modifier, state = list, contentPadding = settingsListPadding()) {
         item { TeakLargeTitle("设置", pageState = chrome) }
-        item {
-            TeakSettingsCard {
-                session.categories.forEach { category ->
-                    val selected = session.wide && session.selected?.route == category.route
-                    ArrowPreference(title = category.name,
-                        modifier = if (selected) Modifier.background(MiuixTheme.colorScheme.primary.copy(alpha = .08f)) else Modifier,
-                        onClick = { session.browser.open(category.route) })
+        session.seperation.forEach { group ->
+            val entries = group.entries.mapNotNull { entry ->
+                session.categories.firstOrNull { it.route == entry.route }?.let { entry to it }
+            }
+            if (entries.isNotEmpty()) item(key = group.id) {
+                if (group != session.seperation.first()) Spacer(Modifier.height(16.dp))
+                TeakSettingsCard {
+                    entries.forEach { (entry, category) ->
+                        val selected = session.wide && session.selected?.route == category.route
+                        ArrowPreference(title = category.name, startAction = { SettingsCategoryIcon(entry) },
+                            modifier = if (selected) Modifier.background(MiuixTheme.colorScheme.primary.copy(alpha = .08f)) else Modifier,
+                            onClick = { session.browser.open(category.route) })
+                    }
                 }
             }
         }
