@@ -44,7 +44,8 @@ internal fun VideoDanmakuControl(
         recipe = TeakGlassRecipes.floatingNavigation(material.fineTuning),
         materialAlpha = progress,
         // 与 TeakPagerTabs / segment 共用同一平面底色和材质过渡，避免未显现时透明。
-        flatBackgroundAlpha = com.aritxonly.teak.common.material.TeakGlassDefaults.flatBackgroundAlpha(),
+        flatBackgroundAlpha = 1f,
+        flatBackgroundColor = com.aritxonly.teak.common.theme.LocalTeakContentColors.current.groupedBackground,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(

@@ -28,19 +28,22 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
     val paneLayout = layout.paneLayout
     val splitPanes = layout.splitPanes
     val statusBarDp = layout.statusBarTop
-    // 控件独立渐显材质，不绘制覆盖详情内容的整条渐进背景。
+    val scrollProgress = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current.materialProgress
     val materialProgress by androidx.compose.animation.core.animateFloatAsState(
-        targetValue = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current.materialProgress,
+        targetValue = scrollProgress,
         animationSpec = androidx.compose.animation.core.tween(
             durationMillis = 280, easing = androidx.compose.animation.core.FastOutSlowInEasing,
         ),
         label = "video-top-controls-material",
     )
     androidx.compose.runtime.CompositionLocalProvider(
+        com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress provides scrollProgress,
         com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted provides true,
         com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress provides materialProgress,
     ) {
-        androidx.compose.foundation.layout.Box(
+        // 横屏保留顶部渐进模糊；竖屏仅控件渐显玻璃，不覆盖简介内容。
+        com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial(
+            enabled = splitPanes,
             modifier = Modifier
                 .align(if (splitPanes) Alignment.TopEnd else Alignment.TopStart)
                 .then(if (splitPanes) Modifier.width(paneLayout.detailsWidthDp.dp) else Modifier.fillMaxWidth())
@@ -60,6 +63,7 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
                     options = listOf("简介", "评论"), selected = pager.currentPage,
                     onSelect = onSelect,
                     itemWidth = if (splitPanes) 48.dp else 60.dp,
+                    flatBackgroundColor = com.aritxonly.teak.common.theme.LocalTeakContentColors.current.groupedBackground,
                 )
                 VideoDanmakuActions(splitPanes, danmakuOn, onOpenInput, onToggleDanmaku)
             }
