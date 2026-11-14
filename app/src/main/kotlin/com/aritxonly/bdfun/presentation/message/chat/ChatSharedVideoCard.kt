@@ -28,7 +28,7 @@ internal fun ChatSharedVideoCard(info: SharedVideoInfo) {
         modifier = Modifier
             .width(240.dp)
             .clip(RoundedCornerShape(14.dp))
-            .background(colors.surfaceContainer)
+            .background(colors.surfaceContainerHigh)
             .clickable(interactionSource = null, indication = null) {
                 navigateToVideo(
                     context,

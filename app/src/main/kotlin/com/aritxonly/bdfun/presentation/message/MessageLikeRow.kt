@@ -27,7 +27,7 @@ internal fun LikeRow(item: MessageItem, onClick: () -> Unit = {}, onMore: () -> 
                         fontSize = 14.sp, lineHeight = 21.sp, maxLines = 3))
             }
             Spacer(Modifier.height(8.dp))
-            MessageRowFooter(item, onMore)
+            MessageRowFooter(item)
         }
     }
 }

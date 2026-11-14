@@ -57,7 +57,7 @@ internal fun MessageOriginalText(text: String) {
 }
 
 @Composable
-internal fun MessageRowFooter(item: MessageItem, onMore: () -> Unit) {
+internal fun MessageRowFooter(item: MessageItem, onMore: (() -> Unit)? = null) {
     val colors = MiuixTheme.colorScheme
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(formatMessageDate(item.time), color = colors.onBackgroundVariant, fontSize = 12.sp)
@@ -65,6 +65,6 @@ internal fun MessageRowFooter(item: MessageItem, onMore: () -> Unit) {
             Text(" · 已关闭通知", color = colors.onBackgroundVariant, fontSize = 12.sp)
         }
         Spacer(Modifier.weight(1f))
-        MessageMoreDots(onMore)
+        if (onMore != null) MessageMoreDots(onMore)
     }
 }

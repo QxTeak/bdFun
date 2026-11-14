@@ -60,7 +60,7 @@ internal fun MessageFeedList(
                 if (tabs.isNotEmpty()) TeakPagerTabs(
                     options = tabs, selected = if (ui.tab == 2) 1 else 0,
                     onSelect = { ui.tab = if (it == 1) 2 else 0 },
-                    itemWidth = 96.dp, backdrop = null, plain = true,
+                    itemWidth = 96.dp, backdrop = null, plain = false,
                 )
                 Spacer(Modifier.weight(1f))
                 if (kind == MessageFeedKind.Reply || kind == MessageFeedKind.Like) {

@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
@@ -22,12 +22,12 @@ internal fun PrivateChatMessageList(
         reverseLayout = true,
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding()
+            .padding(top = 64.dp + com.aritxonly.bdfun.ui.rememberStatusBarTop())
             .imePadding(),
         contentPadding = PaddingValues(
             start = 12.dp,
             end = 12.dp,
-            top = 66.dp,
+            top = 12.dp,
             bottom = 118.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(10.dp),

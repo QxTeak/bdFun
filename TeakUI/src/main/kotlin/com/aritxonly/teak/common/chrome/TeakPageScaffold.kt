@@ -163,6 +163,8 @@ fun TeakTopBar(
     titleAlwaysVisible: Boolean = false,
     /** 顶栏渐变模糊的显隐：0 = 完全透明，1 = 正常显示。 */
     barBlurFraction: Float = 1f,
+    /** 聊天等没有折叠标题的页面可固定顶栏材质强度。 */
+    topBarMaterialProgress: Float? = null,
 ) {
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val animatedShown = rememberManualProgress(
@@ -277,6 +279,8 @@ fun TeakPageScaffold(
     titleAlwaysVisible: Boolean = false,
     /** 顶栏渐变模糊的显隐：0 = 完全透明，1 = 正常显示。 */
     barBlurFraction: Float = 1f,
+    /** 聊天等没有折叠标题的页面可固定顶栏材质强度。 */
+    topBarMaterialProgress: Float? = null,
     content: @Composable () -> Unit,
 ) {
     val wide = isWideFoldTopBar()
@@ -302,7 +306,7 @@ fun TeakPageScaffold(
                 } else content()
             }
             Box(modifier = Modifier.fillMaxSize()) { overlay() }
-            if (showTopBar) CompositionLocalProvider(LocalTopBarScrollProgress provides (pageState.materialProgress * barBlurFraction.coerceIn(0f, 1f))) {
+            if (showTopBar) CompositionLocalProvider(LocalTopBarScrollProgress provides ((topBarMaterialProgress ?: pageState.materialProgress).coerceIn(0f, 1f) * barBlurFraction.coerceIn(0f, 1f))) {
                 ProgressiveTopBarMaterial {
                     if (title != null && !wide) {
                         TeakTopBar(

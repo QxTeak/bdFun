@@ -35,7 +35,7 @@ internal fun ReplyRow(item: MessageItem, onClick: () -> Unit = {}, onMore: () ->
                 MessageOriginalText(item.subjectText)
             }
             Spacer(Modifier.height(8.dp))
-            MessageRowFooter(item, onMore)
+            MessageRowFooter(item)
         }
     }
 }

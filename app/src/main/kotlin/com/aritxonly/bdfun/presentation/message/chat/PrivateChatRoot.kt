@@ -42,6 +42,7 @@ internal fun PrivateChatRoot(session: MessageSession, onBack: (() -> Unit)? = nu
             title = session.name.ifBlank { session.talkerId.toString() },
             backRevealed = true,
             titleAlwaysVisible = true,
+            topBarMaterialProgress = 1f,
             limitContentWidth = navigation == null,
         ),
         slots = ActivityPageSlots(

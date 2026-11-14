@@ -43,3 +43,9 @@
 - 聊天设置读取补齐固定上游的 build/mobi_app/csrf/csrf_token；gRPC Device 补齐同一上游的 brand/model。私信初次加载保留错误原因，设置标识失败阶段；gRPC 优先解析 Status/Any 错误详情并解码百分号编码，不将所有错误压成一个数字。
 - 1217 的实际服务端含义不能从数字推断。这些请求修正及错误解析有离线测试，真实登录账号是否恢复仍需实机确认。
 - 游客设备回归使用 `-Ppkg=com.aritxonly.bdfun.msgregression` 隔离构建；入口：`adb shell am instrument -w -e suite message-navigation com.aritxonly.bdfun.msgregression.test/com.aritxonly.bdfun.PrivateChatLaunchRegression`。系统返回、顶栏返回均通过，宿主保持打开；回复/@截图已检查指示器分别位于对应选项，保存在 `output/design/message-prototype/implemented-*-selected.png`。真实账号的1217是否恢复仍未验证。
+
+### 消息交互与聊天顶栏调整
+
+回复、@、点赞卡片仅保留长按删除入口，移除页脚三个点；长按直接使用 TeakUI 已从 Deadliner 同步的 AlertDialog 确认，取消不发请求，删除期间禁止重复提交或关闭。系统通知操作保持原入口。回复/@ 与私信列表分段保留原灰色指示器，底座改用首页同一 floatingNavigation 配方；位于内容采集层内时不采样自身 backdrop。聊天滚动区在状态栏与顶栏下方开始，顶栏通过显式材质强度固定为 1，复用原 ProgressiveTopBarMaterial，默认页面仍跟随滚动。需要实机验证浅/深色分段底座、长按删除/取消/失败重试，以及聊天横竖屏、键盘避让和顶栏显示；当前无连接设备，未进行本轮视觉验收。
+
+私信视频分享：同一条消息同时存在结构化 card 与 sharedVideo 时，展示优先 sharedVideo，其次 card，最后纯文本，避免特别关注分享双重渲染。两种分享卡都使用主题 surfaceContainerHigh 和圆角背景。聊天设置当前实机错误明确为 SessionUpdate 阶段的 1217；已核对固定上游路径、服务名及 session_id 参数一致，尚未确认该错误的服务端含义或修复，不将其视为已解决。

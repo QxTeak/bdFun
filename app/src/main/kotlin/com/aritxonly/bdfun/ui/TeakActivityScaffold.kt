@@ -76,6 +76,7 @@ internal fun TeakActivityScaffold(
             topBarCenter = topBarCenter,
             topBarActions = topBarActions,
             barBlurFraction = barBlurFraction,
+            topBarMaterialProgress = options.topBarMaterialProgress,
             topBarGlyphColor = topBarGlyphColor,
             overlay = {
                 if (showScrollTop) ScrollTopButton(settings)

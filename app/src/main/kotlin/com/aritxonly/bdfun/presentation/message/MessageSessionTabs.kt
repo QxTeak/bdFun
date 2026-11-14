@@ -18,7 +18,7 @@ internal fun MessageSessionTabs(ui: MessageSessionsPresentationStateHolder) {
         TeakPagerTabs(
             options = listOf("全部", "我关注的人"), selected = ui.tabIndex,
             onSelect = { ui.tabIndex = it }, itemWidth = 96.dp,
-            backdrop = null, plain = true,
+            backdrop = null, plain = false,
         )
     }
 }
