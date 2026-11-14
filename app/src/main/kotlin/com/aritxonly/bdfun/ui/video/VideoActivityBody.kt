@@ -41,7 +41,7 @@ internal fun VideoActivityBody(
     val commentRequest = scene.commentRequest
     var comments by ui.comments
 
-    VideoPageBody(layout, ui, commentsVisible = pager.currentPage == 1, detail = {
+    VideoPageBody(layout, ui, commentsVisible = pager.currentPage == 1, playerBottomPx = { VideoPageBus.playerBottomPx }, detail = {
         VideoScreen(
             isLoggedIn = isLoggedIn,
             request = com.aritxonly.bdfun.ui.VideoScreenRequest(

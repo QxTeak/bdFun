@@ -29,21 +29,11 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
     val splitPanes = layout.splitPanes
     val statusBarDp = layout.statusBarTop
     val scrollProgress = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current.materialProgress
-    val materialProgress by androidx.compose.animation.core.animateFloatAsState(
-        targetValue = scrollProgress,
-        animationSpec = androidx.compose.animation.core.tween(
-            durationMillis = 280, easing = androidx.compose.animation.core.FastOutSlowInEasing,
-        ),
-        label = "video-top-controls-material",
-    )
     androidx.compose.runtime.CompositionLocalProvider(
         com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress provides scrollProgress,
-        com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted provides true,
-        com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress provides materialProgress,
     ) {
-        // 横屏保留顶部渐进模糊；竖屏仅控件渐显玻璃，不覆盖简介内容。
+        // 横竖屏均保留顶部渐进模糊，并由同一宿主驱动控件玻璃。
         com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial(
-            enabled = splitPanes,
             modifier = Modifier
                 .align(if (splitPanes) Alignment.TopEnd else Alignment.TopStart)
                 .then(if (splitPanes) Modifier.width(paneLayout.detailsWidthDp.dp) else Modifier.fillMaxWidth())
