@@ -38,14 +38,23 @@ internal fun imGrpcFailureText(status: String?, message: String?, details: Strin
             val error = errorCodec.decode("bilibili.rpc.Status", Base64.getDecoder().decode(detail.optString("value")))
             error.optString("message").takeIf { it.isNotBlank() }?.let { text ->
                 val code = error.optInt("code")
-                if (code == 0) text else "$text ($code)"
+                imBusinessErrorText(code, text)
             }
         } catch (_: Exception) { null }
     }
     if (reasons.isNotEmpty()) return reasons.joinToString("；").take(1024)
+    if (decoded?.optInt("code") == -663) {
+        return imBusinessErrorText(-663, decoded.optString("message").ifBlank { "鉴权失败" })
+    }
     val text = decoded?.optString("message")?.takeIf { it.isNotBlank() } ?: message?.let {
         try { URLDecoder.decode(it.replace("+", "%2B"), "UTF-8") }
         catch (_: IllegalArgumentException) { it }
     }
     return if (text.isNullOrBlank()) "消息服务失败 (${status ?: "未知状态"})" else text.take(1024)
+}
+
+private fun imBusinessErrorText(code: Int, text: String): String = when (code) {
+    -663 -> "$text (-663)；请退出账号后重新扫码登录，以更新消息登录凭证"
+    0 -> text
+    else -> "$text ($code)"
 }

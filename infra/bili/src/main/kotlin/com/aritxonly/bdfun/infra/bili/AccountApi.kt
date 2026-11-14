@@ -71,40 +71,33 @@ internal suspend fun BiliApiContext.nav(): UserProfile? = withContext(Dispatcher
 }
 
 /**
- * App / TV 端扫码登录：比网页扫码多拿一个 access_key。
+ * HD 端扫码登录：比网页扫码多拿一个 access_key，并与 IM 的客户端身份保持一致。
  * access_key 存在 cookieJar 里，`signAppParams` 会自动带上，
  * `/x/v2/space` 这类 App 接口才能返回 IP 属地等字段。
  */
 
 internal suspend fun BiliApiContext.qrGenerate(): QrLogin = withContext(Dispatchers.IO) {
-    val params = mutableMapOf(
-        "local_id" to "0",
-        "mobi_app" to "android",
-        "platform" to "android",
-    )
-    signAppParams(params, TV_APP_KEY, TV_APP_SEC, includeAccessKey = false)
+    val params = HdClientIdentity.qrParams(appSigner)
     val data = dataRequest(
         path = "/x/passport-tv-login/qrcode/auth_code",
         params = params,
         base = PASSPORT,
         method = "POST",
+        userAgent = HdClientIdentity.userAgent,
+        headers = mapOf("app-key" to HdClientIdentity.mobiApp),
     )
     mapQrLogin(data)
 }
 
 internal suspend fun BiliApiContext.qrPoll(key: String): QrPoll = withContext(Dispatchers.IO) {
-    val params = mutableMapOf(
-        "auth_code" to key,
-        "local_id" to "0",
-        "mobi_app" to "android",
-        "platform" to "android",
-    )
-    signAppParams(params, TV_APP_KEY, TV_APP_SEC, includeAccessKey = false)
+    val params = HdClientIdentity.qrParams(appSigner, key)
     val root = rawRequest(
         path = "/x/passport-tv-login/qrcode/poll",
         params = params,
         base = PASSPORT,
         method = "POST",
+        userAgent = HdClientIdentity.userAgent,
+        headers = mapOf("app-key" to HdClientIdentity.mobiApp),
     )
     when (root.optInt("code", -1)) {
         0 -> {

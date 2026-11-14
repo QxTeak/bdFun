@@ -35,6 +35,12 @@ The existing bdFun / Deadliner glass recipes, navigation chrome and message card
 
 账号凭证缺少 access_key 时明确要求重新扫码登录，不悄悄回退到行为不同的 HTTP 收件箱。旧 HTTP 门面仅供兼容调用。服务端游标、会话身份与设置载荷为不透明快照，不写入全局 pending 字段。账号切换/页面关闭丢弃迟到响应，取消必须释放 busy/loading。
 
+### MSG-01：私信 -663 鉴权修正
+
+实机截图返回「鉴权失败，请联系账号组 (-663)」。核对发现扫码签发使用 TV appkey `4409e2ce8ffd12b8`，IM gRPC 却声明 `android_hd`。固定参考版本的 `lib/http/login.dart`、`lib/utils/app_sign.dart`、`lib/common/constants.dart` 与 `lib/utils/accounts/grpc_headers.dart` 则统一使用 HD 客户端与 appkey `dfca71928277209b`。现将二维码生成/轮询改为参考版本的签名及参数，登录 User-Agent 和 app-key 也统一；通过 `HdClientIdentity` 与 IM 共用身份常量，避免再次分叉。
+
+旧 TV access_key 无法靠修改请求头变成新签发的 HD 凭据，安装修复版本后需退出账号并重新扫码登录。结构化 -663 错误保留服务端原文并追加该操作提示，不自动退出、不清空 Cookie、不静默转换凭据。JVM 测试覆盖扫码/轮询身份、签名、禁止带旧 access_key 和负错误码提示；登录后的真实历史消息读取仍需实机复测，离线通过不等于已确认服务端恢复。
+
 固定参考版本本身没有实现的特殊会话/菜单类型不宣称可用。完整的登录账号行为一致性仍需实机验收；离线测试不能证明服务端功能全部可用。
 
 ## Source pointers

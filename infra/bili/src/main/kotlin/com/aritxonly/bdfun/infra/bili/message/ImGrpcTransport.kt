@@ -1,7 +1,7 @@
 package com.aritxonly.bdfun.infra.bili.message
 
 import com.aritxonly.bdfun.infra.bili.BiliApiContext
-import com.aritxonly.bdfun.infra.bili.BILI_APP_UA
+import com.aritxonly.bdfun.infra.bili.HdClientIdentity
 import com.aritxonly.bdfun.infra.bili.ensureBuvid
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -24,21 +24,21 @@ internal suspend fun BiliApiContext.imRequest(method: String, requestType: Strin
     check(access.isNotBlank()) { "消息功能需要 App 登录凭证，请重新扫码登录" }
     ensureBuvid()
     val buvid = cookieJar.value("buvid3")
-    val metadata = JSONObject().put("access_key", access).put("mobi_app", "android_hd").put("device", "android")
-        .put("build", 2001100).put("channel", "master").put("buvid", buvid).put("platform", "android")
+    val metadata = JSONObject().put("access_key", access).put("mobi_app", HdClientIdentity.mobiApp).put("device", "android")
+        .put("build", HdClientIdentity.build).put("channel", "master").put("buvid", buvid).put("platform", "android")
     val device = JSONObject(metadata.toString()).put("app_id", 5).put("brand", "android").put("model", "android").put("osver", "15").put("version_name", "2.0.1")
     val prefix = if (legacy) "bilibili.im.interfaces.v1." else "bilibili.app.im.v1."
     val service = if (legacy) "bilibili.im.interface.v1.ImInterface" else "bilibili.app.im.v1.im"
     val bytes = imCodec.encode(prefix + requestType, value)
     val frame = ByteBuffer.allocate(5 + bytes.size).put(0).putInt(bytes.size).put(bytes).array()
     val request = Request.Builder().url("https://app.bilibili.com/$service/$method")
-        .header("authorization", "identify_v1 $access").header("User-Agent", IM_USER_AGENT)
+        .header("authorization", "identify_v1 $access").header("User-Agent", HdClientIdentity.userAgent)
         .header("te", "trailers").header("grpc-accept-encoding", "gzip,identity")
         .header("x-bili-metadata-bin", metadataHeader("bilibili.metadata.Metadata", metadata))
         .header("x-bili-device-bin", metadataHeader("bilibili.metadata.device.Device", device))
         .header("x-bili-network-bin", metadataHeader("bilibili.metadata.network.Network", JSONObject().put("type", 1)))
         .header("x-bili-fawkes-req-bin", metadataHeader("bilibili.metadata.fawkes.FawkesReq",
-            JSONObject().put("appkey", "android_hd").put("env", "prod").put("session_id", java.util.UUID.randomUUID().toString().take(8))))
+            JSONObject().put("appkey", HdClientIdentity.mobiApp).put("env", "prod").put("session_id", java.util.UUID.randomUUID().toString().take(8))))
         .header("buvid", buvid).post(frame.toRequestBody("application/grpc".toMediaType())).build()
     http.await(request).use { response ->
         check(response.isSuccessful) { "消息服务 HTTP ${response.code}" }
@@ -69,5 +69,3 @@ internal fun decodeImFrame(bytes: ByteArray): ByteArray {
         else -> error("不支持的消息压缩格式")
     }
 }
-
-private const val IM_USER_AGENT = "Mozilla/5.0 BiliDroid/2.0.1 (bbcallen@gmail.com) os/android model/android_hd mobi_app/android_hd build/2001100 channel/master innerVer/2001100 osVer/15 network/2"

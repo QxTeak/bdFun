@@ -9,6 +9,19 @@ import java.util.Base64
 
 /** 错误载荷为依据固定上游描述符构造的 wire 样本，不冒充登录响应。 */
 class ImReadErrorsTest {
+    @Test fun oldCredentialAuthFailureExplainsHowToObtainNewCredentials() {
+        // 负 int32 在 wire 上以十字节 varint 编码，保持与服务端错误码的符号一致。
+        val status = ByteArrayOutputStream().apply {
+            varint(8); varint(-663L)
+            val text = "鉴权失败，请联系账号组".toByteArray()
+            varint(18); varint(text.size.toLong()); write(text)
+        }.toByteArray()
+        val text = imGrpcFailureText("16", null, Base64.getEncoder().encodeToString(status))
+        assertTrue(text.contains("(-663)"))
+        assertTrue(text.contains("重新扫码登录"))
+        assertTrue(text.contains("鉴权失败，请联系账号组"))
+    }
+
     @Test fun settingsReadsIncludePinnedUpstreamClientAndCsrfParameters() {
         val params = imChatReadParams("test-csrf", mapOf("talker_uid" to "123"))
         assertEquals(mapOf("talker_uid" to "123", "build" to "0", "mobi_app" to "web",
