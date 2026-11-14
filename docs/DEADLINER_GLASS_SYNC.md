@@ -89,3 +89,7 @@ Run `:app:assembleDebug :app:testDebugUnitTest :TeakUI:testDebugUnitTest`. Host 
 ### 2026-11-14 · issue #16 单项宽度微调
 
 单个 Tab 最大宽度从 72dp 增至 88dp（+16dp），整体胶囊上限保持 320dp；唱片让位和搜索 dock 宽度沿用同一默认值计算。此项为 bdFun 的产品差异，不同步修改 Deadliner。
+
+### 2026-11-14 · issue #16 单项宽度回调
+
+按实机反馈将单个 Tab 最大宽度由 88dp 调整为 80dp，整体胶囊上限保持 320dp；宽度计算继续共用同一默认值。
