@@ -22,7 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.aritxonly.bdfun.feature.live.application.LivePageStateHolder
+import com.aritxonly.bdfun.presentation.live.LivePageStateHolder
 import com.aritxonly.bdfun.navigateToLiveRoom
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullSession

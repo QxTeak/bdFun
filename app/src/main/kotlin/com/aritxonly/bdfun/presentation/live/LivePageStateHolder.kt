@@ -1,4 +1,4 @@
-package com.aritxonly.bdfun.feature.live.application
+package com.aritxonly.bdfun.presentation.live
 
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.getValue
@@ -11,6 +11,7 @@ import com.aritxonly.bdfun.core.domain.LiveDiscoverRepository
 import com.aritxonly.bdfun.core.model.live.LiveArea
 import com.aritxonly.bdfun.core.model.live.LiveCard
 import com.aritxonly.bdfun.core.model.live.LiveFollower
+import com.aritxonly.bdfun.presentation.common.discover.readable
 
 /**
  * 首页「直播」段的状态：关注直播 + 分区 + 分区直播流。
@@ -136,12 +137,4 @@ internal class LivePageStateHolder(private val repository: LiveDiscoverRepositor
             if (current == token) loading = false
         }
     }
-}
-
-internal fun AppError.readable(): String = when (this) {
-    is AppError.RiskControl -> "请求被风控，稍后重试"
-    AppError.LoginExpired -> "登录已失效"
-    is AppError.Network -> message.ifBlank { "网络错误" }
-    is AppError.Parsing -> "数据解析失败"
-    is AppError.Unknown -> message.ifBlank { "加载失败" }
 }

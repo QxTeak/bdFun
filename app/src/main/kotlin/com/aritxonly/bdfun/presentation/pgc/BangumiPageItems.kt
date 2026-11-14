@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.aritxonly.bdfun.BrandPink
 import com.aritxonly.bdfun.core.model.pgc.BangumiCard
-import com.aritxonly.bdfun.feature.pgc.application.BangumiPageStateHolder
+import com.aritxonly.bdfun.presentation.pgc.BangumiPageStateHolder
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverErrorState
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.ui.FeedCardShape

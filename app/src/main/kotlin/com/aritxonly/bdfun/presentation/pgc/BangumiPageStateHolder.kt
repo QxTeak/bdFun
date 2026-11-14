@@ -1,4 +1,4 @@
-package com.aritxonly.bdfun.feature.pgc.application
+package com.aritxonly.bdfun.presentation.pgc
 
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.getValue
@@ -9,7 +9,7 @@ import com.aritxonly.bdfun.core.common.AppError
 import com.aritxonly.bdfun.core.common.Outcome
 import com.aritxonly.bdfun.core.domain.PgcDiscoverRepository
 import com.aritxonly.bdfun.core.model.pgc.BangumiCard
-import com.aritxonly.bdfun.feature.live.application.readable
+import com.aritxonly.bdfun.presentation.common.discover.readable
 
 /**
  * 首页「番剧」段的状态：最近追番 + 推荐。

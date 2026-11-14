@@ -146,11 +146,11 @@ internal class AppContainer(
     val homeFeedState: HomeFeedState get() = homeSlot.get().view
     // 首页「直播」「番剧」两段：与推荐页同一套壳，状态在各自 feature 下，接口走 infra 仓储。
     val livePageState by lazy {
-        com.aritxonly.bdfun.feature.live.application.LivePageStateHolder(
+        com.aritxonly.bdfun.presentation.live.LivePageStateHolder(
             com.aritxonly.bdfun.infra.bili.BiliLiveDiscoverRepository(api))
     }
     val bangumiPageState by lazy {
-        com.aritxonly.bdfun.feature.pgc.application.BangumiPageStateHolder(
+        com.aritxonly.bdfun.presentation.pgc.BangumiPageStateHolder(
             com.aritxonly.bdfun.infra.bili.BiliPgcDiscoverRepository(api))
     }
     val bangumiRankState by lazy {

@@ -25,7 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.aritxonly.bdfun.feature.pgc.application.BangumiPageStateHolder
+import com.aritxonly.bdfun.presentation.pgc.BangumiPageStateHolder
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullSession

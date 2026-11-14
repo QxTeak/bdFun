@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.aritxonly.bdfun.core.model.live.LiveArea
 import com.aritxonly.bdfun.core.model.live.LiveCard
-import com.aritxonly.bdfun.feature.live.application.LivePageStateHolder
+import com.aritxonly.bdfun.presentation.live.LivePageStateHolder
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverErrorState
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.navigateToLogin

@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.bdfun.core.common.AppError
 import com.aritxonly.teak.common.chrome.TeakGlass
 import com.kyant.shapes.Capsule
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -52,4 +53,18 @@ internal fun DiscoverErrorState(message: String, onRetry: () -> Unit) {
             )
         }
     }
+}
+
+/**
+ * 直播 / 番剧两段共用的错误文案。
+ *
+ * 放在公共 discover 组件里，而不是某个 feature 的 application 层：
+ * 否则另一个 feature 引用它就成了「跨 feature 依赖」，分层检查会直接拦下。
+ */
+internal fun AppError.readable(): String = when (this) {
+    is AppError.RiskControl -> "请求被风控，稍后重试"
+    AppError.LoginExpired -> "登录已失效"
+    is AppError.Network -> message.ifBlank { "网络错误" }
+    is AppError.Parsing -> "数据解析失败"
+    is AppError.Unknown -> message.ifBlank { "加载失败" }
 }
