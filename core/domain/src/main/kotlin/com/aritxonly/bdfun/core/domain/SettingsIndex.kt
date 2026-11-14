@@ -30,7 +30,7 @@ class SettingsIndex(val categories: List<SettingsCategory>) {
                     require(setting.prefName != "logout" || category.layout == "root_footer") { "退出登录必须位于一级页面底部" }
                     require(setting.storage in setOf("settings", "mine_layout", "none"))
                     require(setting.visibleWhen == null || setting.visibleWhen in setOf("debug", "logged_in") ||
-                        settings[setting.visibleWhen]?.default is SettingValue.Flag ||
+                        setting.visibleWhen?.let { SettingsVisibility.valid(it, settings) } == true ||
                         setting.type == "extension" && setting.visibleWhen == "extension:${setting.prefName}") { "未知显隐条件" }
                     require(setting.valueType == null || setting.valueType == "decimal" && setting.default is SettingValue.Decimal)
                     require(!setting.inverted || setting.default is SettingValue.Flag)

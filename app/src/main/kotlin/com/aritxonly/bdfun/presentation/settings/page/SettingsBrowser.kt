@@ -32,7 +32,7 @@ internal fun SettingsBrowser(controller: IndexedSettingsStateHolder, runtime: Se
     }
     val session = SettingsBrowserSession(browser, navigation, selected, wide, categories, footers)
     if (wide) SettingsSplitLayout(session, settings.values, runtime, controller)
-    else SettingsBrowserPane(session, settings.values, runtime, controller, SettingsPane.Single, Modifier.fillMaxSize())
+    else SettingsPaneNavigation(session, settings.values, runtime, controller, SettingsPane.Single, Modifier.fillMaxSize())
 }
 
 @Composable
@@ -40,10 +40,10 @@ internal fun rememberSettingsBrowser(): SettingsBrowserStateHolder {
     val saver = remember {
         Saver<SettingsBrowserStateHolder, List<String>>(save = {
             val s = it.state.value
-            listOf(s.route.orEmpty(), s.searching.toString(), s.searchRoute.orEmpty(), s.query, s.splitFraction.toString())
+            listOf(s.route.orEmpty(), s.searching.toString(), s.searchRoute.orEmpty(), s.query, s.detail.orEmpty())
         }, restore = {
             SettingsBrowserStateHolder(SettingsBrowserState(it[0].ifEmpty { null }, it[1].toBoolean(),
-                it[2].ifEmpty { null }, it[3], splitFraction = it.getOrNull(4)?.toFloatOrNull() ?: SettingsSplitPolicy.DefaultFraction))
+                it[2].ifEmpty { null }, it[3], detail = it.getOrNull(4)?.takeIf { name -> name in setOf("Help", "Changelog", "Credits", "Donation", "Logs") }))
         })
     }
     return rememberSaveable(saver = saver) { SettingsBrowserStateHolder() }

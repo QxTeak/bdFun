@@ -12,7 +12,7 @@ internal data class SettingsBrowserState(
     val searchRoute: String? = null,
     val query: String = "",
     val highlight: String? = null,
-    val splitFraction: Float = SettingsSplitPolicy.DefaultFraction,
+    val detail: String? = null,
 )
 
 /** 页面拥有自己的搜索和导航；旋转只改变布局，不另建一份选择状态。 */
@@ -21,21 +21,19 @@ internal class SettingsBrowserStateHolder(initial: SettingsBrowserState = Settin
     val state = mutable.asStateFlow()
 
     fun open(route: String, prefName: String? = null) {
-        mutable.update { it.copy(route = route, searching = false, searchRoute = null, query = "", highlight = prefName) }
+        mutable.update { it.copy(route = route, searching = false, searchRoute = null, query = "", highlight = prefName, detail = null) }
     }
     fun search(route: String? = null) {
         mutable.update { it.copy(searching = true, searchRoute = route, query = "", highlight = null) }
     }
-    fun resize(totalWidth: Float, deltaDp: Float) {
-        mutable.update { it.copy(splitFraction = SettingsSplitPolicy.drag(totalWidth, it.splitFraction, deltaDp)) }
-    }
-    fun split(fraction: Float) { if (fraction.isFinite()) mutable.update { it.copy(splitFraction = fraction.coerceIn(0f, 1f)) } }
+    fun openDetail(destination: String) { mutable.update { it.copy(detail = destination, searching = false, searchRoute = null, query = "") } }
     fun query(value: String) { mutable.update { it.copy(query = value) } }
     fun closeSearch() { mutable.update { it.copy(searching = false, query = "", searchRoute = null) } }
     fun clearHighlight(key: String) { mutable.update { if (it.highlight == key) it.copy(highlight = null) else it } }
     fun back(): Boolean = when {
         state.value.searching -> { closeSearch(); true }
-        state.value.route != null -> { mutable.update { SettingsBrowserState(splitFraction = it.splitFraction) }; true }
+        state.value.detail != null -> { mutable.update { it.copy(detail = null) }; true }
+        state.value.route != null -> { mutable.value = SettingsBrowserState(); true }
         else -> false
     }
 }
@@ -46,7 +44,7 @@ internal fun settingsVisible(setting: Setting, values: Map<String, SettingValue>
         "logged_in" -> loggedIn
         "debug" -> debug
         else -> if (condition.startsWith("extension:")) condition.removePrefix("extension:") in extensions
-        else (values[condition] as? SettingValue.Flag)?.value == true
+        else com.aritxonly.bdfun.core.domain.SettingsVisibility.matches(condition, values)
     }
 
 internal fun visibleSettingsIndex(index: SettingsIndex, values: Map<String, SettingValue>, loggedIn: Boolean, debug: Boolean, extensions: Set<String> = emptySet()) =

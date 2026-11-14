@@ -94,6 +94,13 @@ window.SETTINGS_CATALOG = [
             "title": "抬高底栏",
             "default": false,
             "subtitle": "解决未开启安卓导航条时底栏位置过低的问题"
+          },
+          {
+            "pref_name": "font_scale",
+            "type": "font_scale",
+            "title": "全局字号",
+            "default": 1,
+            "value_type": "decimal"
           }
         ]
       },
@@ -141,7 +148,7 @@ window.SETTINGS_CATALOG = [
         ]
       },
       {
-        "title": "壁纸与字号",
+        "title": "个性化",
         "settings": [
           {
             "pref_name": "wallpaper_pick",
@@ -156,13 +163,6 @@ window.SETTINGS_CATALOG = [
             "title": "清除开屏壁纸",
             "storage": "none",
             "default": ""
-          },
-          {
-            "pref_name": "font_scale",
-            "type": "font_scale",
-            "title": "全局字号",
-            "default": 1.0,
-            "value_type": "decimal"
           }
         ]
       }
@@ -173,7 +173,7 @@ window.SETTINGS_CATALOG = [
     "route": "settings/player",
     "groups": [
       {
-        "title": "播放与手势",
+        "title": "界面与手势",
         "settings": [
           {
             "pref_name": "show_viewer_count",
@@ -182,9 +182,15 @@ window.SETTINGS_CATALOG = [
             "default": true
           },
           {
-            "pref_name": "resume_playback",
+            "pref_name": "show_fullscreen_actions",
             "type": "switch",
-            "title": "播放进度记忆",
+            "title": "全屏显示互动按钮",
+            "default": true
+          },
+          {
+            "pref_name": "show_fullscreen_time",
+            "type": "switch",
+            "title": "全屏显示时间",
             "default": true
           },
           {
@@ -209,7 +215,7 @@ window.SETTINGS_CATALOG = [
             "pref_name": "boost_default_speed",
             "type": "dropdown",
             "title": "长按默认倍率",
-            "default": 3.0,
+            "default": 3,
             "options": [
               {
                 "title": "1.5×",
@@ -217,7 +223,7 @@ window.SETTINGS_CATALOG = [
               },
               {
                 "title": "2×",
-                "value": 2.0
+                "value": 2
               },
               {
                 "title": "2.5×",
@@ -225,15 +231,15 @@ window.SETTINGS_CATALOG = [
               },
               {
                 "title": "3×",
-                "value": 3.0
+                "value": 3
               },
               {
                 "title": "4×",
-                "value": 4.0
+                "value": 4
               },
               {
                 "title": "5×",
-                "value": 5.0
+                "value": 5
               }
             ],
             "value_type": "decimal"
@@ -241,8 +247,8 @@ window.SETTINGS_CATALOG = [
           {
             "pref_name": "default_playback_speed",
             "type": "dropdown",
-            "title": "默认播放倍速",
-            "default": 1.0,
+            "title": "默认播放倍率",
+            "default": 1,
             "options": [
               {
                 "title": "0.5×",
@@ -254,7 +260,7 @@ window.SETTINGS_CATALOG = [
               },
               {
                 "title": "1×",
-                "value": 1.0
+                "value": 1
               },
               {
                 "title": "1.25×",
@@ -266,7 +272,7 @@ window.SETTINGS_CATALOG = [
               },
               {
                 "title": "2×",
-                "value": 2.0
+                "value": 2
               },
               {
                 "title": "2.5×",
@@ -274,27 +280,10 @@ window.SETTINGS_CATALOG = [
               },
               {
                 "title": "3×",
-                "value": 3.0
+                "value": 3
               }
             ],
             "value_type": "decimal"
-          }
-        ]
-      },
-      {
-        "title": "全屏控件",
-        "settings": [
-          {
-            "pref_name": "show_fullscreen_time",
-            "type": "switch",
-            "title": "全屏显示时间",
-            "default": true
-          },
-          {
-            "pref_name": "show_fullscreen_actions",
-            "type": "switch",
-            "title": "全屏显示互动按钮",
-            "default": true
           },
           {
             "pref_name": "progress_bar_mode",
@@ -319,12 +308,24 @@ window.SETTINGS_CATALOG = [
                 "value": 3
               }
             ]
+          },
+          {
+            "pref_name": "auto_rotate",
+            "type": "switch",
+            "title": "自动旋转",
+            "default": true
           }
         ]
       },
       {
-        "title": "播放源与解码",
+        "title": "播放与解码",
         "settings": [
+          {
+            "pref_name": "auto_play",
+            "type": "switch",
+            "title": "进入视频自动播放",
+            "default": true
+          },
           {
             "pref_name": "quality",
             "type": "dropdown",
@@ -356,6 +357,12 @@ window.SETTINGS_CATALOG = [
                 "value": 64
               }
             ]
+          },
+          {
+            "pref_name": "resume_playback",
+            "type": "switch",
+            "title": "播放进度记忆",
+            "default": true
           },
           {
             "pref_name": "decoder_mode",
@@ -416,92 +423,6 @@ window.SETTINGS_CATALOG = [
             "title": "CDN 设置",
             "default": "auto",
             "subtitle": "如发现播放问题，请选择原地址"
-          },
-          {
-            "pref_name": "auto_rotate",
-            "type": "switch",
-            "title": "自动旋转",
-            "default": true
-          },
-          {
-            "pref_name": "auto_play",
-            "type": "switch",
-            "title": "进入视频自动播放",
-            "default": true
-          }
-        ]
-      },
-      {
-        "title": "声音与蓝牙",
-        "settings": [
-          {
-            "pref_name": "loudness_eq",
-            "type": "switch",
-            "title": "响度均衡",
-            "default": false
-          },
-          {
-            "pref_name": "bt_latency_enabled",
-            "type": "switch",
-            "title": "蓝牙耳机延迟补偿",
-            "default": false,
-            "subtitle": "检测到蓝牙耳机设备时自动校准播放延迟"
-          },
-          {
-            "pref_name": "bt_latency_ms",
-            "type": "dropdown",
-            "title": "补偿延迟",
-            "default": 100,
-            "options": [
-              {
-                "title": "50 ms",
-                "value": 50
-              },
-              {
-                "title": "100 ms",
-                "value": 100
-              },
-              {
-                "title": "150 ms",
-                "value": 150
-              },
-              {
-                "title": "200 ms",
-                "value": 200
-              },
-              {
-                "title": "250 ms",
-                "value": 250
-              },
-              {
-                "title": "300 ms",
-                "value": 300
-              }
-            ],
-            "visible_when": "bt_latency_enabled"
-          }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "视频详情与弹幕",
-    "route": "settings/video",
-    "groups": [
-      {
-        "title": "视频详情页",
-        "settings": [
-          {
-            "pref_name": "immersive_status",
-            "type": "switch",
-            "title": "沉浸状态栏",
-            "default": false
-          },
-          {
-            "pref_name": "show_ip_location",
-            "type": "switch",
-            "title": "显示评论 IP 属地",
-            "default": true
           }
         ]
       },
@@ -527,6 +448,89 @@ window.SETTINGS_CATALOG = [
             "default": true
           }
         ]
+      },
+      {
+        "title": "声音与蓝牙",
+        "settings": [
+          {
+            "pref_name": "loudness_eq",
+            "type": "switch",
+            "title": "响度均衡",
+            "default": false
+          },
+          {
+            "pref_name": "bt_latency_enabled",
+            "type": "switch",
+            "title": "蓝牙耳机延迟补偿",
+            "default": false,
+            "subtitle": "检测到蓝牙耳机设备时自动校准播放延迟"
+          }
+        ]
+      },
+      {
+        "title": "后台播放",
+        "settings": [
+          {
+            "pref_name": "show_disc_after_video",
+            "type": "switch",
+            "title": "退出视频后继续播放",
+            "default": true
+          },
+          {
+            "pref_name": "exit_video_control",
+            "type": "dropdown",
+            "title": "播放控件",
+            "default": 1,
+            "options": [
+              {
+                "title": "画中画",
+                "value": 0
+              },
+              {
+                "title": "唱片",
+                "value": 1
+              }
+            ],
+            "visible_when": "show_disc_after_video"
+          },
+          {
+            "pref_name": "disc_breath_enabled",
+            "type": "switch",
+            "title": "唱片呼吸灯",
+            "default": false,
+            "visible_when": "show_disc_after_video&&exit_video_control=1"
+          },
+          {
+            "pref_name": "disc_breath_cover_color",
+            "type": "switch",
+            "title": "呼吸灯颜色跟随封面",
+            "default": false,
+            "visible_when": "show_disc_after_video&&exit_video_control=1&&disc_breath_enabled"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "视频详情与弹幕",
+    "route": "settings/video",
+    "groups": [
+      {
+        "title": "视频详情页",
+        "settings": [
+          {
+            "pref_name": "immersive_status",
+            "type": "switch",
+            "title": "沉浸状态栏",
+            "default": false
+          },
+          {
+            "pref_name": "show_ip_location",
+            "type": "switch",
+            "title": "显示评论 IP 属地",
+            "default": true
+          }
+        ]
       }
     ]
   },
@@ -537,6 +541,22 @@ window.SETTINGS_CATALOG = [
       {
         "title": "首页推荐",
         "settings": [
+          {
+            "pref_name": "home_card_style",
+            "type": "dropdown",
+            "title": "首页卡片样式",
+            "default": 0,
+            "options": [
+              {
+                "title": "双排小卡",
+                "value": 0
+              },
+              {
+                "title": "大卡",
+                "value": 1
+              }
+            ]
+          },
           {
             "pref_name": "recommendation_toggle",
             "type": "extension",
@@ -616,12 +636,6 @@ window.SETTINGS_CATALOG = [
         "title": "入口与预览",
         "settings": [
           {
-            "pref_name": "sent_history_entry",
-            "type": "switch",
-            "title": "显示「我的评论与弹幕」入口",
-            "default": true
-          },
-          {
             "pref_name": "history",
             "type": "mine_switch",
             "title": "展开历史记录",
@@ -641,6 +655,12 @@ window.SETTINGS_CATALOG = [
             "title": "展开稍后再看",
             "storage": "mine_layout",
             "default": false
+          },
+          {
+            "pref_name": "sent_history_entry",
+            "type": "switch",
+            "title": "显示「我的评论与弹幕」入口",
+            "default": true
           }
         ]
       }
@@ -713,13 +733,6 @@ window.SETTINGS_CATALOG = [
             "default": ""
           },
           {
-            "pref_name": "onboarding",
-            "type": "action",
-            "title": "查看开始页",
-            "storage": "none",
-            "default": ""
-          },
-          {
             "pref_name": "donation",
             "type": "action",
             "title": "捐赠",
@@ -745,14 +758,6 @@ window.SETTINGS_CATALOG = [
       {
         "title": "调试",
         "settings": [
-          {
-            "pref_name": "live_preview",
-            "type": "action",
-            "title": "直播间（预览）",
-            "storage": "none",
-            "default": "",
-            "visible_when": "debug"
-          },
           {
             "pref_name": "logs",
             "type": "action",

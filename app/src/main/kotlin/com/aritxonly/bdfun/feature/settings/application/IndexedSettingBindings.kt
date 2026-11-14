@@ -10,6 +10,8 @@ internal fun indexedSettingBindings(repository: SettingsRepository): Map<String,
     appearanceBindings(repository) + playbackBindings(repository) + otherBindings(repository)
 
 private fun appearanceBindings(repository: SettingsRepository) = mapOf(
+    "home_card_style" to IndexedSettingBinding({ SettingValue.Number(repository.appearance.homeCardStyle) },
+        { repository.appearance.homeCardStyle = (it as SettingValue.Number).value }),
     "dark_mode" to IndexedSettingBinding({ SettingValue.Number(repository.appearance.darkMode) },
         { repository.appearance.darkMode = (it as SettingValue.Number).value }),
     "color_style" to IndexedSettingBinding({ SettingValue.Number(repository.appearance.colorStyle) },
@@ -33,6 +35,14 @@ private fun appearanceBindings(repository: SettingsRepository) = mapOf(
 )
 
 private fun playbackBindings(repository: SettingsRepository) = mapOf(
+    "show_disc_after_video" to IndexedSettingBinding({ SettingValue.Flag(repository.playback.showDiscAfterVideo && !repository.playback.stopOnVideoPageExit) },
+        { repository.playback.showDiscAfterVideo = (it as SettingValue.Flag).value; repository.playback.stopOnVideoPageExit = !it.value }),
+    "exit_video_control" to IndexedSettingBinding({ SettingValue.Number(repository.playback.exitVideoControl) },
+        { repository.playback.exitVideoControl = (it as SettingValue.Number).value }),
+    "disc_breath_enabled" to IndexedSettingBinding({ SettingValue.Flag(repository.playback.discBreathEnabled) },
+        { repository.playback.discBreathEnabled = (it as SettingValue.Flag).value }),
+    "disc_breath_cover_color" to IndexedSettingBinding({ SettingValue.Flag(repository.playback.discBreathCoverColor) },
+        { repository.playback.discBreathCoverColor = (it as SettingValue.Flag).value }),
     "background_play" to IndexedSettingBinding({ SettingValue.Flag(repository.playback.backgroundPlay) },
         { repository.playback.backgroundPlay = (it as SettingValue.Flag).value }),
     "resume_playback" to IndexedSettingBinding({ SettingValue.Flag(repository.playback.resumePlayback) },

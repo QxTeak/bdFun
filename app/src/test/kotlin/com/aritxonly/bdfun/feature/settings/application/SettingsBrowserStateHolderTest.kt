@@ -64,23 +64,19 @@ class SettingsBrowserStateHolderTest {
         assertEquals(3, indexedOptionIndex(entry, SettingValue.Decimal(1.25f)))
     }
 
-    @Test fun dragUpdatesAccumulateBeforeTheNextComposition() {
+    @Test fun detailBackPreservesSelectedCategoryAndSearchClosesFirst() {
         val page = SettingsBrowserStateHolder()
-        repeat(4) { page.resize(1012f, 16f) }
-        assertEquals(424f, SettingsSplitPolicy.leftWidth(1012f, page.state.value.splitFraction), .001f)
-    }
-
-    @Test fun resizingSurvivesPageAndSearchNavigation() {
-        val page = SettingsBrowserStateHolder()
-        page.split(.45f)
+        page.open("settings/about")
+        page.openDetail("Help")
+        page.search("settings/about")
+        assertTrue(page.back())
+        assertEquals("Help", page.state.value.detail)
+        assertTrue(page.back())
+        assertNull(page.state.value.detail)
+        assertEquals("settings/about", page.state.value.route)
+        page.openDetail("Credits")
         page.open("settings/player")
-        page.search("settings/player")
-        page.closeSearch()
-        assertEquals(.45f, page.state.value.splitFraction)
-        page.back()
-        assertEquals(.45f, page.state.value.splitFraction)
-        page.split(Float.NaN)
-        assertEquals(.45f, page.state.value.splitFraction)
+        assertNull(page.state.value.detail)
     }
 
     @Test fun restoredNavigationDoesNotNeedASecondLayoutState() {

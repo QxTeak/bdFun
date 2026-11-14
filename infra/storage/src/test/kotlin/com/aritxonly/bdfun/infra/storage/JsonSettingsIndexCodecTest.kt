@@ -77,6 +77,6 @@ class JsonSettingsIndexCodecTest {
         val file = java.io.File("../../app/src/main/assets/settings-index.json")
         val result = codec.decode(file.readText())
         assertTrue(result.toString(), result is SettingsIndexImport.Success)
-        assertEquals(61, SettingsIndex((result as SettingsIndexImport.Success).categories).settings.size)
+        assertEquals(63, SettingsIndex((result as SettingsIndexImport.Success).categories).settings.size)
     }
 }

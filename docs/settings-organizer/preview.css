@@ -6,14 +6,10 @@
 
 /* 两个页面外壳占满预览窗口，分隔线只调整左右内容比例。 */
 #app:not(.phone) aside{width:var(--left-width,360px);border:0}
-#splitter{flex:0 0 12px;cursor:col-resize;touch-action:none;position:relative;background:var(--page)}
-#splitter:before{content:"";position:absolute;top:0;bottom:0;left:5px;width:1px;background:#8883}
-#splitter:after{content:"";position:absolute;left:4px;top:calc(50% - 18px);height:36px;width:4px;border-radius:3px;background:#8886}
-#app.phone #splitter{display:none}
 #app:not(.phone) #dock{width:calc(var(--left-width,360px) - 32px);left:16px}
 #app:not(.phone) #results{left:0;width:var(--left-width,360px);right:auto}
-#app:not(.phone).searching.scoped #results{left:calc(var(--left-width,360px) + 12px);width:auto;right:0}
-#app:not(.phone).searching.scoped #dock{left:calc(var(--left-width,360px) + 28px);width:calc(100% - var(--left-width,360px) - 44px)}
+#app:not(.phone).searching.scoped #results{left:var(--left-width,360px);width:auto;right:0}
+#app:not(.phone).searching.scoped #dock{left:calc(var(--left-width,360px) + 16px);width:calc(100% - var(--left-width,360px) - 32px)}
 #app.searching.global #content{opacity:1;transform:none;pointer-events:auto}
 .root-footer{margin-top:24px}
 #app:not(.phone) section{clip-path:inset(0);isolation:isolate}

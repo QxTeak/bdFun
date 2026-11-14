@@ -47,29 +47,40 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
             (session.navigation.searchRoute == null) == (pane == SettingsPane.Categories))
         val local = session.copy(navigation = session.navigation.copy(searching = searching))
         val categories = pane == SettingsPane.Categories || pane == SettingsPane.Single && session.selected == null
-        val title = if (searching) "搜索设置" else if (categories) "设置" else session.selected?.name ?: "设置"
+        val detail = session.navigation.detail?.takeIf { pane != SettingsPane.Categories }?.let { SettingsDestination.valueOf(it) }
+        val title = if (detail != null) settingsDetailTitle(detail) else if (searching) "搜索设置" else if (categories) "设置" else session.selected?.name ?: "设置"
         val back = {
             if (pane == SettingsPane.Categories) {
                 if (searching) session.browser.closeSearch() else runtime.navigation.onBack()
             } else if (!session.browser.back()) runtime.navigation.onBack()
         }
         CompositionLocalProvider(LocalWindowInfo provides window, LocalConfiguration provides configuration) {
-            SettingsPaneScaffold(runtime, pane, title, back,
-                search = if (!categories && !searching && session.selected != null) ({ session.browser.search(session.selected.route) }) else null,
-            ) { SettingsPaneBody(local, values, runtime, controller, categories) }
+            val navigation = runtime.navigation
+            val embedded = SettingsNavigation(navigation.onBack, navigation.onLogout, { destination ->
+                if (destination in settingsEmbeddedDestinations) session.browser.openDetail(destination.name)
+                else navigation.onAbout(destination)
+            }, navigation.onDeveloper, navigation.onNotify)
+            val localRuntime = SettingsPageRuntime(runtime.settings, runtime.cdn, runtime.cdnState, embedded, runtime.scope,
+                runtime.onPickWallpaper, runtime.mineLayout, runtime.extensions)
+            SettingsPaneScaffold(runtime, pane, title, back, detail != null,
+                search = if (detail == null && !categories && !searching && session.selected != null) ({ session.browser.search(session.selected.route) }) else null,
+            ) {
+                if (detail != null) SettingsDetailContent(detail, back)
+                else SettingsPaneBody(local, values, localRuntime, controller, categories)
+            }
         }
     }
 }
 
 @Composable
 private fun SettingsPaneScaffold(runtime: SettingsPageRuntime, pane: SettingsPane, title: String,
-    back: () -> Unit, search: (() -> Unit)?, content: @Composable () -> Unit) {
+    back: () -> Unit, detail: Boolean, search: (() -> Unit)?, content: @Composable () -> Unit) {
     if (pane == SettingsPane.Single) {
         TeakActivityScaffold(runtime.settings, back, options = ActivityPageOptions(title = title),
             slots = ActivityPageSlots(topBarActions = { if (search != null) SettingsCategorySearchButton(search) }), content = content)
     } else PageChromeScope {
         // 两栏共用主题，但外壳、滚动、弹层和玻璃采样各自持有，不能再套整页内容宽度限制。
-        TeakPageScaffold(title = title, onBack = back, limitContentWidth = false,
+        TeakPageScaffold(title = title, onBack = back, showBackButton = pane == SettingsPane.Categories || detail, limitContentWidth = false,
             pageState = rememberTeakPageScrollState(), backgroundColor = MiuixTheme.colorScheme.surface,
             contentModifier = Modifier.background(MiuixTheme.colorScheme.surface).smartRefresh(runtime.settings.smartRefresh),
             topBarActions = { if (search != null) SettingsCategorySearchButton(search) },
