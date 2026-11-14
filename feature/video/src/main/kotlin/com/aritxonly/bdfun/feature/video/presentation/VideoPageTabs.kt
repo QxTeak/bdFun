@@ -28,19 +28,24 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
     val paneLayout = layout.paneLayout
     val splitPanes = layout.splitPanes
     val statusBarDp = layout.statusBarTop
-    val playerTopInset = layout.playerTopInset
-    val overlayAlpha = pageOverlayAlpha
+    // 控件独立渐显材质，不绘制覆盖详情内容的整条渐进背景。
+    val materialProgress by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current.materialProgress,
+        animationSpec = androidx.compose.animation.core.tween(
+            durationMillis = 280, easing = androidx.compose.animation.core.FastOutSlowInEasing,
+        ),
+        label = "video-top-controls-material",
+    )
     androidx.compose.runtime.CompositionLocalProvider(
-        com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress provides
-            com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current.materialProgress,
+        com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted provides true,
+        com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress provides materialProgress,
     ) {
-        com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial(
-            enabled = splitPanes,
+        androidx.compose.foundation.layout.Box(
             modifier = Modifier
                 .align(if (splitPanes) Alignment.TopEnd else Alignment.TopStart)
                 .then(if (splitPanes) Modifier.width(paneLayout.detailsWidthDp.dp) else Modifier.fillMaxWidth())
                 .graphicsLayer {
-                    alpha = overlayAlpha
+                    alpha = pageOverlayAlpha
                     translationY = if (splitPanes) 0f else playerBottomPx()
                 },
         ) {
