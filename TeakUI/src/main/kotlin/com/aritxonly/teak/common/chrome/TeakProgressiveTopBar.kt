@@ -110,6 +110,8 @@ fun ProgressiveTopBarMaterial(
     underlayLiftPx: Float = 0f,
     /** 内容自身叠加的模糊半径（px）；顶栏要补上同样的量，否则两边清晰度不一致。 */
     underlayBlurPx: Float = 0f,
+    /** 位于播放器下方的顶栏不占用状态栏，不应重复补足该高度。 */
+    includeStatusBar: Boolean = true,
     content: @Composable BoxScope.() -> Unit,
 ) {
     if (!enabled) { Box(modifier, content = content); return }
@@ -120,7 +122,7 @@ fun ProgressiveTopBarMaterial(
         label = "progressive-top-bar-material",
     )
     val density = LocalDensity.current
-    val statusBarHeightPx = WindowInsets.statusBars.getTop(density)
+    val statusBarHeightPx = if (includeStatusBar) WindowInsets.statusBars.getTop(density) else 0
     val minimumContentHeightPx = with(density) {
         ProgressiveTopBarMinimumContentHeightDp.dp.roundToPx()
     }

@@ -37,7 +37,7 @@ internal fun parseComment(
         rpid = reply.l("rpid"),
         uname = member?.s("uname").orEmpty(),
         avatar = avatar(member?.s("avatar").orEmpty(), 120),
-        message = content?.s("message").orEmpty(),
+        message = decodeCommentText(content?.s("message").orEmpty()),
         like = reply.optInt("like", 0),
         ctime = reply.l("ctime"),
         level = member?.optJSONObject("level_info")?.optInt("current_level") ?: 0,
