@@ -43,7 +43,7 @@ import kotlin.math.roundToInt
  * 注意裁剪窗口不能用 size 去约束图片——那样图片会被父约束压小，再乘裁切倍率就成了一个点。
  * 这里图片始终按完整尺寸布局，只在绘制阶段用路径裁剪。
  *
- * 两层图：底层是列表里同一张 16:9 裁切缩略图（缓存命中，入场/退场第一帧就贴合），
+ * 两层图：底层是列表里同一张缩略图（只缩宽度、不裁切，缓存命中，入场/退场第一帧就贴合），
  * 上层是原图，加载完成后淡入。这样既不会出现"切到原图后闪一下"，也能保证放大后是完整图。
  */
 @Composable
@@ -74,8 +74,9 @@ internal fun PhotoViewerPage(
     val screenHeight = view.size.height.toFloat()
     if (screenWidth <= 0f || screenHeight <= 0f) return
 
+    val progress = view.progress.value
     val morph = photoMorphFrame(
-        progress = view.progress.value,
+        progress = progress,
         originX = origin?.left ?: 0f,
         originY = origin?.top ?: 0f,
         originWidth = origin?.width ?: 0f,
@@ -85,19 +86,52 @@ internal fun PhotoViewerPage(
         imageAspect = page.aspect,
         originRadius = originRadiusPx,
     )
-    // 拖动位移随进度衰减：进度归零时正好落在缩略图上，不会带着偏移落地再跳回去。
-    val dragY = view.dragY * view.progress.value
-    // 缩放/平移也跟着进度收敛：放大过再退出时，画面会平滑回到缩略图而不是"啪"一下跳回去。
-    val settle = view.progress.value
-    val zoomNow = 1f + (page.zoom - 1f) * settle
-    val panNow = page.pan * settle
-    // 完全展开后不再裁剪：否则放大后的图片会被自身矩形（比屏幕小）切掉。
-    val inTransition = view.progress.value < 0.999f
-    val imageWidthDp = with(density) { morph.imageWidth.toDp() }
-    val imageHeightDp = with(density) { morph.imageHeight.toDp() }
-    // 和列表缩略图完全同一张（同样只缩宽度、不裁切），Coil 直接命中缓存。
-    val thumbModel = remember(url) { biliImageThumbUrl(url, PhotoThumbWidth) }
+    val frame = PhotoStageFrame(
+        morph = morph,
+        thumbModel = remember(url) { biliImageThumbUrl(url, PhotoThumbWidth) },
+        fullAlpha = fullAlpha,
+        // 完全展开后不再裁剪：否则放大后的图片会被自身矩形（比屏幕小）切掉。
+        inTransition = progress < 0.999f,
+        imageWidth = with(density) { morph.imageWidth.toDp() },
+        imageHeight = with(density) { morph.imageHeight.toDp() },
+        // 缩放/平移也跟着进度收敛：放大过再退出时，画面会平滑回到缩略图而不是"啪"一下跳回去。
+        zoom = 1f + (page.zoom - 1f) * progress,
+        pan = page.pan * progress,
+        // 拖动位移随进度衰减：进度归零时正好落在缩略图上，不会带着偏移落地再跳回去。
+        dragY = view.dragY * progress,
+    )
+    PhotoViewerStage(url, page, view, frame, onDismiss, onLongPress) { width, height ->
+        if (width > 0 && height > 0) page.aspect = width.toFloat() / height
+        fullReady = true
+        // 告诉宿主：宽高比已经确定，可以放心跑入场动画了。
+        view.contentReady = true
+    }
+}
 
+/** 一帧内所有会变的几何/透明度，打包传给各层，避免函数参数超过 12 个。 */
+private data class PhotoStageFrame(
+    val morph: PhotoMorphFrame,
+    val thumbModel: String,
+    val fullAlpha: Float,
+    val inTransition: Boolean,
+    val imageWidth: Dp,
+    val imageHeight: Dp,
+    val zoom: Float,
+    val pan: Offset,
+    val dragY: Float,
+)
+
+@Composable
+private fun PhotoViewerStage(
+    url: String,
+    page: PhotoViewerPageState,
+    view: PhotoViewerTransitionState,
+    frame: PhotoStageFrame,
+    onDismiss: () -> Unit,
+    onLongPress: (String, Offset) -> Unit,
+    onFullLoaded: (Int, Int) -> Unit,
+) {
+    val morph = frame.morph
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -116,45 +150,51 @@ internal fun PhotoViewerPage(
                 currentPan = { page.pan },
                 size = { view.size },
             )
-            .graphicsLayer { translationY = dragY },
+            .graphicsLayer { translationY = frame.dragY },
     ) {
-        Box(Modifier.fillMaxSize().morphClip(morph, skipClip = !inTransition)) {
-            // 原图还没就绪时只画缩略图：它和卡片是同一张源图、同样的中心裁切，
-            // 所以入场第一帧、退场最后一帧都和列表里的缩略图完全重合。
-            if (fullAlpha < 0.999f) {
-                MorphImage(
-                    model = thumbModel,
-                    morph = morph,
-                    width = imageWidthDp,
-                    height = imageHeightDp,
-                    zoom = zoomNow,
-                    pan = panNow,
-                    // Crop：宽高比还没算出来时也保证铺满框，不会出现黑边。
-                    contentScale = ContentScale.Crop,
-                    // 缩略图也报一次宽高比：它命中缓存后立刻就能开始入场动画。
-                    onLoaded = { width, height ->
-                        if (width > 0 && height > 0) page.aspect = width.toFloat() / height
-                        view.contentReady = true
-                    },
-                )
-            }
-            MorphImage(
-                model = url,
-                morph = morph,
-                width = imageWidthDp,
-                height = imageHeightDp,
-                zoom = zoomNow,
-                pan = panNow,
-                alpha = fullAlpha,
-                onLoaded = { width, height ->
-                    if (width > 0 && height > 0) page.aspect = width.toFloat() / height
-                    fullReady = true
-                    // 告诉宿主：宽高比已经确定，可以放心跑入场动画了。
-                    view.contentReady = true
-                },
-            )
+        Box(Modifier.fillMaxSize().morphClip(morph, skipClip = !frame.inTransition)) {
+            PhotoViewerLayers(url, page, view, frame, onFullLoaded)
         }
     }
+}
+
+@Composable
+private fun PhotoViewerLayers(
+    url: String,
+    page: PhotoViewerPageState,
+    view: PhotoViewerTransitionState,
+    frame: PhotoStageFrame,
+    onFullLoaded: (Int, Int) -> Unit,
+) {
+    // 原图还没就绪时只画缩略图：它和卡片是同一张源图、同样的中心裁切，
+    // 所以入场第一帧、退场最后一帧都和列表里的缩略图完全重合。
+    if (frame.fullAlpha < 0.999f) {
+        MorphImage(
+            model = frame.thumbModel,
+            morph = frame.morph,
+            width = frame.imageWidth,
+            height = frame.imageHeight,
+            zoom = frame.zoom,
+            pan = frame.pan,
+            // Crop：宽高比还没算出来时也保证铺满框，不会出现黑边。
+            contentScale = ContentScale.Crop,
+            // 缩略图也报一次宽高比：它命中缓存后立刻就能开始入场动画。
+            onLoaded = { width, height ->
+                if (width > 0 && height > 0) page.aspect = width.toFloat() / height
+                view.contentReady = true
+            },
+        )
+    }
+    MorphImage(
+        model = url,
+        morph = frame.morph,
+        width = frame.imageWidth,
+        height = frame.imageHeight,
+        zoom = frame.zoom,
+        pan = frame.pan,
+        alpha = frame.fullAlpha,
+        onLoaded = onFullLoaded,
+    )
 }
 
 /** 和列表一致的缩略图宽度；宽度决定裁切尺寸，必须和 FeedImageGrid 保持同步。 */
