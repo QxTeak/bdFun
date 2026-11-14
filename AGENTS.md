@@ -581,3 +581,11 @@ MainTabPager位于主壳layerBackdrop的录制树内，因此MineScreen及其资
 HyperOS 中性色以 Deadliner 的 HyperOS 适配为准：surface 为页面层（浅色 F3F3F3 / 深色 000000），surfaceContainer 为卡片层（FFFFFF / 242424）。应用层旧 surface/surfaceContainer 引用及配对前景已交换，TeakUI 标准组件仍遵循自身语义；不要再次把两个 token 的定义反转。独立 Activity、直播与主壳 Material 色板统一由 appMaterialColors 投影，粉/蓝品牌设置保持。
 
 原本显式启用平面背景的玻璃控件统一通过 TeakGlassDefaults.flatBackgroundAlpha 读取深色 0.9 / 浅色 0.96；无平面背景的默认值仍为 0，不要为纯图标按钮补背景。
+
+### 2026-11-13 首页推荐优化设计入口
+
+新增业务设计见 docs/HOME_RECOMMENDATION_DESIGN.md（REC-00 至 REC-05）。2026-11-14 用户要求在 PR #52 同一分支实现；阶段验收状态见 docs/HOME_RECOMMENDATION_IMPLEMENTATION.md。“推荐算法优化”计划默认关闭，关闭旁路新增排序与学习、保持既有推荐源和行为；账号/模式/清除代数拒收迟到事件，禁止伪造曝光或猜测推荐协议。不得将本设计检查点写成全部阶段均已验收。
+
+### 2026-11-14 推荐优化本地 v1
+
+推荐开关与学习归属由 core/application/RecommendationOptimizer 管理，存储为 infra/storage/FileRecommendationStorage 的独立 v1 文件；默认关闭，游客不落盘。首页只在新批次执行 core/domain 的有界排序，已发布条目不重排。关闭、清除和账号变化使旧 ticket 失效；播放学习仅关联首页真实点击，通过共享 PlaybackSessionStateHolder 观察，不改播放行为。不开新推荐接口、不伪造曝光/上报；本地算法实现不等于官方协议、登录账号体验或质量收益已验收。具体剩余项见实现记录。

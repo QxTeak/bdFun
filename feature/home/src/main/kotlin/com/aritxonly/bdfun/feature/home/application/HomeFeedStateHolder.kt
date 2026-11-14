@@ -28,7 +28,9 @@ internal data class HomeFeedUiState(
 ) : UiState
 
 /** 这是首页状态模板：不可变 UiState + StateFlow，界面事件只调用这里的动作。 */
-internal class HomeFeedStateHolder(private val feed: FeedRepository, private val videos: VideoRepository) : StateHolder<HomeFeedUiState> {
+internal class HomeFeedStateHolder(private val feed: FeedRepository, private val videos: VideoRepository,
+    private val optimizer: com.aritxonly.bdfun.core.application.RecommendationOptimizer? = null,
+) : StateHolder<HomeFeedUiState> {
     private val mutable = MutableStateFlow(HomeFeedUiState())
     override val state: StateFlow<HomeFeedUiState> = mutable.asStateFlow()
     private val firstLoad = Mutex()
@@ -37,6 +39,22 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
     private var started = false
     private var generation = 0L
     private var closed = false
+    private var resetOnRefresh = false
+    fun modeChanged() {
+        if (closed) return
+        generation++
+        resetOnRefresh = true
+        mutable.update { it.copy(loading = false, refreshing = false, loadingMore = false, endReached = false) }
+        if (mutable.value.videos.isEmpty()) requestRefresh()
+    }
+    fun expose(video: VideoItem, ticket: com.aritxonly.bdfun.core.application.RecommendationTicket) {
+        if (!closed) optimizer?.expose(video, ticket)
+    }
+    fun open(video: VideoItem) { if (!closed) optimizer?.open(video) }
+    fun exposureTicket() = optimizer?.ticket()
+    private fun current(ticket: Long, mode: com.aritxonly.bdfun.core.application.RecommendationTicket?) =
+        ticket == generation && (mode == null || optimizer?.valid(mode) == true)
+
     fun close() {
         if (closed) return
         closed = true
@@ -54,12 +72,13 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
 
     suspend fun ensureLoaded() = firstLoad.withLock {
         if (closed || started) return@withLock
+        val mode = optimizer?.ticket()
         val ticket = ++generation
         mutable.update { it.copy(loading = true, error = null, loadMoreError = null, empty = false) }
         try {
             when (val result = recommendations(1)) {
-                is Outcome.Failure -> if (ticket == generation) mutable.update { it.copy(error = result.error) }
-                is Outcome.Success -> if (ticket == generation) {
+                is Outcome.Failure -> if (current(ticket, mode)) mutable.update { it.copy(error = result.error) }
+                is Outcome.Success -> if (current(ticket, mode)) {
                     val distinct = result.value.items.distinctBy { it.bvid }
                     if (distinct.isNotEmpty()) {
                         val old = mutable.value.videos
@@ -71,56 +90,71 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
                 }
             }
         } finally {
-            if (ticket == generation) mutable.update { it.copy(loading = false, refreshing = false) }
+            if (current(ticket, mode)) mutable.update { it.copy(loading = false, refreshing = false) }
         }
     }
 
     suspend fun refresh() {
         if (closed || mutable.value.refreshing) return
+        val mode = optimizer?.ticket()
         val ticket = ++generation
         mutable.update { it.copy(refreshing = true, loadingMore = false, error = null, loadMoreError = null, filteredPage = false, empty = false) }
         try {
             when (val result = recommendations(1)) {
-                is Outcome.Failure -> if (ticket == generation) mutable.update { it.copy(error = result.error) }
-                is Outcome.Success -> if (ticket == generation) {
+                is Outcome.Failure -> if (current(ticket, mode)) mutable.update { it.copy(error = result.error) }
+                is Outcome.Success -> if (current(ticket, mode)) {
                     val items = result.value.items
                     if (items.isNotEmpty()) {
                         started = true
                         mutable.update { old ->
-                            val known = old.videos.mapTo(HashSet()) { it.bvid }
+                            if (resetOnRefresh) page = 1
+                            val retained = if (resetOnRefresh) emptyList() else old.videos
+                            val known = retained.mapTo(HashSet()) { it.bvid }
                             val fresh = items.filter { known.add(it.bvid) }
-                            old.copy(videos = fresh + old.videos, endReached = if (fresh.isNotEmpty()) false else old.endReached,
+                            resetOnRefresh = false
+                            old.copy(videos = fresh + retained, endReached = if (fresh.isNotEmpty()) false else old.endReached,
                                 scrollRevision = old.scrollRevision + 1)
                         }
                     } else mutable.update { it.copy(empty = it.videos.isEmpty()) }
                 }
             }
         } finally {
-            if (ticket == generation) mutable.update { it.copy(refreshing = false) }
+            if (current(ticket, mode)) mutable.update { it.copy(refreshing = false) }
         }
     }
 
     suspend fun loadMore() {
         val current = mutable.value
         if (closed || current.loadingMore || current.endReached || current.loading || current.refreshing) return
+        val mode = optimizer?.ticket()
         val ticket = generation
-        val next = page + 1
+        var next = page + 1
         mutable.update { it.copy(loadingMore = true, loadMoreError = null, filteredPage = false) }
         try {
-            when (val result = recommendations(next)) {
-                is Outcome.Failure -> if (ticket == generation) mutable.update { it.copy(loadMoreError = result.error) }
-                is Outcome.Success -> if (ticket == generation) {
+            var result = recommendations(next)
+            var extra = 0
+            val known = mutable.value.videos.mapTo(HashSet()) { it.bvid }
+            while (optimizer?.state?.value?.enabled == true && current(ticket, mode) &&
+                result is Outcome.Success && result.value.items.none { it.bvid !in known } && extra < 2) {
+                extra++
+                next++
+                result = recommendations(next)
+            }
+            when (result) {
+                is Outcome.Failure -> if (current(ticket, mode)) mutable.update { it.copy(loadMoreError = result.error) }
+                is Outcome.Success -> if (current(ticket, mode)) {
                     page = next
                     mutable.update { old ->
                         val known = old.videos.mapTo(HashSet()) { it.bvid }
                         val fresh = result.value.items.filter { known.add(it.bvid) }
-                        val ended = result.value.rawEmpty || (fresh.isEmpty() && exclusions.isEmpty)
+                        val ended = optimizer?.state?.value?.enabled != true &&
+                            (result.value.rawEmpty || (fresh.isEmpty() && exclusions.isEmpty))
                         old.copy(videos = old.videos + fresh, endReached = ended, filteredPage = fresh.isEmpty() && !ended)
                     }
                 }
             }
         } finally {
-            if (ticket == generation) mutable.update { it.copy(loadingMore = false) }
+            if (current(ticket, mode)) mutable.update { it.copy(loadingMore = false) }
         }
     }
 
@@ -146,6 +180,10 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
                 } else video
             } }.map { it.await() }.filter(exclusions::accepts)
         }
-        return Outcome.Success(Batch(filtered, items.isEmpty()))
+        val mode = optimizer?.ticket()
+        val ranked = if (mode == null) filtered else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            optimizer.rank(filtered, mutable.value.videos, mode)
+        }
+        return Outcome.Success(Batch(ranked, items.isEmpty()))
     }
 }
