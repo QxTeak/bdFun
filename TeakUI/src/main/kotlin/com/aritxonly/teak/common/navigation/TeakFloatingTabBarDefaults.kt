@@ -18,7 +18,7 @@ object TeakFloatingTabBarDefaults {
     val VerticalContentPadding = 3.dp
     val IndicatorHorizontalOverflow = 3.dp
     val MaximumWidth = 320.dp
-    val MaximumItemWidth = 80.dp
+    val MaximumItemWidth = 78.dp
     val TabIconSize = 26.dp
     val DetachedIconSize @Composable get() = if (isWideFoldTopBar()) 25.dp else 28.dp
     val DetachedSpacing @Composable get() = if (isWideFoldTopBar()) 12.dp else 8.dp

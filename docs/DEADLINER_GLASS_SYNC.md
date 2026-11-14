@@ -93,3 +93,7 @@ Run `:app:assembleDebug :app:testDebugUnitTest :TeakUI:testDebugUnitTest`. Host 
 ### 2026-11-14 · issue #16 单项宽度回调
 
 按实机反馈将单个 Tab 最大宽度由 88dp 调整为 80dp，整体胶囊上限保持 320dp；宽度计算继续共用同一默认值。
+
+### 2026-11-14 · issue #16 单项宽度细调
+
+单个 Tab 最大宽度由 80dp 调整为 78dp，整体胶囊上限保持 320dp。
