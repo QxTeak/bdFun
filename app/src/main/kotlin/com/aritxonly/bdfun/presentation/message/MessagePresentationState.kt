@@ -7,7 +7,6 @@ import kotlinx.coroutines.*
 
 internal class MessageSessionsPresentationStateHolder(readAll: Int, more: Int) {
     var tabIndex by mutableIntStateOf(0)
-    val tabProgress = mutableFloatStateOf(0f)
     var consumedReadAll by mutableIntStateOf(readAll)
     var consumedMore by mutableIntStateOf(more)
 }
@@ -22,7 +21,6 @@ internal class MessageSessionMenuStateHolder {
 
 internal class MessageFeedPresentationStateHolder {
     var tab by mutableIntStateOf(0)
-    val tabProgress = mutableFloatStateOf(0f)
 }
 
 internal class MessageFeedMenuStateHolder {

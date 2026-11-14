@@ -43,9 +43,10 @@ internal class PrivateChatStateHolder(
         if (!ownerIsCurrent()) return
         val token = generation
         val revision = ++loadRevision
-        mutable.update { it.copy(loading = true, loadError = false) }
+        mutable.update { it.copy(loading = true, loadError = false, loadErrorText = null) }
         try {
             var loaded: ChatMessagePage? = null
+            var loadFailure: String? = null
             for (attempt in 0 until 3) {
                 ensureCurrent(token)
                 if (revision != loadRevision) throw CancellationException("已开始新的消息加载")
@@ -53,10 +54,12 @@ internal class PrivateChatStateHolder(
                 ensureCurrent(token)
                 if (revision != loadRevision) throw CancellationException("已开始新的消息加载")
                 if (result is Outcome.Success) { loaded = result.value; break }
+                if (result is Outcome.Failure) loadFailure = result.error.chatText("消息加载失败")
                 if (attempt < 2) wait(400)
             }
             mutable.update { if (loaded != null) it.copy(messages = loaded.items, emotes = loaded.emotes,
-                historyCursor = loaded.next, loading = false) else it.copy(loadError = true, loading = false) }
+                historyCursor = loaded.next, loading = false, loadErrorText = null)
+                else it.copy(loadError = true, loadErrorText = loadFailure, loading = false) }
             if (loaded != null) acknowledgeLatest(token)
             val avatar = repository.myAvatar()
             ensureCurrent(token)

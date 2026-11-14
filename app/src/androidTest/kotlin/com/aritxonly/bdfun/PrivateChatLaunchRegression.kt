@@ -10,12 +10,15 @@ import com.aritxonly.bdfun.navigation.createRouteIntent
 
 /** 使用游客数据进入真实页面，覆盖 JVM 状态测试看不到的 CompositionLocal 装配顺序。 */
 class PrivateChatLaunchRegression : Instrumentation() {
+    private var messageNavigation = false
     override fun onCreate(arguments: Bundle?) {
         super.onCreate(arguments)
+        messageNavigation = arguments?.getString("suite") == "message-navigation"
         start()
     }
 
     override fun onStart() {
+        if (messageNavigation) { MessageNavigationRegression(this).run(); return }
         val status = Bundle().apply {
             putString("id", "InstrumentationTestRunner")
             putInt("numtests", 1)

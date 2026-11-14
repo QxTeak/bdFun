@@ -17,15 +17,16 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun MessageSettingRow(setting: ImSetting, busy: Boolean, onSet: (Boolean?, Int?) -> Unit) {
+    val navigate = messageRouteAction()
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
     val pageType = setting.pageType
     val enabled = setting.enabled
     val open = {
         when {
-            pageType != null -> context.startActivity(createRouteIntent(context, Route.MessageTools("settings", type = pageType)))
-            setting.title == "黑名单" -> context.startActivity(createRouteIntent(context, Route.MessageTools("blacklist")))
-            setting.title == "消息屏蔽词" -> context.startActivity(createRouteIntent(context, Route.MessageTools("keywords")))
+            pageType != null -> navigate(Route.MessageTools("settings", type = pageType))
+            setting.title == "黑名单" -> navigate(Route.MessageTools("blacklist"))
+            setting.title == "消息屏蔽词" -> navigate(Route.MessageTools("keywords"))
             setting.url.startsWith("http") -> context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(setting.url)))
             setting.url.isNotBlank() -> context.showToast(setting.url)
         }

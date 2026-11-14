@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,7 +47,7 @@ internal fun MessageToolsScreen(route: Route.MessageTools, onBack: () -> Unit) {
     val feedScope = rememberMessageTaskScope(feed, feed::close)
     LaunchedEffect(controller) { controller.load() }
     MessageResumeEffect(scope) { if (tool is MessageTool.Settings || tool is MessageTool.Chat) controller.load() }
-    TeakActivityScaffold(settings = AppGraph.settings, onBack = onBack, options = ActivityPageOptions(title = title)) {
+    TeakActivityScaffold(settings = AppGraph.settings, onBack = onBack, options = ActivityPageOptions(title = title, limitContentWidth = LocalMessageNavigation.current == null)) {
         PullToRefreshBox(isRefreshing = state.loading && (state.people.isNotEmpty() || state.settings.isNotEmpty()),
             onRefresh = { scope.launch { controller.load() } }) {
         TrackTeakPageScroll(list)
@@ -69,13 +70,19 @@ internal fun MessageToolsScreen(route: Route.MessageTools, onBack: () -> Unit) {
                     }
                 }
             }
-            if (tool is MessageTool.Settings) items(state.settings, key = { it.key }) { setting ->
-                MessageSettingRow(setting, state.busy || state.loading) { enabled, choice ->
-                    scope.launch { controller.setting(setting, enabled, choice)?.let(context::showToast) }
+            if (tool is MessageTool.Settings) itemsIndexed(state.settings, key = { _, it -> it.key }) { index, setting ->
+                MessageRowSurface(index == 0, index == state.settings.lastIndex) {
+                    MessageSettingRow(setting, state.busy || state.loading) { enabled, choice ->
+                        scope.launch { controller.setting(setting, enabled, choice)?.let(context::showToast) }
+                    }
                 }
             }
-            if (tool is MessageTool.Chat) item { MessageChatSettings(tool.mid, state, controller, scope) }
-            if (tool == MessageTool.Keywords) item { MessageKeywordContent(state, controller, scope) }
+            if (tool is MessageTool.Chat) item {
+                MessageRowSurface(true, true) { MessageChatSettings(tool.mid, state, controller, scope) }
+            }
+            if (tool == MessageTool.Keywords) item {
+                MessageRowSurface(true, true) { MessageKeywordContent(state, controller, scope) }
+            }
             item {
                 MessagePageFooter(state.loading, state.error, state.more,
                     state.people.isEmpty() && state.settings.isEmpty() && state.keywords == null && state.chat == null) {

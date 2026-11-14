@@ -2,6 +2,9 @@ package com.aritxonly.bdfun
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -19,7 +22,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun ChatMessageCardContent(card: ChatMessageCard) {
     val context = LocalContext.current
     val colors = MiuixTheme.colorScheme
-    Column(Modifier.widthIn(max = 272.dp).clickable(enabled = card.url.isNotBlank()) { openChatCard(context, card.url) }.padding(12.dp)) {
+    Column(Modifier.widthIn(max = 272.dp).clip(RoundedCornerShape(14.dp))
+        .background(colors.surfaceContainerHigh).clickable(enabled = card.url.isNotBlank()) { openChatCard(context, card.url) }.padding(12.dp)) {
         if (card.image.isNotBlank()) AsyncImage(rememberImageRequest(card.image), "消息图片", modifier = Modifier.fillMaxWidth())
         if (card.title.isNotBlank()) Text(card.title, color = colors.onBackground)
         if (card.text.isNotBlank()) Text(card.text, color = colors.onBackgroundVariant)

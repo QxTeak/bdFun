@@ -1,6 +1,9 @@
 package com.aritxonly.bdfun.ui
 
-import com.aritxonly.bdfun.navigateToPrivateChat
+import com.aritxonly.bdfun.feature.message.application.visibleSessions
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,7 +30,9 @@ internal fun MessageSessionList(
     title: String = "消息", pageType: Int = 1, onRefresh: () -> Unit = {},
 ) {
     val context = LocalContext.current
-    val visibleSessions = snapshot.sessions
+    val navigation = LocalMessageNavigation.current
+    val openRoute = messageRouteAction()
+    val visibleSessions = snapshot.visibleSessions(ui.tabIndex == 1)
     PullToRefreshBox(isRefreshing = snapshot.loading && snapshot.sessions.isNotEmpty(), onRefresh = onRefresh, modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             state = listState,
@@ -45,18 +50,23 @@ internal fun MessageSessionList(
             }
 
             if (pageType == 1) item(key = "shortcuts") { MessageShortcutGroup(snapshot.unread, events) }
-            item(key = "menus") { MessageInboxToolbar(snapshot, menu) }
+            item(key = "menus") {
+                MessageInboxToolbar(snapshot, menu)
+                MessageSessionTabs(ui)
+            }
             if (!loggedIn) {
                 item(key = "login") { MessageLoginPrompt(events.onNeedLogin) }
             } else {
-                itemsIndexed(visibleSessions, key = { _, session -> session.id }) { index, session ->
-                    MessageRowSurface(index == 0, index == visibleSessions.lastIndex) {
+                itemsIndexed(visibleSessions, key = { _, session -> session.id }) { _, session ->
+                    androidx.compose.foundation.layout.Box(Modifier.padding(bottom = 4.dp)
+                        .clip(com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(18.dp))
+                        .background(if (navigation?.selectedSessionId == session.id) com.aritxonly.bdfun.BrandPink.copy(alpha = .12f)
+                            else androidx.compose.ui.graphics.Color.Transparent)) {
                         SessionRow(session, onClick = {
                             when {
-                                session.preferences.pageType != null -> context.startActivity(com.aritxonly.bdfun.navigation.createRouteIntent(context,
-                                    com.aritxonly.bdfun.core.navigation.Route.MessageInbox(session.preferences.pageType!!, session.name)))
-                                session.isSystem -> com.aritxonly.bdfun.navigateToMessageFeed(context, "system")
-                                session.talkerId > 0L -> navigateToPrivateChat(context, session)
+                                session.preferences.pageType != null -> openRoute(com.aritxonly.bdfun.core.navigation.Route.MessageInbox(session.preferences.pageType!!, session.name))
+                                session.isSystem -> navigation?.feed?.invoke(MessageFeedKind.System, 0) ?: com.aritxonly.bdfun.navigateToMessageFeed(context, "system")
+                                session.talkerId > 0L -> openRoute(session.chatRoute())
                                 else -> context.showToast("该类型会话暂不支持打开")
                             }
                         }, onLongClick = { menu.selected = session; menu.confirmDelete = false })

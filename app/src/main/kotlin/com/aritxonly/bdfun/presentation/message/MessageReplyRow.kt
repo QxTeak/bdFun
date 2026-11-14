@@ -18,7 +18,7 @@ internal fun ReplyRow(item: MessageItem, onClick: () -> Unit = {}, onMore: () ->
         MessageActorAvatar(item)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            MessageActorHeadline(item)
+            MessageCardHeader(item)
             if (item.content.isNotBlank()) {
                 Spacer(Modifier.height(6.dp))
                 EmoteText(content = EmoteTextContent(text = item.content),
@@ -35,11 +35,7 @@ internal fun ReplyRow(item: MessageItem, onClick: () -> Unit = {}, onMore: () ->
                 MessageOriginalText(item.subjectText)
             }
             Spacer(Modifier.height(8.dp))
-            MessageRowFooter(item, onMore)
-        }
-        if (item.atMe && item.subjectCover.isNotBlank()) {
-            Spacer(Modifier.width(12.dp))
-            MessageSubject(item)
+            MessageRowFooter(item)
         }
     }
 }

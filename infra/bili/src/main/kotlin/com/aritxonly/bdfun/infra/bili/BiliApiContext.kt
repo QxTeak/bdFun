@@ -84,6 +84,12 @@ internal class BiliApiContext(
         log = log,
     )
 
+    internal val imHttp = BiliHttpClient(
+        client = com.aritxonly.bdfun.infra.bili.message.imTransportClient(client),
+        debug = debug,
+        log = log,
+    )
+
     internal val buvidMutex = Mutex()
     internal val wbiSigner = com.aritxonly.bdfun.infra.bili.WbiSigner(
         loadKeys = {

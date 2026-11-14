@@ -14,9 +14,9 @@ import top.yukonga.miuix.kmp.icon.extended.Search
 
 @Composable
 internal fun MainBottomSearchButton(alpha: Float, onClick: () -> Unit) {
-    TeakGlassIconButton(onClick = onClick, size = TeakFloatingTabBarDefaults.Height,
+    TeakGlassIconButton(onClick = onClick, size = TeakFloatingTabBarDefaults.CurrentHeight,
         modifier = Modifier.graphicsLayer { this.alpha = alpha }) {
         Icon(MiuixIcons.Search, contentDescription = "搜索", tint = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.size(26.dp))
+            modifier = Modifier.size(TeakFloatingTabBarDefaults.DetachedIconSize))
     }
 }

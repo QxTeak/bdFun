@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -41,18 +43,21 @@ internal fun MessageActorHeadline(item: MessageItem, aggregate: Boolean = false)
         withStyle(SpanStyle(color = colors.primary)) { append(item.name.ifBlank { "用户" }) }
         if (aggregate && item.likeCount > 1) append(" 等${item.likeCount}人")
         withStyle(SpanStyle(color = colors.onBackgroundVariant)) { append(" ${item.action}") }
-    }, fontSize = 14.sp, lineHeight = 21.sp)
+    }, color = colors.onBackground, fontSize = 14.sp, lineHeight = 21.sp)
 }
 
 @Composable
 internal fun MessageOriginalText(text: String) {
-    EmoteText(content = EmoteTextContent(text = "│ $text"),
-        style = EmoteTextStyle(color = MiuixTheme.colorScheme.onBackgroundVariant,
-            fontSize = 13.sp, lineHeight = 20.sp, maxLines = 1))
+    androidx.compose.foundation.layout.Box(Modifier.fillMaxWidth()
+        .clip(com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(10.dp))
+        .background(MiuixTheme.colorScheme.surfaceContainerHigh.copy(alpha = .45f))
+        .padding(horizontal = 12.dp, vertical = 10.dp)) {
+        QuoteBlock("", text)
+    }
 }
 
 @Composable
-internal fun MessageRowFooter(item: MessageItem, onMore: () -> Unit) {
+internal fun MessageRowFooter(item: MessageItem, onMore: (() -> Unit)? = null) {
     val colors = MiuixTheme.colorScheme
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(formatMessageDate(item.time), color = colors.onBackgroundVariant, fontSize = 12.sp)
@@ -60,6 +65,6 @@ internal fun MessageRowFooter(item: MessageItem, onMore: () -> Unit) {
             Text(" · 已关闭通知", color = colors.onBackgroundVariant, fontSize = 12.sp)
         }
         Spacer(Modifier.weight(1f))
-        MessageMoreDots(onMore)
+        if (onMore != null) MessageMoreDots(onMore)
     }
 }

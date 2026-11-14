@@ -35,10 +35,11 @@ internal fun MessageContactsScreen(initialGroup: Int, onBack: () -> Unit) {
     val list = key(controller) { rememberLazyListState() }
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
-    val title = if (initialGroup == 2) "黑名单" else "通讯录"
+    val navigate = messageRouteAction()
+    val title = if (initialGroup == 2) "黑名单" else "联系人"
     LaunchedEffect(controller) { controller.load() }
     MessageResumeEffect(scope) { controller.load() }
-    TeakActivityScaffold(settings = AppGraph.settings, onBack = onBack, options = ActivityPageOptions(title = title)) {
+    TeakActivityScaffold(settings = AppGraph.settings, onBack = onBack, options = ActivityPageOptions(title = title, limitContentWidth = LocalMessageNavigation.current == null)) {
         PullToRefreshBox(isRefreshing = state.loading && (state.people.isNotEmpty() || state.settings.isNotEmpty()),
             onRefresh = { scope.launch { controller.load() } }) {
         TrackTeakPageScroll(list)
@@ -46,12 +47,11 @@ internal fun MessageContactsScreen(initialGroup: Int, onBack: () -> Unit) {
             start = 16.dp, end = 16.dp, top = 8.dp + rememberStatusBarTop(), bottom = 40.dp)) {
             item { TeakLargeTitle(title = title) }
             if (initialGroup != 2) item {
-                Row {
-                    listOf("我的关注", "我的粉丝").forEachIndexed { index, label ->
-                        Text(label, color = if (index == ui.group) colors.primary else colors.onBackgroundVariant,
-                            modifier = Modifier.clickable { ui.group = index; ui.query = ""; ui.draft = "" }.padding(16.dp))
-                    }
-                }
+                com.aritxonly.teak.common.navigation.TeakPagerTabs(
+                    options = listOf("我的关注", "我的粉丝"), selected = ui.group,
+                    onSelect = { ui.group = it; ui.query = ""; ui.draft = "" },
+                    itemWidth = 96.dp, backdrop = null, plain = true,
+                )
                 if (ui.group == 0) Row {
                     BasicTextField(ui.draft, { ui.draft = it }, modifier = Modifier.weight(1f).padding(16.dp),
                         textStyle = androidx.compose.ui.text.TextStyle(color = colors.onBackground),
@@ -60,7 +60,11 @@ internal fun MessageContactsScreen(initialGroup: Int, onBack: () -> Unit) {
                 }
             }
             items(state.people, key = { it.mid }) { person ->
-                Row(Modifier.fillMaxWidth().clickable { navigateToSpace(context, person.mid) }.padding(16.dp)) {
+                Row(Modifier.fillMaxWidth().clickable {
+                    if (initialGroup == 2) navigateToSpace(context, person.mid)
+                    else navigate(com.aritxonly.bdfun.core.navigation.Route.PrivateChat(
+                        talkerId = person.mid, name = person.name, avatar = person.avatar))
+                }.padding(16.dp)) {
                     MessageAvatar(person.avatar); Spacer(Modifier.width(12.dp))
                     Text(person.name, color = colors.onBackground, modifier = Modifier.weight(1f))
                     if (initialGroup == 2) Text("移除", color = colors.primary, modifier = Modifier.clickable(enabled = !state.busy) {

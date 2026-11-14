@@ -15,6 +15,28 @@ internal fun MessageFeedSheet(
 ) {
     val busy = snapshot.busy
     val loadingByTab = snapshot.loadingByTab
+    if (kind == MessageFeedKind.Reply || kind == MessageFeedKind.Like) {
+        val target = menu.selected
+        val enabled = target != null && !busy && loadingByTab[target.first] != true
+        com.aritxonly.teak.common.modal.AlertDialog(
+            show = target != null,
+            onDismissRequest = { if (!busy) menu.selected = null },
+            miuixTitle = "删除通知？",
+            miuixSummary = if (kind == MessageFeedKind.Like)
+                "删除后，有新的点赞时这条通知会重新出现在列表。" else "确认删除这条通知？",
+            confirmButton = {
+                com.aritxonly.teak.common.modal.TextButton(
+                    onClick = { onMutate(true) }, enabled = enabled, miuixText = "删除",
+                ) { androidx.compose.material3.Text("删除") }
+            },
+            dismissButton = {
+                com.aritxonly.teak.common.modal.TextButton(
+                    onClick = { menu.selected = null }, enabled = !busy, miuixText = "取消",
+                ) { androidx.compose.material3.Text("取消") }
+            },
+        )
+        return
+    }
     TeakActionSheet(menu.selected != null, onDismiss = { if (!busy) menu.selected = null }, title = "消息操作") {
         val target = menu.selected
         if (target != null) {

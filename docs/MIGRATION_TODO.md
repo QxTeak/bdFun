@@ -458,6 +458,10 @@ P5-* 依赖 P4-05，且需要团队同意
 
 本任务为已迁移消息域上的行为补齐，不改变 Teak 页面风格。范围、固定参考版本、协议来源及实机验收清单见 HYPERPILI_MESSAGE_ALIGNMENT.md。自动测试与构建结果在对应 PR 中记录；完整登录行为须由实机回归确认。
 
+### MSG-02 · 聊天设置置顶读取 1217
+
+未解决问题统一跟踪于 [Issue #53](https://github.com/QxTeak/bdFun/issues/53)，不随 PR #51 合并关闭。
+
 ## 首页推荐优化（新增业务，独立于迁移完成度）
 
 方案以 [HOME_RECOMMENDATION_DESIGN.md](HOME_RECOMMENDATION_DESIGN.md) 为准，实际范围与验证见 [HOME_RECOMMENDATION_IMPLEMENTATION.md](HOME_RECOMMENDATION_IMPLEMENTATION.md)。按 2026-11-14 用户要求在 PR #52 实现：REC-00 已落稿，REC-02/03 与 REC-04 的本地 v1 已接入；REC-01 真实协议/账号对照、REC-04 完整播放场景与明确互动反馈、REC-05 探索和效果实验尚待完成或验收，不计入原 P0–P5 迁移数量。

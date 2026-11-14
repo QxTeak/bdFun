@@ -77,7 +77,7 @@ internal suspend fun BiliApiContext.messagesPage(type: Int, cursor: MessageCurso
     val data = dataRequest(path, params)
     val mapped = mapMessageFeed(data, type)
     // 补充封面 / UP 主关系：同一个视频只查一次，失败不影响文字消息。
-    val enriched = enrichMessageVideos(mapped.items, type)
+    val enriched = enrichMessageVideos(mapped.items)
     log(
         "MSG",
         "type=$type items=${mapped.rawSize} parsed=${enriched.size}",
@@ -87,25 +87,24 @@ internal suspend fun BiliApiContext.messagesPage(type: Int, cursor: MessageCurso
 
 /**
  * 消息接口只给文字和视频 id，不给封面、也不说回复者是不是 UP 主。
- * 这里按 bvid 去重补一次视频信息；每页最多补 12 个，失败就保留纯文字卡片。
+ * 这里按 bvid 去重补一次视频信息；最多四路并发补齐本页，失败就保留纯文字卡片。
  */
 
 internal suspend fun BiliApiContext.enrichMessageVideos(
     items: List<MessageItem>,
-    type: Int,
 ): List<MessageItem> {
-    if (items.isEmpty() || type == 1) return items
-    fun resolvedBvid(item: MessageItem): String =
-        item.bvid.ifBlank { aidToBvid(item.aid) }
+    if (items.isEmpty()) return items
+    fun resolvedBvid(item: MessageItem): String = messageVideoCoverTarget(item)
     val targets = items
-        .filter { resolvedBvid(it).isNotBlank() && (type == 0 || it.videoSubject) }
+        .filter { resolvedBvid(it).isNotBlank() }
         .distinctBy { resolvedBvid(it) }
-        .take(12)
+
     if (targets.isEmpty()) return items
     val briefs = withContext(Dispatchers.IO) {
         kotlinx.coroutines.coroutineScope {
+            val limit = Semaphore(4)
             targets.map { item ->
-                async {
+                async { limit.withPermit {
                     val bvid = resolvedBvid(item)
                     val cached = synchronized(messageVideoCache) { messageVideoCache[bvid] }
                     val brief = cached ?: cancellableCatching {
@@ -117,7 +116,7 @@ internal suspend fun BiliApiContext.enrichMessageVideos(
                         }
                     }.getOrNull()
                     bvid to brief
-                }
+                } }
             }.awaitAll()
         }
     }.filter { it.second != null }.associate { it.first to it.second!! }
@@ -125,20 +124,7 @@ internal suspend fun BiliApiContext.enrichMessageVideos(
     return items.map { item ->
         val bvid = resolvedBvid(item)
         val brief = briefs[bvid] ?: return@map item
-        item.copy(
-            navigation = item.navigation.copy(
-                bvid = item.bvid.ifBlank { bvid },
-            ),
-            presentation = item.presentation.copy(
-                subjectCover = if (item.videoSubject && item.subjectCover.isBlank()) {
-                brief.cover
-            } else {
-                item.subjectCover
-            },
-                isUp = item.isUp ||
-                (item.userMid > 0L && brief.ownerMid > 0L && item.userMid == brief.ownerMid),
-            ),
-        )
+        applyMessageVideoBrief(item, bvid, brief.cover, brief.ownerMid)
     }
 }
 

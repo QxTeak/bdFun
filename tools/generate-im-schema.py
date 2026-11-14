@@ -20,7 +20,7 @@ for path in root.rglob('*.pbjson.dart'):
   schema[pkg+'.'+name.replace('_','.')]=d['2']
 seeds=['bilibili.app.im.v1.'+n for n in ['SessionUpdateReq','SessionUpdateReply','SessionMainReq','SessionMainReply','SessionSecondaryReq','SessionSecondaryReply','ClearUnreadReq','ClearUnreadReply','PinSessionReq','PinSessionReply','UnPinSessionReq','UnPinSessionReply','DeleteSessionListReq','DeleteSessionListReply','GetImSettingsReq','GetImSettingsReply','SetImSettingsReq','SetImSettingsReply','KeywordBlockingListReq','KeywordBlockingListReply','KeywordBlockingAddReq','KeywordBlockingAddReply','KeywordBlockingDeleteReq','KeywordBlockingDeleteReply']]
 seeds += ['bilibili.im.interfaces.v1.'+n for n in ['ReqSessionMsg','RspSessionMsg','ReqSendMsg','RspSendMsg','ReqTotalUnread','RspTotalUnread']]
-seeds += ['bilibili.metadata.Metadata','bilibili.metadata.device.Device','bilibili.metadata.fawkes.FawkesReq','bilibili.metadata.network.Network']
+seeds += ['bilibili.metadata.Metadata','bilibili.metadata.device.Device','bilibili.metadata.fawkes.FawkesReq','bilibili.metadata.network.Network','bilibili.metadata.locale.Locale']
 selected={}
 def visit(key):
  if key in selected:return

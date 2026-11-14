@@ -11,20 +11,14 @@ import com.aritxonly.teak.common.navigation.TeakPagerTabs
 
 @Composable
 internal fun MessageSessionTabs(ui: MessageSessionsPresentationStateHolder) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 18.dp, bottom = 10.dp),
-                    contentAlignment = Alignment.CenterStart,
-                ) {
-                    TeakPagerTabs(
-                        options = listOf("全部", "我关注的人"),
-                        selected = ui.tabIndex,
-                        onSelect = { ui.tabIndex = it },
-                        itemWidth = 96.dp,
-                        backdrop = null,
-                        plain = true,
-                        position = ui.tabProgress,
-                    )
-                }
+    Box(
+        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 14.dp),
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        TeakPagerTabs(
+            options = listOf("全部", "我关注的人"), selected = ui.tabIndex,
+            onSelect = { ui.tabIndex = it }, itemWidth = 96.dp,
+            backdrop = null, plain = false,
+        )
+    }
 }

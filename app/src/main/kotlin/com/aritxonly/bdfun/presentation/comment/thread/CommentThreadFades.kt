@@ -55,19 +55,20 @@ internal fun androidx.compose.foundation.layout.BoxScope.CommentThreadFades(
             fontWeight = FontWeight.Medium,
         )
     }
-    Box(
-        modifier = Modifier
-            .align(Alignment.BottomCenter)
-            .fillMaxWidth()
-            .height(54.dp)
-            .background(
-                Brush.verticalGradient(
-                    listOf(background.copy(alpha = 0f), background),
-                ),
-            ),
-    )
-    // 回复框打开时，点空白区域只退出回复框，不关闭展开页。
+    // 底部渐变只服务悬浮回复框，浏览回复时不遮挡列表尾部。
     if (transient.replyTarget != null) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(54.dp)
+                .background(
+                    Brush.verticalGradient(
+                        listOf(background.copy(alpha = 0f), background),
+                    ),
+                ),
+        )
+        // 回复框打开时，点空白区域只退出回复框，不关闭展开页。
         Box(
             modifier = Modifier
                 .fillMaxSize()

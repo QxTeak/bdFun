@@ -18,7 +18,7 @@ internal fun LikeRow(item: MessageItem, onClick: () -> Unit = {}, onMore: () -> 
         MessageActorAvatar(item)
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
-            MessageActorHeadline(item, aggregate = true)
+            MessageCardHeader(item, aggregate = true)
             val description = item.title.ifBlank { item.subjectText }.ifBlank { item.source }.ifBlank { item.content }
             if (description.isNotBlank()) {
                 Spacer(Modifier.height(6.dp))
@@ -27,11 +27,7 @@ internal fun LikeRow(item: MessageItem, onClick: () -> Unit = {}, onMore: () -> 
                         fontSize = 14.sp, lineHeight = 21.sp, maxLines = 3))
             }
             Spacer(Modifier.height(8.dp))
-            MessageRowFooter(item, onMore)
-        }
-        if (item.subjectCover.isNotBlank()) {
-            Spacer(Modifier.width(12.dp))
-            MessageSubject(item)
+            MessageRowFooter(item)
         }
     }
 }
