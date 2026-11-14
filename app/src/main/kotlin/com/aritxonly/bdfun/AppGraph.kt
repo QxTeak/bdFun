@@ -28,6 +28,11 @@ object AppGraph {
         get() = checkNotNull(container?.sentHistory) { "AppGraph 尚未使用 Context 初始化" }
 
     val dynamicFeedState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.dynamicFeedState
+    internal val bangumiRankState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.bangumiRankState
+    internal fun bangumiRankBoardState(rankId: Long, oid: String, title: String) =
+        checkNotNull(container) { "AppGraph 尚未初始化" }.bangumiRankBoardState(rankId, oid, title)
+    internal suspend fun bangumiFirstEpisode(seasonId: Long) =
+        checkNotNull(container) { "AppGraph 尚未初始化" }.bangumiFirstEpisode(seasonId)
     internal fun onboardingStateHolder(scope: kotlinx.coroutines.CoroutineScope, step: Int) =
         checkNotNull(container) { "AppGraph 尚未初始化" }.onboardingStateHolder(scope, step)
     internal fun inlineVideoStateHolder(bvid: String) =
@@ -70,6 +75,8 @@ object AppGraph {
                 it.videoReadCache.scope(), it.automaticVideoQuality, it.settings, it.videoPageDependencies)
         }
     val homeFeedState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.homeFeedState
+    internal val livePageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.livePageState
+    internal val bangumiPageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.bangumiPageState
 
     /** 登录态：MainActivity 与 LoginActivity 共享，登录成功直接写这里。 */
     val session get() = checkNotNull(container) { "AppGraph 尚未初始化" }.session

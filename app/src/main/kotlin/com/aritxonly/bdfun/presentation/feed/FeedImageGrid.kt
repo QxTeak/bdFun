@@ -24,7 +24,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun FeedImageGrid(
     images: List<String>,
-    onOpen: (String, Rect, Float) -> Unit,
+    /** origins 与 images 同序：查看器靠它把每一页分别收拢回自己的缩略图。 */
+    onOpen: (String, Rect, Float, List<Rect?>) -> Unit,
 ) {
     if (images.isEmpty()) return
     val colors = MiuixTheme.colorScheme
@@ -35,7 +36,8 @@ internal fun FeedImageGrid(
     if (images.size == 1) {
         val url = images.first()
         AsyncImage(
-            model = rememberImageRequest(url),
+            // 列表里只要一张裁好的缩略图；交给查看器的是原始 url（不裁切）。
+            model = rememberImageRequest(biliImageGridUrl(url)),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -45,7 +47,7 @@ internal fun FeedImageGrid(
                 .background(colors.surfaceContainerHigh)
                 .onGloballyPositioned { bounds[url] = it.boundsInRoot() }
                 .clickable(interactionSource = null, indication = null) {
-                    onOpen(url, bounds[url] ?: Rect.Zero, singleRadiusPx)
+                    onOpen(url, bounds[url] ?: Rect.Zero, singleRadiusPx, images.map { bounds[it] })
                 },
         )
         return
@@ -57,7 +59,7 @@ internal fun FeedImageGrid(
         ) {
             row.forEach { url ->
                 AsyncImage(
-                    model = rememberImageRequest(url),
+                    model = rememberImageRequest(biliImageGridUrl(url)),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -67,7 +69,7 @@ internal fun FeedImageGrid(
                         .background(colors.surfaceContainerHigh)
                         .onGloballyPositioned { bounds[url] = it.boundsInRoot() }
                         .clickable(interactionSource = null, indication = null) {
-                            onOpen(url, bounds[url] ?: Rect.Zero, gridRadiusPx)
+                            onOpen(url, bounds[url] ?: Rect.Zero, gridRadiusPx, images.map { bounds[it] })
                         },
                 )
             }
@@ -77,3 +79,13 @@ internal fun FeedImageGrid(
 }
 
 /** 主动态和转发动态共用同一套大卡视频布局。 */
+
+/**
+ * 缩略图请求：按显示宽度缩小的**未裁切**原图。
+ *
+ * 不能再用 `_1c`（服务端居中裁 16:9）：列表再裁一次、查看器按原图裁一次，
+ * 两次结果只有 16:9 的图才一致，其他比例收放都会错位。
+ * 现在两边都从同一张原图做中心裁切，共用元素动画才对得上。
+ */
+private fun biliImageGridUrl(url: String): String =
+    com.aritxonly.bdfun.core.common.biliImageThumbUrl(url, 720)

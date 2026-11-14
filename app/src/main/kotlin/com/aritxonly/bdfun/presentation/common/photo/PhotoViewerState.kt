@@ -20,9 +20,15 @@ internal data class PhotoViewerRequest(
     val index: Int,
     val origin: Rect? = null,
     val originRadiusPx: Float = 0f,
+    /** 每张图自己的缩略图矩形（与 images 同序）；缺省的那张没有共享元素起点。 */
+    val origins: List<Rect?> = emptyList(),
     /** 底部的操作区由发起方提供，宿主不需要知道这里是动态还是评论。 */
     val footer: (@Composable (dismiss: () -> Unit) -> Unit)? = null,
-)
+) {
+    /** 当前页的收拢目标：优先用它自己的缩略图，没有才退回点开那张的起点。 */
+    fun originFor(page: Int): Rect? =
+        origins.getOrNull(page) ?: if (page == index) origin else null
+}
 
 /**
  * 图片查看器的页面级状态。
@@ -39,6 +45,7 @@ internal class PhotoViewerStateHolder {
         index: Int,
         origin: Rect? = null,
         originRadiusPx: Float = 0f,
+        origins: List<Rect?> = emptyList(),
         footer: (@Composable (dismiss: () -> Unit) -> Unit)? = null,
     ) {
         if (images.isEmpty()) return
@@ -47,6 +54,7 @@ internal class PhotoViewerStateHolder {
             index = index.coerceIn(0, images.lastIndex),
             origin = origin,
             originRadiusPx = originRadiusPx,
+            origins = origins,
             footer = footer,
         )
     }

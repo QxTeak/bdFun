@@ -75,7 +75,9 @@ fun BoxScope.PlayerHotDanmakuOverlay(ui: VideoPlayerUiStateHolder, fullscreen: B
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = if (fullscreen) 44.dp else 8.dp)
+                // 计数贴到画面最顶部（控件隐藏时这里本来就是空的），
+                // 下面的弹幕行会按 topGuard 让开这块区域。
+                .padding(top = if (fullscreen) 10.dp else 4.dp)
                 .padding(horizontal = 4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
