@@ -50,3 +50,5 @@ SET-04验证：SettingsActivity显式adjustResize，避免系统自动pan与Comp
 SET-05：新增settings-seperation.json（名称沿用需求中的seperation），格式为分组数组，每组id/title/entries，每个入口只保存route/icon/color。一级卡片按数组顺序呈现，卡片间留白，不复制二级设置或纳入root_footer。一级图标使用Miuix extended Normal图标和彩色圆角底板。宽屏chrome用显式CompositionLocal覆盖测量判断，popup仍按每栏真实窗口尺寸定位。
 
 退出登录先设置页面作用域confirmLogout，显示原Teak/MIUIX AlertDialog；取消、关闭或系统返回均只清此状态。只有确认按钮执行原宿主logout，先清状态以阻止重复点击。对话框显示状态随设置导航保存恢复。
+
+一级卡片的可见边界间距统一16dp（包括退出登录卡片）；非经典TeakSettingsCard自带12dp顶距，列表只补4dp；经典样式补16dp。

@@ -32,6 +32,8 @@ internal data class SettingsBrowserSession(
 internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Modifier, runtime: SettingsPageRuntime) {
     val list = rememberLazyListState()
     val chrome = LocalTeakPageScrollState.current
+    // 卡片自身在非经典样式下带12dp顶距，补足到16dp，避免叠成28dp。
+    val cardGap = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 16.dp else 4.dp
     if (!session.navigation.searching) TrackTeakPageScroll(list, chrome)
     LazyColumn(modifier, state = list, contentPadding = settingsListPadding()) {
         item { TeakLargeTitle("设置", pageState = chrome) }
@@ -40,7 +42,7 @@ internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Mod
                 session.categories.firstOrNull { it.route == entry.route }?.let { entry to it }
             }
             if (entries.isNotEmpty()) item(key = group.id) {
-                if (group != session.seperation.first()) Spacer(Modifier.height(16.dp))
+                if (group != session.seperation.first()) Spacer(Modifier.height(cardGap))
                 TeakSettingsCard {
                     entries.forEach { (entry, category) ->
                         val selected = session.wide && session.selected?.route == category.route
@@ -53,7 +55,7 @@ internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Mod
         }
         session.footers.forEach { footer ->
             item(key = footer.route) {
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(cardGap))
                 TeakSettingsCard {
                     footer.groups.flatMap { it.settings }.forEach { IndexedActionComponent(it, runtime) }
                 }
