@@ -25,7 +25,8 @@ fun BindPlayerSource(
     val usingFallback by ui.usingFallback
     val usingOriginal by ui.usingOriginal
     val speed by ui.speed
-    LaunchedEffect(info, quality, usingFallback, usingOriginal) {
+    val mediaKey = "$bvid:${presentation.fullscreenInfo.currentCid}"
+    LaunchedEffect(mediaKey, info, quality, usingFallback, usingOriginal) {
         val source = resolvePlaybackSourceUrls(quality, info, usingOriginal, usingFallback) ?: run {
             log(
                 "PLAYER",
@@ -47,7 +48,7 @@ fun BindPlayerSource(
                 "video=${describeMediaUrl(url)} audio=${describeMediaUrl(audioUrl)}",
         )
         playback.prepare(PlaybackSource(
-            videoUrl = url, audioUrl = audioUrl,
+            videoUrl = url, audioUrl = audioUrl, mediaKey = mediaKey,
             headers = mapOf("Referer" to "https://www.bilibili.com/video/$bvid/"), userAgent = playback.userAgent,
             resumePositionMs = resumePositionMs, autoPlay = autoPlay(), speed = speed,
         ))

@@ -23,7 +23,8 @@ internal fun buildPlayer(context: Context, decoderMode: Int): ExoPlayer {
         renderers.setMediaCodecSelector(TeakCodecSelector(decoderMode))
     }
     val loadControl = DefaultLoadControl.Builder()
-        .setBufferDurationsMs(15_000, 120_000, 1_000, 2_000)
+        // 增大低水位并在卡顿后多攒几秒，减少弱网下反复耗尽；首次起播不加等待。
+        .setBufferDurationsMs(45_000, 120_000, 1_000, 5_000)
         .setPrioritizeTimeOverSizeThresholds(true)
         .build()
     return ExoPlayer.Builder(context, renderers)
