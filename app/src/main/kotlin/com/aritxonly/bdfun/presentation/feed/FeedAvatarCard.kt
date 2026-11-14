@@ -49,24 +49,7 @@ fun FeedAvatarCard(
         }
     }
     Column(modifier.fillMaxWidth().clip(ContinuousCornerShape(18.dp)).background(colors.surfaceContainer)) {
-        if (state.liveCount > 0) {
-            Row(Modifier.fillMaxWidth().clickable { state.showLive = !state.showLive }
-                .padding(horizontal = 16.dp, vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("正在直播 · ${state.liveCount}", color = colors.onSurfaceContainer, fontSize = 14.sp,
-                    modifier = Modifier.weight(1f))
-                Text(if (state.showLive) "收起" else "展开", color = colors.onSurfaceVariantSummary, fontSize = 12.sp)
-            }
-            if (state.showLive) LazyRow(
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-            ) {
-                items(state.liveUsers, key = { it.roomId }) { live ->
-                    AuthorAvatar(name = live.name, face = live.face, selected = false, badge = "直播") {
-                        openFeedLive(context, live.roomId)
-                    }
-                }
-            }
-        }
+        // 这里只保留「全部动态 / 我 / 关注的 UP」；正在直播那一行已经整体去掉。
         val entries: LazyListScope.() -> Unit = {
             item(key = "all-dynamics") {
                 AllFeedAvatar(selected = state.type == "all") {

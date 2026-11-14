@@ -64,6 +64,9 @@ class BiliCookieJar(context: Context) : CookieJar {
 
     fun value(name: String): String = cookies[name]?.value.orEmpty()
 
+    /** 拼成 Cookie 请求头；播放器直接拉流时也要带，否则部分 CDN 会 403。 */
+    fun header(): String = cookies.values.joinToString("; ") { "${it.name}=${it.value}" }
+
     val csrf: String get() = value("bili_jct")
 
     val hasSession: Boolean get() = value("SESSDATA").isNotBlank()

@@ -27,6 +27,7 @@ import com.aritxonly.bdfun.navigateToLiveRoom
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullSession
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullUi
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -61,7 +62,7 @@ internal fun LivePage(state: LivePageStateHolder, loggedIn: Boolean) {
         horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        liveFollowSection(state)
+        liveFollowSection(state) { navigateToLiveRoom(context, it) }
         liveAreaSection(state, scope)
         items(state.cards, key = { it.roomId }) { live ->
             LiveGridCard(live) { navigateToLiveRoom(context, live.roomId) }
@@ -89,7 +90,10 @@ private fun rememberLivePullSession(
                 state.pullFraction = (it / threshold).coerceIn(0f, 1f)
             },
             onPullDp = { state.pullOffsetDp = it },
-            canScrollBackward = { !state.gridState.canScrollBackward },
+            // 这里传的是「网格自己能不能往回滚」，不是取反后的值：
+            // DiscoverPullSession 内部已经写了 !canScrollBackward()，
+            // 以前多取反一次，导致只要不在顶部、往回一拖就开始刷新。
+            canScrollBackward = { state.gridState.canScrollBackward },
             isRefreshing = { state.refreshing || state.loading },
             onRefresh = {
                 // 与推荐页一致：松手立即把指示器顶到阈值，再开始刷新。
@@ -111,12 +115,12 @@ private fun LivePageEffects(state: LivePageStateHolder, pull: DiscoverPullSessio
             pull.animatePullTo(0f, 260f)
         }
     }
-    // 滚到底部预取下一页
+    // 滚到底部预取下一页：与推荐页同一套（drop(1) 忽略首次布局，按卡片数比较）
     LaunchedEffect(state) {
         snapshotFlow { state.gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1 }
+            .drop(1)
             .collect { last ->
-                val total = state.gridState.layoutInfo.totalItemsCount
-                if (state.cards.isNotEmpty() && total > 0 && last >= total - 2) state.loadMore()
+                if (state.cards.isNotEmpty() && last >= state.cards.size - 2) state.loadMore()
             }
     }
 }

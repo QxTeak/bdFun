@@ -2,6 +2,7 @@ package com.aritxonly.bdfun.infra.bili
 
 import com.aritxonly.bdfun.core.model.live.LiveArea
 import com.aritxonly.bdfun.core.model.live.LiveCard
+import com.aritxonly.bdfun.core.model.live.LiveFollower
 import com.aritxonly.bdfun.core.model.live.LiveHome
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -14,94 +15,84 @@ private const val liveReferer = "https://live.bilibili.com/"
 /**
  * 直播首页，照搬 PiliPlus 的 `LiveHttp.liveFeedIndex`：
  * app 端 `/xlive/app-interface/v2/index/feed`，必须 AppSign，web 的 WBI 在这条接口上无效。
+ *
+ * 参数少了会被风控：实测只带 page 时接口返回 -400（请求错误）；
+ * 补上 fnval / network / scale 后同样的 appkey+签名就能拿到 22 张卡片。
  */
 internal suspend fun BiliApiContext.liveHome(page: Int = 1): LiveHome = withContext(Dispatchers.IO) {
     val result = cancellableCatching {
-        val params = liveAppParams(mapOf("page" to page.toString()))
         val data = dataRequest(
             "/xlive/app-interface/v2/index/feed",
-            params,
+            liveAppParams(mapOf("page" to page.toString())),
             base = livePageBase,
             userAgent = BILI_APP_UA,
             headers = BILI_APP_HEADERS,
         )
         val list = data.optJSONArray("card_list") ?: return@cancellableCatching LiveHome()
-        var following = emptyList<LiveCard>()
         var areas = emptyList<LiveArea>()
         val cards = mutableListOf<LiveCard>()
         for (i in 0 until list.length()) {
             val card = list.optJSONObject(i) ?: continue
             val cardData = card.optJSONObject("card_data")
             when (card.optString("card_type")) {
-                "my_idol_v1" -> following = cardData.parseLiveCardList("my_idol_v1")
-                "area_entrance_v3" -> areas = cardData.parseLiveAreas("area_entrance_v3")
-                "small_card_v1" -> cards += cardData.parseLiveCardList("small_card_v1")
+                // 分区入口的 card_data 里是 { list: [...] }；关注直播走 portal（见 liveFollowers）。
+                "area_entrance_v3" -> areas = cardData.cardDataList("area_entrance_v3").toLiveAreas()
+                // small_card_v1 的 card_data 是「单个房间对象」，不是 list。
+                // 以前按 list 解析，22 张卡全部被丢掉，页面就只剩空白。
+                "small_card_v1" -> cardData?.optJSONObject("small_card_v1")?.toLiveCard()?.let(cards::add)
             }
         }
-        LiveHome(following, areas, cards)
+        LiveHome(emptyList(), areas, cards, hasMore = data.optInt("has_more", 0) == 1)
     }.getOrDefault(LiveHome())
-    // app 端整段拿不到时（签名被拒/接口调整），退回 web 分区列表，至少页面不是空的。
-    if (result.cards.isNotEmpty() || result.areas.isNotEmpty()) {
-        result
-    } else {
-        LiveHome(
-            following = result.following,
-            areas = liveAreaList(0L),
-            cards = webLiveList(1, 0L, 0L),
-        )
-    }
+    // 登录态的首页接口不一定下发 area_entrance_v3（实测 card_list 里只有 banner 和
+    // small_card_v1），这时按 PiliPlus 的做法补一份分区入口，否则第二行的胶囊永远是空的。
+    if (result.areas.isEmpty()) result.copy(areas = liveAreaList(0L)) else result
 }
 
-/** 分区直播流，照搬 PiliPlus 的 `LiveHttp.liveSecondList`（app 端 second/getList）。 */
+/**
+ * 分区直播流。
+ *
+ * 原来用 app 端 `second/getList`，实测（带登录 Cookie、完整 app 参数与签名、甚至补 WBI）
+ * 一直返回 -352，点了分区就是空的。BiliPai 用的 `/room/v3/area/getRoomList` 不需要签名，
+ * 实测 parent_area_id=0/1/2 都能拿到 20 条，所以改走这条。
+ */
 internal suspend fun BiliApiContext.liveRecommend(
     page: Int = 1, parentAreaId: Long = 0L, areaId: Long = 0L,
 ): List<LiveCard> = withContext(Dispatchers.IO) {
     cancellableCatching {
-        val params = liveAppParams(
+        val data = dataRequest(
+            "/room/v3/area/getRoomList",
             mapOf(
-                "area_id" to areaId.toString(),
                 "parent_area_id" to parentAreaId.toString(),
+                "area_id" to areaId.toString(),
                 "page" to page.toString(),
                 "page_size" to "20",
-                "tag_version" to "1",
-                "qn" to "0",
                 "sort_type" to "online",
             ),
-        )
-        val data = dataRequest(
-            "/xlive/app-interface/v2/second/getList",
-            params,
-            base = livePageBase,
-            userAgent = BILI_APP_UA,
-            headers = BILI_APP_HEADERS,
-        )
-        data.optJSONArray("list").toLiveCards()
-    }.getOrDefault(emptyList()).ifEmpty { webLiveList(page, parentAreaId, areaId) }
-}
-
-/** App 端接口异常时的兜底：老的 web 分区列表（有 buvid 时会话通常能过）。 */
-private suspend fun BiliApiContext.webLiveList(
-    page: Int, parentAreaId: Long, areaId: Long,
-): List<LiveCard> {
-    val params = mapOf(
-        "platform" to "web",
-        "parent_area_id" to parentAreaId.toString(),
-        "area_id" to areaId.toString(),
-        "sort_type" to "online",
-        "page" to page.toString(),
-        "page_size" to "20",
-    )
-    suspend fun once(signed: Boolean): List<LiveCard> = cancellableCatching {
-        val data = dataRequest(
-            "/xlive/web-interface/v1/second/getList",
-            params,
-            signed = signed,
             base = livePageBase,
             referer = liveReferer,
         )
         data.optJSONArray("list").toLiveCards()
     }.getOrDefault(emptyList())
-    return once(true).ifEmpty { once(false) }
+}
+
+/**
+ * 我的关注里正在直播的 UP。
+ * 和动态页顶部头像行用同一个 portal（`/x/polymer/web-dynamic/v1/portal` 的 live_users），
+ * 头像、名字、房间号天然一致；未登录时接口失败，返回空列表，页面就不显示这一行。
+ */
+internal suspend fun BiliApiContext.liveFollowers(): List<LiveFollower> = withContext(Dispatchers.IO) {
+    cancellableCatching {
+        dynamicPortal().liveUsers.map { user ->
+            LiveFollower(
+                roomId = user.roomId,
+                mid = user.mid,
+                name = user.name,
+                face = user.face,
+                title = user.title,
+            )
+        }
+    }.getOrDefault(emptyList())
 }
 
 /** 一级分区兜底列表（卡片里没有 area_entrance_v3 时用）。 */
@@ -118,11 +109,17 @@ internal suspend fun BiliApiContext.liveAreaList(parentId: Long = 0L): List<Live
             val item = list.optJSONObject(i) ?: return@mapNotNull null
             val id = item.optLong("id", 0L)
             val name = item.optString("name").orEmpty()
-            if (id <= 0L || name.isBlank()) null else LiveArea(id, name, parentId)
+            if (id <= 0L || name.isBlank()) {
+                null
+            } else {
+                // /room/v1/Area/getList 给的是「一级分区 id」，请求时当 parent_area_id 用。
+                LiveArea(id = id, name = name, parentAreaId = id, areaId = 0L)
+            }
         }
     }.getOrDefault(emptyList())
 }
 
+/** 与 PiliPlus 的 liveFeedIndex / liveSecondList 完全同一套公共参数。 */
 private fun BiliApiContext.liveAppParams(extra: Map<String, String>): MutableMap<String, String> {
     val params = mutableMapOf(
         "channel" to "master",
@@ -135,9 +132,12 @@ private fun BiliApiContext.liveAppParams(extra: Map<String, String>): MutableMap
         "device_name" to "android",
         "device_type" to "0",
         "disable_rcmd" to "0",
+        "fnval" to "912",
         "https_url_req" to "1",
         "mobi_app" to "android",
+        "network" to "wifi",
         "platform" to "android",
+        "scale" to "2",
         "statistics" to "{\"appId\":1,\"platform\":3,\"version\":\"8.43.0\",\"abtest\":\"\"}",
     )
     params.putAll(extra)
@@ -146,50 +146,58 @@ private fun BiliApiContext.liveAppParams(extra: Map<String, String>): MutableMap
     return params
 }
 
-private fun JSONObject?.parseLiveCardList(key: String): List<LiveCard> =
-    this?.optJSONObject(key)?.optJSONArray("list").toLiveCards()
-
-private fun JSONObject?.parseLiveAreas(key: String): List<LiveArea> {
-    val list = this?.optJSONObject(key)?.optJSONArray("list") ?: return emptyList()
-    val areas = ArrayList<LiveArea>(list.length())
-    for (i in 0 until list.length()) {
-        val item = list.optJSONObject(i) ?: continue
-        val parent = item.optLong("area_v2_parent_id", 0L)
-        val area = item.optLong("area_v2_id", 0L)
-        val title = item.optString("title").orEmpty()
-        // 分区入口以 parent 为主键；像「颜值」这种带 area_id 的用 area 做 key。
-        val id = if (area > 0L) area else parent
-        if (id > 0L && title.isNotBlank()) areas += LiveArea(id, title, parent)
-    }
-    return areas
-}
+/** card_data 里形如 { "<key>": { "list": [...] } } 的节点。 */
+private fun JSONObject?.cardDataList(key: String): JSONArray? =
+    this?.optJSONObject(key)?.optJSONArray("list")
 
 private fun JSONArray?.toLiveCards(): List<LiveCard> {
     if (this == null) return emptyList()
     return (0 until length()).mapNotNull { i -> optJSONObject(i)?.toLiveCard() }
 }
 
+private fun JSONArray?.toLiveAreas(): List<LiveArea> {
+    if (this == null) return emptyList()
+    val areas = ArrayList<LiveArea>(length())
+    for (i in 0 until length()) {
+        val item = optJSONObject(i) ?: continue
+        val parent = item.optLong("area_v2_parent_id", 0L)
+        val area = item.optLong("area_v2_id", 0L)
+        val name = item.optString("title").orEmpty().ifBlank { item.optString("name").orEmpty() }
+        // 选中态需要一个唯一 key：虚拟主播这类 area_v2_id 就是 0，只能退回 parent。
+        val key = if (area > 0L) area else parent
+        if (key > 0L && name.isNotBlank()) {
+            areas += LiveArea(id = key, name = name, parentAreaId = parent, areaId = area)
+        }
+    }
+    return areas
+}
+
 private fun JSONObject.toLiveCard(): LiveCard? {
     val roomId = optLong("roomid", 0L).takeIf { it > 0L }
         ?: optLong("id", 0L).takeIf { it > 0L }
         ?: return null
-    val watched = optJSONObject("watched_show")?.optString("text_small").orEmpty()
-        .ifBlank { optString("text_small").orEmpty() }
-        .ifBlank {
-            val online = optLong("online", 0L)
-            if (online > 0L) "${formatLiveCount(online)}人看过" else ""
-        }
-    val cover = optString("cover").orEmpty()
-        .ifBlank { optString("system_cover").orEmpty() }
-        .ifBlank { optString("room_cover").orEmpty() }
     return LiveCard(
         roomId = roomId,
         title = optString("title").orEmpty().ifBlank { optString("uname").orEmpty() },
         uname = optString("uname").orEmpty(),
-        cover = biliImage(cover),
-        areaName = optString("area_name").orEmpty(),
-        watchedText = watched,
+        cover = biliImage(
+            optString("cover").orEmpty()
+                .ifBlank { optString("system_cover").orEmpty() }
+                .ifBlank { optString("room_cover").orEmpty() },
+        ),
+        areaName = optString("area_name").orEmpty().ifBlank { optString("parent_area_name").orEmpty() },
+        watchedText = watchedText(),
     )
+}
+
+/** watched_show.text_large 才是「2163人看过」；text_small 是「2163」，只在缺字段时兜底。 */
+private fun JSONObject.watchedText(): String {
+    val watched = optJSONObject("watched_show")
+    watched?.optString("text_large").orEmpty().takeIf { it.isNotBlank() }?.let { return it }
+    watched?.optString("text_small").orEmpty().takeIf { it.isNotBlank() }?.let { return it }
+    optString("text_large").takeIf { it.isNotBlank() }?.let { return it }
+    val online = optLong("online", 0L)
+    return if (online > 0L) "${formatLiveCount(online)}人看过" else ""
 }
 
 private fun formatLiveCount(value: Long): String = when {

@@ -60,7 +60,8 @@ class FeedItemMapperTest {
             .put("medialist", JSONObject().put("cover", "//img/f.jpg")).put("courses", JSONObject().put("cover", "//img/e.jpg"))
             .put("music", JSONObject().put("cover", "//img/g.jpg")).put("pgc", JSONObject().put("cover", "//img/pgc.jpg"))
         val result = parseFeedItem(item(major = major))!!
-        assertEquals(('a'..'g').map { "https://img/$it.jpg@720w_405h_1c.webp" }, result.images)
+        // 动态图片保留原图 URL：缩略图裁切由界面层按显示宽度加，查看器必须拿到完整图。
+        assertEquals(('a'..'g').map { "https://img/$it.jpg" }, result.images)
         assertEquals("https://img/pgc.jpg@720w_405h_1c.webp", result.pgcCover)
     }
     @Test fun originalForwardingStillStopsAfterOneLevel() {

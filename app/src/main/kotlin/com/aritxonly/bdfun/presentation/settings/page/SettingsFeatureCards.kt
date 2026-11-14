@@ -10,6 +10,56 @@ import com.aritxonly.teak.common.settings.TeakSettingsDropdownRow
 import com.aritxonly.teak.common.settings.TeakSettingsSwitchRow
 
 @Composable
+internal fun SettingsHomeCard(runtime: SettingsPageRuntime) {
+    TeakSettingsCard(title = "首页") {
+        SettingsHomeCardRows1(runtime)
+    }
+}
+
+@Composable
+private fun SettingsHomeCardRows1(runtime: SettingsPageRuntime) {
+    val settings = runtime.settings
+    TeakSettingsSwitchRow(
+        title = "退出视频后继续播放",
+        checked = settings.showDiscAfterVideo,
+        onCheckedChange = { settings.showDiscAfterVideo = it },
+    )
+    if (settings.showDiscAfterVideo) {
+        TeakSettingsDropdownRow(
+            title = "播放控件",
+            options = listOf("画中画", "唱片"),
+            selected = settings.exitVideoControl.coerceIn(0, 1),
+            onSelected = { settings.exitVideoControl = it },
+        )
+    }
+    TeakSettingsSwitchRow(
+        title = "唱片呼吸灯",
+        description = "唱片周围出现一圈缓慢呼吸的光效",
+        checked = settings.discBreathEnabled,
+        onCheckedChange = { settings.discBreathEnabled = it },
+    )
+    if (settings.discBreathEnabled) {
+        TeakSettingsSwitchRow(
+            title = "呼吸灯跟随封面取色",
+            description = "关闭时为白色",
+            checked = settings.discBreathCoverColor,
+            onCheckedChange = { settings.discBreathCoverColor = it },
+        )
+    }
+    TeakSettingsDropdownRow(
+        title = "卡片样式",
+        options = listOf("双排", "大卡"),
+        selected = settings.homeCardStyle.coerceIn(0, 1),
+        onSelected = { settings.homeCardStyle = it },
+    )
+    TeakSettingsSwitchRow(
+        title = "首页使用 Web 端推荐",
+        checked = settings.recommendWeb,
+        onCheckedChange = { settings.recommendWeb = it },
+    )
+}
+
+@Composable
 internal fun SettingsVideoDetailCard(runtime: SettingsPageRuntime) {
     TeakSettingsCard(title = "视频详情页") {
         SettingsVideoDetailCardRows1(runtime)

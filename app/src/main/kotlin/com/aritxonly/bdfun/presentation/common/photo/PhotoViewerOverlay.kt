@@ -15,21 +15,31 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.aritxonly.teak.common.chrome.TeakChromeDefaults
+import com.aritxonly.teak.common.settings.TeakDropdownPanel
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 图片层 + 黑底 + 上方 chrome。
@@ -46,6 +56,27 @@ internal fun PhotoViewerOverlay(
     // 底色随进度淡入；拖动时同步变透明，松手退出会自然回到页面。
     val backgroundAlpha = (view.progress.value * (1f - view.dismissProgress)).coerceIn(0f, 1f)
     val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    // 关闭时只把 visible 置 false，锚点保留：否则退场动画会瞬移到 (0,0)，
+    // 看起来就是"点空白后菜单乱跳一下"。
+    var menuVisible by remember { mutableStateOf(false) }
+    var menuAnchor by remember { mutableStateOf(Rect.Zero) }
+    var menuUrl by remember { mutableStateOf("") }
+    val menuScope = rememberCoroutineScope()
+
+    fun save(urls: List<String>) {
+        if (urls.isEmpty()) return
+        menuScope.launch {
+            val (saved, total) = ImageSaver.save(context, urls)
+            context.showToast(
+                when {
+                    saved == total && total == 1 -> "已保存到相册"
+                    saved == total -> "已保存 $saved 张图片"
+                    else -> "已保存 $saved/$total 张，部分失败"
+                },
+            )
+        }
+    }
 
     // 返回键在这里拦：覆盖层在内容之后组合，BackHandler 后注册才优先，
     // 否则会被页面自己的返回处理器抢走，直接退出 Activity。
@@ -53,10 +84,60 @@ internal fun PhotoViewerOverlay(
 
     Box(Modifier.fillMaxSize().photoViewerDragGestures(view, scope, onDismiss)) {
         Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = backgroundAlpha)))
-        PhotoViewerPager(request, view, onDismiss)
+        PhotoViewerPager(request, view, onDismiss) { url, offset ->
+            // 和长按评论完全同一套：菜单锚在手指按下的那个点上，位置交给共用菜单自己收边。
+            menuUrl = url
+            menuAnchor = Rect(offset.x, offset.y, offset.x, offset.y)
+            menuVisible = true
+        }
         PhotoViewerChrome(request, view, onDismiss)
     }
+
+    val images = request.images
+    PhotoImageMenu(
+        visible = menuVisible,
+        anchor = menuAnchor,
+        onDismiss = { menuVisible = false },
+        onSaveCurrent = { save(listOf(menuUrl)) },
+        onSaveAll = { save(images) },
+        // 图片举报接口还没接，先如实提示，不做假成功。
+        onReport = { context.showToast("举报功能稍后接入") },
+    )
 }
+
+private val PhotoDangerRed = Color(0xFFE5484D)
+
+/** 长按图片弹出的菜单：和长按评论同一个玻璃菜单（TeakGlassMenu），不是设置页那种 Dropdown。 */
+@Composable
+private fun PhotoImageMenu(
+    visible: Boolean,
+    anchor: Rect,
+    onDismiss: () -> Unit,
+    onSaveCurrent: () -> Unit,
+    onSaveAll: () -> Unit,
+    onReport: () -> Unit,
+) {
+    val colors = MiuixTheme.colorScheme
+    TeakGlassMenu(
+        visible = visible,
+        onDismiss = onDismiss,
+        anchorInWindow = anchor,
+        minWidth = 168.dp,
+        maxWidth = 216.dp,
+        maxHeight = 420.dp,
+    ) {
+        CommentMenuRow("保存该图片", MenuGlyphKind.Copy, colors.onBackground) {
+            onDismiss(); onSaveCurrent()
+        }
+        CommentMenuRow("保存全部图片", MenuGlyphKind.Copy, colors.onBackground) {
+            onDismiss(); onSaveAll()
+        }
+        CommentMenuRow("举报", MenuGlyphKind.Report, PhotoDangerRed) {
+            onDismiss(); onReport()
+        }
+    }
+}
+
 
 /** Telegram 的顶部只有一个关闭按钮，底部是发起方提供的操作区，两者一起淡入淡出。 */
 @Composable
@@ -109,6 +190,7 @@ private fun PhotoViewerPager(
     request: PhotoViewerRequest,
     view: PhotoViewerTransitionState,
     onDismiss: () -> Unit,
+    onLongPress: (String, androidx.compose.ui.geometry.Offset) -> Unit,
 ) {
     val pager = rememberPagerState(
         initialPage = request.index.coerceIn(0, request.images.lastIndex),
@@ -124,6 +206,7 @@ private fun PhotoViewerPager(
             origin = origin,
             originRadiusPx = if (origin != null) request.originRadiusPx else 0f,
             onDismiss = onDismiss,
+            onLongPress = onLongPress,
         )
     }
 }

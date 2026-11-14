@@ -15,10 +15,16 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.graphics.Color
+import com.aritxonly.teak.common.material.LocalTeakBackdrop
+import kotlinx.coroutines.flow.first
+import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 
 /**
  * 窗口级图片查看器宿主。
@@ -39,6 +45,11 @@ internal fun PhotoViewerRoot(
     val view = remember { PhotoViewerTransitionState() }
     val incoming = state.request
     val spec: AnimationSpec<Float> = rememberPhotoAnimationSpec(animationsEnabled)
+    // 只在查看器可见时录制；黑底先铺一层，玻璃采样到的就是"黑底 + 大图"。
+    val viewerBackdrop = rememberLayerBackdrop {
+        drawRect(Color.Black)
+        drawContent()
+    }
 
     LaunchedEffect(incoming) {
         when {
@@ -46,6 +57,7 @@ internal fun PhotoViewerRoot(
             view.displayed != null -> view.hide(spec)
         }
     }
+
     Box(Modifier.fillMaxSize().onSizeChanged { view.size = it }) {
         // 底层页面：打开时随进度放大一点点，关闭时按同样倍数缩回；
         // 跟手拖动时再缩到 0.9。返回键的拦截放在覆盖层里（后注册才优先）。
@@ -59,7 +71,13 @@ internal fun PhotoViewerRoot(
             CompositionLocalProvider(LocalPhotoViewer provides state) { content() }
         }
         view.displayed?.let { request ->
-            PhotoViewerOverlay(request = request, view = view, onDismiss = state::close)
+            // 查看器是窗口级覆盖层，外面没有主壳的 backdrop；这里自己录一份，
+            // 长按菜单才能像别处一样采样到大图、做出真正的玻璃模糊。
+            CompositionLocalProvider(LocalTeakBackdrop provides viewerBackdrop) {
+                Box(Modifier.fillMaxSize().layerBackdrop(viewerBackdrop)) {
+                    PhotoViewerOverlay(request = request, view = view, onDismiss = state::close)
+                }
+            }
         }
     }
 }
@@ -89,6 +107,13 @@ internal class PhotoViewerTransitionState {
     var zoom by mutableFloatStateOf(1f)
     var chromeVisible by mutableStateOf(true)
     var size by mutableStateOf(IntSize.Zero)
+    /**
+     * 首页那一页是否已经知道原图真实宽高比。
+     *
+     * 入场动画必须等它：缩略图是 16:9 裁切、原图可能是 3:4，
+     * 如果动画先按 16:9 跑、加载完再改比例，几何会中途重算——看起来就是"从中间弹出来"。
+     */
+    var contentReady by mutableStateOf(false)
 
     val dismissProgress: Float
         get() = photoDismissProgress(dragY, size.height.toFloat())
@@ -97,13 +122,19 @@ internal class PhotoViewerTransitionState {
         // 已经打开时只换内容，不重播入场——Telegram 里左右翻页就是这个行为。
         if (displayed != null && progress.value > 0.99f) {
             displayed = request
+            contentReady = true
             return
         }
         displayed = request
+        contentReady = false
         progress.snapTo(0f)
         dragY = 0f
         zoom = 1f
         chromeVisible = true
+        // 等原图报出真实宽高比再开始动画；最多等 320ms，慢网也不会卡住页面。
+        kotlinx.coroutines.withTimeoutOrNull(320) {
+            snapshotFlow { contentReady }.first { it }
+        }
         progress.animateTo(1f, spec)
     }
 

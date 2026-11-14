@@ -7,14 +7,20 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Close
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -45,7 +51,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.CommentThreadFades(
             .align(Alignment.TopCenter)
             .fillMaxWidth()
             .height(headerHeight)
-            .padding(start = 16.dp),
+            .padding(start = 16.dp, end = 8.dp),
         contentAlignment = Alignment.CenterStart,
     ) {
         Text(
@@ -54,6 +60,26 @@ internal fun androidx.compose.foundation.layout.BoxScope.CommentThreadFades(
             fontSize = 15.sp,
             fontWeight = FontWeight.Medium,
         )
+        // 右上角关闭键：和返回键同一个效果、同一套尺寸比例（40dp 热区 + 22dp 图标）。
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .size(40.dp)
+                .clip(CircleShape)
+                .clickable(
+                    interactionSource = null,
+                    indication = null,
+                    onClick = { callbacks.onDismiss() },
+                ),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                imageVector = MiuixIcons.Close,
+                contentDescription = "关闭",
+                tint = colors.onBackgroundVariant,
+                modifier = Modifier.size(22.dp),
+            )
+        }
     }
     Box(
         modifier = Modifier

@@ -16,14 +16,20 @@ import com.aritxonly.teak.common.chrome.TeakGlass
 import com.kyant.shapes.Capsule
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** 直播 / 番剧两段共用的小节标题。 */
+/**
+ * 直播 / 番剧两段共用的小节标题。
+ *
+ * 字号/字重和番剧页榜单分节标题（`BangumiSectionTitle`）完全一致（20sp / Bold / 24sp 行高），
+ * 全站只保留这一份：不要再各自的页面里另写小标题样式，否则一定会漂。
+ */
 @Composable
 internal fun DiscoverSectionTitle(text: String) {
     Text(
         text = text,
         color = MiuixTheme.colorScheme.onBackground,
-        fontSize = 15.sp,
-        fontWeight = FontWeight.Medium,
+        fontSize = 20.sp,
+        lineHeight = 24.sp,
+        fontWeight = FontWeight.Bold,
         modifier = Modifier.padding(start = 2.dp, bottom = 8.dp),
     )
 }

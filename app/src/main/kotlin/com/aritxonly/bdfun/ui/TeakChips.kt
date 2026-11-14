@@ -122,16 +122,27 @@ internal fun MenuGlyphSpacer() {
 
 /** UP 标识：首页卡片与评论区共用同一套样式。 */
 @Composable
-fun UpBadge() {
+fun UpBadge() = RoleBadge("UP")
+
+/**
+ * 「主播」标识：和 UP 标识同一个组件、同一套颜色/字号，只换文字。
+ * 直播卡片上的主播名前缀用它，保证两处视觉一致。
+ */
+@Composable
+fun AnchorBadge() = RoleBadge("主播")
+
+/** 身份小胶囊的统一实现：UP / 主播 都用它，避免两处样式漂移。 */
+@Composable
+fun RoleBadge(text: String, color: Color = BrandPink) {
     Box(
         modifier = Modifier
             .clip(Capsule())
-            .background(BrandPink.copy(alpha = 0.14f))
+            .background(color.copy(alpha = 0.14f))
             .padding(horizontal = 4.dp, vertical = 1.dp),
     ) {
         Text(
-            text = "UP",
-            color = BrandPink,
+            text = text,
+            color = color,
             fontSize = 9.sp,
             lineHeight = 10.sp,
             fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold,

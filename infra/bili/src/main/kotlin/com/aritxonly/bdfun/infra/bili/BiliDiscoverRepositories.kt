@@ -13,6 +13,9 @@ class BiliLiveDiscoverRepository(private val api: BiliBackend) : LiveDiscoverRep
 
     override suspend fun list(page: Int, parentAreaId: Long, areaId: Long): com.aritxonly.bdfun.core.common.Outcome<List<LiveCard>> =
         biliOutcome { api.liveRecommend(page, parentAreaId, areaId) }
+
+    override suspend fun followers(): com.aritxonly.bdfun.core.common.Outcome<List<com.aritxonly.bdfun.core.model.live.LiveFollower>> =
+        biliOutcome { api.liveFollowers() }
 }
 
 /** 首页番剧段：最近追番 + 推荐。 */

@@ -49,7 +49,12 @@ internal class AppContainer(
             com.aritxonly.bdfun.infra.bili.live.LiveDanmakuClient(scope, webSocketFactory = api.webSocketClient))
     fun createLivePlayback(context: Context): com.aritxonly.bdfun.feature.live.presentation.LivePlaybackRuntime =
         com.aritxonly.bdfun.playback.AndroidLivePlaybackRuntime(
-            com.aritxonly.bdfun.infra.playback.Media3LivePlayback(context.applicationContext, com.aritxonly.bdfun.R.layout.teak_player_view))
+            com.aritxonly.bdfun.infra.playback.Media3LivePlayback(
+                context.applicationContext,
+                com.aritxonly.bdfun.R.layout.teak_player_view,
+                // 直播 CDN 要 Cookie/Referer，否则有地址也黑屏。
+                api.cookieHeader(),
+            ))
     fun liveRoomState(id: Long, scope: CoroutineScope, connection: LiveDanmakuConnection, playback: LivePlayback) =
         com.aritxonly.bdfun.feature.live.application.LiveRoomStateHolder(id, liveFallbackRoom(),
             liveReads, connection, playback, scope,
@@ -148,6 +153,24 @@ internal class AppContainer(
         com.aritxonly.bdfun.feature.pgc.application.BangumiPageStateHolder(
             com.aritxonly.bdfun.infra.bili.BiliPgcDiscoverRepository(api))
     }
+    val bangumiRankState by lazy {
+        com.aritxonly.bdfun.feature.pgc.application.BangumiRankStateHolder(
+            com.aritxonly.bdfun.infra.bili.BiliPgcRankRepository(api))
+    }
+    /** 单榜全量页用：每次进页面建一个，退出即丢，不占进程缓存。 */
+    fun bangumiRankBoardState(rankId: Long, oid: String, title: String) =
+        com.aritxonly.bdfun.feature.pgc.application.BangumiRankBoardStateHolder(
+            com.aritxonly.bdfun.infra.bili.BiliPgcRankRepository(api),
+            com.aritxonly.bdfun.core.model.pgc.BangumiRankTab(rankId, title, oid))
+
+    /** 番剧播放走视频详情页：这里只负责把 season 解析成首集的 bvid。 */
+    suspend fun bangumiFirstEpisode(seasonId: Long): com.aritxonly.bdfun.core.model.pgc.BangumiEpisode? =
+        when (val result = com.aritxonly.bdfun.infra.bili.BiliPgcPlaybackRepository(api).season(seasonId)) {
+            is com.aritxonly.bdfun.core.common.Outcome.Success ->
+                result.value.episodes.firstOrNull { it.sectionTitle == "正片" && it.bvid.isNotBlank() }
+                    ?: result.value.episodes.firstOrNull { it.bvid.isNotBlank() }
+            is com.aritxonly.bdfun.core.common.Outcome.Failure -> null
+        }
     private val dynamicRepository by lazy {
         BiliFeedPageRepository({ type, offset, mid -> api.dynamicPage(type, offset, mid) }, api::dynamicPortal, api::dynamicUpList, api::likeFeed)
     }

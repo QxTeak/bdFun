@@ -33,7 +33,10 @@ internal fun CommentPictures(urls: List<String>, onOpen: (Int, Rect, Float, List
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         urls.take(3).forEachIndexed { index, url ->
             AsyncImage(
-                model = rememberImageRequest(url),
+                // 缩略图按 96dp 缩小、但保持原始比例；查看器用同一张源图做中心裁切。
+                model = rememberImageRequest(
+                    com.aritxonly.bdfun.core.common.biliImageThumbUrl(url, 240),
+                ),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

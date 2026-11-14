@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,22 +44,25 @@ import com.aritxonly.bdfun.ui.rememberImageRequest
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** 第一行：最近追番，横向长封面。 */
+/** 第一项固定是「最近追番」：即使列表为空/还在加载也保留这一节，
+ *  这样网格的第 0 项永远不变，进页面就锚在顶部，不会因为数据晚到被带到榜单上。 */
 internal fun LazyGridScope.bangumiFollowSection(
     state: BangumiPageStateHolder,
     context: android.content.Context,
 ) {
-    if (state.following.isEmpty()) return
     item(key = "pgc-follow", span = { GridItemSpan(maxLineSpan) }) {
+        val openScope = rememberCoroutineScope()
         Column {
-            DiscoverSectionTitle("最近追番")
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(bottom = 2.dp),
-            ) {
-                items(state.following, key = { it.seasonId }) { item ->
-                    Box(Modifier.width(104.dp)) {
-                        BangumiCardItem(item) { openBangumi(context, item.seasonId) }
+            BangumiSectionTitle("最近追番")
+            if (state.following.isNotEmpty()) {
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(bottom = 2.dp),
+                ) {
+                    items(state.following, key = { it.seasonId }) { item ->
+                        Box(Modifier.width(104.dp)) {
+                            BangumiCardItem(item) { openBangumi(context, item.seasonId, openScope) }
+                        }
                     }
                 }
             }
@@ -115,8 +119,8 @@ internal fun BangumiCardItem(item: BangumiCard, onClick: () -> Unit) {
                 Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .height(42.dp)
-                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x4D000000)))),
+                    .height(56.dp)
+                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0x99000000)))),
             )
             if (item.followText.isNotBlank()) {
                 Text(
@@ -141,12 +145,13 @@ internal fun BangumiCardItem(item: BangumiCard, onClick: () -> Unit) {
             )
             Spacer(Modifier.height(2.dp))
             // 固定高度：没有「全x话」的卡片也留出同样空间，保证一排卡片底边齐平。
-            Box(Modifier.height(15.dp), contentAlignment = Alignment.CenterStart) {
+            Box(Modifier.height(18.dp), contentAlignment = Alignment.CenterStart) {
                 if (item.indexShow.isNotBlank()) {
                     Text(
                         text = item.indexShow,
                         color = colors.onBackgroundVariant,
                         fontSize = 10.5.sp,
+                        lineHeight = 14.sp,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -171,16 +176,40 @@ private fun androidx.compose.foundation.layout.BoxScope.BangumiVipBadge() {
     }
 }
 
-internal fun openBangumi(context: android.content.Context, seasonId: Long) {
+/** 解析首集后进视频详情页（复用它的播放/评论/交互），失败才退回网页。 */
+internal fun openBangumi(context: android.content.Context, seasonId: Long, scope: kotlinx.coroutines.CoroutineScope) {
     if (seasonId <= 0L) return
-    runCatching {
-        context.startActivity(
-            android.content.Intent(
-                android.content.Intent.ACTION_VIEW,
-                android.net.Uri.parse("https://www.bilibili.com/bangumi/play/ss$seasonId"),
-            ),
-        )
-    }.onFailure {
-        android.widget.Toast.makeText(context, "无法打开番剧", android.widget.Toast.LENGTH_SHORT).show()
+    scope.launch {
+        val bvid = runCatching { com.aritxonly.bdfun.AppGraph.bangumiFirstEpisode(seasonId) }
+            .getOrNull()?.bvid.orEmpty()
+        if (bvid.isNotBlank()) {
+            val opened = runCatching {
+                context.startActivity(
+                    android.content.Intent(context, com.aritxonly.bdfun.VideoActivity::class.java)
+                        .putExtra("bvid", bvid),
+                )
+            }.isSuccess
+            if (opened) return@launch
+        }
+        runCatching {
+            context.startActivity(
+                android.content.Intent(
+                    android.content.Intent.ACTION_VIEW,
+                    android.net.Uri.parse("https://www.bilibili.com/bangumi/play/ss$seasonId"),
+                ),
+            )
+        }.onFailure {
+            android.widget.Toast.makeText(context, "无法打开番剧", android.widget.Toast.LENGTH_SHORT).show()
+        }
+    }
+}
+
+
+/** 番剧打开动作：解析首集要发请求，所以绑定调用方的协程作用域。 */
+@androidx.compose.runtime.Composable
+internal fun rememberBangumiOpener(context: android.content.Context): (Long) -> Unit {
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
+    return androidx.compose.runtime.remember(context, scope) {
+        { seasonId: Long -> openBangumi(context, seasonId, scope) }
     }
 }

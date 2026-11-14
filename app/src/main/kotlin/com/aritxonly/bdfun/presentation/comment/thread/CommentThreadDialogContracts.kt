@@ -11,6 +11,8 @@ internal data class ThreadSheetContent(
 internal data class ThreadSheetLayout(
     val progress: Float, val minTopPx: Float, val playerBottomDp: androidx.compose.ui.unit.Dp?,
     val paneWidth: androidx.compose.ui.unit.Dp?, val imeVisible: Boolean, val navBottom: androidx.compose.ui.unit.Dp,
+    /** 主评论区是否是「视频详情平铺」布局；展开页左右留白要跟着它走。 */
+    val flatList: Boolean = false,
 )
 internal class ThreadSheetCallbacks(
     val onDismiss: () -> Unit, val onToggleSort: () -> Unit, val onExitReply: () -> Unit,

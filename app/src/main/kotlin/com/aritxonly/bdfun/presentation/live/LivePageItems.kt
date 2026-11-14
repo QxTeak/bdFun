@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,40 +28,49 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.aritxonly.bdfun.core.model.feed.FeedLiveRecommendation
 import com.aritxonly.bdfun.core.model.live.LiveArea
 import com.aritxonly.bdfun.core.model.live.LiveCard
 import com.aritxonly.bdfun.feature.live.application.LivePageStateHolder
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverErrorState
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.navigateToLogin
+import com.aritxonly.bdfun.ui.AnchorBadge
+import com.aritxonly.bdfun.ui.ContinuousCornerShape
 import com.aritxonly.bdfun.ui.FeedCardShape
-import com.aritxonly.bdfun.ui.FeedLiveCard
+import com.aritxonly.bdfun.ui.LiveAvatar
 import com.aritxonly.bdfun.ui.TeakLoading
 import com.aritxonly.bdfun.ui.rememberImageRequest
-import com.aritxonly.teak.common.chrome.TeakGlass
 import com.kyant.shapes.Capsule
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** 第一行：关注的正在直播，直接复用动态页那个圆角直播卡片。 */
-internal fun LazyGridScope.liveFollowSection(state: LivePageStateHolder) {
-    if (state.following.isEmpty()) return
+/**
+ * 第一行：我的关注里正在直播的 UP。
+ * 小标题在卡片外面（和番剧页「最近追番」同款大小/位置），圆角卡片只包住头像行。
+ */
+internal fun LazyGridScope.liveFollowSection(state: LivePageStateHolder, onOpenRoom: (Long) -> Unit) {
+    if (state.followers.isEmpty()) return
     item(key = "live-follow", span = { GridItemSpan(maxLineSpan) }) {
-        Column {
-            DiscoverSectionTitle("关注的直播")
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                contentPadding = PaddingValues(bottom = 2.dp),
+        Column(Modifier.fillMaxWidth()) {
+            // 和番剧页小节标题同一份实现（DiscoverSectionTitle：20sp Bold）。
+            DiscoverSectionTitle("正在直播")
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(ContinuousCornerShape(18.dp))
+                    .background(MiuixTheme.colorScheme.surfaceContainer)
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
             ) {
-                items(state.following, key = { it.roomId }) { live ->
-                    Box(modifier = Modifier.width(250.dp)) {
-                        FeedLiveCard(live.toFeedLive())
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    contentPadding = PaddingValues(vertical = 2.dp),
+                ) {
+                    items(state.followers, key = { it.roomId }) { user ->
+                        LiveAvatar(name = user.name, face = user.face) { onOpenRoom(user.roomId) }
                     }
                 }
             }
@@ -70,7 +78,7 @@ internal fun LazyGridScope.liveFollowSection(state: LivePageStateHolder) {
     }
 }
 
-/** 第二行：分区胶囊，收藏夹列表同款（选中没有高光描边）。 */
+/** 第二行：分区胶囊，形状/尺寸和顶栏分段指示器一致。 */
 internal fun LazyGridScope.liveAreaSection(
     state: LivePageStateHolder,
     scope: kotlinx.coroutines.CoroutineScope,
@@ -78,10 +86,10 @@ internal fun LazyGridScope.liveAreaSection(
     if (state.areas.isEmpty()) return
     item(key = "live-areas", span = { GridItemSpan(maxLineSpan) }) {
         Column {
-            Spacer(Modifier.height(if (state.following.isEmpty()) 0.dp else 12.dp))
+            Spacer(Modifier.height(if (state.followers.isEmpty()) 0.dp else 4.dp))
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 6.dp),
+                contentPadding = PaddingValues(vertical = 4.dp),
             ) {
                 item(key = "area-all") {
                     LiveAreaChip(
@@ -90,7 +98,7 @@ internal fun LazyGridScope.liveAreaSection(
                         onClick = { scope.launch { state.selectArea(LiveArea(0L, "推荐")) } },
                     )
                 }
-                items(state.areas, key = { "${it.parentId}-${it.id}" }) { area ->
+                items(state.areas, key = { "${it.parentAreaId}-${it.id}" }) { area ->
                     LiveAreaChip(
                         text = area.name,
                         selected = state.selectedKey == area.id,
@@ -124,7 +132,7 @@ internal fun LazyGridScope.livePageStateItems(
             }
         }
     }
-    if (!loggedIn && state.following.isEmpty()) {
+    if (!loggedIn && state.followers.isEmpty()) {
         item(key = "live-login", span = { GridItemSpan(maxLineSpan) }) {
             val context = LocalContext.current
             Box(
@@ -150,17 +158,22 @@ internal fun LazyGridScope.livePageStateItems(
 @Composable
 private fun LiveAreaChip(text: String, selected: Boolean, onClick: () -> Unit) {
     val colors = MiuixTheme.colorScheme
+    // 形状/尺寸和顶栏分段指示器保持一致：32dp 高、全圆角、选中粉色填充 + 白字。
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(if (selected) colors.primary else colors.surfaceContainer)
+            .height(32.dp)
+            .clip(Capsule())
+            .background(
+                if (selected) colors.primary.copy(alpha = 0.92f) else colors.surfaceContainer,
+            )
             .clickable(interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
+            .padding(horizontal = 16.dp),
+        contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
-            color = if (selected) Color.White else colors.onBackground,
-            fontSize = 12.sp,
+            color = if (selected) Color.White else colors.onBackgroundVariant,
+            fontSize = 13.sp,
             maxLines = 1,
         )
     }
@@ -217,22 +230,18 @@ internal fun LiveGridCard(live: LiveCard, onClick: () -> Unit) {
                 modifier = Modifier.heightIn(min = 36.dp),
             )
             Spacer(Modifier.height(5.dp))
-            Text(
-                text = live.uname,
-                color = colors.onBackgroundVariant,
-                fontSize = 11.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+            // 主播名前缀「主播」：和首页卡片的「UP」标签同一个组件，只换文字。
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                AnchorBadge()
+                Spacer(Modifier.width(4.dp))
+                Text(
+                    text = live.uname,
+                    color = colors.onBackgroundVariant,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }
-
-private fun LiveCard.toFeedLive() = FeedLiveRecommendation(
-    roomId = roomId,
-    title = title,
-    cover = cover,
-    live = true,
-    areaName = areaName,
-    watched = watchedText,
-)

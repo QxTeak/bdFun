@@ -40,10 +40,10 @@ internal fun parseFeedContent(major: FeedMajor, desc: String): FeedContent {
         .ifBlank { music?.s("desc").orEmpty() }
     val images = buildList {
         major.value?.optJSONObject("draw")?.optJSONArray("items")?.objects()?.forEach {
-            it.s("src").takeIf(String::isNotBlank)?.let { src -> add(image(src, 720)) }
+            it.s("src").takeIf(String::isNotBlank)?.let { src -> add(image(src, 0)) }
         }
         opus?.optJSONArray("pics")?.objects()?.forEach {
-            it.s("url").takeIf(String::isNotBlank)?.let { url -> add(image(url, 720)) }
+            it.s("url").takeIf(String::isNotBlank)?.let { url -> add(image(url, 0)) }
         }
         article?.optJSONArray("covers")?.let { covers ->
             for (i in 0 until covers.length()) {
@@ -53,14 +53,14 @@ internal fun parseFeedContent(major: FeedMajor, desc: String): FeedContent {
                     is JSONObject -> value.s("url")
                     else -> ""
                 }
-                if (url.isNotBlank()) add(image(url, 720))
+                if (url.isNotBlank()) add(image(url, 0))
             }
         }
-        common?.s("cover").orEmpty().takeIf { it.isNotBlank() }?.let { add(image(it, 720)) }
-        live?.s("cover").orEmpty().takeIf { it.isNotBlank() }?.let { add(image(it, 720)) }
-        medialist?.s("cover").orEmpty().takeIf { it.isNotBlank() }?.let { add(image(it, 720)) }
-        courses?.s("cover").orEmpty().takeIf { it.isNotBlank() }?.let { add(image(it, 720)) }
-        music?.s("cover").orEmpty().takeIf { it.isNotBlank() }?.let { add(image(it, 720)) }
+        common?.s("cover").orEmpty().takeIf { it.isNotBlank() }?.let { add(image(it, 0)) }
+        live?.s("cover").orEmpty().takeIf { it.isNotBlank() }?.let { add(image(it, 0)) }
+        medialist?.s("cover").orEmpty().takeIf { it.isNotBlank() }?.let { add(image(it, 0)) }
+        courses?.s("cover").orEmpty().takeIf { it.isNotBlank() }?.let { add(image(it, 0)) }
+        music?.s("cover").orEmpty().takeIf { it.isNotBlank() }?.let { add(image(it, 0)) }
     }.filter { it.isNotBlank() }.distinct()
     return FeedContent(title, text, images)
 }

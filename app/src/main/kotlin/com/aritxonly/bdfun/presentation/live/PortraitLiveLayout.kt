@@ -144,9 +144,16 @@ internal fun LiveRoomRender.PortraitLivePlayer() {
 @Composable
 private fun LiveRoomRender.PortraitLiveHeader() {
     Box(
+        // 顶栏也铺页面背景（BackdropGlow），只叠一层自上而下的深色渐变保证文字可读。
+        // 原来这里是纯黑色块，和下半部分有背景的画面之间会切出一条硬接缝。
         Modifier
             .fillMaxWidth()
-            .background(Color(0xFF0B0C0F)),
+            .background(
+                Brush.verticalGradient(
+                    0f to Color.Black.copy(alpha = 0.55f),
+                    1f to Color.Transparent,
+                ),
+            ),
     ) {
         LiveTopBar(
             room = room,

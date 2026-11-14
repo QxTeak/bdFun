@@ -10,15 +10,20 @@ import com.aritxonly.bdfun.core.common.Outcome
 import com.aritxonly.bdfun.core.domain.LiveDiscoverRepository
 import com.aritxonly.bdfun.core.model.live.LiveArea
 import com.aritxonly.bdfun.core.model.live.LiveCard
+import com.aritxonly.bdfun.core.model.live.LiveFollower
 
 /**
  * 首页「直播」段的状态：关注直播 + 分区 + 分区直播流。
  * 与推荐页一样由 shell 的 TrackTeakPageScroll 接管 gridState（顶栏模糊/玻璃），
  * 下拉刷新状态供 App 层小电视读取。
+ *
+ * 翻页和首页一样走同一个接口：推荐 tab 用 `/index/feed` 的下一页（PiliPlus 同款），
+ * 切到分区后才换成 `second/getList`。
  */
 internal class LivePageStateHolder(private val repository: LiveDiscoverRepository) {
     val gridState = LazyGridState()
-    var following by mutableStateOf<List<LiveCard>>(emptyList())
+    /** 我的关注里正在直播的 UP（和动态页头像行同一数据源）。 */
+    var followers by mutableStateOf<List<LiveFollower>>(emptyList())
         private set
     var areas by mutableStateOf<List<LiveArea>>(emptyList())
         private set
@@ -54,8 +59,8 @@ internal class LivePageStateHolder(private val repository: LiveDiscoverRepositor
     suspend fun selectArea(area: LiveArea) {
         if (area.id == selectedKey) return
         selectedKey = area.id
-        selectedParent = if (area.parentId > 0L) area.parentId else area.id
-        selectedSub = if (area.parentId > 0L) area.id else 0L
+        selectedParent = area.parentAreaId
+        selectedSub = area.areaId
         cards = emptyList()
         page = 1
         hasMore = true
@@ -68,15 +73,23 @@ internal class LivePageStateHolder(private val repository: LiveDiscoverRepositor
         val current = token
         loading = true
         try {
-            when (val result = repository.list(next, selectedParent, selectedSub)) {
-                is Outcome.Success -> if (current == token) {
-                    val more = result.value
-                    if (more.isEmpty()) hasMore = false else {
-                        cards = cards + more
-                        page = next
-                    }
+            val more = if (selectedKey == 0L) {
+                when (val result = repository.home(next)) {
+                    is Outcome.Success -> result.value.cards
+                    is Outcome.Failure -> return
                 }
-                is Outcome.Failure -> Unit
+            } else {
+                when (val result = repository.list(next, selectedParent, selectedSub)) {
+                    is Outcome.Success -> result.value
+                    is Outcome.Failure -> return
+                }
+            }
+            if (current != token) return
+            if (more.isEmpty()) {
+                hasMore = false
+            } else {
+                cards = cards + more
+                page = next
             }
         } finally {
             if (current == token) loading = false
@@ -91,32 +104,33 @@ internal class LivePageStateHolder(private val repository: LiveDiscoverRepositor
         if (cards.isEmpty()) loading = true
         try {
             var failure: AppError? = null
+            // 首页卡片带分区入口；关注直播单独走 portal（和动态页头像行同源）。
             val home = when (val result = repository.home(1)) {
                 is Outcome.Success -> result.value
                 is Outcome.Failure -> { failure = result.error; null }
             }
-            val list = when (val result = repository.list(1, selectedParent, selectedSub)) {
-                is Outcome.Success -> result.value
-                is Outcome.Failure -> { failure = result.error; null }
-            }
+            val followersResult = repository.followers()
+            val list = if (selectedKey == 0L) null else
+                when (val result = repository.list(1, selectedParent, selectedSub)) {
+                    is Outcome.Success -> result.value
+                    is Outcome.Failure -> { failure = result.error; null }
+                }
             if (current != token) return
+            if (followersResult is Outcome.Success) {
+                followers = followersResult.value.distinctBy { it.roomId }
+            }
             if (home != null) {
-                following = home.following
                 if (home.areas.isNotEmpty()) areas = home.areas
             }
-            // 推荐位优先用首页卡片，避免多打一次分区列表；切分区时才用 list。
-            val first = if (selectedKey == 0L && home != null && home.cards.isNotEmpty()) {
-                home.cards
-            } else {
-                list
-            }
+            val first = if (selectedKey == 0L) home?.cards else list
             if (first == null) {
                 if (cards.isEmpty()) error = failure?.readable() ?: "加载失败"
                 return
             }
             cards = first
             page = 1
-            hasMore = first.isNotEmpty()
+            // 推荐 tab 用接口的 has_more；分区列表接口没有该字段，按「这一页非空」继续。
+            hasMore = if (selectedKey == 0L) home?.hasMore ?: false else first.isNotEmpty()
             error = null
         } finally {
             if (current == token) loading = false

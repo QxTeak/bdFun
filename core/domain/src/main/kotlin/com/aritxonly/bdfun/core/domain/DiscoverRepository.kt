@@ -2,6 +2,7 @@ package com.aritxonly.bdfun.core.domain
 
 import com.aritxonly.bdfun.core.common.Outcome
 import com.aritxonly.bdfun.core.model.live.LiveCard
+import com.aritxonly.bdfun.core.model.live.LiveFollower
 import com.aritxonly.bdfun.core.model.live.LiveHome
 import com.aritxonly.bdfun.core.model.pgc.BangumiCard
 
@@ -12,6 +13,9 @@ interface LiveDiscoverRepository {
     suspend fun home(page: Int = 1): Outcome<LiveHome>
 
     suspend fun list(page: Int = 1, parentAreaId: Long = 0L, areaId: Long = 0L): Outcome<List<LiveCard>>
+
+    /** 我的关注里正在直播的 UP（动态 portal 的 live_users，和动态页头像行同源）。 */
+    suspend fun followers(): Outcome<List<LiveFollower>>
 }
 
 /**

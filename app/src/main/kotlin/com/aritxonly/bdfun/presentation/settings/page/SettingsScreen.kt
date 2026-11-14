@@ -27,6 +27,7 @@ internal fun SettingsScreen(settings: SettingsBindings, navigation: SettingsNavi
     TeakSettingsPage(title = "设置") {
         item(key = "appearance") { SettingsAppearanceCard(runtime) }
         item(key = "player") { SettingsPlayerCard(runtime) }
+        item(key = "home") { SettingsHomeCard(runtime) }
         item(key = "video_detail") { SettingsVideoDetailCard(runtime) }
         item(key = "danmaku") { SettingsDanmakuCard(runtime) }
         item(key = "dynamics") { SettingsFeedCard(runtime) }

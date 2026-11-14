@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
@@ -28,6 +30,7 @@ import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullSession
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullUi
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
@@ -42,7 +45,20 @@ internal fun BangumiPage(state: BangumiPageStateHolder) {
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val gridState = state.gridState
     val pullUi = remember { DiscoverPullUi() }
+    // 排行榜内嵌在追番下面；数据在 AppContainer，页面只做投影。
+    val rankState = com.aritxonly.bdfun.AppGraph.bangumiRankState
+    val rankUi by rankState.state.collectAsState()
     val pull = rememberBangumiPullSession(state, pullUi, scope)
+    LaunchedEffect(rankState) { rankState.ensureLoaded() }
+    // 进页面回到顶部。网格状态是单例持久的，切走再回来会留着上次的位置；
+    // 更关键的是「最近追番」比榜单晚返回，它插在榜单上面时 LazyGrid 会按锚点不动，
+    // 于是看起来一进来就停在热门动画榜。所以数据落定（loading 结束）后再回顶一次。
+    LaunchedEffect(state, state.loading) {
+        if (!state.loading) gridState.scrollToItem(0)
+    }
+    LaunchedEffect(rankUi.sections.size) {
+        if (rankUi.sections.isNotEmpty()) gridState.scrollToItem(0)
+    }
     BangumiPageEffects(state, pull, pullUi)
 
     LazyVerticalGrid(
@@ -62,13 +78,23 @@ internal fun BangumiPage(state: BangumiPageStateHolder) {
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         bangumiFollowSection(state, context)
+        bangumiRankSections(
+            sections = rankUi.sections,
+            holder = rankState,
+            onOpenSeason = { seasonId -> openBangumi(context, seasonId, scope) },
+            onOpenBoard = { section ->
+                section.tabs.firstOrNull()?.let { tab ->
+                    com.aritxonly.bdfun.BangumiRankBoardActivity.open(context, tab, section.title)
+                }
+            },
+        )
         if (state.cards.isNotEmpty()) {
             item(key = "pgc-recommend-title", span = { GridItemSpan(maxLineSpan) }) {
-                DiscoverSectionTitle("推荐")
+                BangumiSectionTitle("推荐")
             }
         }
         items(state.cards, key = { it.seasonId }) { item ->
-            BangumiCardItem(item) { openBangumi(context, item.seasonId) }
+            BangumiCardItem(item) { openBangumi(context, item.seasonId, scope) }
         }
         bangumiPageStateItems(state, scope)
     }
@@ -93,7 +119,9 @@ private fun rememberBangumiPullSession(
                 state.pullFraction = (it / threshold).coerceIn(0f, 1f)
             },
             onPullDp = { state.pullOffsetDp = it },
-            canScrollBackward = { !state.gridState.canScrollBackward },
+            // 与直播/推荐页一致：传原始 canScrollBackward，别在调用处再取反
+            // （取反会变成「不在顶部也能下拉刷新」）。
+            canScrollBackward = { state.gridState.canScrollBackward },
             isRefreshing = { state.refreshing || state.loading },
             onRefresh = {
                 // 与推荐页一致：松手立即把指示器顶到阈值，再开始刷新。
@@ -114,11 +142,14 @@ private fun BangumiPageEffects(state: BangumiPageStateHolder, pull: DiscoverPull
             pull.animatePullTo(0f, 260f)
         }
     }
+    // 与推荐页同一套：首次布局会重发一次当前索引（进入页面/从别的页回来），
+    // 不能当成用户滑到底，所以 drop(1)；比较对象是卡片数而不是 totalItemsCount
+    // （后者把小标题、榜单分节、加载/错误项也算进去，触发点会漂）。
     LaunchedEffect(state) {
         snapshotFlow { state.gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1 }
+            .drop(1)
             .collect { last ->
-                val total = state.gridState.layoutInfo.totalItemsCount
-                if (state.cards.isNotEmpty() && total > 0 && last >= total - 2) state.loadMore()
+                if (state.cards.isNotEmpty() && last >= state.cards.size - 2) state.loadMore()
             }
     }
 }
