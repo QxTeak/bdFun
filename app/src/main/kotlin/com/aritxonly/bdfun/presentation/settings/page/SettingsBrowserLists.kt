@@ -54,10 +54,9 @@ internal fun SettingsCategoryContent(session: SettingsBrowserSession, values: Ma
     val list = key(category.route) { rememberLazyListState() }
     if (category.layout != "about" && !session.navigation.searching) TrackTeakPageScroll(list)
     LaunchedEffect(category.route, session.navigation.highlight) {
-        val key = session.navigation.highlight
+        val key = session.navigation.highlight ?: return@LaunchedEffect
         val group = category.groups.indexOfFirst { g -> g.settings.any { it.prefName == key } }
         if (group >= 0) list.animateScrollToItem(group + 1)
-        else list.scrollToItem(0)
     }
     if (category.layout == "about") {
         SettingsAboutContent(session, values, runtime, controller, modifier)
