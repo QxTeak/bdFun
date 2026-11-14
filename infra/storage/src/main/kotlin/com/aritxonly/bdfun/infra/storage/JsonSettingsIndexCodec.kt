@@ -12,7 +12,7 @@ class JsonSettingsIndexCodec : SettingsIndexCodec {
             SettingsCategory(category.requiredText("name"), category.requiredText("route"),
                 category.optionalText("icon"), category.getJSONArray("groups").objects().map { group ->
                     SettingsGroup(group.requiredText("title"), group.getJSONArray("settings").objects().map(::setting))
-                })
+                }, category.optionalText("layout") ?: "settings")
         }
         SettingsIndex(categories)
         SettingsIndexImport.Success(categories)
@@ -24,11 +24,19 @@ class JsonSettingsIndexCodec : SettingsIndexCodec {
 
     private fun setting(json: JSONObject): Setting = Setting(
         json.requiredText("pref_name"), json.requiredText("type"), json.requiredText("title"),
-        json.optionalText("subtitle"), value(json.get("default")),
+        json.optionalText("subtitle"), typedValue(json.get("default"), json.optionalText("value_type")),
         if (json.has("options")) json.getJSONArray("options").objects().map {
-            SettingOption(it.requiredText("title"), value(it.get("value")))
+            SettingOption(it.requiredText("title"), typedValue(it.get("value"), json.optionalText("value_type")))
         } else emptyList(),
+        json.optionalText("storage") ?: "settings", json.optionalText("visible_when"),
+        if (json.has("inverted")) json.get("inverted").let {
+            it as? Boolean ?: throw IllegalArgumentException("inverted 必须为布尔值")
+        } else false, json.optionalText("value_type"),
     )
+
+    private fun typedValue(raw: Any, type: String?): SettingValue =
+        if (type == "decimal" && raw is Number) SettingValue.Decimal(raw.toFloat().also { require(it.isFinite()) })
+        else value(raw)
 
     private fun value(raw: Any): SettingValue = when (raw) {
         is Boolean -> SettingValue.Flag(raw)

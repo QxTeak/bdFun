@@ -44,10 +44,32 @@ class JsonSettingsIndexCodecTest {
         assertEquals(0, index.search("不存在").size)
     }
 
+    @Test fun keepsComponentAndVisibilityMetadata() {
+        val raw = """{"pref_name":"font_scale","type":"font_scale","title":"全局字号","default":1.0}"""
+        val result = codec.decode(json(raw)) as SettingsIndexImport.Success
+        assertEquals("font_scale", result.categories.single().groups.single().settings.single().type)
+        val action = """{"pref_name":"logs","type":"action","storage":"none","visible_when":"debug","title":"日志抓取","default":""}"""
+        val entry = (codec.decode(json(action)) as SettingsIndexImport.Success).categories.single().groups.single().settings.single()
+        assertEquals("none", entry.storage)
+        assertEquals("debug", entry.visibleWhen)
+    }
+
+    @Test fun numericFormattingDoesNotChangeComponentValueTypes() {
+        val raw = """{"pref_name":"speed","type":"dropdown","value_type":"decimal","title":"倍速","default":1,"options":[{"title":"1×","value":1},{"title":"1.5×","value":1.5}]}"""
+        val result = codec.decode(json(raw)) as SettingsIndexImport.Success
+        val setting = result.categories.single().groups.single().settings.single()
+        assertEquals(SettingValue.Decimal(1f), setting.default)
+        assertEquals(SettingValue.Decimal(1.5f), setting.options[1].value)
+        val file = java.io.File("../../app/src/main/assets/settings-index.json")
+        val original = codec.decode(file.readText()) as SettingsIndexImport.Success
+        val serialized = codec.decode(org.json.JSONArray(file.readText()).toString()) as SettingsIndexImport.Success
+        assertEquals(original.categories, serialized.categories)
+    }
+
     @Test fun bundledIndexIsValid() {
         val file = java.io.File("../../app/src/main/assets/settings-index.json")
         val result = codec.decode(file.readText())
         assertTrue(result.toString(), result is SettingsIndexImport.Success)
-        assertEquals(36, SettingsIndex((result as SettingsIndexImport.Success).categories).settings.size)
+        assertEquals(61, SettingsIndex((result as SettingsIndexImport.Success).categories).settings.size)
     }
 }

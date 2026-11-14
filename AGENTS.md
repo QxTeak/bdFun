@@ -585,3 +585,9 @@ HyperOS 中性色以 Deadliner 的 HyperOS 适配为准：surface 为页面层�
 ### 2026-11-14 SET-01 设置索引与原型
 
 设置索引位于 app/src/main/assets/settings-index.json，JSON 解析在 infra/storage，类型约束与搜索在 core/domain，写入通过 feature/settings/application 的显式白名单绑定调用原设置控制器，不能按任意 pref_name 直接落盘。当前索引包含首批36项开关/固定枚举；动态 CDN、文件选择、账号动作、我的页与推荐独立存储等仍沿用旧页，未宣称全量替换。HTML 原型在 docs/prototypes/settings，Android 页面尚未替换。
+
+### 2026-11-14 SET-02 索引设置 UI 与编排器
+
+设置页已改为 presentation/settings/page 的索引渲染器：一级分类、横屏双栏与页面作用域搜索。全量现有设置使用61个组件描述（含关于身份区及PR52的3个可选扩展）；不再沿用原型36项索引或旧卡片兜底。switch/dropdown/font_scale/cdn_dropdown/page_switches/mine_switch/action/developer/version保持原组件、条件与存储边界；select不得改成三级页面。第一阶段不显示分类图标，功能按钮只用Miuix Icons。编排器为 docs/settings-organizer/index.html，导出必须完整保留组件键/type/default/options/storage/visible_when/inverted/value_type，允许调整分类、分组、顺序与文案；App资产是唯一来源，运行 tools/sync-settings-catalog.py 同步。浮点组件须保留value_type=decimal，防止JSON导出1.0变1后改变类型。关于页参考Deadliner 3b561656的AboutSettings.kt，来源与MIT许可见docs/SETTINGS_DEADLINER_PROVENANCE.md；光晕只在Canvas读取动画State，卡片仅背景随320dp滚动由0.5变1。推荐扩展由启动层注入，未合入PR52时隐藏，不建立跨功能实现依赖。
+
+SET-02外壳约束：返回键、TopAppBar、大标题与滚动联动必须复用原TeakActivityScaffold/TeakLargeTitle/TrackTeakPageScroll，不画新的设置顶栏，不关掉原顶栏后自己仿制。二级页搜索仅加入原工具栏actions槽。

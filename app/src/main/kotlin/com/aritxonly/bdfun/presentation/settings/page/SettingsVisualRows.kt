@@ -36,7 +36,7 @@ internal fun DeveloperRow(
 }
 
 @Composable
-internal fun GlobalFontScaleRow(value: Float, onValueChange: (Float) -> Unit) {
+internal fun GlobalFontScaleRow(value: Float, onValueChange: (Float) -> Unit, title: String = "全局字号") {
     val min = 0.8f
     val max = 1.2f
     val ui = remember(value) { SettingsFontScalePresentationStateHolder(value) }
@@ -45,7 +45,7 @@ internal fun GlobalFontScaleRow(value: Float, onValueChange: (Float) -> Unit) {
         onValueChange = {
             ui.value = if (kotlin.math.abs(it - 1f) < 0.025f) 1f else it
         },
-        title = "全局字号",
+        title = title,
         valueText = "${(ui.value * 100).toInt()}%",
         valueRange = min..max,
         keyPoints = listOf(1f),

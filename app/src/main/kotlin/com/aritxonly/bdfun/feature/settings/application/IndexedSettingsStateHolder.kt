@@ -25,11 +25,12 @@ internal class IndexedSettingsStateHolder(
     scope: CoroutineScope,
 ) {
     private val bindings = indexedSettingBindings(repository)
+    private val stored = index.settings.filterValues { it.storage == "settings" }
     private val mutable = MutableStateFlow(IndexedSettingsState())
     val state = mutable.asStateFlow()
 
     init {
-        require(index.settings.keys.all { it in bindings }) { "索引包含未注册的存储键" }
+        require(stored.keys.all { it in bindings }) { "索引包含未注册的存储键" }
         refresh()
         scope.launch { changes.collect { refresh() } }
     }
@@ -40,6 +41,7 @@ internal class IndexedSettingsStateHolder(
 
     fun update(prefName: String, value: SettingValue): SettingUpdate {
         val setting = index.settings[prefName] ?: return SettingUpdate.Rejected("未知设置")
+        if (setting.storage != "settings") return SettingUpdate.Rejected("该组件由独立宿主处理")
         if (!index.accepts(setting, value)) return SettingUpdate.Rejected("值与设置类型或选项不匹配")
         bindings.getValue(prefName).write(value)
         refresh()
@@ -52,7 +54,7 @@ internal class IndexedSettingsStateHolder(
     }
 
     private fun refresh() {
-        val snapshot = index.settings.keys.associateWith { bindings.getValue(it).read() }
+        val snapshot = stored.keys.associateWith { bindings.getValue(it).read() }
         mutable.update { it.copy(values = snapshot) }
     }
 }

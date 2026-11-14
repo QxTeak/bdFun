@@ -1,6 +1,5 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -9,33 +8,34 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import kotlinx.coroutines.launch
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
-import com.aritxonly.teak.common.settings.TeakSettingsPage
 import androidx.compose.runtime.collectAsState
 
 @Composable
-internal fun SettingsScreen(settings: SettingsBindings, navigation: SettingsNavigation, dependencies: SettingsDependencies, loggedIn: Boolean) {
-    BackHandler(onBack = navigation.onBack)
+internal fun SettingsScreen(settings: SettingsBindings, navigation: SettingsNavigation, dependencies: SettingsDependencies, loggedIn: Boolean, indexed: com.aritxonly.bdfun.feature.settings.application.IndexedSettingsStateHolder,
+    extensions: Map<String, @Composable (com.aritxonly.bdfun.core.model.settings.Setting) -> Unit> = emptyMap()) {
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     val cdn = remember(dependencies) { dependencies.createCdn() }
     val cdnState by cdn.state.collectAsState()
     androidx.compose.runtime.DisposableEffect(cdn) { onDispose { cdn.close() } }
     LaunchedEffect(cdn) { cdn.load() }
     val pickWallpaper = rememberSettingsWallpaperPicker(settings)
-    val runtime = SettingsPageRuntime(settings, cdn, cdnState, navigation, scope, pickWallpaper, dependencies.mineLayout)
-    TeakSettingsPage(title = "设置") {
-        item(key = "appearance") { SettingsAppearanceCard(runtime) }
-        item(key = "player") { SettingsPlayerCard(runtime) }
-        item(key = "video_detail") { SettingsVideoDetailCard(runtime) }
-        item(key = "danmaku") { SettingsDanmakuCard(runtime) }
-        item(key = "dynamics") { SettingsFeedCard(runtime) }
-        item(key = "search") { SettingsSearchCard(runtime) }
-        item(key = "mine") { SettingsMineCard(runtime) }
-        item(key = "developers") { SettingsDevelopersCard(runtime) }
-        item(key = "about") { SettingsAboutCard(runtime) }
-        if (loggedIn) item(key = "account") { SettingsAccountCard(runtime) }
+    val runtime = SettingsPageRuntime(settings, cdn, cdnState, navigation, scope, pickWallpaper, dependencies.mineLayout, extensions)
+    val browser = rememberSettingsBrowser()
+    val page by browser.state.collectAsState()
+    val wide = androidx.compose.ui.platform.LocalConfiguration.current.let {
+        it.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && it.screenWidthDp >= 600
     }
+    val category = indexed.index.categories.firstOrNull { it.route == page.route }
+        ?: indexed.index.categories.firstOrNull().takeIf { wide }
+    val title = if (page.searching) "搜索设置" else category?.name ?: "设置"
+    TeakActivityScaffold(settings = settings,
+        onBack = { if (!browser.back()) navigation.onBack() },
+        options = ActivityPageOptions(title = title),
+        slots = ActivityPageSlots(topBarActions = {
+            if (category != null && !page.searching) SettingsCategorySearchButton { browser.search(category.route) }
+        }),
+    ) { SettingsBrowser(indexed, runtime, loggedIn, browser) }
 }
 
 @Composable

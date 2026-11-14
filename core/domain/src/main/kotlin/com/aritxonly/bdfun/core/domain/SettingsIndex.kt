@@ -20,11 +20,18 @@ class SettingsIndex(val categories: List<SettingsCategory>) {
         val entries = categories.flatMap { it.groups }.flatMap { it.settings }
         require(entries.size == settings.size) { "pref_name 重复" }
         categories.forEach { category ->
+            require(category.layout in setOf("settings", "about"))
             require(category.name.isNotBlank() && category.route.isNotBlank())
             category.groups.forEach { group ->
                 require(group.title.isNotBlank())
                 group.settings.forEach { setting ->
                     require(setting.prefName.matches(Regex("[a-z][a-z0-9_]*")) && setting.title.isNotBlank())
+                    require(setting.storage in setOf("settings", "mine_layout", "none"))
+                    require(setting.visibleWhen == null || setting.visibleWhen in setOf("debug", "logged_in") ||
+                        settings[setting.visibleWhen]?.default is SettingValue.Flag ||
+                        setting.type == "extension" && setting.visibleWhen == "extension:${setting.prefName}") { "未知显隐条件" }
+                    require(setting.valueType == null || setting.valueType == "decimal" && setting.default is SettingValue.Decimal)
+                    require(!setting.inverted || setting.default is SettingValue.Flag)
                     require(setting.options.map { it.value }.distinct().size == setting.options.size)
                     require(accepts(setting, setting.default)) { "默认值与类型或选项不匹配：${setting.prefName}" }
                 }
@@ -47,13 +54,14 @@ class SettingsIndex(val categories: List<SettingsCategory>) {
     }
 
     fun accepts(setting: Setting, value: SettingValue): Boolean = when (setting.type) {
-        "boolean" -> value is SettingValue.Flag
-        "string" -> value is SettingValue.Text
+        "boolean", "switch", "mine_switch" -> value is SettingValue.Flag
+        "string", "cdn_dropdown" -> value is SettingValue.Text
         "integer" -> value is SettingValue.Number
-        "decimal" -> value is SettingValue.Decimal && value.value.isFinite()
-        "string_set" -> value is SettingValue.TextSet
-        "select" -> setting.options.isNotEmpty() && setting.options.any { it.value == value } &&
+        "decimal", "font_scale" -> value is SettingValue.Decimal && value.value.isFinite()
+        "string_set", "page_switches" -> value is SettingValue.TextSet
+        "select", "dropdown" -> setting.options.isNotEmpty() && setting.options.any { it.value == value } &&
             setting.options.all { it.value::class == setting.default::class }
+        "action", "version", "developer", "app_identity", "extension" -> setting.storage == "none" && value == SettingValue.Text("")
         else -> false
     }
 }
