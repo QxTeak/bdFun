@@ -599,3 +599,7 @@ SET-02外壳约束：返回键、TopAppBar、大标题与滚动联动必须复�
 ### 2026-11-14 SET-05 一级分组与宽屏TopBar
 
 settings-seperation.json独立描述一级卡片分组及入口route/icon/color，设置值和二级页面仍以settings-index.json为唯一来源。不得复制设置项或把退出登录移入入口分组。左右栏保留真实容器大小供弹层使用，但通过LocalWideFoldTopBarOverride明确使用外层宽屏chrome策略，不能让360dp左栏误判为手机TopBar。
+
+### 2026-11-15 SET-06 搜索覆盖层与Dialog动作
+
+设置搜索覆盖层必须保留进出动画与退出帧的query/scope快照，返回先关闭搜索，不启动NavDisplay的页面预测返回。横屏仅左侧全局搜索，右侧不再显示搜索按钮；竖屏二级仍保留分类搜索。Dialog动作统一secondaryContainer.copy(alpha=.85f)底色，破坏性操作显式destructive=true并用error文字，普通按钮不受影响。

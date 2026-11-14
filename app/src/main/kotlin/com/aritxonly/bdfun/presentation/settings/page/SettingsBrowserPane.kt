@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.ui
 
 import android.content.res.Configuration
+import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -64,7 +65,7 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
             val localRuntime = SettingsPageRuntime(runtime.settings, runtime.cdn, runtime.cdnState, embedded, runtime.scope,
                 runtime.onPickWallpaper, runtime.mineLayout, runtime.extensions)
             SettingsPaneScaffold(runtime, pane, title, back, detail != null,
-                search = if (detail == null && !categories && !searching && session.selected != null) ({ session.browser.search(session.selected.route) }) else null,
+                search = if (!session.wide && detail == null && !categories && !searching && session.selected != null) ({ session.browser.search(session.selected.route) }) else null,
             ) {
                 if (detail != null) SettingsDetailContent(detail, back)
                 else SettingsPaneBody(local, values, localRuntime, controller, categories)
@@ -103,9 +104,21 @@ private fun SettingsPaneBody(session: SettingsBrowserSession, values: Map<String
                         if (categories) SettingsCategoryList(session, Modifier.fillMaxSize(), runtime)
                         else SettingsCategoryContent(session, values, runtime, controller, Modifier.fillMaxSize())
                     }
-                    if (session.navigation.searching) {
-                        val hits = searchSettingsCategories(session.categories + session.footers, session.navigation.query, session.navigation.searchRoute)
-                        SettingsSearchResults(session, hits, Modifier.fillMaxSize(), runtime)
+                    AnimatedContent(targetState = session.navigation.takeIf { it.searching },
+                        modifier = Modifier.fillMaxSize(), contentKey = { it != null },
+                        transitionSpec = {
+                            val enter = if (runtime.settings.animationsEnabled) fadeIn(tween(200, delayMillis = 50)) +
+                                slideInVertically(androidx.compose.animation.core.spring(
+                                    dampingRatio = TeakSearchTransitionDefaults.SpringDampingRatio,
+                                    stiffness = TeakSearchTransitionDefaults.SpringStiffness)) { it / 12 } else EnterTransition.None
+                            val exit = if (runtime.settings.animationsEnabled) fadeOut(tween(150)) else ExitTransition.None
+                            (enter togetherWith exit).using(SizeTransform(clip = false))
+                        }, label = "settingsSearchPanel") { snapshot ->
+                        if (snapshot != null) {
+                            val search = session.copy(navigation = snapshot.copy(searching = session.navigation.searching))
+                            val hits = searchSettingsCategories(session.categories + session.footers, snapshot.query, snapshot.searchRoute)
+                            SettingsSearchResults(search, hits, Modifier.fillMaxSize().blockTouches(!session.navigation.searching), runtime)
+                        } else Box(Modifier.fillMaxSize())
                     }
                 }
                 if (categories || session.navigation.searching) SettingsSearchDock(session)

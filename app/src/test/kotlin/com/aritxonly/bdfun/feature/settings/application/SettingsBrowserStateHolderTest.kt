@@ -91,6 +91,21 @@ class SettingsBrowserStateHolderTest {
         assertEquals("退出", page.state.value.query)
     }
 
+    @Test fun repeatedScopedSearchBackKeepsCategoryUntilPageBack() {
+        val page = SettingsBrowserStateHolder()
+        page.open("settings/player")
+        repeat(3) {
+            page.search("settings/player")
+            page.query("倍速")
+            assertTrue(page.back())
+            assertFalse(page.state.value.searching)
+            assertEquals("settings/player", page.state.value.route)
+            assertNull(page.state.value.searchRoute)
+        }
+        assertTrue(page.back())
+        assertNull(page.state.value.route)
+    }
+
     @Test fun restoredNavigationDoesNotNeedASecondLayoutState() {
         val saved = SettingsBrowserState("settings/player", true, "settings/player", "蓝牙")
         assertEquals(saved, SettingsBrowserStateHolder(saved).state.value)

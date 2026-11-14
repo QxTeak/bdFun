@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ButtonElevation
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -38,35 +39,28 @@ internal val LocalMiuixDialogActionStyle = staticCompositionLocalOf {
 
 @Composable
 private fun resolveMiuixButtonColors(
-    style: MiuixDialogActionStyle,
-    fallback: ButtonColors,
-): MiuixButtonColors = when (style) {
-    MiuixDialogActionStyle.Default -> MiuixButtonDefaults.buttonColors(
-        color = fallback.containerColor,
-        contentColor = fallback.contentColor,
-        disabledColor = fallback.disabledContainerColor,
-        disabledContentColor = fallback.disabledContentColor,
-    )
-
-    MiuixDialogActionStyle.Secondary -> MiuixButtonDefaults.buttonColors(
-        contentColor = MiuixTheme.colorScheme.onSurface,
-        disabledContentColor = MiuixTheme.colorScheme.disabledOnSurface,
-    )
-
-    MiuixDialogActionStyle.Primary -> MiuixButtonDefaults.buttonColorsPrimary()
+    style: MiuixDialogActionStyle, fallback: ButtonColors, destructive: Boolean = false,
+): MiuixButtonColors {
+    if (style == MiuixDialogActionStyle.Default) return MiuixButtonDefaults.buttonColors(
+        color = fallback.containerColor, contentColor = fallback.contentColor,
+        disabledColor = fallback.disabledContainerColor, disabledContentColor = fallback.disabledContentColor)
+    return MiuixButtonDefaults.buttonColors(
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
+        disabledColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
+        contentColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSecondaryContainer,
+        disabledContentColor = MiuixTheme.colorScheme.disabledOnSurface)
 }
 
 @Composable
 private fun resolveMiuixTextButtonColors(
-    style: MiuixDialogActionStyle,
-): MiuixTextButtonColors = when (style) {
-    MiuixDialogActionStyle.Default -> MiuixButtonDefaults.textButtonColors()
-    MiuixDialogActionStyle.Secondary -> MiuixButtonDefaults.textButtonColors(
-        textColor = MiuixTheme.colorScheme.onSurface,
-        disabledTextColor = MiuixTheme.colorScheme.disabledOnSurface,
-    )
-
-    MiuixDialogActionStyle.Primary -> MiuixButtonDefaults.textButtonColorsPrimary()
+    style: MiuixDialogActionStyle, destructive: Boolean = false,
+): MiuixTextButtonColors {
+    if (style == MiuixDialogActionStyle.Default) return MiuixButtonDefaults.textButtonColors()
+    return MiuixButtonDefaults.textButtonColors(
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
+        disabledColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
+        textColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSecondaryContainer,
+        disabledTextColor = MiuixTheme.colorScheme.disabledOnSurface)
 }
 
 private fun Modifier.miuixDialogActionWidth(style: MiuixDialogActionStyle): Modifier =
@@ -87,10 +81,11 @@ fun Button(
     contentPadding: PaddingValues = ButtonDefaults.ContentPadding,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     forceMaterial3: Boolean = false,
+    destructive: Boolean = false,
     content: @Composable RowScope.() -> Unit
 ) {
     val dialogActionStyle = LocalMiuixDialogActionStyle.current
-    val miuixColors = resolveMiuixButtonColors(dialogActionStyle, colors)
+    val miuixColors = resolveMiuixButtonColors(dialogActionStyle, colors, destructive)
     val resolvedContentColor = if (enabled) miuixColors.contentColor else miuixColors.disabledContentColor
     MiuixButton(
         onClick = onClick,
@@ -128,6 +123,7 @@ fun TextButton(
     miuixText: String = "",
     useMiuixDialogActionColors: Boolean = true,
 
+    destructive: Boolean = false,
     content: @Composable RowScope.() -> Unit
 ) {
     val dialogActionStyle = LocalMiuixDialogActionStyle.current
@@ -139,12 +135,12 @@ fun TextButton(
             modifier = miuixModifier,
             enabled = enabled,
             cornerRadius = TeakModalDefaults.ButtonCornerRadius,
-            colors = resolveMiuixTextButtonColors(dialogActionStyle),
+            colors = resolveMiuixTextButtonColors(dialogActionStyle, destructive),
         )
     } else {
         val miuixColors = resolveMiuixButtonColors(
-            style = if (useMiuixDialogActionColors) dialogActionStyle else MiuixDialogActionStyle.Default,
-            fallback = colors,
+            style = dialogActionStyle,
+            fallback = colors, destructive = destructive,
         )
         val resolvedContentColor = if (enabled) miuixColors.contentColor else miuixColors.disabledContentColor
         MiuixButton(

@@ -33,6 +33,8 @@ internal fun SettingsBrowser(controller: IndexedSettingsStateHolder, runtime: Se
     val session = SettingsBrowserSession(browser, navigation, selected, wide, categories, footers, controller.seperation)
     if (wide) SettingsSplitLayout(session, settings.values, runtime, controller)
     else SettingsPaneNavigation(session, settings.values, runtime, controller, SettingsPane.Single, Modifier.fillMaxSize())
+    // 搜索是页面上的覆盖层；必须先消费返回，不能让NavDisplay启动二级页面的预测返回。
+    BackHandler(enabled = navigation.searching || navigation.confirmLogout) { browser.back() }
 }
 
 @Composable

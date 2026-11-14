@@ -89,7 +89,7 @@ internal fun SettingsCategoryContent(session: SettingsBrowserSession, values: Ma
 @Composable
 internal fun SettingsSearchResults(session: SettingsBrowserSession, hits: List<SettingsSearchHit>, modifier: Modifier, runtime: SettingsPageRuntime) {
     val list = rememberLazyListState()
-    TrackTeakPageScroll(list)
+    if (session.navigation.searching) TrackTeakPageScroll(list)
     LazyColumn(modifier.imePadding().background(MiuixTheme.colorScheme.surface), state = list, contentPadding = settingsListPadding()) {
         item { TeakLargeTitle("搜索设置") }
         if (session.navigation.query.isBlank()) {

@@ -52,3 +52,5 @@ SET-05：新增settings-seperation.json（名称沿用需求中的seperation）�
 退出登录先设置页面作用域confirmLogout，显示原Teak/MIUIX AlertDialog；取消、关闭或系统返回均只清此状态。只有确认按钮执行原宿主logout，先清状态以阻止重复点击。对话框显示状态随设置导航保存恢复。
 
 一级卡片的可见边界间距统一16dp（包括退出登录卡片）；非经典TeakSettingsCard自带12dp顶距，列表只补4dp；经典样式补16dp。
+
+SET-06：搜索面板使用AnimatedContent按“是否打开”分配内容身份，按原Teak搜索参数淡入/位移，退出帧保留原scope/query；后注册的搜索返回处理器优先关闭覆盖层，避免NavDisplay错误预弹二级。横屏只保留左侧全局搜索，竖屏二级保留scope搜索。Dialog动作底色统一MaterialTheme.colorScheme.secondaryContainer.copy(alpha=.85f)，退出/删除显式destructive=true，文字为error。

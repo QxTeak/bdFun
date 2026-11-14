@@ -17,7 +17,7 @@ internal fun SettingsLogoutDialog(browser: SettingsBrowserStateHolder, onLogout:
                     browser.cancelLogout()
                     onLogout()
                 }
-            }, miuixText = "退出登录") { Text("退出登录") }
+            }, miuixText = "退出登录", destructive = true) { Text("退出登录") }
         }, dismissButton = {
             TextButton(onClick = browser::cancelLogout, miuixText = "取消") { Text("取消") }
         })
