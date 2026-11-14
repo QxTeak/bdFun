@@ -34,6 +34,7 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
     ) {
         // 横竖屏均保留顶部渐进模糊，并由同一宿主驱动控件玻璃。
         com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial(
+            includeStatusBar = splitPanes,
             modifier = Modifier
                 .align(if (splitPanes) Alignment.TopEnd else Alignment.TopStart)
                 .then(if (splitPanes) Modifier.width(paneLayout.detailsWidthDp.dp) else Modifier.fillMaxWidth())
