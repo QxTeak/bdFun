@@ -581,3 +581,7 @@ MainTabPager位于主壳layerBackdrop的录制树内，因此MineScreen及其资
 HyperOS 中性色以 Deadliner 的 HyperOS 适配为准：surface 为页面层（浅色 F3F3F3 / 深色 000000），surfaceContainer 为卡片层（FFFFFF / 242424）。应用层旧 surface/surfaceContainer 引用及配对前景已交换，TeakUI 标准组件仍遵循自身语义；不要再次把两个 token 的定义反转。独立 Activity、直播与主壳 Material 色板统一由 appMaterialColors 投影，粉/蓝品牌设置保持。
 
 原本显式启用平面背景的玻璃控件统一通过 TeakGlassDefaults.flatBackgroundAlpha 读取深色 0.9 / 浅色 0.96；无平面背景的默认值仍为 0，不要为纯图标按钮补背景。
+
+### 2026-11-14 SET-01 设置索引与原型
+
+设置索引位于 app/src/main/assets/settings-index.json，JSON 解析在 infra/storage，类型约束与搜索在 core/domain，写入通过 feature/settings/application 的显式白名单绑定调用原设置控制器，不能按任意 pref_name 直接落盘。当前索引包含首批36项开关/固定枚举；动态 CDN、文件选择、账号动作、我的页与推荐独立存储等仍沿用旧页，未宣称全量替换。HTML 原型在 docs/prototypes/settings，Android 页面尚未替换。

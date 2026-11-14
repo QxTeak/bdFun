@@ -1,0 +1,430 @@
+[
+  {
+    "name": "外观与显示",
+    "route": "settings/appearance",
+    "icon": "◈",
+    "groups": [
+      {
+        "title": "主题与风格",
+        "settings": [
+          {
+            "pref_name": "dark_mode",
+            "type": "select",
+            "title": "主题",
+            "default": 0,
+            "options": [
+              {
+                "title": "跟随系统",
+                "value": 0
+              },
+              {
+                "title": "浅色",
+                "value": 1
+              },
+              {
+                "title": "深色",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "pref_name": "color_style",
+            "type": "select",
+            "title": "色彩风格",
+            "default": 0,
+            "options": [
+              {
+                "title": "AC 粉",
+                "value": 0
+              },
+              {
+                "title": "Hyper 蓝",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "pref_name": "interface_style",
+            "type": "select",
+            "title": "界面风格",
+            "default": 0,
+            "options": [
+              {
+                "title": "官方",
+                "value": 0
+              },
+              {
+                "title": "经典",
+                "value": 1
+              },
+              {
+                "title": "HyperOS 4",
+                "value": 2
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "界面与动效",
+        "settings": [
+          {
+            "pref_name": "blur",
+            "type": "boolean",
+            "title": "模糊效果",
+            "default": true
+          },
+          {
+            "pref_name": "scroll_top_enabled",
+            "type": "boolean",
+            "title": "回到顶部控件",
+            "default": true
+          },
+          {
+            "pref_name": "animations_enabled",
+            "type": "boolean",
+            "title": "动态效果",
+            "default": true
+          },
+          {
+            "pref_name": "bottom_bar_raise",
+            "type": "boolean",
+            "title": "抬高底栏",
+            "default": false,
+            "subtitle": "解决未开启安卓导航条时底栏位置过低的问题"
+          },
+          {
+            "pref_name": "scroll_top_side",
+            "type": "select",
+            "title": "回到顶部控件位置",
+            "default": 1,
+            "options": [
+              {
+                "title": "左侧",
+                "value": 0
+              },
+              {
+                "title": "右侧",
+                "value": 1
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "播放与声音",
+    "route": "settings/playback",
+    "icon": "▷",
+    "groups": [
+      {
+        "title": "播放偏好",
+        "settings": [
+          {
+            "pref_name": "immersive_status",
+            "type": "boolean",
+            "title": "沉浸状态栏",
+            "default": false
+          },
+          {
+            "pref_name": "sponsor_skip",
+            "type": "boolean",
+            "title": "空降助手",
+            "default": true
+          },
+          {
+            "pref_name": "dynamic_auto_play",
+            "type": "boolean",
+            "title": "动态视频自动播放",
+            "default": true
+          },
+          {
+            "pref_name": "resume_playback",
+            "type": "boolean",
+            "title": "播放进度记忆",
+            "default": true
+          },
+          {
+            "pref_name": "gesture_brightness_volume",
+            "type": "boolean",
+            "title": "亮度/音量划动手势",
+            "default": true
+          },
+          {
+            "pref_name": "gesture_center_fullscreen",
+            "type": "boolean",
+            "title": "视频中部上下划屏切换/退出全屏模式",
+            "default": true
+          },
+          {
+            "pref_name": "gesture_boost_swipe",
+            "type": "boolean",
+            "title": "长按倍速划动调速",
+            "default": true
+          },
+          {
+            "pref_name": "show_fullscreen_time",
+            "type": "boolean",
+            "title": "全屏显示时间",
+            "default": true
+          },
+          {
+            "pref_name": "show_fullscreen_actions",
+            "type": "boolean",
+            "title": "全屏显示互动按钮",
+            "default": true
+          },
+          {
+            "pref_name": "loudness_eq",
+            "type": "boolean",
+            "title": "响度均衡",
+            "default": false
+          },
+          {
+            "pref_name": "auto_rotate",
+            "type": "boolean",
+            "title": "自动旋转",
+            "default": true
+          },
+          {
+            "pref_name": "auto_play",
+            "type": "boolean",
+            "title": "进入视频自动播放",
+            "default": true
+          },
+          {
+            "pref_name": "bt_latency_enabled",
+            "type": "boolean",
+            "title": "蓝牙耳机延迟补偿",
+            "default": false,
+            "subtitle": "检测到蓝牙耳机设备时自动校准播放延迟"
+          },
+          {
+            "pref_name": "quality",
+            "type": "select",
+            "title": "默认清晰度",
+            "default": 0,
+            "options": [
+              {
+                "title": "自动",
+                "value": 0
+              },
+              {
+                "title": "HDR",
+                "value": 125
+              },
+              {
+                "title": "4K",
+                "value": 120
+              },
+              {
+                "title": "1080P+",
+                "value": 112
+              },
+              {
+                "title": "1080P",
+                "value": 80
+              },
+              {
+                "title": "720P",
+                "value": 64
+              }
+            ]
+          },
+          {
+            "pref_name": "dynamic_auto_play_quality",
+            "type": "select",
+            "title": "动态视频清晰度",
+            "default": 64,
+            "options": [
+              {
+                "title": "1080P",
+                "value": 80
+              },
+              {
+                "title": "720P",
+                "value": 64
+              },
+              {
+                "title": "480P",
+                "value": 32
+              }
+            ]
+          },
+          {
+            "pref_name": "decoder_mode",
+            "type": "select",
+            "title": "解码方式",
+            "default": 0,
+            "options": [
+              {
+                "title": "自动",
+                "value": 0
+              },
+              {
+                "title": "硬件解码",
+                "value": 1
+              },
+              {
+                "title": "软件解码",
+                "value": 2
+              },
+              {
+                "title": "硬件解码（禁回退）",
+                "value": 3
+              }
+            ]
+          },
+          {
+            "pref_name": "codec_preference",
+            "type": "select",
+            "title": "编码偏好",
+            "default": "auto",
+            "options": [
+              {
+                "title": "自动",
+                "value": "auto"
+              },
+              {
+                "title": "AVC (H.264)",
+                "value": "avc"
+              },
+              {
+                "title": "HEVC (H.265)",
+                "value": "hevc"
+              },
+              {
+                "title": "AV1",
+                "value": "av1"
+              },
+              {
+                "title": "DVH1",
+                "value": "dvh1"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "title": "后台与退出行为",
+        "settings": [
+          {
+            "pref_name": "exit_video_control",
+            "type": "select",
+            "title": "退出视频后的控件",
+            "default": 1,
+            "options": [
+              {
+                "title": "画中画",
+                "value": 0
+              },
+              {
+                "title": "唱片",
+                "value": 1
+              }
+            ]
+          },
+          {
+            "pref_name": "background_play",
+            "type": "boolean",
+            "title": "后台播放",
+            "default": true,
+            "subtitle": "允许离开视频页后继续播放"
+          },
+          {
+            "pref_name": "stop_on_video_page_exit",
+            "type": "boolean",
+            "title": "退出视频页时停止播放",
+            "default": false
+          },
+          {
+            "pref_name": "show_disc_after_video",
+            "type": "boolean",
+            "title": "退出视频后显示唱片",
+            "default": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "弹幕与评论",
+    "route": "settings/danmaku",
+    "icon": "☷",
+    "groups": [
+      {
+        "title": "弹幕与评论",
+        "settings": [
+          {
+            "pref_name": "hot_danmaku",
+            "type": "boolean",
+            "title": "弹幕计数",
+            "default": true
+          },
+          {
+            "pref_name": "dm_low_refresh",
+            "type": "boolean",
+            "title": "降低弹幕刷新率",
+            "default": true
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "通用与搜索",
+    "route": "settings/general",
+    "icon": "⌘",
+    "groups": [
+      {
+        "title": "通用与搜索",
+        "settings": [
+          {
+            "pref_name": "show_hot_search",
+            "type": "boolean",
+            "title": "显示热搜",
+            "default": true
+          },
+          {
+            "pref_name": "show_viewer_count",
+            "type": "boolean",
+            "title": "显示正在观看人数",
+            "default": true
+          },
+          {
+            "pref_name": "smart_refresh",
+            "type": "boolean",
+            "title": "智能刷新率",
+            "default": true,
+            "subtitle": "根据画面状态自动调整屏幕刷新率"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "消息",
+    "route": "settings/message",
+    "icon": "✉",
+    "groups": [
+      {
+        "title": "消息",
+        "settings": [
+          {
+            "pref_name": "show_ip_location",
+            "type": "boolean",
+            "title": "显示评论 IP 属地",
+            "default": true
+          },
+          {
+            "pref_name": "sent_history_entry",
+            "type": "boolean",
+            "title": "显示「我的评论与弹幕」入口",
+            "default": true
+          }
+        ]
+      }
+    ]
+  }
+]
