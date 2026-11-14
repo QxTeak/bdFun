@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.kyant.shapes.Capsule
 import com.aritxonly.bdfun.core.model.feed.FeedLiveRecommendation
+import com.aritxonly.bdfun.navigateToLiveRoom
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -29,7 +30,8 @@ internal fun FeedLiveCard(live: FeedLiveRecommendation) {
     val context = LocalContext.current
     Column(Modifier.fillMaxWidth().clip(ContinuousCornerShape(12.dp))
         .background(colors.surfaceContainerHigh).clickable(enabled = live.roomId > 0) {
-            openFeedLive(context, live.roomId)
+            // 站内直播详情页，而不是甩给浏览器。
+            navigateToLiveRoom(context, live.roomId)
         }) {
         Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
             AsyncImage(model = rememberImageRequest(live.cover), contentDescription = live.title,

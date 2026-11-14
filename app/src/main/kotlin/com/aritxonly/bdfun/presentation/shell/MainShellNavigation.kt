@@ -25,7 +25,12 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
         if (index == selected) {
             // 再次点击当前页 → 刷新
             when (index) {
-                0 -> homeFeed.requestRefresh()
+                // 首页三段各有自己的刷新入口，别让直播/番剧去刷推荐。
+                0 -> when (ui.homeSection) {
+                    1 -> appScope.launch { AppGraph.livePageState.refresh() }
+                    2 -> appScope.launch { AppGraph.bangumiPageState.refresh() }
+                    else -> homeFeed.requestRefresh()
+                }
                 1 -> ui.dynamicRefreshTick++
             }
         } else {

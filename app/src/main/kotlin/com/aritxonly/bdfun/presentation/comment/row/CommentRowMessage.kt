@@ -42,8 +42,8 @@ internal fun CommentRowMessage(item: CommentItem) {
     )
     if (item.pictures.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
-        CommentPictures(item.pictures) { index, rect, radius ->
-            photo.open(item.pictures, index, rect, radius)
+        CommentPictures(item.pictures) { index, rect, radius, origins ->
+            photo.open(item.pictures, index, rect, radius, origins)
         }
     }
 }

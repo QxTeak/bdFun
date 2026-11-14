@@ -30,7 +30,10 @@ class CommentMapperTest {
         assertFalse(page.items[1].isUp)
         assertEquals(listOf(323662867632L, 323664379808L), first.previewReplies.map { it.rpid })
         assertEquals(1, page.items[1].pictures.size)
-        assertTrue(page.items[1].pictures.single().contains("@720w"))
+        // 评论配图同样保留原图：曾经拼过 @720w_405h_1c 的居中裁切，
+        // 大图查看器只能看到被裁掉的那一块，所以这里断言“没有裁切参数”。
+        assertFalse(page.items[1].pictures.single().contains("_1c"))
+        assertTrue(page.items[1].pictures.single().startsWith("https://"))
         assertEquals(253, page.total)
         assertFalse(page.isEnd)
     }

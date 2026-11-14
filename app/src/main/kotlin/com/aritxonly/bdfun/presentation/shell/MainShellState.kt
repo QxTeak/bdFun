@@ -24,6 +24,8 @@ internal data class MainShellNavigation(
 )
 internal data class MainShellChrome(
     val home: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    val live: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    val bangumi: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val dynamic: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val search: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val mine: com.aritxonly.teak.common.chrome.TeakPageScrollState,
