@@ -5,6 +5,29 @@ import org.junit.Test
 import java.util.Base64
 
 class ImClientHeadersTest {
+    @Test fun grpcTransportDoesNotSendWebCookiesOrPersistResponseCookies() {
+        var loads = 0
+        var saves = 0
+        val jar = object : okhttp3.CookieJar {
+            override fun loadForRequest(url: okhttp3.HttpUrl): List<okhttp3.Cookie> {
+                loads++
+                return listOf(okhttp3.Cookie.Builder().name("SESSDATA").value("test").domain("bilibili.com").build())
+            }
+            override fun saveFromResponse(url: okhttp3.HttpUrl, cookies: List<okhttp3.Cookie>) { saves++ }
+        }
+        val base = okhttp3.OkHttpClient.Builder().cookieJar(jar).build()
+        val grpc = imTransportClient(base)
+        val url = okhttp3.HttpUrl.Builder().scheme("https").host("app.bilibili.com").build()
+        assertTrue(grpc.cookieJar.loadForRequest(url).isEmpty())
+        grpc.cookieJar.saveFromResponse(url, emptyList())
+        assertEquals(0, loads)
+        assertEquals(0, saves)
+        assertSame(jar, base.cookieJar)
+        assertSame(base.connectionPool, grpc.connectionPool)
+        assertSame(base.dispatcher, grpc.dispatcher)
+        assertEquals("gzip", imClientEnvironmentHeaders()["grpc-encoding"])
+    }
+
     @Test fun environmentIncludesEngineAndPinnedLocaleWithoutCredentials() {
         val headers = imClientEnvironmentHeaders()
         assertEquals("cronet", headers["bili-http-engine"])

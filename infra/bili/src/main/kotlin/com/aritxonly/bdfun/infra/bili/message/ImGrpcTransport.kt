@@ -26,7 +26,7 @@ internal suspend fun BiliApiContext.imRequest(method: String, requestType: Strin
     val buvid = cookieJar.value("buvid3")
     val metadata = JSONObject().put("access_key", access).put("mobi_app", HdClientIdentity.mobiApp).put("device", "android")
         .put("build", HdClientIdentity.build).put("channel", "master").put("buvid", buvid).put("platform", "android")
-    val device = JSONObject(metadata.toString()).put("app_id", 5).put("brand", "android").put("model", "android").put("osver", "15").put("version_name", "2.0.1")
+    val device = JSONObject(metadata.toString()).apply { remove("access_key"); remove("device") }.put("app_id", 5).put("brand", "android").put("model", "android").put("osver", "15").put("version_name", "2.0.1")
     val prefix = if (legacy) "bilibili.im.interfaces.v1." else "bilibili.app.im.v1."
     val service = if (legacy) "bilibili.im.interface.v1.ImInterface" else "bilibili.app.im.v1.im"
     val bytes = imCodec.encode(prefix + requestType, value)
@@ -42,7 +42,7 @@ internal suspend fun BiliApiContext.imRequest(method: String, requestType: Strin
         .header("buvid", buvid)
         .apply { imClientEnvironmentHeaders().forEach { (name, value) -> header(name, value) } }
         .post(frame.toRequestBody("application/grpc".toMediaType())).build()
-    http.await(request).use { response ->
+    imHttp.await(request).use { response ->
         check(response.isSuccessful) { "消息服务 HTTP ${response.code}" }
         val body = checkNotNull(response.body) { "消息服务返回空响应" }.bytes()
         val trailers = response.trailers()

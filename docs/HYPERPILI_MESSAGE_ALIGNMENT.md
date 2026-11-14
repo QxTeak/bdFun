@@ -90,3 +90,7 @@ adb shell am instrument -w com.aritxonly.bdfun.debug.test/com.aritxonly.bdfun.Pr
 ### MSG-01：重新登录后 SessionUpdate 仍返回 1217
 
 用户已确认安装鉴权修复版并重新扫码后，聊天设置仍在「置顶设置」阶段返回 1217，不能再归因于旧 TV 凭据。对照固定上游 `grpc_headers.dart`，补齐此前遗漏的 `bili-http-engine: cronet`、locale、trace 与空环境头；请求体仍保持与上游一致，不猜测添加 page_type。Locale/LocaleIds 描述符由同一固定版本重新生成，其余既有协议描述符不变。新增独立 wire 样本验证 `SessionUpdateReq.session_id.private_id.talker_uid` 编码，以及语言区域头测试。缺失头是已确认的实现差异，尚无真实账号响应证明它就是 1217 根因或已恢复，需实机复测。
+
+### MSG-01：gRPC 传输与网页 Cookie 隔离
+
+用户再次确认聊天设置 1217 未恢复，且 HyperPiliPlus 同入口正常。进一步比对固定上游 `lib/utils/accounts/account_manager/account_mgr.dart`：gRPC 分支添加 grpcHeaders 后立即返回，不走 Web Cookie 装载；bdFun 此前复用带 BiliCookieJar 的客户端，实际会附加网页 Cookie。现派生共享连接池/调度器的无 Cookie gRPC 客户端，既不发送 Web Cookie，也不将 gRPC 响应 Cookie 写回 Web 登录。补齐参考压缩声明；未压缩消息继续使用标准 frame flag=0。该差异修正不能代替真实账号的成功响应，1217 根因仍待验证。
