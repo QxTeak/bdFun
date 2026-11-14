@@ -46,11 +46,11 @@ internal fun BoxScope.SettingsSearchDock(session: SettingsBrowserSession) {
     val start = if (session.wide && searching) 280.dp else 0.dp
     val width = if (session.wide && !searching) Modifier.width(280.dp) else Modifier.fillMaxWidth()
     Row(Modifier.align(Alignment.BottomStart).then(width).padding(start = start)
-        .imePadding().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 16.dp).animateContentSize(),
+        .imePadding().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp).animateContentSize(),
         horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-        TeakGlassSurface(modifier = Modifier.weight(1f).heightIn(min = 54.dp)
+        TeakGlassSurface(modifier = Modifier.weight(1f).heightIn(min = 48.dp)
             .then(if (!searching) Modifier.clickable(role = Role.Button) { session.browser.search() } else Modifier)) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 14.dp),
+            Row(Modifier.fillMaxWidth().padding(horizontal = 18.dp, vertical = 12.dp),
                 horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 Icon(MiuixIcons.Search, null, tint = MiuixTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
                 if (searching) SettingsSearchInput(session)
@@ -58,7 +58,7 @@ internal fun BoxScope.SettingsSearchDock(session: SettingsBrowserSession) {
             }
         }
         AnimatedVisibility(searching, enter = fadeIn() + expandHorizontally(), exit = fadeOut() + shrinkHorizontally()) {
-            TeakGlassIconButton(onClick = session.browser::closeSearch, size = 54.dp) {
+            TeakGlassIconButton(onClick = session.browser::closeSearch, size = 48.dp) {
                 Icon(MiuixIcons.Close, "关闭搜索", tint = MiuixTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))
             }
         }

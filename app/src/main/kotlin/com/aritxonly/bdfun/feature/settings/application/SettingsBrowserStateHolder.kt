@@ -55,3 +55,10 @@ internal fun visibleSettingsIndex(index: SettingsIndex, values: Map<String, Sett
 
 internal fun searchSettingsCategories(categories: List<SettingsCategory>, query: String, route: String?): List<SettingsSearchHit> =
     if (categories.isEmpty()) emptyList() else SettingsIndex(categories).search(query, route)
+
+/** 旧倍速dropdown按0.01容差定位，不能因JSON接入改成浮点完全相等。 */
+internal fun indexedOptionIndex(setting: Setting, value: SettingValue): Int = setting.options.indexOfFirst { option ->
+    val candidate = option.value
+    if (candidate is SettingValue.Decimal && value is SettingValue.Decimal) kotlin.math.abs(candidate.value - value.value) < .01f
+    else candidate == value
+}.coerceAtLeast(0)

@@ -4,7 +4,7 @@
 
 App 的唯一布局来源是 `app/src/main/assets/settings-index.json`。本轮以原生设置页完整清单重新建立索引，替换原型的36项示例；61个组件描述覆盖原全部设置、操作、开发者行，另含关于身份区与PR52的三个可选推荐组件。page_switches仍展开原来的六个页面开关。没有旧设置页兜底入口，原四个手写卡片文件已删除。
 
-竖屏为分类列表与二级页；横屏且宽度至少600dp使用左侧分类、右侧内容。导航和搜索由页面作用域SettingsBrowserStateHolder持有，旋转不另建选择状态。返回先关闭搜索再回分类。搜索匹配名称/说明/分组/分类/键，排除当前不满足条件的设置，结果跳转并滚动定位。页面外壳、返回键、TopAppBar和大标题/滚动/材质联动继续使用原来的TeakActivityScaffold与TeakLargeTitle/TrackTeakPageScroll，不另画顶栏；二级页只在原工具栏增加搜索按钮。一级底部柔光胶囊展开、分裂关闭按钮并跟随IME抬升；动画复用主页搜索参数。分类内从右上搜索。
+竖屏为分类列表与二级页；横屏且宽度至少600dp使用左侧分类、右侧内容。导航和搜索由页面作用域SettingsBrowserStateHolder持有，旋转不另建选择状态。返回先关闭搜索再回分类。搜索匹配名称/说明/分组/分类/键，排除当前不满足条件的设置，结果跳转并滚动定位。页面外壳、返回键、TopAppBar和大标题/滚动/材质联动继续使用原来的TeakActivityScaffold与TeakLargeTitle/TrackTeakPageScroll，不另画顶栏；二级页只在原工具栏增加搜索按钮。一级底部柔光胶囊展开、分裂关闭按钮并跟随IME抬升；搜索栏/关闭按钮高度48dp，底部间距8dp，保留系统导航/IME避让；动画复用主页搜索参数。分类内从右上搜索。
 
 普通设置仍使用现有Teak/Miuix行：dropdown仍是玻璃dropdown（包括原面板宽度、开闭行为），字号仍用原SliderPreference和吸附/松手写入；主题/色彩的260ms延迟、动画反向开关、CDN动态选项、壁纸系统选择、开发者头像、退出登录的颜色与登录/debug显隐保持。第一阶段不展示分类图标；返回/搜索/关闭仅使用Miuix Icons。
 

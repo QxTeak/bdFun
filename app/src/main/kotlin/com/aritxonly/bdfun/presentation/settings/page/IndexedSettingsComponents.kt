@@ -5,6 +5,7 @@ import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.model.settings.*
 import com.aritxonly.bdfun.feature.settings.application.IndexedSettingsStateHolder
 import com.aritxonly.bdfun.feature.settings.application.SettingUpdate
+import com.aritxonly.bdfun.feature.settings.application.indexedOptionIndex
 import com.aritxonly.teak.common.settings.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -43,7 +44,7 @@ private fun IndexedDropdown(entry: Setting, value: SettingValue, runtime: Settin
     } else entry.subtitle.orEmpty()
     TeakSettingsDropdownRow(title = entry.title, description = description,
         options = entry.options.map { it.title },
-        selected = ui.pendingDark ?: entry.options.indexOfFirst { it.value == value }.coerceAtLeast(0),
+        selected = ui.pendingDark ?: indexedOptionIndex(entry, value),
         onSelected = { index ->
             if (entry.prefName in setOf("dark_mode", "color_style")) {
                 ui.pendingDark = index

@@ -56,6 +56,14 @@ class SettingsBrowserStateHolderTest {
         assertTrue(settingsVisible(entry, emptyMap(), true, true, setOf("recommendation_toggle")))
     }
 
+    @Test fun speedDropdownRetainsOriginalToleranceAndFallback() {
+        val entry = Setting("speed", "dropdown", "倍速", null, SettingValue.Decimal(1f),
+            listOf(.5f, .75f, 1f, 1.25f).map { SettingOption("$it", SettingValue.Decimal(it)) })
+        assertEquals(2, indexedOptionIndex(entry, SettingValue.Decimal(1.001f)))
+        assertEquals(0, indexedOptionIndex(entry, SettingValue.Decimal(1.1f)))
+        assertEquals(3, indexedOptionIndex(entry, SettingValue.Decimal(1.25f)))
+    }
+
     @Test fun restoredNavigationDoesNotNeedASecondLayoutState() {
         val saved = SettingsBrowserState("settings/player", true, "settings/player", "蓝牙")
         assertEquals(saved, SettingsBrowserStateHolder(saved).state.value)
