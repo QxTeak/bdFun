@@ -9,5 +9,6 @@ internal data class ChatComposerUiState(
 internal data class PrivateChatUiState(
     val messages: List<ChatMessage> = emptyList(), val loading: Boolean = true, val loadError: Boolean = false,
     val historyCursor: Long? = null, val historyLoading: Boolean = false, val historyError: String? = null,
+    val loadErrorText: String? = null,
     val emotes: Map<String, String> = emptyMap(), val myAvatar: String = "", val composer: ChatComposerUiState = ChatComposerUiState(),
 )

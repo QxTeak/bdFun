@@ -65,11 +65,12 @@ internal fun ChatBubble(
                         .background(colors.surfaceContainerHigh),
                 )
             }
-            if (message.card != null) ChatMessageCardContent(message.card!!)
             val sharedVideo = message.sharedVideo
             if (sharedVideo != null) {
                 ChatSharedVideoCard(info = sharedVideo)
-            } else if (message.text.isNotBlank() && message.card == null) {
+            } else if (message.card != null) {
+                ChatMessageCardContent(message.card!!)
+            } else if (message.text.isNotBlank()) {
                 EmoteText(
                     content = EmoteTextContent(
                         text = message.text, extraEmotes = emotes,

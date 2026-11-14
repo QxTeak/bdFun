@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun
 
 import com.aritxonly.teak.common.chrome.TeakChromeDefaults
+import com.aritxonly.teak.common.chrome.isWideFoldTopBar
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,13 @@ import top.yukonga.miuix.kmp.blur.layerBackdrop
 
 @Composable
 internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dark: Boolean, background: Color) {
+    MainDockScrollScope(settings, shell) { modifier ->
+        MainScaffoldContent(settings, shell, dark, background, modifier)
+    }
+}
+
+@Composable
+private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellState, dark: Boolean, background: Color, modifier: Modifier) {
     val ui = shell.ui
     val session = shell.feeds.session
     val homeFeed = shell.feeds.home
@@ -25,10 +33,11 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
     val tabPagerState = shell.navigation.pager
     val backdrop = shell.backdrops.main
     val wideNavigation = shell.backdrops.wideNavigation
+    val floatingBottomSpacing = if (isWideFoldTopBar()) 0.dp else 4.dp
     val pageFloat = (tabPagerState.currentPage + tabPagerState.currentPageOffsetFraction)
         .coerceAtLeast(0f)
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(background),
     ) {
@@ -55,10 +64,10 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
             ScrollTopButton(
                 settings,
                 bottomObstruction = if (ui.showSearch || shell.bottom.showBottomSearch) 0.dp else
-                TeakFloatingTabBarDefaults.Height + when {
+                TeakFloatingTabBarDefaults.CurrentHeight + when {
                     wideNavigation -> MainWideNavigationEdgePadding
-                    settings.bottomBarRaise -> 4.dp + TeakChromeDefaults.RaisedBottomBarExtra
-                    else -> 4.dp
+                    settings.bottomBarRaise -> floatingBottomSpacing + TeakChromeDefaults.RaisedBottomBarExtra
+                    else -> floatingBottomSpacing
                 },
             )
 

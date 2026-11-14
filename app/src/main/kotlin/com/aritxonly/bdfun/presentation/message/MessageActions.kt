@@ -38,13 +38,13 @@ internal class MessageFeedActions(
     private val scope: CoroutineScope,
     private val context: Context,
     private val menu: MessageFeedMenuStateHolder,
+    private val navigate: (com.aritxonly.bdfun.core.navigation.Route) -> Unit,
 ) {
     fun load(tab: Int) { scope.launch { controller.loadPage(tab) } }
     fun loadFooter(tab: Int) { scope.launch { controller.loadFooter(tab) } }
     fun open(item: MessageItem) {
         if (controller.kind == MessageFeedKind.Like && item.likeCount > 1) {
-            context.startActivity(com.aritxonly.bdfun.navigation.createRouteIntent(context,
-                com.aritxonly.bdfun.core.navigation.Route.MessageTools("likes", item.id, count = item.likeCount, navigation = item.navigation)))
+            navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("likes", item.id, count = item.likeCount, navigation = item.navigation))
         } else openMessageItem(item, controller.kind, controller, scope, context)
     }
     fun toggleFollow(item: MessageItem) {

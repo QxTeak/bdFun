@@ -8,6 +8,18 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PrivateChatStateHolderTest {
+    @Test fun loadFailurePreservesServerReasonAndSuccessfulRetryClearsIt() = runBlocking {
+        val source = Fake()
+        source.page = { failure("测试服务端错误 (1217)") }
+        val state = holder(source) { }
+        state.load()
+        assertEquals("测试服务端错误 (1217)", state.state.value.loadErrorText)
+        source.page = { Outcome.Success(ChatMessagePage(emptyList(), null)) }
+        state.load()
+        assertNull(state.state.value.loadErrorText)
+        assertFalse(state.state.value.loadError)
+    }
+
     private val session = MessageSession("1_2", 2, 1, "对方", "", "", 0, 0, false)
     private fun message(id: Long, text: String = "$id", seq: Long = id) = ChatMessage(id, 2, 1, text, sequence = seq)
     private fun failure(text: String = "offline") = Outcome.Failure(AppError.Unknown(text))

@@ -3,6 +3,7 @@ package com.aritxonly.bdfun
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -44,11 +45,11 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainWideNavigation(
         androidx.compose.foundation.layout.Spacer(Modifier.weight(1f))
         com.aritxonly.teak.common.material.TeakGlassIconButton(
             onClick = onSearch,
-            size = TeakFloatingTabBarDefaults.Height,
+            size = TeakFloatingTabBarDefaults.CurrentHeight,
         ) {
             Icon(top.yukonga.miuix.kmp.icon.MiuixIcons.Search,
                 contentDescription = "搜索", tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(28.dp))
+                modifier = Modifier.size(TeakFloatingTabBarDefaults.DetachedIconSize))
         }
     }
 }

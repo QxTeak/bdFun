@@ -5,7 +5,8 @@ import com.aritxonly.teak.common.icons.ResourceGlyph
 import com.aritxonly.bdfun.navigateToMessageFeed
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Messages
-import top.yukonga.miuix.kmp.icon.extended.Contacts
+import top.yukonga.miuix.kmp.icon.extended.Promotions
+import com.aritxonly.bdfun.feature.message.application.replyAndMentionUnread
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -22,6 +23,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun MessageShortcutGroup(unread: Map<String, Int>, events: MessageScreenEvents) {
     val colors = MiuixTheme.colorScheme
+    val navigation = LocalMessageNavigation.current
     val context = LocalContext.current
     Row(
         modifier = Modifier
@@ -33,10 +35,10 @@ internal fun MessageShortcutGroup(unread: Map<String, Int>, events: MessageScree
         horizontalArrangement = Arrangement.spacedBy(4.dp),
     ) {
         MessageShortcut(
-            label = "回复我的",
+            label = "回复与@",
             modifier = Modifier.weight(1f),
             onClick = events.onOpenReplies,
-            unread = unread["reply"] ?: 0,
+            unread = unread.replyAndMentionUnread(),
         ) { androidx.compose.material3.Icon(MiuixIcons.Messages, null, Modifier.size(ShortcutGlyphSize), tint = MessageGreen) }
         MessageShortcut(
             label = "收到喜欢",
@@ -44,16 +46,10 @@ internal fun MessageShortcutGroup(unread: Map<String, Int>, events: MessageScree
             onClick = events.onOpenLikes,
             unread = unread["like"] ?: 0,
         ) { ResourceGlyph(res = TeakIcon.Like, tint = MessagePink, size = ShortcutGlyphSize) }
-        MessageShortcut(
-            label = "@我",
-            modifier = Modifier.weight(1f),
-            onClick = { navigateToMessageFeed(context, "at") },
-            unread = unread["at"] ?: 0,
-        ) { androidx.compose.material3.Icon(MiuixIcons.Contacts, null, Modifier.size(ShortcutGlyphSize), tint = MessageBlue) }
         MessageShortcut(label = "系统通知", modifier = Modifier.weight(1f),
             unread = unread["sys_msg"] ?: 0,
-            onClick = { navigateToMessageFeed(context, "system") }) {
-            androidx.compose.material3.Icon(MiuixIcons.Messages, null, Modifier.size(ShortcutGlyphSize), tint = colors.primary)
+            onClick = { navigation?.feed?.invoke(MessageFeedKind.System, 0) ?: navigateToMessageFeed(context, "system") }) {
+            androidx.compose.material3.Icon(MiuixIcons.Promotions, null, Modifier.size(ShortcutGlyphSize), tint = colors.primary)
         }
     }
 }

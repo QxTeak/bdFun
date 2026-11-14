@@ -45,13 +45,13 @@ internal fun MessageShortcut(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(
-            modifier = Modifier.size(58.dp),
+            modifier = Modifier.size(48.dp),
             contentAlignment = Alignment.Center,
         ) {
             UnreadBadgeHost(unread) { glyph() }
         }
         Spacer(Modifier.height(7.dp))
-        Text(text = label, color = colors.onBackground, fontSize = 13.sp)
+        Text(text = label, color = colors.onBackground, fontSize = 12.sp)
     }
 }
 
@@ -68,7 +68,7 @@ internal fun MessageTab(label: String, selected: Boolean, onClick: () -> Unit) {
         Text(
             text = label,
             color = if (selected) BrandPink else colors.onBackground,
-            fontSize = 13.sp,
+            fontSize = 12.sp,
             fontWeight = if (selected) FontWeight.Normal else FontWeight.Normal,
         )
     }

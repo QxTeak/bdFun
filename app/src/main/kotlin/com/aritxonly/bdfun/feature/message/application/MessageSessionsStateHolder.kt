@@ -137,3 +137,9 @@ internal class MessageSessionsStateHolder(private val repository: MessageSession
         names[item.id]?.let { item.copy(name = it.name, avatar = it.avatar) } ?: item
     }
 }
+
+internal fun MessageSessionsUiState.visibleSessions(followingOnly: Boolean): List<MessageSession> =
+    if (followingOnly) sessions.filter { it.followed } else sessions
+
+internal fun Map<String, Int>.replyAndMentionUnread(): Int =
+    (get("reply") ?: 0) + (get("at") ?: 0)

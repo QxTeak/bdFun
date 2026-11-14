@@ -10,6 +10,6 @@ internal fun PrivateChatMessages(
     session: MessageSession, listState: LazyListState, onRetry: () -> Unit, onHistory: () -> Unit,
 ) {
     if (content.loading) PrivateChatLoading()
-    else if (content.loadError) PrivateChatLoadError(onRetry)
+    else if (content.loadError) PrivateChatLoadError(content.loadErrorText, onRetry)
     else PrivateChatMessageList(content, session, listState, onHistory)
 }

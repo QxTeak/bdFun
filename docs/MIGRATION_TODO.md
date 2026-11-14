@@ -457,3 +457,7 @@ P5-* 依赖 P4-05，且需要团队同意
 ## MSG-01 · PiliPlus 消息行为对齐
 
 本任务为已迁移消息域上的行为补齐，不改变 Teak 页面风格。范围、固定参考版本、协议来源及实机验收清单见 HYPERPILI_MESSAGE_ALIGNMENT.md。自动测试与构建结果在对应 PR 中记录；完整登录行为须由实机回归确认。
+
+### MSG-02 · 聊天设置置顶读取 1217
+
+未解决问题统一跟踪于 [Issue #53](https://github.com/QxTeak/bdFun/issues/53)，不随 PR #51 合并关闭。

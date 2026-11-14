@@ -29,11 +29,11 @@ internal fun PrivateChatLoading() {
 }
 
 @Composable
-internal fun PrivateChatLoadError(onRetry: () -> Unit) {
+internal fun PrivateChatLoadError(detail: String?, onRetry: () -> Unit) {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
-                "消息加载失败",
+                detail?.takeIf { it.isNotBlank() }?.let { "消息加载失败：$it" } ?: "消息加载失败",
                 color = MiuixTheme.colorScheme.onBackgroundVariant,
                 fontSize = 13.sp,
             )

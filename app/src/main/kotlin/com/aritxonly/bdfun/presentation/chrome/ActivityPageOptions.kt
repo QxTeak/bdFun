@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.RowScope
 internal data class ActivityPageOptions(val backRevealed: Boolean? = null, val showBackButton: Boolean = true,
     val title: String? = null, val limitContentWidth: Boolean = true, val showTopBar: Boolean = true,
     val showScrollTop: Boolean = true, val titleAlwaysVisible: Boolean = false,
-    val barBlurFraction: Float = 1f, val topBarGlyphColor: Color? = null)
+    val topBarMaterialProgress: Float? = null, val barBlurFraction: Float = 1f, val topBarGlyphColor: Color? = null)
 @Immutable
 internal data class ActivityDiscOptions(val showBackgroundDisc: Boolean = true,
     val discLift: Dp = 0.dp, val discEndPadding: Dp? = null)
