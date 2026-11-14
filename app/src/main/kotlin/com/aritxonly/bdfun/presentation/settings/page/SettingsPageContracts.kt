@@ -15,4 +15,5 @@ internal class SettingsPageRuntime(
     val settings: SettingsBindings, val cdn: CdnSettingsStateHolder, val cdnState: CdnSettingsUiState,
     val navigation: SettingsNavigation, val scope: kotlinx.coroutines.CoroutineScope, val onPickWallpaper: () -> Unit,
     val mineLayout: com.aritxonly.bdfun.core.application.MineLayoutStateHolder,
+    val extensions: Map<String, @androidx.compose.runtime.Composable (com.aritxonly.bdfun.core.model.settings.Setting) -> Unit> = emptyMap(),
 )

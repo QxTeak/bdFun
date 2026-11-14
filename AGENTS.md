@@ -581,3 +581,17 @@ MainTabPager位于主壳layerBackdrop的录制树内，因此MineScreen及其资
 HyperOS 中性色以 Deadliner 的 HyperOS 适配为准：surface 为页面层（浅色 F3F3F3 / 深色 000000），surfaceContainer 为卡片层（FFFFFF / 242424）。应用层旧 surface/surfaceContainer 引用及配对前景已交换，TeakUI 标准组件仍遵循自身语义；不要再次把两个 token 的定义反转。独立 Activity、直播与主壳 Material 色板统一由 appMaterialColors 投影，粉/蓝品牌设置保持。
 
 原本显式启用平面背景的玻璃控件统一通过 TeakGlassDefaults.flatBackgroundAlpha 读取深色 0.9 / 浅色 0.96；无平面背景的默认值仍为 0，不要为纯图标按钮补背景。
+
+### 2026-11-14 SET-01 设置索引与原型
+
+设置索引位于 app/src/main/assets/settings-index.json，JSON 解析在 infra/storage，类型约束与搜索在 core/domain，写入通过 feature/settings/application 的显式白名单绑定调用原设置控制器，不能按任意 pref_name 直接落盘。当前索引包含首批36项开关/固定枚举；动态 CDN、文件选择、账号动作、我的页与推荐独立存储等仍沿用旧页，未宣称全量替换。HTML 原型在 docs/prototypes/settings，Android 页面尚未替换。
+
+### 2026-11-14 SET-02 索引设置 UI 与编排器
+
+设置页已改为 presentation/settings/page 的索引渲染器：一级分类、横屏双栏与页面作用域搜索。全量现有设置使用61个组件描述（含关于身份区及PR52的3个可选扩展）；不再沿用原型36项索引或旧卡片兜底。switch/dropdown/font_scale/cdn_dropdown/page_switches/mine_switch/action/developer/version保持原组件、条件与存储边界；select不得改成三级页面。第一阶段不显示分类图标，功能按钮只用Miuix Icons。编排器为 docs/settings-organizer/index.html，导出必须完整保留组件键/type/default/options/storage/visible_when/inverted/value_type，允许调整分类、分组、顺序与文案；App资产是唯一来源，运行 tools/sync-settings-catalog.py 同步。浮点组件须保留value_type=decimal，防止JSON导出1.0变1后改变类型。关于页参考Deadliner 3b561656的AboutSettings.kt，来源与MIT许可见docs/SETTINGS_DEADLINER_PROVENANCE.md；光晕只在Canvas读取动画State，卡片仅背景随320dp滚动由0.5变1。推荐扩展由启动层注入，未合入PR52时隐藏，不建立跨功能实现依赖。
+
+SET-02外壳约束：返回键、TopAppBar、大标题与滚动联动必须复用原TeakActivityScaffold/TeakLargeTitle/TrackTeakPageScroll，不画新的设置顶栏，不关掉原顶栏后自己仿制。二级页搜索仅加入原工具栏actions槽。
+
+### 2026-11-14 SET-03 独立分栏与一级退出登录
+
+横屏设置必须覆盖窗口全宽，左右分别使用原TeakPageScaffold（竖屏仍由TeakActivityScaffold装配），不在一个受内容最大宽度约束的外壳内摆两列。每栏独立PageChrome/滚动/搜索/popup/backdrop，并按栏尺寸提供窗口上下文。默认分配3:7，左栏下限360dp；拖动分隔线改变比例，右栏取剩余空间。竖屏继续单壳。退出登录是layout=root_footer中的原动作，登录后在一级列表最底部独立卡片呈现，不生成账号二级页。
