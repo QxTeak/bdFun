@@ -647,7 +647,7 @@ window.SETTINGS_CATALOG = [
     ]
   },
   {
-    "name": "关于 App",
+    "name": "关于",
     "route": "settings/about",
     "groups": [
       {
