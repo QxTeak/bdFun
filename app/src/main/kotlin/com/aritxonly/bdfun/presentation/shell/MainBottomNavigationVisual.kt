@@ -44,7 +44,7 @@ internal fun rememberMainBottomNavigationVisual(
     )
     // 底部唱片出现时，底栏本身的高度和宽度完全不动，只是整体向左让位。
     //
-    // 底栏不是满屏宽：三个 Tab 每个最多 72dp，所以它只有 216dp。
+    // 底栏不是满屏宽：三个 Tab 每个最多 88dp，所以它只有 264dp。
     // 有唱片时，底栏 + 8dp 缝隙 + 唱片作为“一组”整体居中，
     // 底栏离屏幕左边的距离 = 唱片离屏幕右边的距离。
     val windowWidthDp = LocalConfiguration.current.screenWidthDp.dp

@@ -85,3 +85,7 @@ Run `:app:assembleDebug :app:testDebugUnitTest :TeakUI:testDebugUnitTest`. Host 
 - 手动视觉验收待完成：浅色/深色、回复框开关、竖横屏切换、搜索进退场、底栏抬高和系统导航栏。此项不代表 issue #16 已全量完成。
 
 验证：最新 `:app:assembleRelease :app:testDebugUnitTest` 通过，424 个 app JVM 测试全部通过，分层检查与 diff 空白检查通过。release APK 沿用本地 debug 签名回退；当前无连接模拟器，装机视觉验收仍待完成。
+
+### 2026-11-14 · issue #16 单项宽度微调
+
+单个 Tab 最大宽度从 72dp 增至 88dp（+16dp），整体胶囊上限保持 320dp；唱片让位和搜索 dock 宽度沿用同一默认值计算。此项为 bdFun 的产品差异，不同步修改 Deadliner。
