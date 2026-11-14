@@ -12,6 +12,7 @@ internal data class SettingsBrowserState(
     val searchRoute: String? = null,
     val query: String = "",
     val highlight: String? = null,
+    val splitFraction: Float = SettingsSplitPolicy.DefaultFraction,
 )
 
 /** 页面拥有自己的搜索和导航；旋转只改变布局，不另建一份选择状态。 */
@@ -20,17 +21,21 @@ internal class SettingsBrowserStateHolder(initial: SettingsBrowserState = Settin
     val state = mutable.asStateFlow()
 
     fun open(route: String, prefName: String? = null) {
-        mutable.value = SettingsBrowserState(route = route, highlight = prefName)
+        mutable.update { it.copy(route = route, searching = false, searchRoute = null, query = "", highlight = prefName) }
     }
     fun search(route: String? = null) {
         mutable.update { it.copy(searching = true, searchRoute = route, query = "", highlight = null) }
     }
+    fun resize(totalWidth: Float, deltaDp: Float) {
+        mutable.update { it.copy(splitFraction = SettingsSplitPolicy.drag(totalWidth, it.splitFraction, deltaDp)) }
+    }
+    fun split(fraction: Float) { if (fraction.isFinite()) mutable.update { it.copy(splitFraction = fraction.coerceIn(0f, 1f)) } }
     fun query(value: String) { mutable.update { it.copy(query = value) } }
     fun closeSearch() { mutable.update { it.copy(searching = false, query = "", searchRoute = null) } }
     fun clearHighlight(key: String) { mutable.update { if (it.highlight == key) it.copy(highlight = null) else it } }
     fun back(): Boolean = when {
         state.value.searching -> { closeSearch(); true }
-        state.value.route != null -> { mutable.value = SettingsBrowserState(); true }
+        state.value.route != null -> { mutable.update { SettingsBrowserState(splitFraction = it.splitFraction) }; true }
         else -> false
     }
 }

@@ -782,6 +782,7 @@
           }
         ]
       }
-    ]
+    ],
+    "layout": "root_footer"
   }
 ]

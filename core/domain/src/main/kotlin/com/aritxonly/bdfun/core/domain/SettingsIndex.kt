@@ -20,12 +20,14 @@ class SettingsIndex(val categories: List<SettingsCategory>) {
         val entries = categories.flatMap { it.groups }.flatMap { it.settings }
         require(entries.size == settings.size) { "pref_name 重复" }
         categories.forEach { category ->
-            require(category.layout in setOf("settings", "about"))
+            require(category.layout in setOf("settings", "about", "root_footer"))
             require(category.name.isNotBlank() && category.route.isNotBlank())
             category.groups.forEach { group ->
                 require(group.title.isNotBlank())
                 group.settings.forEach { setting ->
                     require(setting.prefName.matches(Regex("[a-z][a-z0-9_]*")) && setting.title.isNotBlank())
+                    require(category.layout != "root_footer" || setting.type == "action" && setting.storage == "none")
+                    require(setting.prefName != "logout" || category.layout == "root_footer") { "退出登录必须位于一级页面底部" }
                     require(setting.storage in setOf("settings", "mine_layout", "none"))
                     require(setting.visibleWhen == null || setting.visibleWhen in setOf("debug", "logged_in") ||
                         settings[setting.visibleWhen]?.default is SettingValue.Flag ||

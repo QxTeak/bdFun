@@ -22,20 +22,7 @@ internal fun SettingsScreen(settings: SettingsBindings, navigation: SettingsNavi
     val pickWallpaper = rememberSettingsWallpaperPicker(settings)
     val runtime = SettingsPageRuntime(settings, cdn, cdnState, navigation, scope, pickWallpaper, dependencies.mineLayout, extensions)
     val browser = rememberSettingsBrowser()
-    val page by browser.state.collectAsState()
-    val wide = androidx.compose.ui.platform.LocalConfiguration.current.let {
-        it.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE && it.screenWidthDp >= 600
-    }
-    val category = indexed.index.categories.firstOrNull { it.route == page.route }
-        ?: indexed.index.categories.firstOrNull().takeIf { wide }
-    val title = if (page.searching) "搜索设置" else category?.name ?: "设置"
-    TeakActivityScaffold(settings = settings,
-        onBack = { if (!browser.back()) navigation.onBack() },
-        options = ActivityPageOptions(title = title),
-        slots = ActivityPageSlots(topBarActions = {
-            if (category != null && !page.searching) SettingsCategorySearchButton { browser.search(category.route) }
-        }),
-    ) { SettingsBrowser(indexed, runtime, loggedIn, browser) }
+    SettingsBrowser(indexed, runtime, loggedIn, browser)
 }
 
 @Composable

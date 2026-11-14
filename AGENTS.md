@@ -591,3 +591,7 @@ HyperOS 中性色以 Deadliner 的 HyperOS 适配为准：surface 为页面层�
 设置页已改为 presentation/settings/page 的索引渲染器：一级分类、横屏双栏与页面作用域搜索。全量现有设置使用61个组件描述（含关于身份区及PR52的3个可选扩展）；不再沿用原型36项索引或旧卡片兜底。switch/dropdown/font_scale/cdn_dropdown/page_switches/mine_switch/action/developer/version保持原组件、条件与存储边界；select不得改成三级页面。第一阶段不显示分类图标，功能按钮只用Miuix Icons。编排器为 docs/settings-organizer/index.html，导出必须完整保留组件键/type/default/options/storage/visible_when/inverted/value_type，允许调整分类、分组、顺序与文案；App资产是唯一来源，运行 tools/sync-settings-catalog.py 同步。浮点组件须保留value_type=decimal，防止JSON导出1.0变1后改变类型。关于页参考Deadliner 3b561656的AboutSettings.kt，来源与MIT许可见docs/SETTINGS_DEADLINER_PROVENANCE.md；光晕只在Canvas读取动画State，卡片仅背景随320dp滚动由0.5变1。推荐扩展由启动层注入，未合入PR52时隐藏，不建立跨功能实现依赖。
 
 SET-02外壳约束：返回键、TopAppBar、大标题与滚动联动必须复用原TeakActivityScaffold/TeakLargeTitle/TrackTeakPageScroll，不画新的设置顶栏，不关掉原顶栏后自己仿制。二级页搜索仅加入原工具栏actions槽。
+
+### 2026-11-14 SET-03 独立分栏与一级退出登录
+
+横屏设置必须覆盖窗口全宽，左右分别使用原TeakPageScaffold（竖屏仍由TeakActivityScaffold装配），不在一个受内容最大宽度约束的外壳内摆两列。每栏独立PageChrome/滚动/搜索/popup/backdrop，并按栏尺寸提供窗口上下文。默认分配3:7，左栏下限360dp；拖动分隔线改变比例，右栏取剩余空间。竖屏继续单壳。退出登录是layout=root_footer中的原动作，登录后在一级列表最底部独立卡片呈现，不生成账号二级页。

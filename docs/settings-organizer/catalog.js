@@ -783,6 +783,7 @@ window.SETTINGS_CATALOG = [
           }
         ]
       }
-    ]
+    ],
+    "layout": "root_footer"
   }
 ];

@@ -40,7 +40,7 @@ class SettingsBrowserStateHolderTest {
         val debug = action.copy(prefName = "logs", title = "日志", visibleWhen = "debug")
         val index = SettingsIndex(listOf(
             SettingsCategory("外观", "settings/appearance", null, listOf(SettingsGroup("显示", listOf(toggle, dependent)))),
-            SettingsCategory("账号", "settings/account", null, listOf(SettingsGroup("账号", listOf(action, debug)))),
+            SettingsCategory("账号", "settings/account", null, listOf(SettingsGroup("账号", listOf(action, debug))), layout = "root_footer"),
         ))
         val guest = visibleSettingsIndex(index, mapOf("enabled" to SettingValue.Flag(false)), false, false)
         assertEquals(1, guest.size)
@@ -62,6 +62,25 @@ class SettingsBrowserStateHolderTest {
         assertEquals(2, indexedOptionIndex(entry, SettingValue.Decimal(1.001f)))
         assertEquals(0, indexedOptionIndex(entry, SettingValue.Decimal(1.1f)))
         assertEquals(3, indexedOptionIndex(entry, SettingValue.Decimal(1.25f)))
+    }
+
+    @Test fun dragUpdatesAccumulateBeforeTheNextComposition() {
+        val page = SettingsBrowserStateHolder()
+        repeat(4) { page.resize(1012f, 16f) }
+        assertEquals(424f, SettingsSplitPolicy.leftWidth(1012f, page.state.value.splitFraction), .001f)
+    }
+
+    @Test fun resizingSurvivesPageAndSearchNavigation() {
+        val page = SettingsBrowserStateHolder()
+        page.split(.45f)
+        page.open("settings/player")
+        page.search("settings/player")
+        page.closeSearch()
+        assertEquals(.45f, page.state.value.splitFraction)
+        page.back()
+        assertEquals(.45f, page.state.value.splitFraction)
+        page.split(Float.NaN)
+        assertEquals(.45f, page.state.value.splitFraction)
     }
 
     @Test fun restoredNavigationDoesNotNeedASecondLayoutState() {

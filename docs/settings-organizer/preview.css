@@ -3,3 +3,17 @@
 /* 预览沿用原页面的独立返回工具栏与滚动大标题，不改成并排大标题栏。 */
 .chrome{position:sticky;top:0;z-index:2;display:flex;align-items:center;justify-content:space-between;min-height:56px;background:linear-gradient(var(--page) 45%,transparent);gap:10px}
 .chrome button{font-size:12px;min-width:40px;min-height:40px;padding:8px;background:transparent;border-radius:24px}.small-title{flex:1;text-align:center;opacity:0;font-size:16px}.large-title{font-size:30px;font-weight:400;margin:0;padding:0 10px 8px;letter-spacing:0}.context{font-size:10px}
+
+/* 两个页面外壳占满预览窗口，分隔线只调整左右内容比例。 */
+#app:not(.phone) aside{width:var(--left-width,360px);border:0}
+#splitter{flex:0 0 12px;cursor:col-resize;touch-action:none;position:relative;background:var(--page)}
+#splitter:before{content:"";position:absolute;top:0;bottom:0;left:5px;width:1px;background:#8883}
+#splitter:after{content:"";position:absolute;left:4px;top:calc(50% - 18px);height:36px;width:4px;border-radius:3px;background:#8886}
+#app.phone #splitter{display:none}
+#app:not(.phone) #dock{width:calc(var(--left-width,360px) - 32px);left:16px}
+#app:not(.phone) #results{left:0;width:var(--left-width,360px);right:auto}
+#app:not(.phone).searching.scoped #results{left:calc(var(--left-width,360px) + 12px);width:auto;right:0}
+#app:not(.phone).searching.scoped #dock{left:calc(var(--left-width,360px) + 28px);width:calc(100% - var(--left-width,360px) - 44px)}
+#app.searching.global #content{opacity:1;transform:none;pointer-events:auto}
+.root-footer{margin-top:24px}
+#app:not(.phone) section{clip-path:inset(0);isolation:isolate}

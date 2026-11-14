@@ -12,11 +12,11 @@ function validate(candidate,baseline){
  const routes=new Set(),seen=new Set(),original=new Map(flatten(baseline).map(s=>[s.pref_name,s]));
  const text=(value,label)=>{if(typeof value!=='string'||!value.trim()||value.length>200)throw Error(label+'不能为空或超过200字');};
  candidate.forEach(c=>{text(c.name,'分类名称');text(c.route,'分类路由');if(routes.has(c.route))throw Error('分类路由重复：'+c.route);routes.add(c.route);
-  if(!['settings','about'].includes(c.layout||'settings'))throw Error('未知页面布局');
+  if(!['settings','about','root_footer'].includes(c.layout||'settings'))throw Error('未知页面布局');
   if(c.icon!=null)throw Error('第一阶段不配置分类图标');
   if(!Array.isArray(c.groups)||c.groups.length>100)throw Error('分组格式不正确');
   c.groups.forEach(g=>{text(g.title,'分组标题');if(!Array.isArray(g.settings))throw Error('设置列表格式不正确');
-   g.settings.forEach(s=>{text(s.title,'设置名称');if(s.subtitle!=null&&(typeof s.subtitle!=='string'||s.subtitle.length>1000))throw Error('说明格式不正确');
+   g.settings.forEach(s=>{if(s.pref_name==='logout'&&c.layout!=='root_footer')throw Error('退出登录必须保留在一级页面底部');if(c.layout==='root_footer'&&(s.type!=='action'||s.storage!=='none'))throw Error('一级底部仅允许独立操作');text(s.title,'设置名称');if(s.subtitle!=null&&(typeof s.subtitle!=='string'||s.subtitle.length>1000))throw Error('说明格式不正确');
     const existing=original.get(s.pref_name);if(!existing)throw Error('未知设置：'+s.pref_name);if(seen.has(s.pref_name))throw Error('设置重复：'+s.pref_name);seen.add(s.pref_name);
     if(stable(contract(s))!==stable(contract(existing)))throw Error('不能改变组件类型、存储键、默认值、选项或显隐条件：'+s.pref_name);
    });

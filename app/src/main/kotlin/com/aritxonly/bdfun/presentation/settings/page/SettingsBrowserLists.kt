@@ -24,12 +24,13 @@ internal data class SettingsBrowserSession(
     val selected: SettingsCategory?,
     val wide: Boolean,
     val categories: List<SettingsCategory>,
+    val footers: List<SettingsCategory> = emptyList(),
 )
 
 @Composable
-internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Modifier) {
+internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Modifier, runtime: SettingsPageRuntime) {
     val list = rememberLazyListState()
-    val chrome = if (session.wide) rememberTeakPageScrollState() else LocalTeakPageScrollState.current
+    val chrome = LocalTeakPageScrollState.current
     if (!session.navigation.searching) TrackTeakPageScroll(list, chrome)
     LazyColumn(modifier, state = list, contentPadding = settingsListPadding()) {
         item { TeakLargeTitle("设置", pageState = chrome) }
@@ -40,6 +41,14 @@ internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Mod
                     ArrowPreference(title = category.name,
                         modifier = if (selected) Modifier.background(MiuixTheme.colorScheme.primary.copy(alpha = .08f)) else Modifier,
                         onClick = { session.browser.open(category.route) })
+                }
+            }
+        }
+        session.footers.forEach { footer ->
+            item(key = footer.route) {
+                Spacer(Modifier.height(16.dp))
+                TeakSettingsCard {
+                    footer.groups.flatMap { it.settings }.forEach { IndexedActionComponent(it, runtime) }
                 }
             }
         }
@@ -69,7 +78,7 @@ internal fun SettingsCategoryContent(session: SettingsBrowserSession, values: Ma
 }
 
 @Composable
-internal fun SettingsSearchResults(session: SettingsBrowserSession, hits: List<SettingsSearchHit>, modifier: Modifier) {
+internal fun SettingsSearchResults(session: SettingsBrowserSession, hits: List<SettingsSearchHit>, modifier: Modifier, runtime: SettingsPageRuntime) {
     val list = rememberLazyListState()
     TrackTeakPageScroll(list)
     LazyColumn(modifier.imePadding().background(MiuixTheme.colorScheme.surface), state = list, contentPadding = settingsListPadding()) {
@@ -81,7 +90,8 @@ internal fun SettingsSearchResults(session: SettingsBrowserSession, hits: List<S
         } else {
             items(hits, key = { it.setting.prefName }) { hit ->
                 TeakSettingsCard {
-                    ArrowPreference(title = hit.setting.title, summary = "${hit.category.name} · ${hit.group.title}",
+                    if (hit.category.layout == "root_footer") IndexedActionComponent(hit.setting, runtime)
+                    else ArrowPreference(title = hit.setting.title, summary = "${hit.category.name} · ${hit.group.title}",
                         onClick = { session.browser.open(hit.category.route, hit.setting.prefName) })
                 }
             }

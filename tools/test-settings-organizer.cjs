@@ -27,6 +27,7 @@ for (const mutate of [
     value => value[0].groups[0].settings[0].visible_when = 'debug',
     value => value[0].route = value[1].route,
     value => value[0].icon = 'custom-icon',
+    value => value.find(c => c.layout === 'root_footer').layout = 'settings',
 ]) {
     const invalid = clone(baseline);
     mutate(invalid);

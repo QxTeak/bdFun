@@ -66,6 +66,13 @@ class JsonSettingsIndexCodecTest {
         assertEquals(original.categories, serialized.categories)
     }
 
+    @Test fun logoutCanOnlyBeImportedAsARootFooterAction() {
+        val raw = """{"pref_name":"logout","type":"action","storage":"none","visible_when":"logged_in","title":"退出登录","default":""}"""
+        assertTrue(codec.decode(json(raw)) is SettingsIndexImport.Invalid)
+        val footer = json(raw).replace("\"route\":\"settings/playback\"", "\"route\":\"settings/account\",\"layout\":\"root_footer\"")
+        assertTrue(codec.decode(footer) is SettingsIndexImport.Success)
+    }
+
     @Test fun bundledIndexIsValid() {
         val file = java.io.File("../../app/src/main/assets/settings-index.json")
         val result = codec.decode(file.readText())

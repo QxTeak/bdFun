@@ -43,9 +43,7 @@ internal fun SettingsCategorySearchButton(onSearch: () -> Unit) {
 @Composable
 internal fun BoxScope.SettingsSearchDock(session: SettingsBrowserSession) {
     val searching = session.navigation.searching
-    val start = if (session.wide && searching) 280.dp else 0.dp
-    val width = if (session.wide && !searching) Modifier.width(280.dp) else Modifier.fillMaxWidth()
-    Row(Modifier.align(Alignment.BottomStart).then(width).padding(start = start)
+    Row(Modifier.align(Alignment.BottomStart).fillMaxWidth()
         .imePadding().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp).animateContentSize(),
         horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
         TeakGlassSurface(modifier = Modifier.weight(1f).heightIn(min = 48.dp)
