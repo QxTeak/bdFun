@@ -14,6 +14,7 @@ data class PlaybackSource(
     val videoUrl: String, val audioUrl: String? = null,
     val headers: Map<String, String> = emptyMap(), val userAgent: String,
     val resumePositionMs: Long = 0, val autoPlay: Boolean = true, val speed: Float = 1f,
+    val mediaKey: String? = null,
 )
 
 /** 前台、后台和系统媒体控件共享传输控制，不暴露 Media3 或 Android 类型。 */

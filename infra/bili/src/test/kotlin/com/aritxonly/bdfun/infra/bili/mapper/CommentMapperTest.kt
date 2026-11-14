@@ -15,6 +15,16 @@ class CommentMapperTest {
         assertTrue(item.message.contains("[吃瓜]"))
     }
 
+    @Test fun mainAndPreviewRepliesDecodeEntitiesAtTheSameBoundary() {
+        val reply = realData().getJSONArray("replies").getJSONObject(1)
+        reply.getJSONObject("content").put("message", "正文 &amp; &lt;3 [doge]")
+        reply.getJSONArray("replies").getJSONObject(0).getJSONObject("content")
+            .put("message", "回复 &#x1F600; &quot;好&quot;")
+        val item = parseComment(reply, 0, false)
+        assertEquals("正文 & <3 [doge]", item.message)
+        assertEquals("回复 😀 \"好\"", item.previewReplies.first().message)
+    }
+
     private fun realData(): JSONObject = javaClass.classLoader!!
         .getResourceAsStream("json/comments-anonymous.json")!!.bufferedReader()
         .use { JSONObject(it.readText()).getJSONObject("data") }

@@ -28,19 +28,18 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
     val paneLayout = layout.paneLayout
     val splitPanes = layout.splitPanes
     val statusBarDp = layout.statusBarTop
-    val playerTopInset = layout.playerTopInset
-    val overlayAlpha = pageOverlayAlpha
+    val scrollProgress = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current.materialProgress
     androidx.compose.runtime.CompositionLocalProvider(
-        com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress provides
-            com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current.materialProgress,
+        com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress provides scrollProgress,
     ) {
+        // 横竖屏均保留顶部渐进模糊，并由同一宿主驱动控件玻璃。
         com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial(
-            enabled = splitPanes,
+            includeStatusBar = splitPanes,
             modifier = Modifier
                 .align(if (splitPanes) Alignment.TopEnd else Alignment.TopStart)
                 .then(if (splitPanes) Modifier.width(paneLayout.detailsWidthDp.dp) else Modifier.fillMaxWidth())
                 .graphicsLayer {
-                    alpha = overlayAlpha
+                    alpha = pageOverlayAlpha
                     translationY = if (splitPanes) 0f else playerBottomPx()
                 },
         ) {
@@ -55,6 +54,7 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
                     options = listOf("简介", "评论"), selected = pager.currentPage,
                     onSelect = onSelect,
                     itemWidth = if (splitPanes) 48.dp else 60.dp,
+                    flatBackgroundColor = com.aritxonly.teak.common.theme.LocalTeakContentColors.current.groupedBackground,
                 )
                 VideoDanmakuActions(splitPanes, danmakuOn, onOpenInput, onToggleDanmaku)
             }
