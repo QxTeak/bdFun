@@ -39,7 +39,9 @@ internal suspend fun BiliApiContext.imRequest(method: String, requestType: Strin
         .header("x-bili-network-bin", metadataHeader("bilibili.metadata.network.Network", JSONObject().put("type", 1)))
         .header("x-bili-fawkes-req-bin", metadataHeader("bilibili.metadata.fawkes.FawkesReq",
             JSONObject().put("appkey", HdClientIdentity.mobiApp).put("env", "prod").put("session_id", java.util.UUID.randomUUID().toString().take(8))))
-        .header("buvid", buvid).post(frame.toRequestBody("application/grpc".toMediaType())).build()
+        .header("buvid", buvid)
+        .apply { imClientEnvironmentHeaders().forEach { (name, value) -> header(name, value) } }
+        .post(frame.toRequestBody("application/grpc".toMediaType())).build()
     http.await(request).use { response ->
         check(response.isSuccessful) { "消息服务 HTTP ${response.code}" }
         val body = checkNotNull(response.body) { "消息服务返回空响应" }.bytes()

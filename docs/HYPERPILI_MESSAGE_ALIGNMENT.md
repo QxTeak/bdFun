@@ -86,3 +86,7 @@ adb shell am instrument -w com.aritxonly.bdfun.debug.test/com.aritxonly.bdfun.Pr
 ```
 
 该测试覆盖页面初始化与依赖装配，不代表登录账号的实际收发/撤回/举报已经通过。
+
+### MSG-01：重新登录后 SessionUpdate 仍返回 1217
+
+用户已确认安装鉴权修复版并重新扫码后，聊天设置仍在「置顶设置」阶段返回 1217，不能再归因于旧 TV 凭据。对照固定上游 `grpc_headers.dart`，补齐此前遗漏的 `bili-http-engine: cronet`、locale、trace 与空环境头；请求体仍保持与上游一致，不猜测添加 page_type。Locale/LocaleIds 描述符由同一固定版本重新生成，其余既有协议描述符不变。新增独立 wire 样本验证 `SessionUpdateReq.session_id.private_id.talker_uid` 编码，以及语言区域头测试。缺失头是已确认的实现差异，尚无真实账号响应证明它就是 1217 根因或已恢复，需实机复测。
