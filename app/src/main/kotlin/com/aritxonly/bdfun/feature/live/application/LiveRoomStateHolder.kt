@@ -40,17 +40,28 @@ internal class LiveRoomStateHolder(
 
     suspend fun loadRoom() {
         val roomId = if (requestedRoomId > 0) requestedRoomId else read { access.liveHotRoomId() } ?: fallback.roomId
-        val info = read { access.liveRoomInfo(roomId) }
-        val portrait = read { access.livePortraitBackground(roomId) }
-        val room = (info ?: fallback.copy(roomId = roomId)).let {
-            if (portrait.isNullOrBlank()) it else it.copy(cover = portrait)
+        val quality = mutable.value.playback.quality
+        // 房间信息/背景/清晰度/播放地址互不依赖，四条并行；标题和封面先上屏，流地址随后接。
+        kotlinx.coroutines.coroutineScope {
+            val infoRequest = async { read { access.liveRoomInfo(roomId) } }
+            val portraitRequest = async { read { access.livePortraitBackground(roomId) } }
+            val qualitiesRequest = async { read { access.liveQualities(roomId) } }
+            val urlRequest = async { read { access.livePlayUrl(roomId, quality) } }
+
+            val info = infoRequest.await()
+            val portrait = portraitRequest.await()
+            val room = (info ?: fallback.copy(roomId = roomId)).let {
+                if (portrait.isNullOrBlank()) it else it.copy(cover = portrait)
+            }
+            mutable.update { it.copy(content = it.content.copy(room = room, roomId = roomId)) }
+
+            val qualities = qualitiesRequest.await().orEmpty()
+            mutable.update { it.copy(content = it.content.copy(qualities = qualities)) }
+
+            val url = urlRequest.await()
+            mutable.update { it.copy(playback = it.playback.copy(url = url,
+                error = if (url == null) "直播流拿不到，可能未开播或接口变动" else it.playback.error)) }
         }
-        mutable.update { it.copy(content = it.content.copy(room = room, roomId = roomId)) }
-        val qualities = read { access.liveQualities(roomId) }.orEmpty()
-        mutable.update { it.copy(content = it.content.copy(qualities = qualities)) }
-        val url = read { access.livePlayUrl(roomId, mutable.value.playback.quality) }
-        mutable.update { it.copy(playback = it.playback.copy(url = url,
-            error = if (url == null) "直播流拿不到，可能未开播或接口变动" else it.playback.error)) }
     }
 
     suspend fun loadEmotes() {

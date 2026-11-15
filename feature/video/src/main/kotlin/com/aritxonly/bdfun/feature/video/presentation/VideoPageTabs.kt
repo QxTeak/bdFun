@@ -32,8 +32,10 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
     androidx.compose.runtime.CompositionLocalProvider(
         com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress provides scrollProgress,
     ) {
-        // 横竖屏均保留顶部渐进模糊，并由同一宿主驱动控件玻璃。
+        // 竖屏恢复旧版行为：只保留 VideoPageBody 的渐变遮罩，不铺整条渐进模糊；
+        // 横屏分栏继续保留顶部渐进模糊。
         com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial(
+            enabled = splitPanes,
             includeStatusBar = splitPanes,
             modifier = Modifier
                 .align(if (splitPanes) Alignment.TopEnd else Alignment.TopStart)
