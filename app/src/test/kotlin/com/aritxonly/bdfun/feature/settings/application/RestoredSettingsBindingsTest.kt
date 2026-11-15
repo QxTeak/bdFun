@@ -9,7 +9,8 @@ class RestoredSettingsBindingsTest {
     @Test fun restoredRowsReadExistingPreferencesAndKeepExitFlagsConsistent() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         try {
-            val prefs = MemorySettingsPreferences(mutableMapOf("recommend_web" to true, "home_card_style" to 1, "exit_video_control" to 0,
+            // 模拟已完成一次性默认值迁移后，用户重新启用Web推荐的配置。
+            val prefs = MemorySettingsPreferences(mutableMapOf("recommend_web_migrated_36" to true, "recommend_app_v2" to true, "recommend_web" to true, "home_card_style" to 1, "exit_video_control" to 0,
                 "disc_breath_enabled" to true, "disc_breath_cover_color" to true, "stop_on_video_page_exit" to true))
             val original = SettingsStateHolder.create(prefs, TestHistoryCodec, scope)
             val bindings = indexedSettingBindings(original)
