@@ -12,4 +12,5 @@ interface LiveRepository {
     suspend fun emoticons(roomId: Long): Outcome<Map<String, String>>
     suspend fun danmuInfo(roomId: Long): Outcome<Pair<String, List<String>>?>
     suspend fun playUrl(roomId: Long, qn: Int): Outcome<String?>
+    suspend fun sendDanmaku(roomId: Long, text: String): Outcome<Unit>
 }

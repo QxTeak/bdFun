@@ -95,6 +95,14 @@ class TopCenterLayer : IRenderLayer, ITouchDelegate, ConfigChangeListener {
         mLines.forEach { line ->
             mTotalDanmakuCountInLayer += line.typesetting(playTime, isPlaying, configChanged)
         }
+        // 顶部让位变化后，空出来的行移到新位置；有弹幕的行保持不动。
+        mLines.forEachIndexed { index, line ->
+            if (line.itemCount > 0) return@forEachIndexed
+            val target = mConfig.top.marginTop + index * (mConfig.top.lineMargin + mConfig.top.lineHeight)
+            if (kotlin.math.abs(line.y - target) > 0.5f) {
+                line.onLayoutChanged(mWidth.toFloat(), mConfig.top.lineHeight, 0F, target)
+            }
+        }
         if (configChanged) {
             mBuffer.measureItems()
         }
@@ -139,8 +147,9 @@ class TopCenterLayer : IRenderLayer, ITouchDelegate, ConfigChangeListener {
         when (type) {
             DanmakuConfig.TYPE_TOP_CENTER_LINE_HEIGHT,
             DanmakuConfig.TYPE_TOP_CENTER_LINE_COUNT,
-            DanmakuConfig.TYPE_TOP_CENTER_LINE_MARGIN,
-            DanmakuConfig.TYPE_TOP_CENTER_MARGIN_TOP -> configLines()
+            DanmakuConfig.TYPE_TOP_CENTER_LINE_MARGIN -> configLines()
+            // 顶部让位只挪空行，已经在屏上的顶部弹幕保持原位。
+            DanmakuConfig.TYPE_TOP_CENTER_MARGIN_TOP -> configLines(idleOnly = true)
             DanmakuConfig.TYPE_TOP_CENTER_BUFFER_MAX_TIME,
             DanmakuConfig.TYPE_TOP_CENTER_BUFFER_SIZE -> {
                 mBuffer.onBufferChanged(mConfig.top.bufferSize, mConfig.top.bufferMaxTime)
@@ -153,35 +162,40 @@ class TopCenterLayer : IRenderLayer, ITouchDelegate, ConfigChangeListener {
      * Return true if find a line to add, return false otherwise.
      */
     private fun distributeItemToLines(playTime: Long, item: DrawItem<DanmakuData>): Boolean {
-        mLines.maxByOrNull { it.getCurrentItemShowDuration() }?.let { line ->
-            if (line.addItem(playTime, item)) {
-                mController.notifyEvent(Events.obtainEvent(EVENT_DANMAKU_SHOW, item.data))
-                return true
+        val guard = mConfig.top.marginTop
+        mLines.filter { it.y + 0.5f >= guard }
+            .maxByOrNull { it.getCurrentItemShowDuration() }?.let { line ->
+                if (line.addItem(playTime, item)) {
+                    mController.notifyEvent(Events.obtainEvent(EVENT_DANMAKU_SHOW, item.data))
+                    return true
+                }
             }
-        }
         return false
     }
 
-    private fun configLines() {
+    private fun configLines(idleOnly: Boolean = false) {
         val lineCount = mConfig.top.lineCount
         val lineHeight = mConfig.top.lineHeight
         val lineSpace = mConfig.top.lineMargin
         val marginTop = mConfig.top.marginTop
-        if (lineCount > mLines.size) {
-            for (i in 1..(lineCount - mLines.size)) {
-                mLines.add(TopCenterLine(mController, this).apply {
-                    mController.registerCmdMonitor(this)
-                })
-            }
-        } else if (lineCount < mLines.size) {
-            for (i in 1..(mLines.size - lineCount)) {
-                mLines.removeAt(mLines.size - 1).let { line ->
-                    line.clearRender()
-                    mController.unRegisterCmdMonitor(line)
+        if (!idleOnly) {
+            if (lineCount > mLines.size) {
+                for (i in 1..(lineCount - mLines.size)) {
+                    mLines.add(TopCenterLine(mController, this).apply {
+                        mController.registerCmdMonitor(this)
+                    })
+                }
+            } else if (lineCount < mLines.size) {
+                for (i in 1..(mLines.size - lineCount)) {
+                    mLines.removeAt(mLines.size - 1).let { line ->
+                        line.clearRender()
+                        mController.unRegisterCmdMonitor(line)
+                    }
                 }
             }
         }
         mLines.forEachIndexed { index, line ->
+            if (idleOnly && line.itemCount > 0) return@forEachIndexed
             line.onLayoutChanged(mWidth.toFloat(), lineHeight, 0F, marginTop + index * (lineSpace + lineHeight))
         }
     }

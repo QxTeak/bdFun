@@ -39,7 +39,10 @@ import kotlin.math.roundToInt
  * 内容为「最近追番」横排 + 竖长封面推荐网格。
  */
 @Composable
-internal fun BangumiPage(state: BangumiPageStateHolder) {
+internal fun BangumiPage(
+    state: BangumiPageStateHolder,
+    topBarHeight: androidx.compose.ui.unit.Dp = HomeTopBarHeight,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -56,6 +59,22 @@ internal fun BangumiPage(state: BangumiPageStateHolder) {
     LaunchedEffect(state, state.loading) {
         if (!state.loading) gridState.scrollToItem(0)
     }
+    // 顶部头图：优先当周新番；不足 6 张时用榜单/推荐补位，保证扇形能循环与左右滑动。
+    val bannerItems = remember(rankUi.sections, state.cards, state.timeline) {
+        val fromTimeline = state.timeline.mapNotNull { card ->
+            if (card.cover.isBlank()) null
+            else BangumiBannerItem(card.cover, card.title, card.subtitle, card.seasonId)
+        }
+        val fromRank = rankUi.sections.firstOrNull()?.entries.orEmpty().mapNotNull { entry ->
+            val image = entry.banner.ifBlank { entry.cover }
+            if (image.isBlank()) null
+            else BangumiBannerItem(image, entry.title, entry.subtitle, entry.seasonId)
+        }
+        val fromCards = state.cards.map {
+            BangumiBannerItem(it.cover, it.title, it.indexShow, it.seasonId)
+        }
+        (fromTimeline + fromRank + fromCards).distinctBy { it.seasonId }.take(6)
+    }
     LaunchedEffect(rankUi.sections.size) {
         if (rankUi.sections.isNotEmpty()) gridState.scrollToItem(0)
     }
@@ -71,12 +90,15 @@ internal fun BangumiPage(state: BangumiPageStateHolder) {
         contentPadding = PaddingValues(
             start = 10.dp,
             end = 10.dp,
-            top = HomeTopBarHeight + statusBarTop + 6.dp,
+            top = topBarHeight + statusBarTop + 6.dp,
             bottom = 104.dp,
         ),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        item(key = "pgc-banner", span = { GridItemSpan(maxLineSpan) }) {
+            BangumiBanner(bannerItems) { seasonId -> openBangumi(context, seasonId, scope) }
+        }
         bangumiFollowSection(state, context)
         bangumiRankSections(
             sections = rankUi.sections,

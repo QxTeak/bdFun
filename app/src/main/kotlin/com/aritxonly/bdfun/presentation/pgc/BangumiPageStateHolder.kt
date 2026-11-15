@@ -21,6 +21,9 @@ internal class BangumiPageStateHolder(private val repository: PgcDiscoverReposit
         private set
     var cards by mutableStateOf<List<BangumiCard>>(emptyList())
         private set
+    /** 正在更新的新番时间表；头图优先用它，失败时优雅退回榜单/推荐。 */
+    var timeline by mutableStateOf<List<BangumiCard>>(emptyList())
+        private set
     var loading by mutableStateOf(false)
         private set
     var refreshing by mutableStateOf(false)
@@ -77,12 +80,17 @@ internal class BangumiPageStateHolder(private val repository: PgcDiscoverReposit
                 is Outcome.Success -> result.value
                 is Outcome.Failure -> emptyList()
             }
+            val fresh = when (val result = repository.timeline()) {
+                is Outcome.Success -> result.value
+                is Outcome.Failure -> emptyList()
+            }
             val list = when (val result = repository.recommend(1)) {
                 is Outcome.Success -> result.value
                 is Outcome.Failure -> { failure = result.error; null }
             }
             if (current != token) return
             following = followed
+            timeline = fresh
             if (list == null) {
                 if (cards.isEmpty()) error = failure?.readable() ?: "加载失败"
                 return

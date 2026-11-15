@@ -41,6 +41,7 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
     suspend fun liveEmoticons(roomId: Long) = api.liveEmoticons(roomId)
     suspend fun liveDanmuInfo(roomId: Long) = api.liveDanmuInfo(roomId)
     suspend fun livePlayUrl(roomId: Long, qn: Int = 10000) = api.livePlayUrl(roomId, qn)
+    suspend fun sendLiveDanmaku(roomId: Long, text: String) = api.sendLiveDanmaku(roomId, text)
     // 直播页 / 番剧页（PiliPlus 同款接口）
     suspend fun liveHome(page: Int = 1) = api.liveHome(page)
     suspend fun liveRecommend(page: Int = 1, parentAreaId: Long = 0L, areaId: Long = 0L) =
@@ -49,6 +50,8 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
     suspend fun liveFollowers() = api.liveFollowers()
     suspend fun pgcFollowing(page: Int = 1) = api.pgcFollowing(page)
     suspend fun pgcIndex(page: Int = 1, pageSize: Int = 20) = api.pgcIndex(page, pageSize)
+    suspend fun pgcTimeline(types: Int) = api.pgcTimeline(types)
+    suspend fun pgcSeason(seasonId: Long) = api.pgcSeason(seasonId)
     suspend fun nav() = api.nav()
     suspend fun qrGenerate() = api.qrGenerate()
     suspend fun qrPoll(key: String) = api.qrPoll(key)

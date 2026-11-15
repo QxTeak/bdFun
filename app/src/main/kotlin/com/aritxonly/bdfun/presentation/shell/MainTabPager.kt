@@ -21,6 +21,7 @@ import com.aritxonly.bdfun.core.model.user.UserProfile
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
 import com.aritxonly.bdfun.ui.FeedScreen
 import com.aritxonly.bdfun.ui.MineScreen
+import com.aritxonly.bdfun.ui.homeTopBarHeight
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
@@ -33,6 +34,7 @@ internal fun MainTabPager(
     homeSection: Int = 0,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val topBarHeight = homeTopBarHeight(settings.interfaceStyle)
     CompositionLocalProvider(
         LocalViewConfiguration provides rememberStricterSwipeConfiguration(),
     ) {
@@ -49,15 +51,18 @@ internal fun MainTabPager(
                         state = homeFeed,
                         onOpenVideo = { navigateToVideo(context, it) },
                         cardStyle = settings.homeCardStyle,
+                        topBarHeight = topBarHeight,
                     )
                 } else if (homeSection == 1) {
                     com.aritxonly.bdfun.presentation.live.LivePage(
                         state = AppGraph.livePageState,
                         loggedIn = session != null,
+                        topBarHeight = topBarHeight,
                     )
                 } else {
                     com.aritxonly.bdfun.presentation.pgc.BangumiPage(
                         state = AppGraph.bangumiPageState,
+                        topBarHeight = topBarHeight,
                     )
                 }
 

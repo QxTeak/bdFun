@@ -61,6 +61,7 @@ private fun JSONObject.toRankEntry(): BangumiRankEntry? {    val seasonId = l("s
         // 必须用只缩宽、不裁切的地址：`@480w_270h_1c` 会让服务端先裁成 16:9，
         // 卡片再裁到 3:4 就是裁两遍，人像会被切头。
         cover = biliImageThumbUrl(cover, 480),
+        banner = biliImageThumbUrl(s("ss_horizontal_cover").ifBlank { cover }, 960),
         subtitle = s("subtitle"),
         indexShow = optJSONObject("new_ep")?.s("index_show").orEmpty(),
         rating = s("rating"),

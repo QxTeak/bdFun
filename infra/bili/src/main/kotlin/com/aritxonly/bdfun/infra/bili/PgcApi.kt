@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.infra.bili
 
 import com.aritxonly.bdfun.core.model.pgc.BangumiCard
+import com.aritxonly.bdfun.infra.bili.mapper.mapPgcTimeline
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -67,6 +68,24 @@ internal suspend fun BiliApiContext.pgcIndex(page: Int = 1, pageSize: Int = 20):
             (0 until list.length()).mapNotNull { i ->
                 list.optJSONObject(i)?.toBangumiCard()
             }
+        }.getOrDefault(emptyList())
+    }
+
+/**
+ * 番剧时间表（正在更新的新番）：types=1 番剧、4 国创。
+ * 头图用它替换旧榜单封面；接口是 `result` 数组而不是 `data`，走 rawRequest 自己取。
+ */
+internal suspend fun BiliApiContext.pgcTimeline(types: Int): List<BangumiCard> =
+    withContext(Dispatchers.IO) {
+        cancellableCatching {
+            val root = rawRequest(
+                "/pgc/web/timeline",
+                mapOf("types" to types.toString(), "before" to "6", "after" to "6"),
+                referer = pgcReferer,
+            )
+            val code = root.optInt("code", 0)
+            if (code != 0) throw BiliException(code, apiMessage(code, root.optString("message")))
+            mapPgcTimeline(root, System.currentTimeMillis() / 1000L)
         }.getOrDefault(emptyList())
     }
 

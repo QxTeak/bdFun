@@ -58,7 +58,7 @@ private fun OnboardingAppearanceCard(settings: OnboardingBasicSettings, actions:
         )
         TeakSettingsDropdownRow(
             title = "界面风格",
-            options = listOf("官方", "经典", "HyperOS 4"),
+            options = listOf("哔哩哔哩", "经典", "HyperOS 4"),
             selected = settings.interfaceStyle.coerceIn(0, 2),
             onSelected = {
                 actions.setInterfaceStyle(it)

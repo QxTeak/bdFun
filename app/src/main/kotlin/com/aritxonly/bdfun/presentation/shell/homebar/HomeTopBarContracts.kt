@@ -21,6 +21,8 @@ internal data class HomeTopBarTabs(
     val options: List<String> = listOf("推荐", "直播", "番剧"),
     val selected: Int = 0,
     val onSelect: (Int) -> Unit = {},
+    /** 哔哩哔哩（官方）风格：搜索框保持，分段条另起一行放在它下面。 */
+    val belowSearch: Boolean = false,
 )
 @androidx.compose.runtime.Immutable
 internal data class HomeTopBarActions(val onSearch: () -> Unit, val onOpenMessages: () -> Unit,

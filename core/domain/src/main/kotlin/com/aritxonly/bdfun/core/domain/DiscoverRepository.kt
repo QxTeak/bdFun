@@ -25,4 +25,7 @@ interface PgcDiscoverRepository {
     suspend fun following(page: Int = 1): Outcome<List<BangumiCard>>
 
     suspend fun recommend(page: Int = 1): Outcome<List<BangumiCard>>
+
+    /** 正在更新的新番（番剧 + 国创时间表），给首页头图用。 */
+    suspend fun timeline(): Outcome<List<BangumiCard>>
 }

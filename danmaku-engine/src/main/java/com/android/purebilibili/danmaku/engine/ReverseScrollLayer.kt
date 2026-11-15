@@ -68,14 +68,27 @@ internal class ReverseScrollLayer : IRenderLayer, ITouchDelegate, ConfigChangeLi
 
     override fun typesetting(playTime: Long, isPlaying: Boolean, configChanged: Boolean): Int {
         buffer.forEach { item ->
-            val accepted = lines.any { it.addItem(playTime, item) }
+            // 还停在顶部让位区域里的旧行不接收新弹幕。
+            val accepted = lines.any { line ->
+                line.y + 0.5f >= config.scroll.marginTop && line.addItem(playTime, item)
+            }
             if (accepted) {
                 controller.notifyEvent(Events.obtainEvent(EVENT_DANMAKU_SHOW, item.data))
             }
             accepted
         }
         if (configChanged) buffer.measureItems()
-        return lines.sumOf { it.typesetting(playTime, isPlaying, configChanged) }
+        val count = lines.sumOf { it.typesetting(playTime, isPlaying, configChanged) }
+        // 顶部让位变化后，行一旦空出来就移到新位置；有弹幕在屏上的行不动。
+        lines.forEachIndexed { index, line ->
+            if (line.itemCount == 0) {
+                val target = config.scroll.marginTop + index * (config.scroll.lineMargin + config.scroll.lineHeight)
+                if (kotlin.math.abs(line.y - target) > 0.5f) {
+                    line.onLayoutChanged(width.toFloat(), config.scroll.lineHeight, 0f, target)
+                }
+            }
+        }
+        return count
     }
 
     override fun drawBounds(canvas: Canvas) = lines.forEach { it.drawBounds(canvas) }
@@ -102,26 +115,30 @@ internal class ReverseScrollLayer : IRenderLayer, ITouchDelegate, ConfigChangeLi
         when (type) {
             DanmakuConfig.TYPE_SCROLL_LINE_HEIGHT,
             DanmakuConfig.TYPE_SCROLL_LINE_COUNT,
-            DanmakuConfig.TYPE_SCROLL_LINE_MARGIN,
-            DanmakuConfig.TYPE_SCROLL_MARGIN_TOP -> configureLines()
+            DanmakuConfig.TYPE_SCROLL_LINE_MARGIN -> configureLines()
+            // 顶部让位只挪空行，已经在屏上的弹幕保持原位。
+            DanmakuConfig.TYPE_SCROLL_MARGIN_TOP -> configureLines(idleOnly = true)
             DanmakuConfig.TYPE_SCROLL_BUFFER_MAX_TIME,
             DanmakuConfig.TYPE_SCROLL_BUFFER_SIZE ->
                 buffer.onBufferChanged(config.scroll.bufferSize, config.scroll.bufferMaxTime)
         }
     }
 
-    private fun configureLines() {
+    private fun configureLines(idleOnly: Boolean = false) {
         val lineCount = config.scroll.lineCount
-        while (lines.size < lineCount) {
-            lines += ReverseScrollLine(controller, this).also(controller::registerCmdMonitor)
-        }
-        while (lines.size > lineCount) {
-            lines.removeLast().also { line ->
-                line.clearRender()
-                controller.unRegisterCmdMonitor(line)
+        if (!idleOnly) {
+            while (lines.size < lineCount) {
+                lines += ReverseScrollLine(controller, this).also(controller::registerCmdMonitor)
+            }
+            while (lines.size > lineCount) {
+                lines.removeLast().also { line ->
+                    line.clearRender()
+                    controller.unRegisterCmdMonitor(line)
+                }
             }
         }
         lines.forEachIndexed { index, line ->
+            if (idleOnly && line.itemCount > 0) return@forEachIndexed
             line.onLayoutChanged(
                 width.toFloat(),
                 config.scroll.lineHeight,

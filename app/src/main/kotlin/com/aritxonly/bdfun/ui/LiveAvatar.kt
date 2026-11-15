@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,17 +48,30 @@ internal fun LiveAvatar(
     name: String,
     face: String,
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val colors = MiuixTheme.colorScheme
     val pulse = rememberLivePulse()
+    val avatarModifier = if (onLongClick != null) {
+        Modifier.combinedClickable(
+            interactionSource = null,
+            indication = null,
+            onClick = onClick,
+            onLongClick = onLongClick,
+        )
+    } else {
+        Modifier.clickable(interactionSource = null, indication = null, onClick = onClick)
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        // 宽度 = 头像 46dp + 扩散圈余量：扩散到最大时左右两侧不会被列表裁掉。
+        // 和普通 UP 头像同宽（56dp），头像之间就是同一套 12dp 间距，不会显得被拉开。
         modifier = Modifier
-            .width(72.dp)
-            .clickable(interactionSource = null, indication = null, onClick = onClick),
+            .width(56.dp)
+            .then(avatarModifier),
     ) {
-        Box(Modifier.fillMaxWidth().height(72.dp), contentAlignment = Alignment.Center) {
+        // 和普通 UP 头像保持同一个 46dp 高度：名字才能和「全部动态 / 我 / 其它 UP」齐平。
+        // 扩散圈放大后会溢出这个 Box，Box 不裁剪，所以雷达波照常可见。
+        Box(Modifier.fillMaxWidth().height(46.dp), contentAlignment = Alignment.Center) {
             // 扩散粉圈：比头像大一圈，越大越淡。
             Box(
                 modifier = Modifier
@@ -86,27 +100,7 @@ internal fun LiveAvatar(
                     .border(1.dp, colors.primary, CircleShape),
             )
             // 「直播中」胶囊压在头像底边、粉圈之上。
-            // 白边是往外加的一圈：外层白色胶囊 + 内缩 2dp 的粉色胶囊，而不是往胶囊里描边。
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 5.dp)
-                    .clip(Capsule())
-                    .background(Color.White)
-                    .padding(1.5.dp)
-                    .clip(Capsule())
-                    .background(colors.primary),
-            ) {
-                Box(Modifier.padding(horizontal = 5.dp)) {
-                    Text(
-                        text = "直播中",
-                        color = Color.White,
-                        fontSize = 8.5.sp,
-                        lineHeight = 10.sp,
-                        maxLines = 1,
-                    )
-                }
-            }
+            LiveBadge()
         }
         Text(
             text = name,
@@ -115,8 +109,35 @@ internal fun LiveAvatar(
             lineHeight = 12.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 1.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
+    }
+}
+
+/** 头像底部的「直播中」胶囊：白边是往外加的一圈，不是往胶囊里描边。 */
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.LiveBadge() {
+    val colors = MiuixTheme.colorScheme
+    Box(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            // 压在头像下沿、名字上方；比上一版贴底，但不会碰到名字。
+            .offset(y = 2.dp)
+            .clip(Capsule())
+            .background(Color.White)
+            .padding(1.5.dp)
+            .clip(Capsule())
+            .background(colors.primary),
+    ) {
+        Box(Modifier.padding(horizontal = 5.dp)) {
+            Text(
+                text = "直播中",
+                color = Color.White,
+                fontSize = 8.5.sp,
+                lineHeight = 10.sp,
+                maxLines = 1,
+            )
+        }
     }
 }
 

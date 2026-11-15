@@ -4,6 +4,7 @@ import com.aritxonly.bdfun.navigateToVideo
 import androidx.compose.runtime.Composable
 import com.aritxonly.teak.common.navigation.TeakFloatingTabItem
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
+import com.aritxonly.bdfun.ui.rememberTeakHaptics
 import kotlinx.coroutines.launch
 
 @Composable
@@ -18,7 +19,9 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
     val selected = tabPagerState.currentPage
     val searchChrome = shell.chrome.search
     val wideNavigation = shell.backdrops.wideNavigation
+    val haptics = rememberTeakHaptics()
     val onBarItem: (TeakFloatingTabItem) -> Unit = { item ->
+        haptics.tap()
         val index = destinations
             .indexOfFirst { it.key == item.key }
             .coerceAtLeast(0)

@@ -18,6 +18,8 @@ data class BangumiRankEntry(
     val seasonId: Long,
     val title: String,
     val cover: String,
+    /** 横版封面（banner 用）；接口没有就是空串。 */
+    val banner: String = "",
     /** 卡片标题下面那行推荐语，接口字段 subtitle。 */
     val subtitle: String = "",
     /** 「更新至第X话 / 全X话」，接口字段 new_ep.index_show。 */

@@ -14,13 +14,15 @@ import com.aritxonly.bdfun.core.domain.filterDanmaku
 
 @Composable
 fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: Boolean,
-    playbackSpeed: Float, modifier: Modifier = Modifier, fullscreen: Boolean = false) {
+    playbackSpeed: Float, modifier: Modifier = Modifier, fullscreen: Boolean = false,
+    /** 顶部是否要让给「弹幕计数」；只在计数真的显示时为 true。 */
+    reserveTopForCounter: Boolean = false) {
     if (items.isEmpty()) return
     val context = LocalContext.current
     val renderView = remember { DanmakuRenderView(context).apply { setRendererTouchable(false) } }
     DisposableEffect(renderView) { onDispose { renderView.releaseRenderer() } }
     val ui = remember { DanmakuLayerPresentationStateHolder() }
-    val options = currentDanmakuLayerOptions(fullscreen)
+    val options = currentDanmakuLayerOptions(fullscreen, reserveTopForCounter)
     val filtered = remember(items, options.filters) { filterDanmaku(items, options.filters) }
     val window = rememberDanmakuEngineWindow(filtered)
     val config = danmakuEngineConfig(options.drawing, ui.viewSize, playbackSpeed)

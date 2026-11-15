@@ -49,7 +49,7 @@
             "default": 0,
             "options": [
               {
-                "title": "官方",
+                "title": "哔哩哔哩",
                 "value": 0
               },
               {
@@ -137,6 +137,9 @@
             "default": [
               "home",
               "dynamic",
+              "live",
+              "pgc",
+              "comment",
               "space",
               "library",
               "message",

@@ -87,26 +87,11 @@ internal fun SpaceSectionHeader(
 
 @Composable
 internal fun SubmissionChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    val colors = MiuixTheme.colorScheme
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(50))
-            .background(if (selected) colors.primary else colors.surfaceContainer)
-            .border(
-                width = if (selected) 1.dp else 0.dp,
-                color = if (selected) Color.White.copy(alpha = 0.45f) else Color.Transparent,
-                shape = RoundedCornerShape(50),
-            )
-            .clickable(interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 6.dp),
-    ) {
-        Text(
-            text = text,
-            color = if (selected) Color.White else colors.onBackground,
-            fontSize = 12.sp,
-            maxLines = 1,
-        )
-    }
+    com.aritxonly.bdfun.presentation.common.TeakCapsuleChip(
+        text = text,
+        selected = selected,
+        onClick = onClick,
+    )
 }
 
 @Composable

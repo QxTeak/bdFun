@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,10 +71,12 @@ internal fun VideoActivityBody(
             pager = pager,
         )
     }, comments = { c, onBack ->
-        CommentScreen(
-            request = CommentScreenRequest(aid = c.aid, upMid = c.ownerMid, title = c.title, bvid = c.bvid),
-            onBack = onBack,
-            layout = CommentScreenLayout(flatList = true),
-        )
+        key(c.bvid, c.aid) {
+            CommentScreen(
+                request = CommentScreenRequest(aid = c.aid, upMid = c.ownerMid, title = c.title, bvid = c.bvid),
+                onBack = onBack,
+                layout = CommentScreenLayout(flatList = true, scrollTop = true),
+            )
+        }
     })
 }

@@ -9,7 +9,9 @@ import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
 import com.aritxonly.bdfun.ui.LiveRoomScreen
 import com.aritxonly.bdfun.ui.LiveRoomContent
 import com.aritxonly.bdfun.ui.LiveRoomActions
+import com.aritxonly.bdfun.ui.showToast
 import com.aritxonly.teak.common.theme.TeakTheme
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun LiveRoomTheme(settings: SettingsBindings, content: @Composable () -> Unit) {
@@ -39,7 +41,11 @@ internal fun LiveRoomRoute(activity: ComponentActivity, requestedRoomId: Long) {
         content = LiveRoomContent(controller.displayRoom, state.messages, state.playback.error,
             state.content.qualities, state.playback.quality, state.content.emotes,
             state.playback.playing, state.playback.danmakuEnabled),
-        actions = LiveRoomActions(controller::appendLocal, { activity.finish() },
+        actions = LiveRoomActions({ text ->
+            scope.launch {
+                controller.sendMessage(text)?.let(context::showToast)
+            }
+        }, { activity.finish() },
             { qn -> if (qn != controller.state.value.playback.quality) controller.reload(qn) },
             controller::togglePlaying, controller::toggleDanmaku,
             { toggleLiveFullscreen(activity) }, { controller.reload(controller.state.value.playback.quality) }),

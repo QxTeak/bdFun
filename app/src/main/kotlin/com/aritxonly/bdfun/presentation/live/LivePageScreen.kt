@@ -37,7 +37,11 @@ import kotlin.math.roundToInt
  * 下拉刷新在 App 层画小电视，本页只负责内容与手势。
  */
 @Composable
-internal fun LivePage(state: LivePageStateHolder, loggedIn: Boolean) {
+internal fun LivePage(
+    state: LivePageStateHolder,
+    loggedIn: Boolean,
+    topBarHeight: androidx.compose.ui.unit.Dp = HomeTopBarHeight,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -56,7 +60,7 @@ internal fun LivePage(state: LivePageStateHolder, loggedIn: Boolean) {
         contentPadding = PaddingValues(
             start = 12.dp,
             end = 12.dp,
-            top = HomeTopBarHeight + statusBarTop + 6.dp,
+            top = topBarHeight + statusBarTop + 6.dp,
             bottom = 104.dp,
         ),
         horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
