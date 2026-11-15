@@ -9,7 +9,7 @@ class RestoredSettingsBindingsTest {
     @Test fun restoredRowsReadExistingPreferencesAndKeepExitFlagsConsistent() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         try {
-            val prefs = MemorySettingsPreferences(mutableMapOf("home_card_style" to 1, "exit_video_control" to 0,
+            val prefs = MemorySettingsPreferences(mutableMapOf("recommend_web" to true, "home_card_style" to 1, "exit_video_control" to 0,
                 "disc_breath_enabled" to true, "disc_breath_cover_color" to true, "stop_on_video_page_exit" to true))
             val original = SettingsStateHolder.create(prefs, TestHistoryCodec, scope)
             val bindings = indexedSettingBindings(original)
@@ -17,6 +17,9 @@ class RestoredSettingsBindingsTest {
             assertEquals(SettingValue.Number(0), bindings.getValue("exit_video_control").read())
             assertEquals(SettingValue.Flag(true), bindings.getValue("disc_breath_enabled").read())
             assertEquals(SettingValue.Flag(true), bindings.getValue("disc_breath_cover_color").read())
+            assertEquals(SettingValue.Flag(true), bindings.getValue("recommend_web").read())
+            bindings.getValue("recommend_web").write(SettingValue.Flag(false))
+            assertEquals(false, prefs.values["recommend_web"])
             val continued = bindings.getValue("show_disc_after_video")
             assertEquals(SettingValue.Flag(false), continued.read())
             continued.write(SettingValue.Flag(true))

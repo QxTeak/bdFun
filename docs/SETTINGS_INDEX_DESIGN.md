@@ -2,7 +2,7 @@
 
 ## 运行时结构
 
-App 的唯一布局来源是 `app/src/main/assets/settings-index.json`。本轮以原生设置页完整清单重新建立索引，替换原型的36项示例；63个组件描述覆盖原全部设置、操作、开发者行，另含关于身份区与PR52的三个可选推荐组件。page_switches仍展开原来的六个页面开关。没有旧设置页兜底入口，原四个手写卡片文件已删除。
+App 的唯一布局来源是 `app/src/main/assets/settings-index.json`。本轮以原生设置页完整清单重新建立索引，替换原型的36项示例；64个组件描述覆盖原全部设置、操作、开发者行，另含关于身份区与PR52的三个可选推荐组件。page_switches仍展开原来的六个页面开关。没有旧设置页兜底入口，原四个手写卡片文件已删除。
 
 竖屏为分类列表与二级页；横屏且宽度至少600dp使用覆盖窗口全宽的两个独立Scaffold，取消外层内容最大宽度限制。左右栏分别拥有原顶栏、返回、滚动状态、popupHost与backdrop，按各自尺寸提供窗口上下文；默认3:7，左栏至少360dp，右栏使用剩余空间。无分隔线且不可拖动；一级固定，三级仅覆盖右栏二级并显示右侧返回键。竖屏采用Miuix NavDisplay默认转场。导航和搜索由页面作用域SettingsBrowserStateHolder持有，旋转不另建选择状态。返回先关闭搜索再回分类。搜索匹配名称/说明/分组/分类/键，排除当前不满足条件的设置，结果跳转并滚动定位。页面外壳、返回键、TopAppBar和大标题/滚动/材质联动继续使用原来的TeakActivityScaffold/TeakPageScaffold与TeakLargeTitle/TrackTeakPageScroll，不另画顶栏；二级页只在原工具栏增加搜索按钮。一级底部柔光胶囊展开、分裂关闭按钮并跟随IME抬升；搜索栏/关闭按钮高度48dp，底部间距8dp，保留系统导航/IME避让；动画复用主页搜索参数。分类内从右上搜索。横屏全局搜索由左栏持有，分类搜索由右栏持有，不再跨栏共用搜索浮层。
 
@@ -54,3 +54,5 @@ SET-05：新增settings-seperation.json（名称沿用需求中的seperation）�
 一级卡片的可见边界间距统一16dp（包括退出登录卡片）；非经典TeakSettingsCard自带12dp顶距，列表只补4dp；经典样式补16dp。
 
 SET-06：搜索面板使用AnimatedContent按“是否打开”分配内容身份，按原Teak搜索参数淡入/位移，退出帧保留原scope/query；后注册的搜索返回处理器优先关闭覆盖层，避免NavDisplay错误预弹二级。横屏只保留左侧全局搜索，竖屏二级保留scope搜索。Dialog动作底色统一MaterialTheme.colorScheme.secondaryContainer.copy(alpha=.85f)，退出/删除显式destructive=true，文字为error。
+
+合入main d708e5d时，将旧SettingsHomeCard新增的recommend_web开关及QUALITY_VALUES中的116（1080P 60FPS）迁入现有索引；后台播放、唱片与首页卡片选项继续沿用已重组条目，不恢复手写卡片副本。
