@@ -14,7 +14,11 @@ internal data class DanmakuLayerDrawing(val opacity: Float, val area: Float, val
     val topGuardDp: Float = 0f)
 internal data class DanmakuLayerOptions(val filters: DanmakuFilterOptions, val drawing: DanmakuLayerDrawing)
 @Composable
-internal fun currentDanmakuLayerOptions(fullscreen: Boolean): DanmakuLayerOptions {
+internal fun currentDanmakuLayerOptions(
+    fullscreen: Boolean,
+    /** 顶部当前是否被「弹幕计数」占着；false 时不预留，弹幕可以从最上面出来。 */
+    reserveTopForCounter: Boolean = false,
+): DanmakuLayerOptions {
     val settings = com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings.current
     return DanmakuLayerOptions(DanmakuFilterOptions(settings.danmakuDedupe, settings.danmakuBlockScroll,
         settings.danmakuBlockFixed, settings.danmakuBlockColor, settings.danmakuBlockAdvanced,
@@ -23,9 +27,8 @@ internal fun currentDanmakuLayerOptions(fullscreen: Boolean): DanmakuLayerOption
             settings.danmakuSpeedPref.coerceAtLeast(0.1f),
             if (fullscreen) settings.danmakuScaleFullscreen else settings.danmakuScaleInline,
             settings.danmakuStroke, false, settings.danmakuSubtitleGuard, settings.danmakuLowRefresh,
-            // 弹幕计数固定在画面顶部（约 26dp 文字 + 上下留白），开启时整块让出来，
-            // 滚动弹幕就不会从计数上压过去。
-            topGuardDp = if (settings.hotDanmakuEnabled) 42f else 0f))
+            // 计数显示时才让出顶部；引擎只挪空行，已经在屏上的弹幕保持原位。
+            topGuardDp = if (reserveTopForCounter) 42f else 0f))
     // 人像防挡在旧入口固定关闭，不恢复读取历史存储值。
 }
 internal class DanmakuLayerPresentationStateHolder { var viewSize by mutableStateOf(IntSize.Zero) }

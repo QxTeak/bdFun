@@ -57,8 +57,12 @@ fun PlayerSurface(
         )
 
         if (danmakuVisible) {
+            // 只跟"有没有计数内容"有关，不看播放控件：控件层压在弹幕之上，
+            // 开关控件不应该让弹幕整体位移。
+            val counterVisible = picture.hotDanmakuEnabled && !ui.fsAudioOnly.value &&
+                ui.hotDanmaku.value.isNotEmpty()
             slots.danmaku(danmaku, { frameMs - btLatencyMs }, playing,
-                if (boosting) boostSpeed else speed, Modifier.fillMaxSize(), fullscreen)
+                if (boosting) boostSpeed else speed, Modifier.fillMaxSize(), fullscreen, counterVisible)
         }
 
         PlayerAlwaysProgress(ui, fullscreen, positionMs, durationMs, picture.progressBarMode, picture.accentColor)

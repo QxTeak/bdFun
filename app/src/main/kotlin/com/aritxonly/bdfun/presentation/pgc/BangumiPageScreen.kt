@@ -56,6 +56,21 @@ internal fun BangumiPage(state: BangumiPageStateHolder) {
     LaunchedEffect(state, state.loading) {
         if (!state.loading) gridState.scrollToItem(0)
     }
+    // 顶部头图：优先用榜单横版封面，没有就用推荐卡片的封面。
+    val bannerItems = remember(rankUi.sections, state.cards) {
+        val fromRank = rankUi.sections.firstOrNull()?.entries.orEmpty().mapNotNull { entry ->
+            val image = entry.banner.ifBlank { entry.cover }
+            if (image.isBlank()) null
+            else BangumiBannerItem(image, entry.title, entry.subtitle, entry.seasonId)
+        }
+        if (fromRank.isNotEmpty()) {
+            fromRank.take(6)
+        } else {
+            state.cards.take(6).map {
+                BangumiBannerItem(it.cover, it.title, it.indexShow, it.seasonId)
+            }
+        }
+    }
     LaunchedEffect(rankUi.sections.size) {
         if (rankUi.sections.isNotEmpty()) gridState.scrollToItem(0)
     }
@@ -77,6 +92,9 @@ internal fun BangumiPage(state: BangumiPageStateHolder) {
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        item(key = "pgc-banner", span = { GridItemSpan(maxLineSpan) }) {
+            BangumiBanner(bannerItems) { seasonId -> openBangumi(context, seasonId, scope) }
+        }
         bangumiFollowSection(state, context)
         bangumiRankSections(
             sections = rankUi.sections,

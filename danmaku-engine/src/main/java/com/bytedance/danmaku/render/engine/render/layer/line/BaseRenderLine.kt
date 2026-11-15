@@ -40,6 +40,9 @@ abstract class BaseRenderLine(private val mController: DanmakuController,
     protected val mConfig = mController.config
     protected val mDrawingItems = LinkedList<DrawItem<DanmakuData>>()
 
+    /** 这一行当前是否还有正在屏上的弹幕；用于"只移动空行"的顶部让位。 */
+    val itemCount: Int get() = mDrawingItems.size
+
     protected fun beginItemTiming(item: DrawItem<DanmakuData>) {
         item.lastRenderTimeMs = mController.renderTimeMs
     }

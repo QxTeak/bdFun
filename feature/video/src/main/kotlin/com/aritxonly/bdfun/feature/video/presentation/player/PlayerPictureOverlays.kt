@@ -58,11 +58,11 @@ fun BoxScope.PlayerAlwaysProgress(
 @Composable
 fun BoxScope.PlayerHotDanmakuOverlay(ui: VideoPlayerUiStateHolder, fullscreen: Boolean, hotDanmakuEnabled: Boolean) {
     val hotDanmaku by ui.hotDanmaku
-    val controlsVisible by ui.controlsVisible
     val fsAudioOnly by ui.fsAudioOnly
     // 弹幕计数：按 BiliPai 的显示样式，纯白文字 + 黑色描影，居中等距排开，不用黑色胶囊。
+    // 播放控件打开时也保持显示：控件是压在弹幕之上的独立层，不应该让计数忽隐忽现。
     if (hotDanmakuEnabled &&
-        hotDanmaku.isNotEmpty() && !controlsVisible && !fsAudioOnly
+        hotDanmaku.isNotEmpty() && !fsAudioOnly
     ) {
         val hotShadow = androidx.compose.ui.text.TextStyle(
             shadow = androidx.compose.ui.graphics.Shadow(

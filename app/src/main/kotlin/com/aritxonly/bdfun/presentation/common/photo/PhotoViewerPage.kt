@@ -135,7 +135,9 @@ private fun PhotoViewerStage(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .pointerInput(morph.clipLeft, morph.clipTop, morph.clipWidth, morph.clipHeight) {
+            // 手势的 key 只跟页面地址绑定：之前用每帧都在变的裁剪框当 key，
+            // 入场动画期间会逐帧销毁重建手势识别器，白掉帧。
+            .pointerInput(url) {
                 detectTapGestures(
                     // 点画面任意位置都是关闭（不再要求必须点到图片外的空白）。
                     onTap = { onDismiss() },
