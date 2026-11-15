@@ -5,11 +5,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import com.aritxonly.bdfun.core.common.AppError
 import com.aritxonly.bdfun.core.common.Outcome
 import com.aritxonly.bdfun.core.domain.PgcDiscoverRepository
 import com.aritxonly.bdfun.core.model.pgc.BangumiCard
 import com.aritxonly.bdfun.presentation.common.discover.readable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 /**
  * 首页「番剧」段的状态：最近追番 + 推荐。
@@ -70,35 +72,69 @@ internal class BangumiPageStateHolder(private val repository: PgcDiscoverReposit
 
     fun retry() { error = null }
 
+    /**
+     * 头图简介后补：时间表先带标题/封面出图，简介拉到一个补一个。
+     * 失败不重试到死循环，等下一次刷新时间表时再补。
+     */
+    suspend fun ensureTimelineIntros() {
+        val source = timeline
+        if (source.isEmpty() || source.all { it.subtitle.isNotBlank() }) return
+        val intros = coroutineScope {
+            source.map { card ->
+                async { card.seasonId to repository.seasonIntro(card.seasonId) }
+            }.map { it.await() }
+        }.mapNotNull { (seasonId, result) ->
+            val text = (result as? Outcome.Success)?.value?.takeIf { it.isNotBlank() }
+            if (text == null) null else seasonId to text
+        }.toMap()
+        if (intros.isEmpty()) return
+        timeline = timeline.map { card ->
+            intros[card.seasonId]?.let { card.copy(subtitle = it) } ?: card
+        }
+    }
+
     private suspend fun load() {
         token++
         val current = token
         if (cards.isEmpty()) loading = true
         try {
-            var failure: AppError? = null
-            val followed = when (val result = repository.following(1)) {
-                is Outcome.Success -> result.value
-                is Outcome.Failure -> emptyList()
+            // 三条线并行：头图时间表最先出，最近追番/推荐各自完成就上屏，互不等待。
+            coroutineScope {
+                launch {
+                    val followed = when (val result = repository.following(1)) {
+                        is Outcome.Success -> result.value
+                        is Outcome.Failure -> emptyList()
+                    }
+                    if (current == token) following = followed
+                }
+                launch {
+                    val fresh = when (val result = repository.timeline()) {
+                        is Outcome.Success -> result.value
+                        is Outcome.Failure -> emptyList()
+                    }
+                    if (current == token) timeline = fresh
+                }
+                launch {
+                    try {
+                        val list = when (val result = repository.recommend(1)) {
+                            is Outcome.Success -> result.value
+                            is Outcome.Failure -> {
+                                if (current == token && cards.isEmpty()) {
+                                    error = result.error.readable()
+                                }
+                                null
+                            }
+                        }
+                        if (current != token || list == null) return@launch
+                        cards = list
+                        page = 1
+                        hasMore = list.isNotEmpty()
+                        error = null
+                    } finally {
+                        if (current == token) loading = false
+                    }
+                }
             }
-            val fresh = when (val result = repository.timeline()) {
-                is Outcome.Success -> result.value
-                is Outcome.Failure -> emptyList()
-            }
-            val list = when (val result = repository.recommend(1)) {
-                is Outcome.Success -> result.value
-                is Outcome.Failure -> { failure = result.error; null }
-            }
-            if (current != token) return
-            following = followed
-            timeline = fresh
-            if (list == null) {
-                if (cards.isEmpty()) error = failure?.readable() ?: "加载失败"
-                return
-            }
-            cards = list
-            page = 1
-            hasMore = list.isNotEmpty()
-            error = null
         } finally {
             if (current == token) loading = false
         }

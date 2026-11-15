@@ -53,12 +53,8 @@ internal fun BangumiPage(
     val rankUi by rankState.state.collectAsState()
     val pull = rememberBangumiPullSession(state, pullUi, scope)
     LaunchedEffect(rankState) { rankState.ensureLoaded() }
-    // 进页面回到顶部。网格状态是单例持久的，切走再回来会留着上次的位置；
-    // 更关键的是「最近追番」比榜单晚返回，它插在榜单上面时 LazyGrid 会按锚点不动，
-    // 于是看起来一进来就停在热门动画榜。所以数据落定（loading 结束）后再回顶一次。
-    LaunchedEffect(state, state.loading) {
-        if (!state.loading) gridState.scrollToItem(0)
-    }
+    // 不在页面里自动 scrollToItem(0)：网格状态是单例，保留离开时的位置；
+    // 首屏/榜单/追番晚到都不再抢用户的滚动位置。
     // 顶部头图：优先当周新番；不足 6 张时用榜单/推荐补位，保证扇形能循环与左右滑动。
     val bannerItems = remember(rankUi.sections, state.cards, state.timeline) {
         val fromTimeline = state.timeline.mapNotNull { card ->
@@ -75,9 +71,7 @@ internal fun BangumiPage(
         }
         (fromTimeline + fromRank + fromCards).distinctBy { it.seasonId }.take(6)
     }
-    LaunchedEffect(rankUi.sections.size) {
-        if (rankUi.sections.isNotEmpty()) gridState.scrollToItem(0)
-    }
+    LaunchedEffect(state.timeline) { state.ensureTimelineIntros() }
     BangumiPageEffects(state, pull, pullUi)
 
     LazyVerticalGrid(

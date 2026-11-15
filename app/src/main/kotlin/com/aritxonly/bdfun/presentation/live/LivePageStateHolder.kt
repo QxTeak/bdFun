@@ -12,6 +12,8 @@ import com.aritxonly.bdfun.core.model.live.LiveArea
 import com.aritxonly.bdfun.core.model.live.LiveCard
 import com.aritxonly.bdfun.core.model.live.LiveFollower
 import com.aritxonly.bdfun.presentation.common.discover.readable
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 
 /**
  * 首页「直播」段的状态：关注直播 + 分区 + 分区直播流。
@@ -104,25 +106,30 @@ internal class LivePageStateHolder(private val repository: LiveDiscoverRepositor
         val current = token
         if (cards.isEmpty()) loading = true
         try {
-            var failure: AppError? = null
-            // 首页卡片带分区入口；关注直播单独走 portal（和动态页头像行同源）。
-            val home = when (val result = repository.home(1)) {
-                is Outcome.Success -> result.value
-                is Outcome.Failure -> { failure = result.error; null }
-            }
-            val followersResult = repository.followers()
-            val list = if (selectedKey == 0L) null else
-                when (val result = repository.list(1, selectedParent, selectedSub)) {
-                    is Outcome.Success -> result.value
-                    is Outcome.Failure -> { failure = result.error; null }
+            // 首页、关注直播、分区列表互不依赖，并行拉，首屏只等最慢的一条。
+            val (homeResult, followersResult, listResult) = coroutineScope {
+                val home = async { repository.home(1) }
+                val followers = async { repository.followers() }
+                val list = if (selectedKey == 0L) null else async {
+                    repository.list(1, selectedParent, selectedSub)
                 }
+                Triple(home.await(), followers.await(), list?.await())
+            }
+            var failure: AppError? = null
+            val home = when (homeResult) {
+                is Outcome.Success -> homeResult.value
+                is Outcome.Failure -> { failure = homeResult.error; null }
+            }
+            val list = when (listResult) {
+                null -> null
+                is Outcome.Success -> listResult.value
+                is Outcome.Failure -> { failure = listResult.error; null }
+            }
             if (current != token) return
             if (followersResult is Outcome.Success) {
                 followers = followersResult.value.distinctBy { it.roomId }
             }
-            if (home != null) {
-                if (home.areas.isNotEmpty()) areas = home.areas
-            }
+            if (home != null && home.areas.isNotEmpty()) areas = home.areas
             val first = if (selectedKey == 0L) home?.cards else list
             if (first == null) {
                 if (cards.isEmpty()) error = failure?.readable() ?: "加载失败"

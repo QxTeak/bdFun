@@ -26,6 +26,9 @@ interface PgcDiscoverRepository {
 
     suspend fun recommend(page: Int = 1): Outcome<List<BangumiCard>>
 
-    /** 正在更新的新番（番剧 + 国创时间表），给首页头图用。 */
+    /** 正在更新的新番（番剧 + 国创时间表），给首页头图用；不带简介，保证头图先出。 */
     suspend fun timeline(): Outcome<List<BangumiCard>>
+
+    /** 单部番剧的一句话简介；头图先出标题/封面，再由它补齐副标题。 */
+    suspend fun seasonIntro(seasonId: Long): Outcome<String>
 }

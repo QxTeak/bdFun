@@ -67,7 +67,9 @@ internal fun LazyGridScope.liveFollowSection(state: LivePageStateHolder, onOpenR
             ) {
                 LazyRow(
                     horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    contentPadding = PaddingValues(vertical = 2.dp),
+                    // 雷达圈会扩散到头像外约 8dp；给 LazyRow 留同样的内边距，
+                    // 否则圆圈会在行首/行顶被滚动视口裁成直边。
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
                 ) {
                     items(state.followers, key = { it.roomId }) { user ->
                         LiveAvatar(name = user.name, face = user.face, onClick = { onOpenRoom(user.roomId) })
