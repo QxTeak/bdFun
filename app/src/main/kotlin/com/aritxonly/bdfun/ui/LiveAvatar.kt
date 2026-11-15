@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -47,15 +48,26 @@ internal fun LiveAvatar(
     name: String,
     face: String,
     onClick: () -> Unit,
+    onLongClick: (() -> Unit)? = null,
 ) {
     val colors = MiuixTheme.colorScheme
     val pulse = rememberLivePulse()
+    val avatarModifier = if (onLongClick != null) {
+        Modifier.combinedClickable(
+            interactionSource = null,
+            indication = null,
+            onClick = onClick,
+            onLongClick = onLongClick,
+        )
+    } else {
+        Modifier.clickable(interactionSource = null, indication = null, onClick = onClick)
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         // 宽度 = 头像 46dp + 扩散圈余量：扩散到最大时左右两侧不会被列表裁掉。
         modifier = Modifier
             .width(72.dp)
-            .clickable(interactionSource = null, indication = null, onClick = onClick),
+            .then(avatarModifier),
     ) {
         Box(Modifier.fillMaxWidth().height(72.dp), contentAlignment = Alignment.Center) {
             // 扩散粉圈：比头像大一圈，越大越淡。

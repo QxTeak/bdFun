@@ -38,6 +38,7 @@ fun FeedAvatarCard(
     val colors = MiuixTheme.colorScheme
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val haptics = com.aritxonly.bdfun.ui.rememberTeakHaptics()
     val authorScroll = rememberLazyListState()
     val profile = AppGraph.session.value
     LaunchedEffect(state) {
@@ -49,23 +50,42 @@ fun FeedAvatarCard(
         }
     }
     Column(modifier.fillMaxWidth().clip(ContinuousCornerShape(18.dp)).background(colors.surfaceContainer)) {
-        // 这里只保留「全部动态 / 我 / 关注的 UP」；正在直播那一行已经整体去掉。
+        // 正在直播的 UP 提到最前面：点击照常筛选他的动态，长按直接进直播间。
+        val liveUsers = state.liveUsers
+        val liveMids = liveUsers.map { it.mid }.toSet()
         val entries: LazyListScope.() -> Unit = {
+            items(liveUsers, key = { "live-${it.mid}" }) { user ->
+                LiveAvatar(
+                    name = user.name,
+                    face = user.face,
+                    onClick = {
+                        haptics.tap()
+                        scope.launch { state.listState.scrollToItem(0); state.filterTo(user.mid) }
+                    },
+                    onLongClick = {
+                        haptics.longPress()
+                        openFeedLive(context, user.roomId)
+                    },
+                )
+            }
             item(key = "all-dynamics") {
                 AllFeedAvatar(selected = state.type == "all") {
+                    haptics.tap()
                     scope.launch { state.listState.scrollToItem(0); state.clearFilter() }
                 }
             }
-            profile?.let { me ->
+            profile?.takeIf { it.mid !in liveMids }?.let { me ->
                 item(key = "my-dynamics") {
                     AuthorAvatar(name = "我", face = me.face, selected = state.filterMid == me.mid) {
+                        haptics.tap()
                         scope.launch { state.listState.scrollToItem(0); state.filterTo(me.mid) }
                     }
                 }
             }
-            items(state.authors, key = { "up-${it.mid}" }) { author ->
+            items(state.authors.filterNot { it.mid in liveMids }, key = { "up-${it.mid}" }) { author ->
                 AuthorAvatar(name = author.name, face = author.face,
                     selected = state.filterMid == author.mid, hasUpdate = author.hasUpdate) {
+                    haptics.tap()
                     scope.launch { state.listState.scrollToItem(0); state.filterTo(author.mid) }
                 }
             }

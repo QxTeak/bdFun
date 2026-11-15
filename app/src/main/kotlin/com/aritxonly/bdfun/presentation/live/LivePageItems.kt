@@ -70,7 +70,7 @@ internal fun LazyGridScope.liveFollowSection(state: LivePageStateHolder, onOpenR
                     contentPadding = PaddingValues(vertical = 2.dp),
                 ) {
                     items(state.followers, key = { it.roomId }) { user ->
-                        LiveAvatar(name = user.name, face = user.face) { onOpenRoom(user.roomId) }
+                        LiveAvatar(name = user.name, face = user.face, onClick = { onOpenRoom(user.roomId) })
                     }
                 }
             }

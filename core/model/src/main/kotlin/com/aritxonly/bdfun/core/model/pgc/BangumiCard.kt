@@ -11,4 +11,6 @@ data class BangumiCard(
     val followText: String = "",
     /** 需要大会员：封面右上角角标。 */
     val vip: Boolean = false,
+    /** 一句话简介（番剧详情 subtitle/evaluate），头图副标题用；列表卡片不显示。 */
+    val subtitle: String = "",
 )

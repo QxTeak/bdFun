@@ -113,17 +113,13 @@ private suspend fun androidx.compose.ui.input.pointer.AwaitPointerEventScope.dra
     }
 }
 
-/** 长按加速的触感反馈；设备没有振动器时静默跳过。 */
+/** 长按加速的触感反馈：交给系统默认的长按触感，不再自己写死时长/振幅。 */
 internal fun buzzDevice(context: Context) {
     runCatching {
-        val vibrator = (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE)
-            as? android.os.VibratorManager)?.defaultVibrator
-        vibrator?.vibrate(
-            android.os.VibrationEffect.createOneShot(
-                12L,
-                48,
-            ),
-        )
+        @Suppress("DEPRECATION")
+        val activity = context as? android.app.Activity
+        activity?.window?.decorView
+            ?.performHapticFeedback(android.view.HapticFeedbackConstants.LONG_PRESS)
     }
 }
 

@@ -39,7 +39,10 @@ import kotlin.math.roundToInt
  * 内容为「最近追番」横排 + 竖长封面推荐网格。
  */
 @Composable
-internal fun BangumiPage(state: BangumiPageStateHolder) {
+internal fun BangumiPage(
+    state: BangumiPageStateHolder,
+    topBarHeight: androidx.compose.ui.unit.Dp = HomeTopBarHeight,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -56,17 +59,21 @@ internal fun BangumiPage(state: BangumiPageStateHolder) {
     LaunchedEffect(state, state.loading) {
         if (!state.loading) gridState.scrollToItem(0)
     }
-    // 顶部头图：优先用榜单横版封面，没有就用推荐卡片的封面。
-    val bannerItems = remember(rankUi.sections, state.cards) {
+    // 顶部头图：优先用当周新番时间表，没拉到再用榜单横版封面，最后用推荐卡片封面。
+    val bannerItems = remember(rankUi.sections, state.cards, state.timeline) {
+        val fromTimeline = state.timeline.mapNotNull { card ->
+            if (card.cover.isBlank()) null
+            else BangumiBannerItem(card.cover, card.title, card.subtitle, card.seasonId)
+        }
         val fromRank = rankUi.sections.firstOrNull()?.entries.orEmpty().mapNotNull { entry ->
             val image = entry.banner.ifBlank { entry.cover }
             if (image.isBlank()) null
             else BangumiBannerItem(image, entry.title, entry.subtitle, entry.seasonId)
         }
-        if (fromRank.isNotEmpty()) {
-            fromRank.take(6)
-        } else {
-            state.cards.take(6).map {
+        when {
+            fromTimeline.isNotEmpty() -> fromTimeline.take(6)
+            fromRank.isNotEmpty() -> fromRank.take(6)
+            else -> state.cards.take(6).map {
                 BangumiBannerItem(it.cover, it.title, it.indexShow, it.seasonId)
             }
         }
@@ -86,7 +93,7 @@ internal fun BangumiPage(state: BangumiPageStateHolder) {
         contentPadding = PaddingValues(
             start = 10.dp,
             end = 10.dp,
-            top = HomeTopBarHeight + statusBarTop + 6.dp,
+            top = topBarHeight + statusBarTop + 6.dp,
             bottom = 104.dp,
         ),
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),

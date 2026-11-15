@@ -91,6 +91,8 @@ fun BoxScope.PlayerHotDanmakuOverlay(ui: VideoPlayerUiStateHolder, fullscreen: B
                         text = text,
                         color = Color.White,
                         fontSize = 16.sp,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
                         maxLines = 1,
                         softWrap = false,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Clip,
@@ -101,8 +103,8 @@ fun BoxScope.PlayerHotDanmakuOverlay(ui: VideoPlayerUiStateHolder, fullscreen: B
                         text = "×$count",
                         color = Color.White,
                         fontSize = 20.sp,
+                        fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
                         maxLines = 1,
                         style = hotShadow,
                     )

@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
 import com.aritxonly.bdfun.ui.HomePullIndicator
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
+import com.aritxonly.bdfun.ui.homeTopBarHeight
 
 @Composable
 internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
@@ -53,7 +54,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .statusBarsPadding()
-                .padding(top = HomeTopBarHeight + 4.dp),
+                .padding(top = homeTopBarHeight(settings.interfaceStyle) + 4.dp),
         )
     }
 }

@@ -15,6 +15,8 @@ internal data class CommentScreenLayout(
     val trackBackProgress: Boolean = false, val showLoading: Boolean = true,
     val threadPlayerBottom: Dp? = null, val threadPaneWidth: Dp? = null,
     val playerFullscreen: Boolean = false, val flatList: Boolean = false,
+    /** 评论区作为独立可见页面时注册「回到顶部」；视频详情双栏/评论 tab 由调用方按可见性传。 */
+    val scrollTop: Boolean = false,
 )
 internal typealias CommentScreenHeader = LazyListScope.() -> Unit
 

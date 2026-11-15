@@ -20,7 +20,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun FeedCard(
     item: FeedItem, actions: FeedCardActions, presentation: FeedCardPresentation,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier, live: Boolean = false,
 ) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
@@ -43,7 +43,7 @@ internal fun FeedCard(
             }
             .padding(12.dp),
     ) {
-        FeedCardAuthor(item)
+        FeedCardAuthor(item, live = live)
         FeedCardText(item, presentation.expanded)
         if (item.images.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))

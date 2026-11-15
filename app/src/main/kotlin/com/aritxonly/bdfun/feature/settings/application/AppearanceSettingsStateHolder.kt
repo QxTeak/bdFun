@@ -36,6 +36,19 @@ internal class AppearanceSettingsStateHolder(
         prefs.getStringSet("scroll_top_pages", null) ?: allScrollTopPages,
     )
 
+    init {
+        // 新增直播/番剧/评论区三个页面：老用户已存过页面集合，不会自动包含它们，迁移一次补上。
+        if (!prefs.getBoolean("scroll_top_pages_v3", false)) {
+            val stored = prefs.getStringSet("scroll_top_pages", null)
+            val merged = (stored ?: allScrollTopPages) + setOf("live", "pgc", "comment")
+            scrollTopPagesState.value = merged
+            prefs.edit()
+                .putStringSet("scroll_top_pages", merged)
+                .putBoolean("scroll_top_pages_v3", true)
+                .apply()
+        }
+    }
+
     private val blurState = stateCell("blurState", prefs.getBoolean("blur", true))
 
     private val commentFontScaleState =

@@ -52,9 +52,13 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     // 首页数据放在 App 层：进视频/搜索/设置再返回时不会重新拉取，滚动位置也保留。
     val homeFeed = AppGraph.homeFeedState
     val dynamicFeed = AppGraph.dynamicFeedState
-    // 首页 / 动态页各自注册回到顶部；其他底栏页不显示。
+    // 首页三段各自注册回到顶部；动态页注册自己的列表。
     when (selected) {
-        0 -> com.aritxonly.bdfun.ui.RegisterScrollTop(homeFeed.gridState, "home")
+        0 -> when (ui.homeSection) {
+            1 -> com.aritxonly.bdfun.ui.RegisterScrollTop(AppGraph.livePageState.gridState, "live")
+            2 -> com.aritxonly.bdfun.ui.RegisterScrollTop(AppGraph.bangumiPageState.gridState, "pgc")
+            else -> com.aritxonly.bdfun.ui.RegisterScrollTop(homeFeed.gridState, "home")
+        }
         1 -> com.aritxonly.bdfun.ui.RegisterScrollTop(dynamicFeed.listState, "dynamic")
     }
     TrackTeakPageScroll(homeFeed.gridState, homeChrome)

@@ -15,5 +15,6 @@ internal class LiveReadAccess(
     suspend fun liveEmoticons(id: Long) = repository.emoticons(id)
     suspend fun liveDanmuInfo(id: Long) = repository.danmuInfo(id)
     suspend fun livePlayUrl(id: Long, qn: Int) = repository.playUrl(id, qn)
+    suspend fun sendDanmaku(id: Long, text: String) = repository.sendDanmaku(id, text)
     fun decode(raw: String, id: Long) = decoder.decode(raw, id)
 }

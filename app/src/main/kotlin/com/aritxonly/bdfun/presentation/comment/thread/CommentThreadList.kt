@@ -43,7 +43,7 @@ internal fun CommentThreadList(render: CommentThreadRender) {
         }
 
         item(key = "thread-head") {
-            CommentThreadSortRow(content, callbacks.onToggleSort)
+            CommentThreadSortRow(content, callbacks.onToggleSort, flatList = render.layout.flatList)
         }
 
         itemsIndexed(allReplies, key = { _, r -> r.rpid }) { index, reply ->
