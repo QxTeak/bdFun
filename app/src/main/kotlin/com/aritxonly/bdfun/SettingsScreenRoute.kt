@@ -24,7 +24,7 @@ internal fun SettingsScreenRoute(activity: ComponentActivity) {
         SettingsNavigation({ activity.finish() }, { AppGraph.logout(); activity.finish() },
             { destination -> openSettingsDestination(activity, destination) },
             { url -> openSettingsWebLink(activity, url) }, { activity.showToast(it) }),
-        dependencies, AppGraph.api.isLoggedIn,
+        dependencies, AppGraph.api.isLoggedIn, AppGraph.settings.indexed,
     )
 }
 

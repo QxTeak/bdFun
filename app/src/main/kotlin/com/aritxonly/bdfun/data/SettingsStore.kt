@@ -11,5 +11,28 @@ import kotlinx.coroutines.*
 class SettingsStore private constructor(context: Context, scope: CoroutineScope) : SettingsBindings(
     scope, SettingsStateHolder.create(AndroidSettingsPreferences(context), JsonSearchHistoryCodec(), scope),
 ) {
+    private val index = loadSettingsIndex(context)
+    internal val indexed = com.aritxonly.bdfun.feature.settings.application.IndexedSettingsStateHolder(
+        index, this, state, scope, loadSettingsSeperation(context, index),
+    )
+
     constructor(context: Context) : this(context, CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate))
+}
+
+private fun loadSettingsIndex(context: Context): com.aritxonly.bdfun.core.domain.SettingsIndex {
+    val json = context.assets.open("settings-index.json").bufferedReader().use { it.readText() }
+    return when (val result = com.aritxonly.bdfun.infra.storage.JsonSettingsIndexCodec().decode(json)) {
+        is com.aritxonly.bdfun.core.domain.SettingsIndexImport.Success ->
+            com.aritxonly.bdfun.core.domain.SettingsIndex(result.categories)
+        is com.aritxonly.bdfun.core.domain.SettingsIndexImport.Invalid -> error(result.reason)
+    }
+}
+
+private fun loadSettingsSeperation(context: Context, index: com.aritxonly.bdfun.core.domain.SettingsIndex):
+    List<com.aritxonly.bdfun.core.model.settings.SettingsSeperation> {
+    val json = context.assets.open("settings-seperation.json").bufferedReader().use { it.readText() }
+    return when (val result = com.aritxonly.bdfun.infra.storage.JsonSettingsSeperationCodec().decode(json, index)) {
+        is com.aritxonly.bdfun.core.domain.SettingsSeperationImport.Success -> result.index.groups
+        is com.aritxonly.bdfun.core.domain.SettingsSeperationImport.Invalid -> error(result.reason)
+    }
 }

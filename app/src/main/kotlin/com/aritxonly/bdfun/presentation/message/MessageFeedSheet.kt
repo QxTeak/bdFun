@@ -26,7 +26,7 @@ internal fun MessageFeedSheet(
                 "删除后，有新的点赞时这条通知会重新出现在列表。" else "确认删除这条通知？",
             confirmButton = {
                 com.aritxonly.teak.common.modal.TextButton(
-                    onClick = { onMutate(true) }, enabled = enabled, miuixText = "删除",
+                    onClick = { onMutate(true) }, enabled = enabled, miuixText = "删除", destructive = true,
                 ) { androidx.compose.material3.Text("删除") }
             },
             dismissButton = {
