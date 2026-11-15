@@ -36,7 +36,7 @@ bdFun 是一个第三方哔哩哔哩 Android 客户端，使用 Kotlin + Jetpack
 
 ## 反馈
 
-欢迎通过 Issue 反馈问题、提出建议，也可以加入我们的 [Telegram 群组](https://t.me/+tQrDYf-hb702ZjM1)。
+欢迎通过 Issue 反馈问题、提出建议，也可以加入我们的 [Telegram 群组](https://t.me/+tQrDYf-hb702ZjM1)或QQ群组（852442572）。
 
 ## 构建
 

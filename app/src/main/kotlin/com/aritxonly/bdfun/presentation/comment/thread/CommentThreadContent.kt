@@ -7,17 +7,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import com.aritxonly.teak.common.theme.LocalTeakContentColors
 
 @Composable
 internal fun androidx.compose.foundation.layout.BoxScope.CommentThreadContent(render: CommentThreadRender) {
     val progress = render.layout.progress
-    val background = MaterialTheme.colorScheme.background
+    // 主评论区（视频页/动态页）用的是 TeakContentColors，展开页必须同一份底色，
+    // 否则弹层和下面的评论区会明显差一个色调。
+    val background = LocalTeakContentColors.current.background
     Column(
         modifier = Modifier
             .align(Alignment.TopCenter)
@@ -29,15 +31,17 @@ internal fun androidx.compose.foundation.layout.BoxScope.CommentThreadContent(re
             }
             .background(background),
     ) {
-        CommentThreadPane(render)
+        CommentThreadPane(render, background)
     }
 }
 
 @Composable
-private fun androidx.compose.foundation.layout.ColumnScope.CommentThreadPane(render: CommentThreadRender) {
+private fun androidx.compose.foundation.layout.ColumnScope.CommentThreadPane(
+    render: CommentThreadRender,
+    background: androidx.compose.ui.graphics.Color,
+) {
     val transient = render.transient
     val callbacks = render.callbacks
-    val background = MaterialTheme.colorScheme.background
     Box(
         modifier = Modifier
             .weight(1f)

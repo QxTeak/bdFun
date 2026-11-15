@@ -1,0 +1,3 @@
+Miuix icons, compose-miuix-ui contributors.
+Source: https://github.com/miuix-kotlin-multiplatform/miuix commit 45645854cd46c32275c5666e3aafa9980d8f104e.
+Normal ImageVector paths converted to SVG for offline previews. Licensed under Apache-2.0, see LICENSE.txt.

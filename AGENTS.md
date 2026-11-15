@@ -589,3 +589,33 @@ HyperOS 中性色以 Deadliner 的 HyperOS 适配为准：surface 为页面层�
 ### 2026-11-14 推荐优化本地 v1
 
 推荐开关与学习归属由 core/application/RecommendationOptimizer 管理，存储为 infra/storage/FileRecommendationStorage 的独立 v1 文件；默认关闭，游客不落盘。首页只在新批次执行 core/domain 的有界排序，已发布条目不重排。关闭、清除和账号变化使旧 ticket 失效；播放学习仅关联首页真实点击，通过共享 PlaybackSessionStateHolder 观察，不改播放行为。不开新推荐接口、不伪造曝光/上报；本地算法实现不等于官方协议、登录账号体验或质量收益已验收。具体剩余项见实现记录。
+
+### 2026-11-14 SET-01 设置索引与原型
+
+设置索引位于 app/src/main/assets/settings-index.json，JSON 解析在 infra/storage，类型约束与搜索在 core/domain，写入通过 feature/settings/application 的显式白名单绑定调用原设置控制器，不能按任意 pref_name 直接落盘。当前索引包含首批36项开关/固定枚举；动态 CDN、文件选择、账号动作、我的页与推荐独立存储等仍沿用旧页，未宣称全量替换。HTML 原型在 docs/prototypes/settings，Android 页面尚未替换。
+
+### 2026-11-14 SET-02 索引设置 UI 与编排器
+
+设置页已改为 presentation/settings/page 的索引渲染器：一级分类、横屏双栏与页面作用域搜索。全量现有设置使用64个组件描述（含关于身份区及PR52的3个可选扩展）；不再沿用原型36项索引或旧卡片兜底。switch/dropdown/font_scale/cdn_dropdown/page_switches/mine_switch/action/developer/version保持原组件、条件与存储边界；select不得改成三级页面。一级入口现按settings-seperation.json分组，并使用彩色底板的Miuix Icons；功能按钮仍只用Miuix Icons。编排器为 docs/settings-organizer/index.html，导出必须完整保留组件键/type/default/options/storage/visible_when/inverted/value_type，允许调整分类、分组、顺序与文案；App资产是唯一来源，运行 tools/sync-settings-catalog.py 同步。浮点组件须保留value_type=decimal，防止JSON导出1.0变1后改变类型。关于页参考Deadliner 3b561656的AboutSettings.kt，来源与MIT许可见docs/SETTINGS_DEADLINER_PROVENANCE.md；光晕只在Canvas读取动画State，卡片仅背景随320dp滚动由0.5变1。推荐扩展由启动层注入，未合入PR52时隐藏，不建立跨功能实现依赖。
+
+SET-02外壳约束：返回键、TopAppBar、大标题与滚动联动必须复用原TeakActivityScaffold/TeakLargeTitle/TrackTeakPageScroll，不画新的设置顶栏，不关掉原顶栏后自己仿制。二级页搜索仅加入原工具栏actions槽。
+
+### 2026-11-14 SET-03 独立分栏与一级退出登录
+
+横屏设置必须覆盖窗口全宽，左右分别使用原TeakPageScaffold（竖屏仍由TeakActivityScaffold装配），不在一个受内容最大宽度约束的外壳内摆两列。每栏独立PageChrome/滚动/搜索/popup/backdrop，并按栏尺寸提供窗口上下文。默认分配3:7，左栏下限360dp；不显示分隔线且不可拖动，右栏取剩余空间；一级页固定，右侧三级页只覆盖二级页，三级才显示右侧返回键。竖屏继续单壳。退出登录是layout=root_footer中的原动作，登录后在一级列表最底部独立卡片呈现，不生成账号二级页。
+
+### 2026-11-14 SET-05 一级分组与宽屏TopBar
+
+settings-seperation.json独立描述一级卡片分组及入口route/icon/color，设置值和二级页面仍以settings-index.json为唯一来源。不得复制设置项或把退出登录移入入口分组。左右栏保留真实容器大小供弹层使用，但通过LocalWideFoldTopBarOverride明确使用外层宽屏chrome策略，不能让360dp左栏误判为手机TopBar。
+
+### 2026-11-15 SET-06 搜索覆盖层与Dialog动作
+
+设置搜索覆盖层必须保留进出动画与退出帧的query/scope快照，返回先关闭搜索，不启动NavDisplay的页面预测返回。横屏仅左侧全局搜索，右侧不再显示搜索按钮；竖屏二级仍保留分类搜索。Dialog动作统一secondaryContainer.copy(alpha=.85f)底色，破坏性操作显式destructive=true并用error文字，普通按钮不受影响。
+
+### 2026-11-14 直播页内容 / 分区 / 关注与图片保存检查点
+
+直播首页接口 `/xlive/app-interface/v2/index/feed` 必须带 `fnval=912&network=wifi&scale=2`，少一个就 -400；`card_data.small_card_v1` 是**单个房间对象**，不是 `{list:[]}`，按 list 解析会把整页卡片丢光；观看人数取 `watched_show.text_large`。分区列表改用 BiliPai 验证过的 `/room/v3/area/getRoomList`（app 端 `second/getList` 与 web `getList` 实测均 -352，WBI 也救不回来），分区请求参数必须分开存 `area_id`/`parent_area_id`。登录态首页不下发 `area_entrance_v3`，按 PiliPlus 的做法用 `/room/v1/Area/getList` 补默认分区。关注直播不再用卡片横排，改成和动态页同源的 portal `live_users` 头像行（`LiveFollower`）。直播拉流必须在 ExoPlayer 数据源上带 `Referer: https://live.bilibili.com/`、web UA 和 Cookie，否则有地址也黑屏；竖屏顶栏不再用纯黑色块，改用页面 BackdropGlow + 顶部渐变。图片查看器长按弹 `TeakDropdownPanel`（保存该图片 / 保存全部图片 / 举报红字），位置按长按点换算锚点；保存走 MediaStore `Pictures/bdFun`。评论菜单锚点改成行内记录的按下坐标，带图评论追加「保存全部图片」；「自由复制」改为弹 `CommentCopySheet`，正文进 `SelectionContainer` 可自由拖选。首页三段与动态页顶栏过渡合并为单一 `MainTopBarChrome`，不要再各写一份。下拉刷新的 `canScrollBackward` 调用方不得再取反（会变成不在顶部也能刷新）；分页触发统一 `drop(1)` + 按卡片数比较。
+
+### 2026-11-15 推荐优化与设置索引集成
+
+PR #52 的推荐开关、清除和错误提示由 SettingsScreenRoute 向 main 设置索引的 recommendation_toggle/clear/error 三个扩展槽显式注入，沿用推荐独立存储，不恢复旧设置卡片列表。首页入口同时保留 main 的直播/番剧分段、按风格变化的顶栏高度，以及推荐曝光所需的 interactive 守卫。

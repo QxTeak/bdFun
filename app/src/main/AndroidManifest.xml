@@ -63,6 +63,7 @@
         </activity>
         <activity
             android:name=".SettingsActivity"
+            android:windowSoftInputMode="adjustResize"
             android:exported="false" />
         <activity
             android:name=".LibraryActivity"
@@ -108,6 +109,7 @@
             android:windowSoftInputMode="adjustNothing"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|uiMode|smallestScreenSize|density" />
         <activity android:name=".RelationActivity" android:exported="false" />
+        <activity android:name=".BangumiRankBoardActivity" android:exported="false" />
         <activity
             android:name=".LiveRoomActivity"
             android:exported="false"

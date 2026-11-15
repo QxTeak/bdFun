@@ -24,6 +24,7 @@ class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackCon
     override val state = mutableState.asStateFlow()
     private val listeners = CopyOnWriteArrayList<PlaybackController.Listener>()
     private var released = false
+    private var mediaKey: String? = null
     private val observer = object : Player.Listener {
         override fun onRenderedFirstFrame() { listeners.forEach { it.onRenderedFirstFrame() } }
         override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -60,18 +61,21 @@ class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackCon
 
     override fun prepare(source: PlaybackSource) {
         if (released) return
-        val http = DefaultHttpDataSource.Factory().setUserAgent(source.userAgent).setDefaultRequestProperties(source.headers)
+        val continued = continuePlaybackSource(mediaKey, source, refresh())
+        val http = DefaultHttpDataSource.Factory()
+            .setConnectTimeoutMs(15_000).setReadTimeoutMs(30_000).setUserAgent(source.userAgent).setDefaultRequestProperties(source.headers)
         val data = DefaultDataSource.Factory(appContext, http)
         val video: MediaSource = ProgressiveMediaSource.Factory(data).createMediaSource(MediaItem.fromUri(source.videoUrl))
         val audioUrl = source.audioUrl
         val media = if (audioUrl.isNullOrBlank()) video else MergingMediaSource(video,
             ProgressiveMediaSource.Factory(data).createMediaSource(MediaItem.fromUri(audioUrl)))
         mutableState.value = mutableState.value.copy(error = null)
-        player.setMediaSource(media)
+        // 起始位置随媒体源一次提交，避免 prepare 后再 seek 短暂发布零进度。
+        mediaKey = continued.mediaKey
+        player.setMediaSource(media, continued.resumePositionMs.coerceAtLeast(0))
         player.prepare()
-        if (source.resumePositionMs > 0L) player.seekTo(source.resumePositionMs)
-        player.playWhenReady = source.autoPlay
-        player.setPlaybackSpeed(source.speed)
+        player.playWhenReady = continued.autoPlay
+        player.setPlaybackSpeed(continued.speed)
         refresh()
     }
     override fun play() { if (!released) { player.play(); refresh() } }

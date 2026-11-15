@@ -11,11 +11,17 @@ import com.aritxonly.bdfun.ui.*
 
 /** 只接线共享UI、平台提示与诊断；首页业务状态/页面由feature模块持有。 */
 @Composable
-internal fun HomeScreenRoute(state: HomeFeedState, onOpenVideo: (VideoItem) -> Unit, cardStyle: Int = 0, interactive: Boolean = true) {
+internal fun HomeScreenRoute(
+    state: HomeFeedState,
+    onOpenVideo: (VideoItem) -> Unit,
+    cardStyle: Int = 0,
+    interactive: Boolean = true,
+    topBarHeight: androidx.compose.ui.unit.Dp = HomeTopBarHeight,
+) {
     val context = LocalContext.current
-    val host = remember(context) {
+    val host = remember(context, topBarHeight) {
         HomePresentationHost(
-            topBarHeight = HomeTopBarHeight,
+            topBarHeight = topBarHeight,
             gridCells = { min, max -> BoundedVideoGridCells(min, max) },
             card = { video, large, onOpen, onLongClick -> HomeFeedCard(video, large, onOpen, onLongClick) },
             loading = { color, size -> TeakLoading(color = color, size = size) },

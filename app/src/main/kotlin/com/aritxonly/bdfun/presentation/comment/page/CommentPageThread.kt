@@ -43,6 +43,7 @@ internal fun CommentPageThread(runtime: CommentPageRuntime, layout: CommentScree
                     ui.replySheetFocusRpid = 0L
                 },
             ),
+            flatList = layout.flatList,
         )
     }
 }

@@ -31,8 +31,9 @@ internal fun CommentThreadList(render: CommentThreadRender) {
             .fillMaxSize()
             .nestedScroll(playerCollapseConnection),
         contentPadding = PaddingValues(
-            start = 12.dp,
-            end = 12.dp,
+            // 左右留白必须和主评论区一致：平铺列表（视频详情）是 4dp，其它入口 12dp。
+            start = if (render.layout.flatList) 4.dp else 12.dp,
+            end = if (render.layout.flatList) 4.dp else 12.dp,
             top = headerHeight + 8.dp,
             bottom = if (transient.replyTarget != null) 78.dp else 16.dp,
         ),
@@ -42,7 +43,7 @@ internal fun CommentThreadList(render: CommentThreadRender) {
         }
 
         item(key = "thread-head") {
-            CommentThreadSortRow(content, callbacks.onToggleSort)
+            CommentThreadSortRow(content, callbacks.onToggleSort, flatList = render.layout.flatList)
         }
 
         itemsIndexed(allReplies, key = { _, r -> r.rpid }) { index, reply ->

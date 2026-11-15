@@ -16,9 +16,10 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun MineSettingsCard(onSettings: () -> Unit) {
     val colors = MiuixTheme.colorScheme
+    val haptics = rememberTeakHaptics()
     Card(modifier = Modifier.fillMaxWidth(), cornerRadius = 22.dp,
         colors = CardDefaults.defaultColors(color = colors.surfaceContainer, contentColor = colors.onSurfaceContainer)) {
-        ArrowPreference(title = "设置", onClick = onSettings,
+        ArrowPreference(title = "设置", onClick = { haptics.tap(); onSettings() },
             startAction = {
                 Icon(MiuixIcons.Settings, contentDescription = null,
                     tint = MiuixTheme.colorScheme.onSurfaceContainer, modifier = Modifier.size(22.dp))

@@ -5,6 +5,7 @@ import com.aritxonly.teak.common.interaction.blockTouches
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -27,6 +28,13 @@ import com.aritxonly.teak.common.material.LocalTeakMaterialSpec
 
 
 val HomeTopBarHeight: Dp = 64.dp
+/** 官方风格下，推荐/直播/番剧分段条单独占的一行。 */
+val HomeTopBarTabsHeight: Dp = 40.dp
+val HomeTopBarHeightWithTabs: Dp = HomeTopBarHeight + HomeTopBarTabsHeight
+
+/** 各页统一的顶栏高度：官方风格多一行分段条，其余风格保持原高度。 */
+fun homeTopBarHeight(interfaceStyle: Int): Dp =
+    if (interfaceStyle == 0) HomeTopBarHeightWithTabs else HomeTopBarHeight
 
 @Composable
 internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, actions: HomeTopBarActions,
@@ -47,23 +55,51 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
     val material = remember(wide, searchWidth, recipe, backdrop, searchInteraction, classic) {
         HomeTopBarMaterial(wide, searchWidth, recipe, backdrop, searchInteraction, classic)
     }
-    Box(modifier = modifier.fillMaxWidth().height(HomeTopBarHeight + statusBarTop)) {
+    // 搜索展开时让出高度：结果页从顶栏下沿开始，不会被分段条盖住。
+    val tabsBelowSearch = tabs?.belowSearch == true && !search.active
+    val totalHeight = HomeTopBarHeight + if (tabsBelowSearch) HomeTopBarTabsHeight else 0.dp
+    Box(modifier = modifier.fillMaxWidth().height(totalHeight + statusBarTop)) {
         HomeTopBarBackground(classic)
         if (search.active) {
             Box(modifier = Modifier.matchParentSize().blockTouches(true))
         }
-        Row(
-            modifier = Modifier.fillMaxWidth().statusBarsPadding()
-                .padding(horizontal = 12.dp, vertical = 6.dp).height(HomeTopBarHeight),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            HomeTopBarLeft(content, search, actions)
-            Spacer(Modifier.width(10.dp))
-            if (tabs != null) {
-                // HyperOS 4：首页不再有顶部搜索框，中间位置让给和动态页同款的分段控件。
-                // 用居中容器而不是 weight，避免左右图标宽度变化时 tab 跟着抖。
+        Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
+            Row(
+                // 先固定整行 64dp，再在内部留 6dp 上下边距；否则 padding+height 会把行撑到 76dp，
+                // 第二行分段条被顶下去、底部还会被外层高度裁掉（看起来比 HyperOS 4 小一圈）。
+                modifier = Modifier.fillMaxWidth()
+                    .height(HomeTopBarHeight)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                HomeTopBarLeft(content, search, actions)
+                Spacer(Modifier.width(10.dp))
+                if (tabs != null && !tabsBelowSearch) {
+                    // HyperOS 4：首页不再有顶部搜索框，中间位置让给和动态页同款的分段控件。
+                    // 用居中容器而不是 weight，避免左右图标宽度变化时 tab 跟着抖。
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        TeakSegmentedBar(
+                            options = tabs.options,
+                            selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
+                            itemWidth = 64.dp,
+                            materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
+                            onSelect = tabs.onSelect,
+                        )
+                    }
+                } else {
+                    HomeSearchSurface(search, actions, material)
+                }
+                if (wide) Spacer(Modifier.weight(1f))
+                Spacer(Modifier.width(10.dp))
+                HomeTopBarRight(content, search, actions, material)
+            }
+            if (tabs != null && tabsBelowSearch) {
+                // 官方风格：搜索框保持原位，分段条放在它下面一行。
                 Box(
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.fillMaxWidth().height(HomeTopBarTabsHeight),
                     contentAlignment = Alignment.Center,
                 ) {
                     TeakSegmentedBar(
@@ -74,12 +110,7 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
                         onSelect = tabs.onSelect,
                     )
                 }
-            } else {
-                HomeSearchSurface(search, actions, material)
             }
-            if (wide) Spacer(Modifier.weight(1f))
-            Spacer(Modifier.width(10.dp))
-            HomeTopBarRight(content, search, actions, material)
         }
     }
 }

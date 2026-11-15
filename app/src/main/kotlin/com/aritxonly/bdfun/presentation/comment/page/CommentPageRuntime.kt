@@ -58,9 +58,9 @@ internal fun rememberCommentPageRuntime(request: CommentScreenRequest): CommentP
     val owner = dependencies.session.identity
     val generation by dependencies.likeGeneration.collectAsState()
     val context = LocalContext.current
-    val list = remember(owner, generation, page, request.commentOid, request.commentType) { dependencies.controllers.list(request.query()) }
-    val actions = remember(owner, generation, page, request.commentOid, request.commentType) { dependencies.controllers.actions(request.query()) }
-    val replies = remember(owner, generation, page, request.commentOid, request.commentType) { dependencies.controllers.list(request.query()) }
+    val list = remember(owner, generation, page, request.bvid, request.commentOid, request.commentType) { dependencies.controllers.list(request.query()) }
+    val actions = remember(owner, generation, page, request.bvid, request.commentOid, request.commentType) { dependencies.controllers.actions(request.query()) }
+    val replies = remember(owner, generation, page, request.bvid, request.commentOid, request.commentType) { dependencies.controllers.list(request.query()) }
     val scope = remember(list, actions, replies) {
         CoroutineScope(parent.coroutineContext + SupervisorJob(parent.coroutineContext[Job]))
     }

@@ -24,7 +24,8 @@ internal fun SettingsScreenRoute(activity: ComponentActivity) {
         SettingsNavigation({ activity.finish() }, { AppGraph.logout(); activity.finish() },
             { destination -> openSettingsDestination(activity, destination) },
             { url -> openSettingsWebLink(activity, url) }, { activity.showToast(it) }),
-        dependencies, AppGraph.api.isLoggedIn,
+        dependencies, AppGraph.api.isLoggedIn, AppGraph.settings.indexed,
+        extensions = recommendationSettingsExtensions(dependencies.recommendation) { activity.showToast(it) },
     )
 }
 
@@ -56,3 +57,12 @@ private fun openSettingsTelegramGroup(context: ComponentActivity) {
     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
         .onFailure { context.showToast("无法打开链接") }
 }
+
+/** 推荐保持独立存储，启动层仅向索引渲染器提供三项展示扩展。 */
+private fun recommendationSettingsExtensions(
+    optimizer: com.aritxonly.bdfun.core.application.RecommendationOptimizer,
+    notify: (String) -> Unit,
+): Map<String, @Composable (com.aritxonly.bdfun.core.model.settings.Setting) -> Unit> =
+    listOf("recommendation_toggle", "recommendation_clear", "recommendation_error").associateWith {
+        { entry -> com.aritxonly.bdfun.ui.SettingsRecommendationRow(entry, optimizer, notify) }
+    }

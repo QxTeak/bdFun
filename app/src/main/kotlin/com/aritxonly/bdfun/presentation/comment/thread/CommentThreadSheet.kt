@@ -9,6 +9,8 @@ import androidx.compose.runtime.*
 @Composable
 internal fun CommentThreadSheet(
     input: CommentThreadInput, viewport: CommentThreadViewport, navigation: CommentThreadNavigation,
+    /** 和主评论区同一套左右留白：视频详情是平铺列表（4dp），其它入口 12dp。 */
+    flatList: Boolean = false,
 ) {
     val runtime = rememberCommentThreadRuntime(input)
     val state by key(runtime.controller) { runtime.controller.state.collectAsState() }
@@ -33,7 +35,7 @@ internal fun CommentThreadSheet(
     CommentThreadDialog(
         content = ThreadSheetContent(input.comment, allReplies, state.extra.size, input.loading, input.end,
             input.sortHot, actions.sending),
-        layout = ThreadSheetLayout(progress, viewport.minTopPx, viewport.playerBottomDp, viewport.paneWidth, imeVisible, navBottom),
+        layout = ThreadSheetLayout(progress, viewport.minTopPx, viewport.playerBottomDp, viewport.paneWidth, imeVisible, navBottom, flatList),
         transient = runtime.transient, listState = runtime.listState, playerCollapseConnection = connection,
         focusRequester = runtime.focusRequester,
         callbacks = ThreadSheetCallbacks(navigation.onDismiss, navigation.onToggleSort, runtime::exitReply,

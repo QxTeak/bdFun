@@ -58,24 +58,25 @@ fun BoxScope.PlayerAlwaysProgress(
 @Composable
 fun BoxScope.PlayerHotDanmakuOverlay(ui: VideoPlayerUiStateHolder, fullscreen: Boolean, hotDanmakuEnabled: Boolean) {
     val hotDanmaku by ui.hotDanmaku
-    val controlsVisible by ui.controlsVisible
     val fsAudioOnly by ui.fsAudioOnly
     // 弹幕计数：按 BiliPai 的显示样式，纯白文字 + 黑色描影，居中等距排开，不用黑色胶囊。
+    // 播放控件打开时也保持显示：控件是压在弹幕之上的独立层，不应该让计数忽隐忽现。
     if (hotDanmakuEnabled &&
-        hotDanmaku.isNotEmpty() && !controlsVisible && !fsAudioOnly
+        hotDanmaku.isNotEmpty() && !fsAudioOnly
     ) {
-        val hotShadow = androidx.compose.ui.text.TextStyle(
-            shadow = androidx.compose.ui.graphics.Shadow(
-                color = Color.Black,
-                offset = androidx.compose.ui.geometry.Offset(1f, 1f),
-                blurRadius = 3f,
-            ),
-        )
+        // 弹幕计数用和弹幕相同的黑色描边，不是投影阴影；数字保留斜体并加粗。
+        val outline = with(androidx.compose.ui.platform.LocalDensity.current) {
+            androidx.compose.ui.text.TextStyle(
+                drawStyle = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.6.dp.toPx()),
+            )
+        }
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(top = if (fullscreen) 44.dp else 8.dp)
+                // 计数贴到画面最顶部（控件隐藏时这里本来就是空的），
+                // 下面的弹幕行会按 topGuard 让开这块区域。
+                .padding(top = if (fullscreen) 10.dp else 4.dp)
                 .padding(horizontal = 4.dp),
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically,
@@ -85,30 +86,60 @@ fun BoxScope.PlayerHotDanmakuOverlay(ui: VideoPlayerUiStateHolder, fullscreen: B
                     modifier = Modifier.padding(1.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
+                    HotDanmakuText(
                         text = text,
-                        color = Color.White,
                         fontSize = 16.sp,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Clip,
-                        style = hotShadow,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                        outline = outline,
                     )
                     Spacer(Modifier.width(4.dp))
-                    Text(
+                    HotDanmakuText(
                         text = "×$count",
-                        color = Color.White,
                         fontSize = 20.sp,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic,
-                        maxLines = 1,
-                        style = hotShadow,
+                        italic = true,
+                        outline = outline,
                     )
                 }
             }
         }
     }
 
+}
+
+/** 描边黑字 + 白色填充两层叠放，和弹幕引擎的 stroke→fill 绘制顺序一致。 */
+@Composable
+private fun HotDanmakuText(
+    text: String,
+    fontSize: androidx.compose.ui.unit.TextUnit,
+    fontWeight: androidx.compose.ui.text.font.FontWeight,
+    outline: androidx.compose.ui.text.TextStyle,
+    italic: Boolean = false,
+) {
+    val style = androidx.compose.ui.text.font.FontStyle.Italic.takeIf { italic }
+    Box {
+        Text(
+            text = text,
+            color = Color.Black,
+            fontSize = fontSize,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
+            fontWeight = fontWeight,
+            fontStyle = style,
+            maxLines = 1,
+            softWrap = false,
+            style = outline,
+        )
+        Text(
+            text = text,
+            color = Color.White,
+            fontSize = fontSize,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
+            fontWeight = fontWeight,
+            fontStyle = style,
+            maxLines = 1,
+            softWrap = false,
+        )
+    }
 }
 
 @Composable

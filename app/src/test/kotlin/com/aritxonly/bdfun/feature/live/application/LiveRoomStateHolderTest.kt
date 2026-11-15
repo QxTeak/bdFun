@@ -23,6 +23,10 @@ class LiveRoomStateHolderTest {
         override suspend fun emoticons(roomId: Long) = Outcome.Success(emptyMap<String, String>())
         override suspend fun danmuInfo(roomId: Long) = Outcome.Success("token" to listOf("wss://fixture"))
         override suspend fun playUrl(roomId: Long, qn: Int): Outcome<String?> { calls += "play:$qn"; return url }
+        override suspend fun sendDanmaku(roomId: Long, text: String): Outcome<Unit> {
+            calls += "send:$roomId:$text"
+            return Outcome.Success(Unit)
+        }
     }
     private class Connection : LiveDanmakuConnection {
         var packets = emptyList<LiveDanmakuPacket>()

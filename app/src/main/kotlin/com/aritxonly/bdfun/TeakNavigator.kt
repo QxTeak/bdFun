@@ -7,6 +7,7 @@ import android.content.Intent
 import com.aritxonly.bdfun.core.navigation.Route
 import com.aritxonly.bdfun.data.VideoItem
 import com.aritxonly.bdfun.ui.showToast
+import com.aritxonly.bdfun.ui.teakTapHaptic
 
 /** 页面跳转集中在这里：全部走独立 Activity（系统过渡 + 系统返回栈）。 */
 fun navigateToSettings(context: Context) {
@@ -89,12 +90,14 @@ fun navigateToFeed(context: Context, dynamic: com.aritxonly.bdfun.data.FeedItem)
 }
 
 fun navigateToVideo(context: Context, video: VideoItem, fromVideoPage: Boolean = false) {
+    context.teakTapHaptic()
     context.startActivity(createRouteIntent(context,
         Route.Video(video.bvid, video.aid, video, fromVideoPage)))
 }
 
 /** 只有 BV 号时直接开播放页，由 VideoActivity 自己拉详情。 */
 fun navigateToVideoByBvid(context: Context, bvid: String) {
+    context.teakTapHaptic()
     context.startActivity(createRouteIntent(context, Route.Video(bvid = bvid)))
 }
 
@@ -142,6 +145,7 @@ fun navigateToVideoAtComment(
             startPositionMs = seekMs,
         ),
     ) else null
+    context.teakTapHaptic()
     context.startActivity(createRouteIntent(context, Route.Video(
         resolvedBvid, aid, snapshot,
         commentRoot = rootRpid.takeIf { it > 0L } ?: targetRpid,

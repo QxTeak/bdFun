@@ -21,6 +21,7 @@ import com.aritxonly.bdfun.core.model.user.UserProfile
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
 import com.aritxonly.bdfun.ui.FeedScreen
 import com.aritxonly.bdfun.ui.MineScreen
+import com.aritxonly.bdfun.ui.homeTopBarHeight
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
@@ -34,6 +35,7 @@ internal fun MainTabPager(
     homeInteractive: Boolean = true,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val topBarHeight = homeTopBarHeight(settings.interfaceStyle)
     CompositionLocalProvider(
         LocalViewConfiguration provides rememberStricterSwipeConfiguration(),
     ) {
@@ -51,11 +53,19 @@ internal fun MainTabPager(
                         onOpenVideo = { navigateToVideo(context, it) },
                         cardStyle = settings.homeCardStyle,
                         interactive = homeInteractive && pager.settledPage == 0 && !pager.isScrollInProgress,
+                        topBarHeight = topBarHeight,
+                    )
+                } else if (homeSection == 1) {
+                    com.aritxonly.bdfun.presentation.live.LivePage(
+                        state = AppGraph.livePageState,
+                        loggedIn = session != null,
+                        topBarHeight = topBarHeight,
                     )
                 } else {
-                    // 直播 / 番剧：页面还没做，先留空。顶栏 tab 可以切换到这里，
-                    // 不显示任何占位文案，避免以后接入真实页面时还要删一遍。
-                    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize())
+                    com.aritxonly.bdfun.presentation.pgc.BangumiPage(
+                        state = AppGraph.bangumiPageState,
+                        topBarHeight = topBarHeight,
+                    )
                 }
 
                 1 -> FeedScreen(

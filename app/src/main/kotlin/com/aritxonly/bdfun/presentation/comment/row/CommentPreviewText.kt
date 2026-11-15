@@ -33,8 +33,9 @@ internal fun androidx.compose.foundation.layout.RowScope.CommentPreviewText(
         } else {
             colors.primary.copy(alpha = 0.72f)
         },
-            fontSize = CommentTypography.bodySize,
-            lineHeight = CommentTypography.bodyLineHeight,
+            fontSize = CommentTypography.previewBodySize,
+            lineHeight = CommentTypography.previewLineHeight,
+            prefixFontSize = CommentTypography.previewNameSize,
             fontWeight = FontWeight.Normal,
             mentionColor = if (reply.isVip) {
             colors.primary

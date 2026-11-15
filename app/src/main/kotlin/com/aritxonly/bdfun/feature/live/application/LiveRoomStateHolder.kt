@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.feature.live.application
 
 import com.aritxonly.bdfun.core.common.Outcome
+import com.aritxonly.bdfun.core.common.messageOr
 import com.aritxonly.bdfun.core.domain.LiveDanmakuConnection
 import com.aritxonly.bdfun.core.domain.LivePlayback
 import com.aritxonly.bdfun.core.model.live.*
@@ -34,6 +35,7 @@ internal class LiveRoomStateHolder(
     private val job = SupervisorJob(scope.coroutineContext[Job])
     private val ownScope = CoroutineScope(scope.coroutineContext + job)
     private var closed = false
+    private var lastLocalEcho: Pair<String, Long>? = null
     val displayRoom get() = mutable.value.content.room ?: fallback.copy(roomId = requestedRoomId)
 
     suspend fun loadRoom() {
@@ -75,6 +77,14 @@ internal class LiveRoomStateHolder(
             if (packet.operation != LIVE_DANMAKU_MESSAGE_OPERATION) return@collectMessages
             if (!mutable.value.danmakuConnected) mutable.update { it.copy(messages = emptyList(), danmakuConnected = true) }
             access.decode(String(packet.body, Charsets.UTF_8), clockNanos())?.let { message ->
+                // 自己发的弹幕会先从本地回显；服务端随后再推一遍同一条时不要出现两行。
+                val echo = lastLocalEcho
+                if (echo != null && message.kind == LiveChatKind.DANMAKU &&
+                    message.text == echo.first && clockMillis() - echo.second < 5_000L
+                ) {
+                    lastLocalEcho = null
+                    return@collectMessages
+                }
                 mutable.update { it.copy(messages = (it.messages + message).takeLast(300)) }
             }
         }
@@ -107,6 +117,30 @@ internal class LiveRoomStateHolder(
         if (closed) return
         val message = LiveChatMessage(clockMillis(), LiveChatKind.DANMAKU, "我", text, nameColor = 0xFF6699L)
         mutable.update { it.copy(messages = (it.messages + message).takeLast(300)) }
+    }
+
+    /**
+     * 真正发到直播间；成功才回显，失败把服务端原因交给页面 toast。
+     * 返回 null 表示成功（或空消息），非空字符串是给用户看的错误。
+     */
+    suspend fun sendMessage(text: String): String? {
+        if (closed) return null
+        val value = text.trim()
+        if (value.isEmpty()) return null
+        if (!access.isLoggedIn) return "请先登录后再发弹幕"
+        val roomId = mutable.value.content.roomId
+        if (roomId <= 0L) return "直播间还没加载好"
+        val result = access.sendDanmaku(roomId, value)
+        currentCoroutineContext().ensureActive()
+        if (closed) return null
+        return when (result) {
+            is Outcome.Success -> {
+                lastLocalEcho = value to clockMillis()
+                appendLocal(value)
+                null
+            }
+            is Outcome.Failure -> result.error.messageOr("发送失败")
+        }
     }
     fun togglePlaying() {
         if (closed) return

@@ -28,6 +28,7 @@ internal fun androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridSco
                 onToggleMute = media.onToggleMute
             ),
             presentation = com.aritxonly.bdfun.ui.FeedCardPresentation(liked = likedNow, autoPlay = media.autoPlay && media.autoPlayId == item.id, muted = media.muted),
+            live = state.liveUsers.any { it.mid == item.mid },
         )
     }
 

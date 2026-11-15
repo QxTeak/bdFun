@@ -39,6 +39,7 @@ internal fun FeedDetailScreen(dynamic: FeedItem, onBack: () -> Unit) {
                 bottomPadding = 132.dp,
                 trackBackProgress = true,
                 showLoading = false,
+                scrollTop = true,
             ),
             header = { dynamicDetailHeader(snapshot, actions) },
         )

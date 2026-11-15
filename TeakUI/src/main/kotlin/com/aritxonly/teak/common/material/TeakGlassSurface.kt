@@ -61,6 +61,7 @@ fun TeakGlassSurface(
     baseAlpha: Float = 1f,
     backdrop: Backdrop? = LocalTeakBackdrop.current,
     contentAlignment: Alignment = Alignment.Center,
+    flatBackgroundColor: Color? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val advancedMaterial = LocalTeakMaterialSpec.current
@@ -80,7 +81,7 @@ fun TeakGlassSurface(
 
     Box(
         modifier = modifier.clip(shape).background(
-            top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainer.copy(
+            (flatBackgroundColor ?: top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainer).copy(
                 alpha = flatBackgroundAlpha.coerceIn(0f, 1f) * (1f - materialAlpha.coerceIn(0f, 1f)),
             ),
         ),

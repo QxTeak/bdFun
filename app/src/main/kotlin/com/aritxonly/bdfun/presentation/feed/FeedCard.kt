@@ -20,7 +20,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun FeedCard(
     item: FeedItem, actions: FeedCardActions, presentation: FeedCardPresentation,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier, live: Boolean = false,
 ) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
@@ -43,11 +43,11 @@ internal fun FeedCard(
             }
             .padding(12.dp),
     ) {
-        FeedCardAuthor(item)
+        FeedCardAuthor(item, live = live)
         FeedCardText(item, presentation.expanded)
         if (item.images.isNotEmpty()) {
             Spacer(Modifier.height(8.dp))
-            FeedImageGrid(images = item.images, onOpen = { url, rect, radius ->
+            FeedImageGrid(images = item.images, onOpen = { url, rect, radius, origins ->
                 // 查看器由页面级宿主统一持有：这样关闭动画能作用在整页上（背后页面缩小），
                 // 卡片只负责把缩略图矩形和圆角交出去。
                 photo.open(
@@ -55,6 +55,7 @@ internal fun FeedCard(
                     index = item.images.indexOf(url),
                     origin = rect,
                     originRadiusPx = radius,
+                    origins = origins,
                     footer = { dismiss ->
                         FeedViewerFooter(
                             item = item,

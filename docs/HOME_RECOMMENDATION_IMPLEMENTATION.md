@@ -56,3 +56,9 @@ v1 使用按 BV 聚合记录，而非完整原始事件日志；保存曝光/点
 - [ ] 双列/大卡/平板、切号、旋转、画中画、后台播放、退出恢复进度完整人工回归。
 
 自动构建成功与模拟器游客冒烟都不能替代后两项。默认关闭和原路径回退保留至质量评估完成。
+
+## 2026-11-15 最新 main 冲突处理
+
+合入 main 38da122：保留设置索引浏览器，将推荐开关/清除/错误提示接入三个 extension 槽，继续使用推荐独立存储；同时保留直播、番剧、按风格变化的首页顶栏高度与推荐曝光 interactive 守卫。设置文案读取索引条目，不恢复旧设置卡片列表。
+
+最终干净构建 :app:testDebugUnitTest、:feature:home:testDebugUnitTest、:app:assembleDebug、checkModuleGraph、:tools:kotlin-audit:checkKotlinSizes 通过，源码分层与 diff 检查通过。此次未重复执行 release 构建或完整 UI/播放人工验收；前述旧 APK 仍对应旧提交，不能代表本次合并产物。

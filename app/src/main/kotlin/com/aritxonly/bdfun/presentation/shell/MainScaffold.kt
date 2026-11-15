@@ -57,7 +57,8 @@ private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellStat
                 // 否则会停在一个没有入口可以离开的空页面上。
                 MainTabPager(tabPagerState, homeFeed, dynamicFeed, session, settings, ui.dynamicRefreshTick,
                     shell.chrome.mineList,
-                    homeSection = if (settings.interfaceStyle == 2) ui.homeSection else 0,
+                    // 官方（哔哩哔哩）与 HyperOS 4 都有推荐/直播/番剧分段；经典样式没有入口，固定回推荐。
+                    homeSection = if (settings.interfaceStyle == 0 || settings.interfaceStyle == 2) ui.homeSection else 0,
                     homeInteractive = !ui.showSearch)
 
             }

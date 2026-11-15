@@ -16,6 +16,7 @@ internal fun CommentScreen(
 ) {
     val runtime = rememberCommentPageRuntime(request)
     CommentPageEffects(runtime, layout)
+    if (layout.scrollTop) RegisterScrollTop(runtime.listState, "comment")
     if (layout.trackBackProgress) TrackTeakPageScroll(runtime.listState)
     if (!layout.bare) BackHandler(onBack = onBack)
     Box(Modifier.fillMaxSize()) {

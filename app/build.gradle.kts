@@ -138,6 +138,7 @@ dependencies {
     implementation(libs.compose.material3)
 
     implementation(libs.miuix.ui)
+    implementation(libs.miuix.nav)
     implementation(libs.miuix.blur)
     implementation(libs.miuix.icons)
 

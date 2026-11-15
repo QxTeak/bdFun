@@ -25,7 +25,7 @@ internal fun parseComment(
     }
     val pictures = content?.optJSONArray("pictures")?.objects()?.mapNotNull { pic ->
         val url = pic.s("img_src").ifBlank { pic.s("url") }
-        if (url.isBlank()) null else image(url, 720)
+        if (url.isBlank()) null else image(url, 0)
     }.orEmpty()
     // 正文里 @ 的人；官方接口会在 content.members 里给出 mid。
     val mentions = content?.optJSONArray("members")?.objects()?.mapNotNull { m ->
@@ -37,7 +37,7 @@ internal fun parseComment(
         rpid = reply.l("rpid"),
         uname = member?.s("uname").orEmpty(),
         avatar = avatar(member?.s("avatar").orEmpty(), 120),
-        message = content?.s("message").orEmpty(),
+        message = decodeCommentText(content?.s("message").orEmpty()),
         like = reply.optInt("like", 0),
         ctime = reply.l("ctime"),
         level = member?.optJSONObject("level_info")?.optInt("current_level") ?: 0,

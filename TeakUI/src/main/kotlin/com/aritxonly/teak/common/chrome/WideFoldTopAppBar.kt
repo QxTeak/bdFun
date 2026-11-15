@@ -21,12 +21,16 @@ import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TopAppBarDefaults
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+/** 分栏保留真实窗口大小供弹层定位；页面壳可显式沿用外层宽屏策略。 */
+val LocalWideFoldTopBarOverride = androidx.compose.runtime.staticCompositionLocalOf<Boolean?> { null }
+
 /** Window policy, not a device/model whitelist. Uses the window before IME insets. */
 internal fun usesFixedWideFoldTopBar(widthDp: Float, heightDp: Float): Boolean =
     widthDp >= 400f && heightDp > 0f && heightDp / widthDp <= 1.65f
 
 @Composable
 fun isWideFoldTopBar(): Boolean {
+    LocalWideFoldTopBarOverride.current?.let { return it }
     val window = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current.density
     return usesFixedWideFoldTopBar(window.width / density, window.height / density)
