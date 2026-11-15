@@ -100,28 +100,7 @@ internal fun LiveAvatar(
                     .border(1.dp, colors.primary, CircleShape),
             )
             // 「直播中」胶囊压在头像底边、粉圈之上。
-            // 白边是往外加的一圈：外层白色胶囊 + 内缩 2dp 的粉色胶囊，而不是往胶囊里描边。
-            Box(
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    // 压在头像下沿、名字上方；比上一版贴底，但不会碰到名字。
-                    .offset(y = 2.dp)
-                    .clip(Capsule())
-                    .background(Color.White)
-                    .padding(1.5.dp)
-                    .clip(Capsule())
-                    .background(colors.primary),
-            ) {
-                Box(Modifier.padding(horizontal = 5.dp)) {
-                    Text(
-                        text = "直播中",
-                        color = Color.White,
-                        fontSize = 8.5.sp,
-                        lineHeight = 10.sp,
-                        maxLines = 1,
-                    )
-                }
-            }
+            LiveBadge()
         }
         Text(
             text = name,
@@ -132,6 +111,33 @@ internal fun LiveAvatar(
             overflow = TextOverflow.Ellipsis,
             modifier = Modifier.padding(top = 3.dp),
         )
+    }
+}
+
+/** 头像底部的「直播中」胶囊：白边是往外加的一圈，不是往胶囊里描边。 */
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.LiveBadge() {
+    val colors = MiuixTheme.colorScheme
+    Box(
+        modifier = Modifier
+            .align(Alignment.BottomCenter)
+            // 压在头像下沿、名字上方；比上一版贴底，但不会碰到名字。
+            .offset(y = 2.dp)
+            .clip(Capsule())
+            .background(Color.White)
+            .padding(1.5.dp)
+            .clip(Capsule())
+            .background(colors.primary),
+    ) {
+        Box(Modifier.padding(horizontal = 5.dp)) {
+            Text(
+                text = "直播中",
+                color = Color.White,
+                fontSize = 8.5.sp,
+                lineHeight = 10.sp,
+                maxLines = 1,
+            )
+        }
     }
 }
 
