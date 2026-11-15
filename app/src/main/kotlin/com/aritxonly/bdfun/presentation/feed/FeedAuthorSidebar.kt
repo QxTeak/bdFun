@@ -45,16 +45,7 @@ internal fun FeedAuthorSidebar(state: FeedState, modifier: Modifier = Modifier) 
                 scope.launch { state.clearFilter() }
             }
         }
-        if (state.liveCount > 0) {
-            item(key = "live-toggle") {
-                Text("正在直播 · ${state.liveCount}  ${if (state.showLive) "收起" else "展开"}",
-                    fontSize = 12.sp, color = colors.onBackgroundVariant,
-                    modifier = Modifier.fillMaxWidth().clickable { state.showLive = !state.showLive }.padding(10.dp))
-            }
-            if (state.showLive) items(state.liveUsers, key = { "live-${it.roomId}" }) { live ->
-                FeedAuthorRow(live.name, live.face, false, false, live = true) { openFeedLive(context, live.roomId) }
-            }
-        }
+        // 正在直播一行已按产品要求整体移除，侧栏只保留全部动态 / 我 / 关注的 UP。
         AppGraph.session.value?.let { me ->
             item(key = "me") {
                 FeedAuthorRow("我", me.face, state.filterMid == me.mid, false) {

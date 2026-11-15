@@ -15,6 +15,16 @@ class CommentMapperTest {
         assertTrue(item.message.contains("[吃瓜]"))
     }
 
+    @Test fun mainAndPreviewRepliesDecodeEntitiesAtTheSameBoundary() {
+        val reply = realData().getJSONArray("replies").getJSONObject(1)
+        reply.getJSONObject("content").put("message", "正文 &amp; &lt;3 [doge]")
+        reply.getJSONArray("replies").getJSONObject(0).getJSONObject("content")
+            .put("message", "回复 &#x1F600; &quot;好&quot;")
+        val item = parseComment(reply, 0, false)
+        assertEquals("正文 & <3 [doge]", item.message)
+        assertEquals("回复 😀 \"好\"", item.previewReplies.first().message)
+    }
+
     private fun realData(): JSONObject = javaClass.classLoader!!
         .getResourceAsStream("json/comments-anonymous.json")!!.bufferedReader()
         .use { JSONObject(it.readText()).getJSONObject("data") }
@@ -30,7 +40,10 @@ class CommentMapperTest {
         assertFalse(page.items[1].isUp)
         assertEquals(listOf(323662867632L, 323664379808L), first.previewReplies.map { it.rpid })
         assertEquals(1, page.items[1].pictures.size)
-        assertTrue(page.items[1].pictures.single().contains("@720w"))
+        // 评论配图同样保留原图：曾经拼过 @720w_405h_1c 的居中裁切，
+        // 大图查看器只能看到被裁掉的那一块，所以这里断言“没有裁切参数”。
+        assertFalse(page.items[1].pictures.single().contains("_1c"))
+        assertTrue(page.items[1].pictures.single().startsWith("https://"))
         assertEquals(253, page.total)
         assertFalse(page.isEnd)
     }

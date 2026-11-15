@@ -51,11 +51,19 @@ fun VideoDetailLayout(
         ))
         slots.player(this, viewport)
 
-        VideoCollapseOverlay(fullscreen, viewport.collapseProgress, playerBlockHeight, statusTop,
-            slots.accentColor, slots.playIcon) {
-            collapseState.restore()
-            if (!playing) slots.togglePlayback()
-        }
+        VideoCollapseOverlay(
+            fullscreen = fullscreen,
+            collapseProgress = viewport.collapseProgress,
+            playerBlockHeight = playerBlockHeight,
+            statusTop = statusTop,
+            accentColor = slots.accentColor,
+            playIcon = slots.playIcon,
+            onRestorePlay = {
+                collapseState.restore()
+                if (!playing) slots.togglePlayback()
+            },
+            onBack = slots.onBack,
+        )
     }
 
 }

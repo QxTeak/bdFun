@@ -603,3 +603,8 @@ settings-seperation.json独立描述一级卡片分组及入口route/icon/color�
 ### 2026-11-15 SET-06 搜索覆盖层与Dialog动作
 
 设置搜索覆盖层必须保留进出动画与退出帧的query/scope快照，返回先关闭搜索，不启动NavDisplay的页面预测返回。横屏仅左侧全局搜索，右侧不再显示搜索按钮；竖屏二级仍保留分类搜索。Dialog动作统一secondaryContainer.copy(alpha=.85f)底色，破坏性操作显式destructive=true并用error文字，普通按钮不受影响。
+
+### 2026-11-14 直播页内容 / 分区 / 关注与图片保存检查点
+
+直播首页接口 `/xlive/app-interface/v2/index/feed` 必须带 `fnval=912&network=wifi&scale=2`，少一个就 -400；`card_data.small_card_v1` 是**单个房间对象**，不是 `{list:[]}`，按 list 解析会把整页卡片丢光；观看人数取 `watched_show.text_large`。分区列表改用 BiliPai 验证过的 `/room/v3/area/getRoomList`（app 端 `second/getList` 与 web `getList` 实测均 -352，WBI 也救不回来），分区请求参数必须分开存 `area_id`/`parent_area_id`。登录态首页不下发 `area_entrance_v3`，按 PiliPlus 的做法用 `/room/v1/Area/getList` 补默认分区。关注直播不再用卡片横排，改成和动态页同源的 portal `live_users` 头像行（`LiveFollower`）。直播拉流必须在 ExoPlayer 数据源上带 `Referer: https://live.bilibili.com/`、web UA 和 Cookie，否则有地址也黑屏；竖屏顶栏不再用纯黑色块，改用页面 BackdropGlow + 顶部渐变。图片查看器长按弹 `TeakDropdownPanel`（保存该图片 / 保存全部图片 / 举报红字），位置按长按点换算锚点；保存走 MediaStore `Pictures/bdFun`。评论菜单锚点改成行内记录的按下坐标，带图评论追加「保存全部图片」；「自由复制」改为弹 `CommentCopySheet`，正文进 `SelectionContainer` 可自由拖选。首页三段与动态页顶栏过渡合并为单一 `MainTopBarChrome`，不要再各写一份。下拉刷新的 `canScrollBackward` 调用方不得再取反（会变成不在顶部也能刷新）；分页触发统一 `drop(1)` + 按卡片数比较。
+

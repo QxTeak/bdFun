@@ -30,6 +30,8 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     val tabPagerState = rememberPagerState(pageCount = { destinations.size })
     val selected = tabPagerState.currentPage
     val homeChrome = rememberTeakPageScrollState()
+    val liveChrome = rememberTeakPageScrollState()
+    val bangumiChrome = rememberTeakPageScrollState()
     val dynamicChrome = rememberTeakPageScrollState()
     val searchChrome = rememberTeakPageScrollState()
     val mineChrome = rememberTeakPageScrollState()
@@ -58,6 +60,9 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     TrackTeakPageScroll(homeFeed.gridState, homeChrome)
     TrackTeakPageScroll(dynamicFeed.listState, dynamicChrome)
     TrackTeakPageScroll(mineList, mineChrome)
+    // 直播 / 番剧与推荐页同一套：滚动进度驱动顶栏渐进模糊和下滑玻璃。
+    TrackTeakPageScroll(AppGraph.livePageState.gridState, liveChrome)
+    TrackTeakPageScroll(AppGraph.bangumiPageState.gridState, bangumiChrome)
     // 参考 HyperIsland 的做法：整屏一块 backdrop，录制时先铺一层 surface 再画内容
     val backdrop = rememberLayerBackdrop { drawRect(background); drawContent() }
     // 搜索页自己一块：首页顶栏的渐变模糊和筛选菜单都采样它，复用同一套页面结构。
@@ -79,7 +84,7 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     val bottom = remember { BottomSearchShellStateHolder(ui, appScope, { searchChrome.reset() }) { AppGraph.settings.animationsEnabled } }
     return MainShellState(
         ui, MainShellNavigation(tabPagerState, destinations, tabItems, appScope),
-        MainShellChrome(homeChrome, dynamicChrome, searchChrome, mineChrome, mineList),
+        MainShellChrome(homeChrome, liveChrome, bangumiChrome, dynamicChrome, searchChrome, mineChrome, mineList),
         MainShellFeeds(session, homeFeed, dynamicFeed, unreadMessageCount),
         MainShellBackdrops(backdrop, searchBackdrop, wideNavigation), searchReveal,
         bottom, { AppGraph.searchStateHolder() },

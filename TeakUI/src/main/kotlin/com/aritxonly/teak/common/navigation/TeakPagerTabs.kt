@@ -92,6 +92,8 @@ fun TeakPagerTabs(
     transparentBackground: Boolean = false,
     /** 指示器样式：默认灰色胶囊；Underline 为文字下方细线。 */
     indicatorStyle: TeakTabIndicatorStyle = TeakTabIndicatorStyle.Pill,
+    /** 指定时使用不透明的控件静态底色，再随材质进度淡出。 */
+    flatBackgroundColor: Color? = null,
 ) {
     val advancedMaterial = LocalTeakMaterialSpec.current
     val recipe = TeakGlassRecipes.floatingNavigation(advancedMaterial.fineTuning)
@@ -217,7 +219,9 @@ fun TeakPagerTabs(
             recipe = recipe,
             backdrop = backdrop,
             materialAlpha = materialProgress,
-            flatBackgroundAlpha = com.aritxonly.teak.common.material.TeakGlassDefaults.flatBackgroundAlpha(),
+            flatBackgroundAlpha = if (flatBackgroundColor != null) 1f else
+                com.aritxonly.teak.common.material.TeakGlassDefaults.flatBackgroundAlpha(),
+            flatBackgroundColor = flatBackgroundColor,
         ) {
             content()
         }

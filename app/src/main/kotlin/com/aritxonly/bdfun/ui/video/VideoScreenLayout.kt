@@ -21,5 +21,6 @@ internal fun VideoScreenLayout(
                 viewport, holders.ui, actions, holders.metadata, scope) },
             loading = { modifier, color -> TeakLoading(modifier = modifier, color = color) },
             togglePlayback = background::togglePlayPause, accentColor = BrandPink, playIcon = TeakIcon.PlayerPlay,
+            onBack = { actions.leaveVideo() },
         ))
 }

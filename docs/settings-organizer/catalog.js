@@ -345,6 +345,10 @@ window.SETTINGS_CATALOG = [
                 "value": 120
               },
               {
+                "title": "1080P 60FPS",
+                "value": 116
+              },
+              {
                 "title": "1080P+",
                 "value": 112
               },
@@ -556,6 +560,12 @@ window.SETTINGS_CATALOG = [
                 "value": 1
               }
             ]
+          },
+          {
+            "pref_name": "recommend_web",
+            "type": "switch",
+            "title": "首页使用 Web 端推荐",
+            "default": false
           },
           {
             "pref_name": "recommendation_toggle",

@@ -49,12 +49,13 @@ internal fun ForwardedFeedBlock(
             Spacer(Modifier.height(6.dp))
             FeedImageGrid(
                 images = item.images,
-                onOpen = { url, rect, radius ->
+                onOpen = { url, rect, radius, origins ->
                     photo.open(
                         images = item.images,
                         index = item.images.indexOf(url),
                         origin = rect,
                         originRadiusPx = radius,
+                        origins = origins,
                         footer = { dismiss ->
                             FeedViewerFooter(item, item.liked, dismiss, {}, onOpen, onOpen)
                         },

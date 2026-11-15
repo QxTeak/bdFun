@@ -24,9 +24,14 @@ internal fun danmakuEngineConfig(drawing: DanmakuLayerDrawing, viewSize: IntSize
     val typeface = remember { Typeface.create("sans-serif-medium", Typeface.NORMAL) }
     val lineHeightPx = (baseTextPx * 1.9f).coerceAtLeast(1f)
     val heightPx = viewSize.height.toFloat()
+    // 顶部让给「弹幕计数」的高度（已开启计数时非 0）：行数要按剩余高度算，
+    // 否则最下面几行会被顶出画面。
+    val topGuardPx = with(density) { drawing.topGuardDp.dp.toPx() }
     val lineCount = if (heightPx > 0f) {
         // 一页最多 9 行；行高加大后上下弹幕不会挤在一起。
-        (((heightPx * area) / lineHeightPx).toInt()).coerceIn(1, 9)
+        ((((heightPx * area) - topGuardPx).coerceAtLeast(lineHeightPx)) / lineHeightPx)
+            .toInt()
+            .coerceIn(1, 9)
     } else {
         1
     }
@@ -46,7 +51,8 @@ internal fun danmakuEngineConfig(drawing: DanmakuLayerDrawing, viewSize: IntSize
         lineHeightPx = lineHeightPx,
         lineMarginPx = 0f,
         lineCount = lineCount,
-        topMarginPx = 0f,
+        // 弹幕从计数下面开始排，不和顶部的计数叠在一起。
+        topMarginPx = topGuardPx,
         bottomMarginPx = bottomMarginPx,
         pinnedDurationMs = FIXED_SHOW_MS,
         playSpeedPercent = 100,

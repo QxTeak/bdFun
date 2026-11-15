@@ -92,6 +92,8 @@ private fun playbackBindings(repository: SettingsRepository) = mapOf(
 )
 
 private fun otherBindings(repository: SettingsRepository) = mapOf(
+    "recommend_web" to IndexedSettingBinding({ SettingValue.Flag(repository.general.recommendWeb) },
+        { repository.general.recommendWeb = (it as SettingValue.Flag).value }),
     "smart_refresh" to IndexedSettingBinding({ SettingValue.Flag(repository.general.smartRefresh) },
         { repository.general.smartRefresh = (it as SettingValue.Flag).value }),
     "show_viewer_count" to IndexedSettingBinding({ SettingValue.Flag(repository.general.showViewerCount) },
