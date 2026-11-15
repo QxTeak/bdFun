@@ -65,8 +65,11 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
         }
         Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
             Row(
+                // 先固定整行 64dp，再在内部留 6dp 上下边距；否则 padding+height 会把行撑到 76dp，
+                // 第二行分段条被顶下去、底部还会被外层高度裁掉（看起来比 HyperOS 4 小一圈）。
                 modifier = Modifier.fillMaxWidth()
-                    .padding(horizontal = 12.dp, vertical = 6.dp).height(HomeTopBarHeight),
+                    .height(HomeTopBarHeight)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 HomeTopBarLeft(content, search, actions)

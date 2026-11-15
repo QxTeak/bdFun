@@ -64,13 +64,12 @@ fun BoxScope.PlayerHotDanmakuOverlay(ui: VideoPlayerUiStateHolder, fullscreen: B
     if (hotDanmakuEnabled &&
         hotDanmaku.isNotEmpty() && !fsAudioOnly
     ) {
-        val hotShadow = androidx.compose.ui.text.TextStyle(
-            shadow = androidx.compose.ui.graphics.Shadow(
-                color = Color.Black,
-                offset = androidx.compose.ui.geometry.Offset(1f, 1f),
-                blurRadius = 3f,
-            ),
-        )
+        // 弹幕计数用和弹幕相同的黑色描边，不是投影阴影；数字保留斜体并加粗。
+        val outline = with(androidx.compose.ui.platform.LocalDensity.current) {
+            androidx.compose.ui.text.TextStyle(
+                drawStyle = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.6.dp.toPx()),
+            )
+        }
         Row(
             modifier = Modifier
                 .align(Alignment.TopCenter)
@@ -87,32 +86,60 @@ fun BoxScope.PlayerHotDanmakuOverlay(ui: VideoPlayerUiStateHolder, fullscreen: B
                     modifier = Modifier.padding(1.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text(
+                    HotDanmakuText(
                         text = text,
-                        color = Color.White,
                         fontSize = 16.sp,
-                        fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-                        maxLines = 1,
-                        softWrap = false,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Clip,
-                        style = hotShadow,
+                        outline = outline,
                     )
                     Spacer(Modifier.width(4.dp))
-                    Text(
+                    HotDanmakuText(
                         text = "×$count",
-                        color = Color.White,
                         fontSize = 20.sp,
-                        fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
                         fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        maxLines = 1,
-                        style = hotShadow,
+                        italic = true,
+                        outline = outline,
                     )
                 }
             }
         }
     }
 
+}
+
+/** 描边黑字 + 白色填充两层叠放，和弹幕引擎的 stroke→fill 绘制顺序一致。 */
+@Composable
+private fun HotDanmakuText(
+    text: String,
+    fontSize: androidx.compose.ui.unit.TextUnit,
+    fontWeight: androidx.compose.ui.text.font.FontWeight,
+    outline: androidx.compose.ui.text.TextStyle,
+    italic: Boolean = false,
+) {
+    val style = androidx.compose.ui.text.font.FontStyle.Italic.takeIf { italic }
+    Box {
+        Text(
+            text = text,
+            color = Color.Black,
+            fontSize = fontSize,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
+            fontWeight = fontWeight,
+            fontStyle = style,
+            maxLines = 1,
+            softWrap = false,
+            style = outline,
+        )
+        Text(
+            text = text,
+            color = Color.White,
+            fontSize = fontSize,
+            fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
+            fontWeight = fontWeight,
+            fontStyle = style,
+            maxLines = 1,
+            softWrap = false,
+        )
+    }
 }
 
 @Composable

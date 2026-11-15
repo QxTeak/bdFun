@@ -52,15 +52,11 @@ internal fun FeedCardAuthor(item: FeedItem, live: Boolean = false) {
                     },
             )
             if (live) {
-                // 和直播页「正在直播」同款：粉圈 + 底部直播中胶囊，只是按 34dp 头像缩小。
-                Box(
-                    Modifier
-                        .fillMaxSize()
-                        .border(1.5.dp, colors.primary, CircleShape),
-                )
+                // 动态卡片里只保留「直播中」胶囊，不再加静态粉圈；圆圈动效只属于顶部头像行。
                 Box(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
+                        .offset(y = 2.dp)
                         .clip(Capsule())
                         .background(Color.White)
                         .padding(0.8.dp)

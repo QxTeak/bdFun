@@ -52,6 +52,14 @@ class PgcTimelineMapperTest {
                   "season_id": 1003,
                   "title": "新番 C",
                   "follows": "5.1万"
+                },
+                {
+                  "cover": "https://i0.hdslb.com/bfs/archive/e.png",
+                  "pub_index": "第9话",
+                  "pub_ts": 1794255000,
+                  "season_id": 1004,
+                  "title": "新番 A 中文配音",
+                  "follows": "12.3万"
                 }
               ]
             }
@@ -64,13 +72,13 @@ class PgcTimelineMapperTest {
     fun keepsClosestEpisodePerSeasonAndSortsByDistance() {
         val now = 1794250000L
         val cards = mapPgcTimeline(payload, now)
-        assertEquals(listOf(1001L, 1002L, 1003L), cards.map { it.seasonId })
-        // 同一部番留离当前时间最近的一集（第3话 11-15），而不是后一天的第4话；
-        // 头图不展示集数，简介由仓储补 season 详情。
+        // 「新番 A」和「新番 A 中文配音」是同一部番的两个 season，头图只留离当前最近的一条。
+        assertEquals(listOf(1004L, 1002L, 1003L), cards.map { it.seasonId })
+        // 同一部番留离当前时间最近的一集，而不是后一天的第4话；头图不展示集数，简介由仓储补 season 详情。
         assertEquals("", cards.first().indexShow)
         assertEquals("12.3万", cards.first().followText)
         // ep_cover 优先作横版头图，没有时才退回 cover。
-        assertTrue(cards.first().cover.contains("archive/a.png"))
+        assertTrue(cards.first().cover.contains("archive/e.png"))
         assertTrue(cards[1].cover.contains("bangumi/b.png"))
         assertEquals("", cards[1].followText)
     }

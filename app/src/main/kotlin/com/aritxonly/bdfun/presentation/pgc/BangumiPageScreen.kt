@@ -59,7 +59,7 @@ internal fun BangumiPage(
     LaunchedEffect(state, state.loading) {
         if (!state.loading) gridState.scrollToItem(0)
     }
-    // 顶部头图：优先用当周新番时间表，没拉到再用榜单横版封面，最后用推荐卡片封面。
+    // 顶部头图：优先当周新番；不足 6 张时用榜单/推荐补位，保证扇形能循环与左右滑动。
     val bannerItems = remember(rankUi.sections, state.cards, state.timeline) {
         val fromTimeline = state.timeline.mapNotNull { card ->
             if (card.cover.isBlank()) null
@@ -70,13 +70,10 @@ internal fun BangumiPage(
             if (image.isBlank()) null
             else BangumiBannerItem(image, entry.title, entry.subtitle, entry.seasonId)
         }
-        when {
-            fromTimeline.isNotEmpty() -> fromTimeline.take(6)
-            fromRank.isNotEmpty() -> fromRank.take(6)
-            else -> state.cards.take(6).map {
-                BangumiBannerItem(it.cover, it.title, it.indexShow, it.seasonId)
-            }
+        val fromCards = state.cards.map {
+            BangumiBannerItem(it.cover, it.title, it.indexShow, it.seasonId)
         }
+        (fromTimeline + fromRank + fromCards).distinctBy { it.seasonId }.take(6)
     }
     LaunchedEffect(rankUi.sections.size) {
         if (rankUi.sections.isNotEmpty()) gridState.scrollToItem(0)

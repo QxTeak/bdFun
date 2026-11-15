@@ -64,12 +64,14 @@ internal fun LiveAvatar(
     }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        // 宽度 = 头像 46dp + 扩散圈余量：扩散到最大时左右两侧不会被列表裁掉。
+        // 和普通 UP 头像同宽（56dp），头像之间就是同一套 12dp 间距，不会显得被拉开。
         modifier = Modifier
-            .width(72.dp)
+            .width(56.dp)
             .then(avatarModifier),
     ) {
-        Box(Modifier.fillMaxWidth().height(72.dp), contentAlignment = Alignment.Center) {
+        // 和普通 UP 头像保持同一个 46dp 高度：名字才能和「全部动态 / 我 / 其它 UP」齐平。
+        // 扩散圈放大后会溢出这个 Box，Box 不裁剪，所以雷达波照常可见。
+        Box(Modifier.fillMaxWidth().height(46.dp), contentAlignment = Alignment.Center) {
             // 扩散粉圈：比头像大一圈，越大越淡。
             Box(
                 modifier = Modifier
@@ -102,7 +104,8 @@ internal fun LiveAvatar(
             Box(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 5.dp)
+                    // 压在头像下沿、名字上方；比上一版贴底，但不会碰到名字。
+                    .offset(y = 2.dp)
                     .clip(Capsule())
                     .background(Color.White)
                     .padding(1.5.dp)
@@ -127,7 +130,7 @@ internal fun LiveAvatar(
             lineHeight = 12.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 1.dp),
+            modifier = Modifier.padding(top = 3.dp),
         )
     }
 }

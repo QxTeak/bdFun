@@ -1,11 +1,14 @@
 package com.aritxonly.bdfun.presentation.pgc
 
+import android.os.SystemClock
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -20,7 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -31,6 +34,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -76,6 +82,9 @@ private const val CARD_CAMERA_DISTANCE = 36f * FAN_SCALE
 
 /** 自动切换间隔：留出动画时间后整体约 3.8 秒一张，与改造前一致。 */
 private const val CYCLE_MS = 3_200L
+
+/** 手动点卡/划动后暂停自动切换的时长；期间再操作会重新计时。 */
+private const val MANUAL_PAUSE_MS = 8_000L
 private const val EXIT_TRAVEL_MS = 420
 private const val PER_SLOT_MS = 180
 
@@ -106,14 +115,21 @@ internal fun BangumiBanner(
     val canCycle = count == BANGUMI_FAN_SLOT_COUNT
     val focus = remember(fan) { Animatable(0f) }
     val scope = rememberCoroutineScope()
-    var cycleRestart by remember(fan) { mutableIntStateOf(0) }
+    // 手动操作后暂停自动轮播；每次点卡/划动都重新计时 8 秒。
+    var pausedUntil by remember(fan) { mutableLongStateOf(0L) }
 
-    LaunchedEffect(fan, canCycle, cycleRestart) {
+    LaunchedEffect(fan, canCycle) {
         if (!canCycle) return@LaunchedEffect
         while (isActive) {
-            delay(CYCLE_MS)
+            val remaining = pausedUntil - SystemClock.elapsedRealtime()
+            delay(maxOf(CYCLE_MS, remaining))
+            if (SystemClock.elapsedRealtime() < pausedUntil) continue
             focus.animateTo(focus.targetValue + 1f, fanTween(1f))
         }
+    }
+
+    fun pauseAuto() {
+        pausedUntil = SystemClock.elapsedRealtime() + MANUAL_PAUSE_MS
     }
 
     BangumiFanStage(
@@ -127,10 +143,18 @@ internal fun BangumiBanner(
             when {
                 !canCycle -> onOpen(item.seasonId)
                 abs(targetSlot) < 0.5f -> onOpen(item.seasonId)
-                else -> scope.launch {
-                    focus.animateTo(target + targetSlot, fanTween(targetSlot))
-                    cycleRestart++
+                else -> {
+                    pauseAuto()
+                    scope.launch {
+                        focus.animateTo(target + targetSlot, fanTween(targetSlot))
+                    }
                 }
+            }
+        },
+        onSwipe = { direction ->
+            if (canCycle) {
+                pauseAuto()
+                scope.launch { focus.animateTo(focus.targetValue + direction, fanTween(1f)) }
             }
         },
     )
@@ -142,6 +166,7 @@ private fun BangumiFanStage(
     canCycle: Boolean,
     focus: Float,
     onSelect: (Int) -> Unit,
+    onSwipe: (Int) -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val cardWidth = (maxWidth * CARD_WIDTH_RATIO).coerceAtMost(MaxCardWidth)
@@ -149,11 +174,42 @@ private fun BangumiFanStage(
         val stageHeight = cardHeight + StageExtraHeight
         val density = LocalDensity.current
         val spacingPx = with(density) { (cardWidth * SPACING_TO_CARD).toPx() }
+        val swipeThresholdPx = with(density) { 42.dp.toPx() }
 
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(stageHeight),
+                .height(stageHeight)
+                // 左/右划切换整组卡片；用 Initial pass 观察并在横向意图明确时消费，
+                // 否则外层主 tab 的 HorizontalPager 会把这次滑动当成切换「首页/动态」。
+                .pointerInput(canCycle, onSwipe) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                        var totalX = 0f
+                        var totalY = 0f
+                        var claimed = false
+                        var switched = false
+                        while (true) {
+                            val event = awaitPointerEvent(PointerEventPass.Initial)
+                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                            totalX += change.positionChange().x
+                            totalY += change.positionChange().y
+                            if (!claimed && abs(totalX) > viewConfiguration.touchSlop &&
+                                abs(totalX) > abs(totalY)
+                            ) {
+                                claimed = true
+                            }
+                            if (claimed) {
+                                change.consume()
+                                if (!switched && abs(totalX) >= swipeThresholdPx) {
+                                    onSwipe(if (totalX < 0f) 1 else -1)
+                                    switched = true
+                                }
+                            }
+                            if (event.changes.none { it.pressed }) break
+                        }
+                    }
+                },
             contentAlignment = Alignment.Center,
         ) {
             fan.forEachIndexed { index, item ->

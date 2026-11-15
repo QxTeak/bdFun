@@ -16,7 +16,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +45,14 @@ fun FeedAvatarCard(
     val haptics = com.aritxonly.bdfun.ui.rememberTeakHaptics()
     val authorScroll = rememberLazyListState()
     val profile = AppGraph.session.value
+    // 直播 UP 比动态列表晚到：它们插到最前面时 LazyRow 会按原来的锚点停在「全部动态」，
+    // 看起来就像直播头像没排到最前。第一次从无到有时主动回到行首。
+    var hadLiveUsers by remember { mutableStateOf(false) }
+    LaunchedEffect(state.liveUsers.isNotEmpty()) {
+        val hasLive = state.liveUsers.isNotEmpty()
+        if (hasLive && !hadLiveUsers) authorScroll.scrollToItem(0)
+        hadLiveUsers = hasLive
+    }
     LaunchedEffect(state) {
         snapshotFlow {
             val info = authorScroll.layoutInfo

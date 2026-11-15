@@ -13,7 +13,7 @@ import org.json.JSONObject
  * 真实字段见 2026-11-15 抓取的 `result[].episodes[]`：cover / ep_cover / pub_index / pub_ts / season_id。
  */
 internal fun mapPgcTimeline(days: JSONArray, nowSec: Long): List<BangumiCard> {
-    val bySeason = LinkedHashMap<Long, Pair<BangumiCard, Long>>()
+    val bySeries = LinkedHashMap<String, Pair<BangumiCard, Long>>()
     for (dayIndex in 0 until days.length()) {
         val day = days.optJSONObject(dayIndex) ?: continue
         val episodes = day.optJSONArray("episodes") ?: continue
@@ -37,13 +37,26 @@ internal fun mapPgcTimeline(days: JSONArray, nowSec: Long): List<BangumiCard> {
                 indexShow = "",
                 followText = episode.optString("follows").orEmpty().takeIf { it != "-" }.orEmpty(),
             )
-            val existing = bySeason[seasonId]
+            // 同一部番的「中文配音 / 英文 / 中配」会以不同 season_id 各占一条，按规范化标题合并。
+            val key = normalizeSeriesTitle(title)
+            val existing = bySeries[key]
             if (existing == null || distance < existing.second) {
-                bySeason[seasonId] = card to distance
+                bySeries[key] = card to distance
             }
         }
     }
-    return bySeason.values.sortedBy { it.second }.map { it.first }
+    return bySeries.values.sortedBy { it.second }.map { it.first }
+}
+
+/** 去掉语言/配音后缀与标点，只用于头图去重，不参与展示。 */
+internal fun normalizeSeriesTitle(title: String): String {
+    var value = title.lowercase()
+    for (suffix in listOf(
+        "中文配音", "中配", "国语", "日语", "日配", "粤语", "english", "英文",
+    )) {
+        value = value.replace(suffix, "")
+    }
+    return value.replace(Regex("[\\s（）()【】\\[\\]·:：,，.。\\-—_/]"), "")
 }
 
 /** 单天数组的便捷入口，便于测试边界。 */
