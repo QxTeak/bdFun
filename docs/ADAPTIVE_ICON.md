@@ -1,6 +1,8 @@
 # Android 分层启动图标
 
-启动入口与 roundIcon 共用 mipmap/ic_launcher；API 26+ 使用 adaptive-icon，背景为无圆角、完全不透明的粉色渐变，前景为透明 PNG。形状裁切和图层运动由桌面实现。
+启动入口与 roundIcon 共用 mipmap/ic_launcher；API 26+ 使用 adaptive-icon，背景为无圆角、完全不透明的粉色位图，前景为透明 PNG。形状裁切和图层运动由桌面实现。
+
+背景通过 `bash tools/generate-icon-background.sh` 从原 `mipmap-xxxhdpi/ic_launcher.png` 的 12 个无遮挡位置采样并插值重建，沿用原图标的粉色和明暗分布，替代初版手动指定的双色渐变。原图并非分层文件，被标志覆盖的底图与细微纹理无法逐像素恢复。
 
 前景从 docs/icon.png 原始像素分离，未使用生成式重绘结果。文字、电视、星环、星光、球体与玻璃片保留原位置关系；粉色底色通过色差估算透明度并去除底色污染。由于原图是已合成位图，玻璃原始 alpha 无法精确恢复，透明边缘与极淡光晕属于估算值。
 

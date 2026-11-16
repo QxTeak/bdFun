@@ -4,8 +4,8 @@ cd "$(dirname "$0")/.."
 work_dir=$(mktemp -d)
 trap 'rm -rf "$work_dir"' EXIT
 
-# 与 XML 的纵向渐变一致；108dp 中心 72dp 为桌面静态可视区域。
-magick -size 1080x1080 gradient:'#f06b9f-#e94286' \
+# 使用与 APK 相同的背景资源；108dp 中心 72dp 为桌面静态可视区域。
+magick app/src/main/res/drawable-nodpi/ic_launcher_adaptive_background.png \
     app/src/main/res/drawable-nodpi/ic_launcher_adaptive_foreground.png \
     -composite -crop 720x720+180+180 +repage -resize 320x320 "$work_dir/art.png"
 shapes=(Rounded-rectangle Circle Squircle Teardrop)
