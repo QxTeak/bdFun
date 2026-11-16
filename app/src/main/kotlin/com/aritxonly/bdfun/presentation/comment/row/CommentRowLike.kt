@@ -30,9 +30,9 @@ internal fun CommentRowLike(liked: Boolean, like: Int, onLike: () -> Unit) {
             ),
     ) {
         Image(
-            painter = androidx.compose.ui.res.painterResource(
+            painter = com.aritxonly.teak.common.icons.rememberAntialiasedIconPainter(androidx.compose.ui.res.painterResource(
                 if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,
-            ),
+            )),
             contentDescription = "点赞",
             colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(
                 if (liked) BrandPink else colors.onBackgroundVariant,

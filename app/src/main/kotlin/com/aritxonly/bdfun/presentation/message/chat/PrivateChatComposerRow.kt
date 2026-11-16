@@ -5,15 +5,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import com.aritxonly.teak.common.icons.AppGlyph
+import com.aritxonly.teak.common.icons.LucideIcons
 import com.aritxonly.teak.common.material.TeakGlassIconButton
 import com.aritxonly.teak.common.material.TeakGlassSurface
 import com.kyant.shapes.Capsule
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun PrivateChatComposerRow(
@@ -39,7 +40,7 @@ internal fun PrivateChatComposerRow(
             recipe = recipe,
             backdrop = backdrop,
         ) {
-            Text(text = "\uD83D\uDE00", fontSize = 19.sp)
+            AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = MiuixTheme.colorScheme.onBackgroundVariant)
         }
     }
 }

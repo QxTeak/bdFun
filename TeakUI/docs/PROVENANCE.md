@@ -130,3 +130,14 @@
 ### TeakActionSheet
 
 `common/modal/TeakActionSheet.kt`来自bdFun原`ui/TeakActionSheet.kt`的无业务外壳，函数体逐字保留：原MiuixBottomSheet、关闭按钮、默认标题、allowDismiss、Column滚动与padding均不变。业务动作行及资源目录仍在app/feature。
+
+## ICON-16: Lucide / Lucide Extended (2026-11-16)
+
+`src/main/res/drawable/hybrid_*.xml` 来源于 Lucide 和 Lucide Extended 的已审阅 SVG 快照，仅包含 bdFun issue 16 预设所用的32个图形。
+
+- Lucide: https://github.com/lucide-icons/lucide
+- Lucide Extended: https://github.com/applifted/lucide-extended
+- 原始 SVG 固定样本：仓库 `tools/icons/lucide-selected.json`；来源与图标映射：`docs/icon-presets/issue-16.json`。
+- 许可：ISC；其中来自 Feather 的图形沿用 MIT，完整声明见 [Lucide](licenses/Lucide.txt) 与 [Lucide Extended](licenses/Lucide-Extended.txt)。
+- 适配：转换为 Android VectorDrawable；线框描边2改为1.8（24视口），填充图形以中心为基准缩至92%，用于与项目 Miuix Regular 对齐。未改变图形路径或孔洞填充规则。
+- 重新生成：`python3 tools/icons/generate_lucide.py`。无新增网络或图标库运行时依赖。

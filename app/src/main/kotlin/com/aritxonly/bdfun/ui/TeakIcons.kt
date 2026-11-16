@@ -1,26 +1,17 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.R
 
 /**
- * 用户提供的图标资源统一在这里取用。
- * 素材都是「白色图形 + 透明底」，所以颜色一律用 tint 覆盖，同一张图能同时适配深浅色。
+ * 保留 B 站原生语义素材；已选中的通用图标转发到 TeakUI 共享矢量。
+ * 只暴露 drawable 契约，让播放器与输入框继续沿用原尺寸、按压和 tint。
  */
 internal object TeakIcon {
     val Like = R.drawable.act_like
     val Dislike = R.drawable.act_dislike
     val LikeOutline = R.drawable.act_like_outline
-    val Coin = R.drawable.act_coin
+    val Coin = com.aritxonly.teak.common.icons.LucideIcons.CoinsFilled
     val Star = R.drawable.act_star
     val Share = R.drawable.act_share
 
@@ -48,6 +39,5 @@ internal object TeakIcon {
     val PlayerStar = R.drawable.fs_star
     val PlayerShare = R.drawable.fs_share
 
-    val Send = R.drawable.ic_send
-    val Image = R.drawable.ic_image
+    val Send = com.aritxonly.teak.common.icons.LucideIcons.Send
 }

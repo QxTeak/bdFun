@@ -23,12 +23,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
+import com.aritxonly.teak.common.icons.AppGlyph
 import com.aritxonly.teak.common.settings.TeakSettingsCard
 import top.yukonga.miuix.kmp.basic.Checkbox
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.*
+import top.yukonga.miuix.kmp.icon.extended.*
 import top.yukonga.miuix.kmp.icon.extended.Info
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -125,11 +127,7 @@ private fun NoticeTermsCard(termsViewed: Boolean, onOpenTerms: () -> Unit) {
                     color = if (termsViewed) colors.primary else colors.onSurfaceVariantSummary,
                 )
             }
-            Text(
-                text = "›",
-                fontSize = 22.sp,
-                color = colors.onSurfaceVariantSummary,
-            )
+            AppGlyph(MiuixIcons.Basic.ArrowRight, size = 22.dp, tint = colors.onSurfaceVariantSummary)
         }
     }
 }

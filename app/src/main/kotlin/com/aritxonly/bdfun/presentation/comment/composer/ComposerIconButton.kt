@@ -1,6 +1,8 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.foundation.Image
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -42,13 +44,10 @@ fun ComposerIconButton(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        Image(
-            painter = androidx.compose.ui.res.painterResource(
-                if (kind == ComposerIcon.Send) TeakIcon.Send else TeakIcon.Image,
-            ),
-            contentDescription = null,
-            colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(color),
-            modifier = Modifier.size(19.dp),
-        )
+        if (kind == ComposerIcon.Send) {
+            AppGlyph(TeakIcon.Send, color, size = 19.dp)
+        } else {
+            AppGlyph(MiuixIcons.Image, color, size = 19.dp)
+        }
     }
 }

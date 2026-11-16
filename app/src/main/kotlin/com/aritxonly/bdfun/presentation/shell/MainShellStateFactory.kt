@@ -16,6 +16,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import com.aritxonly.teak.common.icons.rememberAntialiasedIconPainter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.foundation.layout.size
 import com.aritxonly.teak.common.navigation.TeakFloatingTabItem
@@ -78,8 +79,8 @@ internal fun rememberMainShellState(background: Color): MainShellState {
         TeakFloatingTabItem(
             key = destination.key,
             label = destination.label,
-            selectedIcon = rememberVectorPainter(destination.icon),
-            unselectedIcon = rememberVectorPainter(destination.icon),
+            selectedIcon = rememberAntialiasedIconPainter(rememberVectorPainter(destination.icon)),
+            unselectedIcon = rememberAntialiasedIconPainter(rememberVectorPainter(destination.icon)),
             iconScale = if (destination.key == "home") 0.95f else 1f,
         )
     }

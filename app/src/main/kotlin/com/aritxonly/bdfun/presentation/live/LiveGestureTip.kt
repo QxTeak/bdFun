@@ -13,16 +13,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
+import com.aritxonly.teak.common.icons.AppGlyph
+import com.aritxonly.teak.common.icons.LucideIcons
 
 @Composable
 internal fun LiveGestureIconTip(
@@ -94,61 +91,5 @@ internal fun liveSetVolumeRatio(audio: AudioManager, ratio: Float) {
 
 @Composable
 private fun LiveGestureSymbol(brightness: Boolean) {
-        androidx.compose.foundation.Canvas(modifier = Modifier.size(24.dp)) {
-            val stroke = 1.7.dp.toPx()
-            if (brightness) {
-                drawCircle(
-                    color = Color.White,
-                    radius = size.width * 0.19f,
-                    style = Stroke(stroke),
-                )
-                repeat(8) { i ->
-                    val angle = Math.toRadians((i * 45).toDouble())
-                    val cx = size.width / 2f
-                    val cy = size.height / 2f
-                    val r1 = size.width * 0.31f
-                    val r2 = size.width * 0.44f
-                    drawLine(
-                        color = Color.White,
-                        start = Offset(
-                            cx + (r1 * kotlin.math.cos(angle)).toFloat(),
-                            cy + (r1 * kotlin.math.sin(angle)).toFloat(),
-                        ),
-                        end = Offset(
-                            cx + (r2 * kotlin.math.cos(angle)).toFloat(),
-                            cy + (r2 * kotlin.math.sin(angle)).toFloat(),
-                        ),
-                        strokeWidth = stroke,
-                        cap = StrokeCap.Round,
-                    )
-                }
-            } else {
-                val path = androidx.compose.ui.graphics.Path().apply {
-                    moveTo(size.width * 0.12f, size.height * 0.38f)
-                    lineTo(size.width * 0.32f, size.height * 0.38f)
-                    lineTo(size.width * 0.55f, size.height * 0.16f)
-                    lineTo(size.width * 0.55f, size.height * 0.84f)
-                    lineTo(size.width * 0.32f, size.height * 0.62f)
-                    lineTo(size.width * 0.12f, size.height * 0.62f)
-                    close()
-                }
-                drawPath(
-                    path = path,
-                    color = Color.White,
-                    style = Stroke(
-                        width = stroke,
-                        join = androidx.compose.ui.graphics.StrokeJoin.Round,
-                    ),
-                )
-                drawArc(
-                    color = Color.White,
-                    startAngle = -55f,
-                    sweepAngle = 110f,
-                    useCenter = false,
-                    topLeft = Offset(size.width * 0.52f, size.height * 0.3f),
-                    size = androidx.compose.ui.geometry.Size(size.width * 0.3f, size.height * 0.4f),
-                    style = Stroke(stroke, cap = StrokeCap.Round),
-                )
-            }
-        }
+    AppGlyph(if (brightness) LucideIcons.Sun else LucideIcons.Volume1, Color.White, size = 24.dp)
 }

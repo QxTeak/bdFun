@@ -22,7 +22,10 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -41,12 +44,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.core.model.video.DanmakuItem
+import com.aritxonly.bdfun.feature.video.application.FullscreenDanmakuComposerStateHolder
+import com.aritxonly.teak.common.icons.AppGlyph
+import com.aritxonly.teak.common.icons.LucideIcons
 import com.kyant.shapes.Capsule
 import kotlinx.coroutines.delay
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.DisposableEffect
-import com.aritxonly.bdfun.feature.video.application.FullscreenDanmakuComposerStateHolder
 
 @Composable
 fun FullscreenDanmakuInput(
@@ -143,11 +145,7 @@ private fun ComposerInputRow(
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                Text(
-                    text = "➤",
-                    color = if (text.isBlank()) Color.Black.copy(alpha = 0.25f) else Color(0xFFFB7299),
-                    fontSize = 20.sp,
-                )
+                AppGlyph(LucideIcons.SendHorizontalFilled, size = 20.dp, tint = if (text.isBlank()) Color.Black.copy(alpha = 0.25f) else Color(0xFFFB7299))
             }
         }
     }

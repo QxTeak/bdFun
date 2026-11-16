@@ -1,7 +1,6 @@
 package com.aritxonly.bdfun
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,12 +18,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.ui.TeakLoading
 import com.aritxonly.bdfun.ui.formatCount
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.*
+import top.yukonga.miuix.kmp.icon.extended.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 internal fun formatCountNoDecimal(value: Long): String =
@@ -64,22 +66,7 @@ internal fun SpaceSectionHeader(
                     fontSize = 11.sp,
                 )
                 Spacer(Modifier.width(2.dp))
-                androidx.compose.foundation.Canvas(modifier = Modifier.size(7.dp, 10.dp)) {
-                    val path = androidx.compose.ui.graphics.Path().apply {
-                        moveTo(size.width * 0.30f, size.height * 0.18f)
-                        lineTo(size.width * 0.72f, size.height * 0.5f)
-                        lineTo(size.width * 0.30f, size.height * 0.82f)
-                    }
-                    drawPath(
-                        path = path,
-                        color = colors.onBackgroundVariant,
-                        style = androidx.compose.ui.graphics.drawscope.Stroke(
-                            width = 1.4.dp.toPx(),
-                            cap = androidx.compose.ui.graphics.StrokeCap.Round,
-                            join = androidx.compose.ui.graphics.StrokeJoin.Round,
-                        ),
-                    )
-                }
+                AppGlyph(MiuixIcons.Basic.ArrowRight, colors.onBackgroundVariant, size = 10.dp)
             }
         }
     }

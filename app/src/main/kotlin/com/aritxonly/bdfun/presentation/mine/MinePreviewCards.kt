@@ -7,6 +7,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.ArrowRight
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,9 +45,15 @@ internal fun MinePreviewCard(kind: MinePreviewKind, section: MinePreviewSection,
             if (section.loaded && section.error != null) Text("重试",
                 Modifier.clickable(onClick = retry).padding(horizontal = 6.dp, vertical = 6.dp), fontSize = 12.sp,
                 lineHeight = 18.sp, minLines = 1, maxLines = 1, color = MiuixTheme.colorScheme.primary)
-            Text("查看全部 ＞", Modifier.clickable(onClick = openAll).padding(vertical = 6.dp),
-                fontSize = 12.sp, lineHeight = 18.sp, minLines = 1, maxLines = 1,
-                overflow = TextOverflow.Ellipsis, color = MiuixTheme.colorScheme.onBackgroundVariant)
+            Row(
+                Modifier.clickable(onClick = openAll).padding(vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("查看全部", fontSize = 12.sp, lineHeight = 18.sp, minLines = 1, maxLines = 1,
+                    overflow = TextOverflow.Ellipsis, color = MiuixTheme.colorScheme.onBackgroundVariant)
+                Spacer(Modifier.width(4.dp))
+                AppGlyph(MiuixIcons.Basic.ArrowRight, MiuixTheme.colorScheme.onBackgroundVariant, size = 12.dp)
+            }
         }
         MinePreviewBody(kind, section, navigation, openAll, retry)
     }

@@ -1,13 +1,12 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.aritxonly.teak.common.material.TeakGlassIconButton
-
 import com.aritxonly.bdfun.feature.video.application.*
+import com.aritxonly.teak.common.icons.AppGlyph
+import com.aritxonly.teak.common.icons.LucideIcons
+import com.aritxonly.teak.common.material.TeakGlassIconButton
 
 @Composable
 internal fun DanmakuInputEmojiButton(runtime: DanmakuInputRuntime) {
@@ -23,6 +22,6 @@ internal fun DanmakuInputEmojiButton(runtime: DanmakuInputRuntime) {
         recipe = recipe,
         backdrop = backdrop,
     ) {
-        Text(text = "\uD83D\uDE00", fontSize = 19.sp)
+        AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f))
     }
 }

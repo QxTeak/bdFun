@@ -1,10 +1,7 @@
 package com.aritxonly.bdfun.ui
 
-import com.aritxonly.teak.common.icons.ResourceGlyph
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,13 +9,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Download
-import top.yukonga.miuix.kmp.icon.extended.Recent
-import top.yukonga.miuix.kmp.icon.extended.SearchDevice
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,8 +20,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import com.aritxonly.bdfun.feature.mine.application.*
+import com.aritxonly.teak.common.icons.AppGlyph
+import com.aritxonly.teak.common.icons.ResourceGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.ArrowRight
+import top.yukonga.miuix.kmp.icon.extended.Download
+import top.yukonga.miuix.kmp.icon.extended.Recent
+import top.yukonga.miuix.kmp.icon.extended.SearchDevice
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 internal val MineBlue = Color(0xFF3C9BD9)
 
@@ -98,7 +98,7 @@ private fun QuickAction(
 internal fun MineRow(
     text: String,
     color: Color? = null,
-    trailingText: String = "＞",
+    trailingText: String = "",
     onClick: () -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
@@ -115,6 +115,12 @@ internal fun MineRow(
             fontSize = 14.sp,
             modifier = Modifier.weight(1f),
         )
-        Text(text = trailingText, color = colors.outline, fontSize = 12.sp)
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (trailingText.isNotEmpty()) {
+                Text(text = trailingText, color = colors.outline, fontSize = 12.sp)
+                Spacer(Modifier.width(4.dp))
+            }
+            AppGlyph(MiuixIcons.Basic.ArrowRight, colors.outline, size = 12.dp)
+        }
     }
 }

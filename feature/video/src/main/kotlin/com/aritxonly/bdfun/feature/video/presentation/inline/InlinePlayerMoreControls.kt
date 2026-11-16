@@ -1,8 +1,5 @@
 package com.aritxonly.bdfun.ui
 
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.SearchDevice
-import top.yukonga.miuix.kmp.icon.extended.Download
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -23,9 +20,15 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.teak.common.icons.AppGlyph
 import com.kyant.shapes.Capsule
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.abs
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.*
+import top.yukonga.miuix.kmp.icon.extended.*
+import top.yukonga.miuix.kmp.icon.extended.Download
+import top.yukonga.miuix.kmp.icon.extended.SearchDevice
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 internal val HALF_SPEEDS = listOf(3f, 2f, 1.5f, 1.25f, 1f)
 
@@ -201,6 +204,6 @@ internal fun HalfMoreChoiceRow(
             Text(text = value, color = colors.onBackgroundVariant, fontSize = 12.sp)
             Spacer(Modifier.width(4.dp))
         }
-        Text(text = "›", color = colors.onBackgroundVariant, fontSize = 16.sp)
+        AppGlyph(MiuixIcons.Basic.ArrowRight, size = 16.dp, tint = colors.onBackgroundVariant)
     }
 }

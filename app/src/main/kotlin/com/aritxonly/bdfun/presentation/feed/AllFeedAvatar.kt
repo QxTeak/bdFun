@@ -1,13 +1,11 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -17,15 +15,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.BrandPink
 import com.aritxonly.bdfun.BrandPinkDeep
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.*
+import top.yukonga.miuix.kmp.icon.extended.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -58,26 +57,7 @@ internal fun AllFeedAvatar(selected: Boolean, onClick: () -> Unit) {
                     ),
                 contentAlignment = Alignment.Center,
             ) {
-                Canvas(modifier = Modifier.size(20.dp)) {
-                    val w = size.width
-                    val h = size.height
-                    val gap = w * 0.12f
-                    val cell = (w - gap) / 2f
-                    val r = CornerRadius(cell * 0.22f)
-                    listOf(
-                        Offset(0f, 0f),
-                        Offset(cell + gap, 0f),
-                        Offset(0f, cell + gap),
-                        Offset(cell + gap, cell + gap),
-                    ).forEach { topLeft ->
-                        drawRoundRect(
-                            color = Color.White,
-                            topLeft = topLeft,
-                            size = Size(cell, cell),
-                            cornerRadius = r,
-                        )
-                    }
-                }
+                AppGlyph(MiuixIcons.All, Color.White, size = 20.dp)
             }
             if (ring > 0.01f) {
                 Box(
