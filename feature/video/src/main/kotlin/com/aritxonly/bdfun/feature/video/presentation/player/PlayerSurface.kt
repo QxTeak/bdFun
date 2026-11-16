@@ -66,7 +66,8 @@ fun PlayerSurface(
         }
 
         PlayerAlwaysProgress(ui, fullscreen, positionMs, durationMs, picture.progressBarMode, picture.accentColor)
-        PlayerHotDanmakuOverlay(ui, fullscreen, picture.hotDanmakuEnabled)
+        PlayerHotDanmakuOverlay(ui, fullscreen, picture.hotDanmakuEnabled,
+            picture.hotDanmakuStrokeDp, picture.hotDanmakuTextScale)
         if (sponsor != null) {
             PlayerSponsorOverlay(sponsor, fullscreen, picture.accentColor) { segment ->
                 onSkip(segment)

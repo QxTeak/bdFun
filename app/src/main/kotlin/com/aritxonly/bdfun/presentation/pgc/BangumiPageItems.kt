@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.items
@@ -36,6 +34,7 @@ import coil.compose.AsyncImage
 import com.aritxonly.bdfun.BrandPink
 import com.aritxonly.bdfun.core.model.pgc.BangumiCard
 import com.aritxonly.bdfun.presentation.pgc.BangumiPageStateHolder
+import com.aritxonly.bdfun.presentation.common.FullBleedRow
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverErrorState
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.ui.FeedCardShape
@@ -49,15 +48,17 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun LazyGridScope.bangumiFollowSection(
     state: BangumiPageStateHolder,
     context: android.content.Context,
+    sidePadding: androidx.compose.ui.unit.Dp = 10.dp,
 ) {
     item(key = "pgc-follow", span = { GridItemSpan(maxLineSpan) }) {
         val openScope = rememberCoroutineScope()
         Column {
             BangumiSectionTitle("最近追番")
             if (state.following.isNotEmpty()) {
-                LazyRow(
+                FullBleedRow(
+                    sidePadding = sidePadding,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    contentPadding = PaddingValues(bottom = 2.dp),
+                    verticalPadding = 1.dp,
                 ) {
                     items(state.following, key = { it.seasonId }) { item ->
                         Box(Modifier.width(104.dp)) {

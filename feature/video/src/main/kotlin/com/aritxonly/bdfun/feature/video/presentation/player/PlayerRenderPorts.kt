@@ -8,6 +8,8 @@ class PlayerGestureOptions(
     val boostDefaultSpeed: () -> Float,
     val centerSwipeEnabled: () -> Boolean,
     val boostSwipeEnabled: () -> Boolean,
+    /** 全局震动开关：关闭后长按加速等手势不再触发触感。 */
+    val hapticsEnabled: () -> Boolean = { true },
 )
 class PlayerFullscreenVisuals(
     val appearance: FullscreenAppearance, val slots: FullscreenChromeSlots,

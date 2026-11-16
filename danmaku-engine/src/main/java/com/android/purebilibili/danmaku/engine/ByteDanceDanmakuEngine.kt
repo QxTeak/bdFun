@@ -50,6 +50,11 @@ internal class ByteDanceDanmakuEngine(
 
     private var configApplied = false
 
+    override fun setReservedTop(heightPx: Float) {
+        if (closed) return
+        controller.setReservedTop(heightPx)
+    }
+
     override fun updateConfig(config: DanmakuRenderConfig) {
         if (closed) return
         if (configApplied && currentConfig == config) return

@@ -142,6 +142,7 @@ fun TeakBareTheme(
         blurEnabled = settings.blurEnabled,
         refractionEnabled = settings.refractionEnabled,
         fontScale = settings.fontScale,
+        hapticsEnabled = settings.vibrationEnabled,
     ) {
         androidx.compose.runtime.CompositionLocalProvider(
             com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings provides settings,

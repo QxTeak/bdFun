@@ -19,6 +19,7 @@ internal fun LiveRoomTheme(settings: SettingsBindings, content: @Composable () -
         TeakTheme(dark = true, lightColors = hyperLightColors(), darkColors = hyperDarkColors(),
             materialColors = appMaterialColors(dark = true),
             blurEnabled = settings.blurEnabled, refractionEnabled = settings.refractionEnabled, fontScale = settings.fontScale,
+            hapticsEnabled = settings.vibrationEnabled,
         ) { content() }
     }
 }

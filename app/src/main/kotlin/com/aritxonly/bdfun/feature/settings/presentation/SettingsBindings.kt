@@ -38,6 +38,7 @@ open class SettingsBindings internal constructor(
     override var scrollTopSide: Int by projection.property("scrollTopSideState", { controller.scrollTopSide }, { controller.scrollTopSide = it })
     override var scrollTopPages: Set<String> by projection.property("scrollTopPagesState", { controller.scrollTopPages }, { controller.scrollTopPages = it })
     override var blurEnabled: Boolean by projection.property("blurState", { controller.blurEnabled }, { controller.blurEnabled = it })
+    override var vibrationEnabled: Boolean by projection.property("vibrationState", { controller.vibrationEnabled }, { controller.vibrationEnabled = it })
     override var danmakuScale: Float by projection.property("danmakuScaleState", { controller.danmakuScale }, { controller.danmakuScale = it })
     override var danmakuSpeed: Float by projection.property("danmakuSpeedState", { controller.danmakuSpeed }, { controller.danmakuSpeed = it })
     override var autoRotate: Boolean by projection.property("autoRotateState", { controller.autoRotate }, { controller.autoRotate = it })

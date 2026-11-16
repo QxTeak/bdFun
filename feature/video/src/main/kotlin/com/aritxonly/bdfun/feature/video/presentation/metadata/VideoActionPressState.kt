@@ -41,7 +41,7 @@ internal fun VideoActionPressDecay(state: VideoActionPressStateHolder, kind: Act
 
 @Composable
 internal fun VideoActionLongPress(state: VideoActionPressStateHolder, onLongPress: (() -> Unit)?) {
-    val haptics = VideoActionHaptics(LocalContext.current)
+    val haptics = VideoActionHaptics(LocalContext.current, com.aritxonly.teak.common.theme.LocalHapticsEnabled.current)
     LaunchedEffect(state.isPressing, onLongPress) {
         if (!state.isPressing) {
             state.rippleHolding = false

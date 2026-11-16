@@ -48,6 +48,13 @@ class TopCenterLayer : IRenderLayer, ITouchDelegate, ConfigChangeListener {
     private var mTotalDanmakuCountInLayer = 0
     private var mWidth = 0
     private var mHeight = 0
+    /** 顶部让位高度（px）：只拦新弹幕，不改变已有顶部弹幕或行的位置。 */
+    private var mReservedTopPx = 0f
+
+    /** 由宿主在「弹幕计数」出现/消失时更新；只影响后续新弹幕的行分配。 */
+    fun setReservedTop(heightPx: Float) {
+        mReservedTopPx = heightPx.coerceAtLeast(0f)
+    }
 
     override fun init(controller: DanmakuController, cachePool: IDrawCachePool) {
         mController = controller
@@ -162,8 +169,7 @@ class TopCenterLayer : IRenderLayer, ITouchDelegate, ConfigChangeListener {
      * Return true if find a line to add, return false otherwise.
      */
     private fun distributeItemToLines(playTime: Long, item: DrawItem<DanmakuData>): Boolean {
-        val guard = mConfig.top.marginTop
-        mLines.filter { it.y + 0.5f >= guard }
+        mLines.filter { it.y + 0.5f >= mReservedTopPx }
             .maxByOrNull { it.getCurrentItemShowDuration() }?.let { line ->
                 if (line.addItem(playTime, item)) {
                     mController.notifyEvent(Events.obtainEvent(EVENT_DANMAKU_SHOW, item.data))

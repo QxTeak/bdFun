@@ -104,7 +104,12 @@ internal fun BangumiBanner(
     items: List<BangumiBannerItem>,
     onOpen: (Long) -> Unit,
 ) {
-    val fan = items.distinctBy { it.seasonId }.take(BANGUMI_FAN_SLOT_COUNT)
+    val landscape = androidx.compose.ui.platform.LocalConfiguration.current.orientation ==
+        android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    // 竖屏 5 张可见，横屏 9 张可见；多留一张停在隐藏位等待入场。
+    val visibleRadius = if (landscape) 4f else 2f
+    val slotCount = if (landscape) 10 else BANGUMI_FAN_SLOT_COUNT
+    val fan = remember(items, slotCount) { items.distinctBy { it.seasonId }.take(slotCount) }
     if (fan.isEmpty()) {
         BangumiBannerPlaceholder()
         return
@@ -112,8 +117,8 @@ internal fun BangumiBanner(
     // 简介是后补的：用 seasonId 作为焦点状态的 key，标题/简介更新时不重置轮播位置。
     val fanIds = remember(fan) { fan.map { it.seasonId } }
     val count = fan.size
-    // 只有刚好 6 张时左右两端才各有一张隐藏卡，能无缝环绕；不够时退化成静态扇形。
-    val canCycle = count == BANGUMI_FAN_SLOT_COUNT
+    // 只有卡数刚好等于槽位数时两端才各有一张隐藏卡，能无缝环绕；不够时退化成静态扇形。
+    val canCycle = count == slotCount
     val focus = remember(fanIds) { Animatable(0f) }
     val scope = rememberCoroutineScope()
     // 手动操作后暂停自动轮播；每次点卡/划动都重新计时 8 秒。
@@ -137,6 +142,7 @@ internal fun BangumiBanner(
         fan = fan,
         canCycle = canCycle,
         focus = focus,
+        visibleRadius = visibleRadius,
         onSelect = { index ->
             val item = fan[index]
             val target = focus.targetValue
@@ -166,10 +172,12 @@ private fun BangumiFanStage(
     fan: List<BangumiBannerItem>,
     canCycle: Boolean,
     focus: Animatable<Float, AnimationVector1D>,
+    visibleRadius: Float,
     onSelect: (Int) -> Unit,
     onSwipe: (Int) -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
+        // 卡片保持原有大小；横屏只是把更多卡延伸到屏幕外，不缩小。
         val cardWidth = (maxWidth * CARD_WIDTH_RATIO).coerceAtMost(MaxCardWidth)
         val cardHeight = cardWidth * 9f / 16f
         val stageHeight = cardHeight + StageExtraHeight
@@ -217,7 +225,7 @@ private fun BangumiFanStage(
                 // 布局/层级只看目标槽位；逐帧的旋转、位移、透明度在 graphicsLayer 里读焦点，
                 // 动画期间不再重组 6 张卡片，避免切换时整片掉帧。
                 val slot = if (canCycle) {
-                    bangumiFanSlot(index, focus.targetValue, fan.size)
+                    bangumiFanSlot(index, focus.targetValue, fan.size, visibleRadius)
                 } else {
                     index - (fan.size - 1) / 2f
                 }
@@ -228,6 +236,7 @@ private fun BangumiFanStage(
                         focus = focus,
                         index = index,
                         count = fan.size,
+                        radius = visibleRadius,
                         cardWidth = cardWidth,
                         cardHeight = cardHeight,
                         spacingPx = spacingPx,
@@ -246,6 +255,7 @@ private fun BangumiFanCard(
     focus: Animatable<Float, AnimationVector1D>,
     index: Int,
     count: Int,
+    radius: Float,
     cardWidth: Dp,
     cardHeight: Dp,
     spacingPx: Float,
@@ -262,7 +272,7 @@ private fun BangumiFanCard(
             .width(cardWidth)
             .height(cardHeight)
             .graphicsLayer {
-                val liveSlot = bangumiFanSlot(index, focus.value, count)
+                val liveSlot = bangumiFanSlot(index, focus.value, count, radius)
                 translationX = liveSlot * spacingPx
                 // 绕竖轴向内收；相机拉远一点，近边不会被透视放大到把底边压弯。
                 rotationY = bangumiFanRotation(liveSlot)
@@ -270,7 +280,7 @@ private fun BangumiFanCard(
                 val liveScale = bangumiFanScale(liveSlot)
                 scaleX = liveScale
                 scaleY = liveScale
-                alpha = bangumiFanAlpha(liveSlot)
+                alpha = bangumiFanAlpha(liveSlot, radius)
             }
             .zIndex(10f - distance)
             .clip(CardShape)

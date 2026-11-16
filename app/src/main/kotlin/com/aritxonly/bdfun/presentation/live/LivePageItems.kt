@@ -35,6 +35,7 @@ import coil.compose.AsyncImage
 import com.aritxonly.bdfun.core.model.live.LiveArea
 import com.aritxonly.bdfun.core.model.live.LiveCard
 import com.aritxonly.bdfun.presentation.live.LivePageStateHolder
+import com.aritxonly.bdfun.presentation.common.FullBleedRow
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverErrorState
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.navigateToLogin
@@ -89,9 +90,10 @@ internal fun LazyGridScope.liveAreaSection(
     item(key = "live-areas", span = { GridItemSpan(maxLineSpan) }) {
         Column {
             Spacer(Modifier.height(if (state.followers.isEmpty()) 0.dp else 4.dp))
-            LazyRow(
+            FullBleedRow(
+                sidePadding = 12.dp,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                contentPadding = PaddingValues(vertical = 4.dp),
+                verticalPadding = 4.dp,
             ) {
                 item(key = "area-all") {
                     LiveAreaChip(

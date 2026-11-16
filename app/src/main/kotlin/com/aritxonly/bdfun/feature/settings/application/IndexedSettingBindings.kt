@@ -20,6 +20,8 @@ private fun appearanceBindings(repository: SettingsRepository) = mapOf(
         { repository.appearance.interfaceStyle = (it as SettingValue.Number).value }),
     "blur" to IndexedSettingBinding({ SettingValue.Flag(repository.appearance.blurEnabled) },
         { repository.appearance.blurEnabled = (it as SettingValue.Flag).value }),
+    "vibration" to IndexedSettingBinding({ SettingValue.Flag(repository.appearance.vibrationEnabled) },
+        { repository.appearance.vibrationEnabled = (it as SettingValue.Flag).value }),
     "animations_enabled" to IndexedSettingBinding({ SettingValue.Flag(repository.appearance.animationsEnabled) },
         { repository.appearance.animationsEnabled = (it as SettingValue.Flag).value }),
     "bottom_bar_raise" to IndexedSettingBinding({ SettingValue.Flag(repository.appearance.bottomBarRaise) },
