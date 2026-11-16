@@ -16,13 +16,13 @@ import top.yukonga.miuix.kmp.icon.extended.*
 @Composable
 internal fun SettingsCategoryIcon(entry: SettingsEntry) {
     val icon = when (entry.icon) {
-        "Background" -> MiuixIcons.Normal.Background
-        "Play" -> MiuixIcons.Normal.Play
-        "Messages" -> MiuixIcons.Normal.Messages
-        "Home" -> MiuixIcons.Normal.Home
-        "ContactsCircle" -> MiuixIcons.Normal.ContactsCircle
-        "Info" -> MiuixIcons.Normal.Info
-        else -> MiuixIcons.Normal.Settings
+        "Background" -> MiuixIcons.Background
+        "Play" -> MiuixIcons.Play
+        "Messages" -> MiuixIcons.Messages
+        "Home" -> MiuixIcons.Home
+        "ContactsCircle" -> MiuixIcons.ContactsBook
+        "Info" -> MiuixIcons.Info
+        else -> MiuixIcons.Settings
     }
     Box(Modifier.padding(end = 16.dp).size(32.dp)
         .background(Color(0xFF000000 or entry.color.removePrefix("#").toLong(16)), RoundedCornerShape(9.dp)),

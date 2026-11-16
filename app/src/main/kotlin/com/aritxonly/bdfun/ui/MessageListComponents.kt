@@ -3,7 +3,6 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -17,7 +16,11 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.aritxonly.bdfun.data.MessageItem
+import com.aritxonly.teak.common.icons.AppGlyph
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.*
+import top.yukonga.miuix.kmp.icon.extended.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -65,7 +68,7 @@ internal fun SystemNotificationRow(item: MessageItem, onMore: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(16.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(item.title, Modifier.weight(1f), color = colors.onSurfaceContainer, fontSize = 16.sp)
-            Text("⋮", Modifier.clickable(onClick = onMore).padding(12.dp), color = colors.onBackgroundVariant)
+            AppGlyph(MiuixIcons.More, size = 18.dp, modifier = Modifier.clickable(onClick = onMore).padding(12.dp), tint = colors.onBackgroundVariant)
         }
         // Notification bodies contain HTML links. Render text and links, never a WebView or script.
         androidx.compose.ui.viewinterop.AndroidView(

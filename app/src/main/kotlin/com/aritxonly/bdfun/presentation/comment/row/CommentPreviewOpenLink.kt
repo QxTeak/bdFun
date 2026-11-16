@@ -16,6 +16,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.core.model.comment.CommentItem
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.*
+import top.yukonga.miuix.kmp.icon.extended.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -36,6 +40,6 @@ internal fun CommentPreviewOpenLink(item: CommentItem, onOpen: () -> Unit) {
             fontWeight = FontWeight.Normal,
         )
         Spacer(Modifier.width(2.dp))
-        Text(text = "＞", color = colors.onBackgroundVariant, fontSize = 11.sp)
+        AppGlyph(MiuixIcons.Basic.ArrowRight, size = 11.dp, tint = colors.onBackgroundVariant)
     }
 }

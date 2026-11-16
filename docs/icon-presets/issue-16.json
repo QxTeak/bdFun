@@ -1,0 +1,4745 @@
+{
+  "schemaVersion": 1,
+  "datasetId": "bdfun-icons-3566d1c-v1",
+  "baselineRevision": "3566d1c",
+  "exportedAt": "2026-11-16T04:56:49.872Z",
+  "description": "bdFun issue 16 icon mapping preset",
+  "mappings": [
+    {
+      "currentId": "current:BackChevron",
+      "currentName": "BackChevron",
+      "semantic": "返回上一页",
+      "scenes": [
+        "全屏播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenChromeSections.kt",
+          "line": 102,
+          "snippet": "BackChevron()",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDrawing.kt",
+          "line": 37,
+          "snippet": "fun BackChevron(tint: Color = Color.White) {",
+          "kind": "定义"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenAudioMode.kt",
+          "line": 246,
+          "snippet": "BackChevron()",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:ChevronBackward.Regular",
+        "family": "Miuix",
+        "name": "ChevronBackward",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:MoreGlyph",
+      "currentName": "MoreGlyph",
+      "semantic": "更多操作",
+      "scenes": [
+        "全屏播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenChromeSections.kt",
+          "line": 174,
+          "snippet": "MoreGlyph()",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDrawing.kt",
+          "line": 44,
+          "snippet": "internal fun MoreGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:More.Regular",
+        "family": "Miuix",
+        "name": "More",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:CloseGlyph",
+      "currentName": "CloseGlyph",
+      "semantic": "关闭面板",
+      "scenes": [
+        "全屏播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenPanelSurface.kt",
+          "line": 56,
+          "snippet": "CloseGlyph()",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDrawing.kt",
+          "line": 55,
+          "snippet": "internal fun CloseGlyph(tint: Color = Color.White.copy(alpha = 0.7f)) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Close.Regular",
+        "family": "Miuix",
+        "name": "Close",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:CheckGlyph",
+      "currentName": "CheckGlyph",
+      "semantic": "选中状态",
+      "scenes": [
+        "全屏播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenQualityPanel.kt",
+          "line": 84,
+          "snippet": "if (active) CheckGlyph(accentColor)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenQualityPanel.kt",
+          "line": 120,
+          "snippet": "if (active) CheckGlyph(accentColor)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenSpeedPanel.kt",
+          "line": 60,
+          "snippet": "if (active) CheckGlyph(accentColor)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDrawing.kt",
+          "line": 65,
+          "snippet": "internal fun CheckGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenSubtitlePanel.kt",
+          "line": 55,
+          "snippet": "if (info.selectedSubtitle == null) CheckGlyph(accentColor)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenSubtitlePanel.kt",
+          "line": 93,
+          "snippet": "if (active) CheckGlyph(accentColor)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenFavoritePanel.kt",
+          "line": 116,
+          "snippet": "CheckGlyph()",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Ok.Regular",
+        "family": "Miuix",
+        "name": "Ok",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:ChevronRightGlyph",
+      "currentName": "ChevronRightGlyph",
+      "semantic": "进入下一层",
+      "scenes": [
+        "全屏播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenMoreControls.kt",
+          "line": 70,
+          "snippet": "ChevronRightGlyph()",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDrawing.kt",
+          "line": 82,
+          "snippet": "internal fun ChevronRightGlyph(tint: Color = Color.White.copy(alpha = 0.4f)) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Basic.ArrowRight",
+        "family": "Miuix",
+        "name": "ArrowRight",
+        "variant": "Basic"
+      }
+    },
+    {
+      "currentId": "current:HeadphoneGlyph",
+      "currentName": "HeadphoneGlyph",
+      "semantic": "耳机 / 后台听音频",
+      "scenes": [
+        "全屏播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDrawing.kt",
+          "line": 95,
+          "snippet": "internal fun HeadphoneGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenMorePanel.kt",
+          "line": 50,
+          "snippet": "QuickAction(\"听视频\", Modifier.weight(1f), { HeadphoneGlyph() }) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:headphones",
+        "family": "Lucide",
+        "name": "headphones",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:ClockGlyph",
+      "currentName": "ClockGlyph",
+      "semantic": "播放时间",
+      "scenes": [
+        "全屏播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDrawing.kt",
+          "line": 124,
+          "snippet": "internal fun ClockGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:clock",
+        "family": "Lucide",
+        "name": "clock",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:PipGlyph",
+      "currentName": "PipGlyph",
+      "semantic": "进入画中画",
+      "scenes": [
+        "全屏播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDrawing.kt",
+          "line": 134,
+          "snippet": "internal fun PipGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenMorePanel.kt",
+          "line": 58,
+          "snippet": "QuickAction(\"小窗播放\", Modifier.weight(1f), { PipGlyph() }) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:picture-in-picture-2",
+        "family": "Lucide",
+        "name": "picture-in-picture-2",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:CastGlyph",
+      "currentName": "CastGlyph",
+      "semantic": "投屏",
+      "scenes": [
+        "全屏播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDrawing.kt",
+          "line": 154,
+          "snippet": "internal fun CastGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenMorePanel.kt",
+          "line": 62,
+          "snippet": "QuickAction(\"投屏\", Modifier.weight(1f), { CastGlyph() }) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:cast",
+        "family": "Lucide",
+        "name": "cast",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:ViewerGlyph",
+      "currentName": "ViewerGlyph",
+      "semantic": "同时观看人数",
+      "scenes": [
+        "全屏播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenChromeSections.kt",
+          "line": 192,
+          "snippet": "ViewerGlyph()",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenStatus.kt",
+          "line": 43,
+          "snippet": "fun ViewerGlyph(tint: Color = Color.White.copy(alpha = 0.86f)) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:users",
+        "family": "Lucide",
+        "name": "users",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:字符 ⋮",
+      "currentName": "字符 ⋮",
+      "semantic": "更多操作",
+      "scenes": [
+        "动态 / 竖屏流",
+        "消息 / 私信"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/MessageListComponents.kt",
+          "line": 68,
+          "snippet": "Text(\"⋮\", Modifier.clickable(onClick = onMore).padding(12.dp), color = colors.onBackgroundVariant)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerTopBar.kt",
+          "line": 39,
+          "snippet": "text = \"⋮\",",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:More.Regular",
+        "family": "Miuix",
+        "name": "More",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:字符 ＞",
+      "currentName": "字符 ＞",
+      "semantic": "进入详情",
+      "scenes": [
+        "我的",
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineActions.kt",
+          "line": 101,
+          "snippet": "trailingText: String = \"＞\",",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentPreviewOpenLink.kt",
+          "line": 39,
+          "snippet": "Text(text = \"＞\", color = colors.onBackgroundVariant, fontSize = 11.sp)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Basic.ArrowRight",
+        "family": "Miuix",
+        "name": "ArrowRight",
+        "variant": "Basic"
+      }
+    },
+    {
+      "currentId": "current:字符 ✔",
+      "currentName": "字符 ✔",
+      "semantic": "认证 / 选中标记",
+      "scenes": [
+        "个人空间"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileDetails.kt",
+          "line": 116,
+          "snippet": "text = \"✔\",",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Ok.Regular",
+        "family": "Miuix",
+        "name": "Ok",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:字符 ➤",
+      "currentName": "字符 ➤",
+      "semantic": "发送弹幕",
+      "scenes": [
+        "全屏播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDanmakuComposer.kt",
+          "line": 147,
+          "snippet": "text = \"➤\",",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide-extended:send-horizontal-filled",
+        "family": "Lucide Extended",
+        "name": "send-horizontal-filled",
+        "variant": "Filled"
+      }
+    },
+    {
+      "currentId": "current:字符 😀",
+      "currentName": "字符 😀",
+      "semantic": "打开表情面板",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:face-grinning",
+        "family": "Lucide",
+        "name": "face-grinning",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:SearchSuggestGlyph",
+      "currentName": "SearchSuggestGlyph",
+      "semantic": "搜索建议",
+      "scenes": [
+        "搜索"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/search/SearchLandingComponents.kt",
+          "line": 29,
+          "snippet": "internal fun SearchSuggestGlyph() {",
+          "kind": "定义"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/search/SearchLandingItems.kt",
+          "line": 47,
+          "snippet": "SearchSuggestGlyph()",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Search.Regular",
+        "family": "Miuix",
+        "name": "Search",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:FunnelGlyph",
+      "currentName": "FunnelGlyph",
+      "semantic": "筛选搜索结果",
+      "scenes": [
+        "搜索"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/search/SearchResultsHeader.kt",
+          "line": 63,
+          "snippet": "FunnelGlyph()",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/search/SearchResultsHeader.kt",
+          "line": 86,
+          "snippet": "internal fun FunnelGlyph() {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Filter.Regular",
+        "family": "Miuix",
+        "name": "Filter",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:ResetGlyph",
+      "currentName": "ResetGlyph",
+      "semantic": "恢复默认设置",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuPanelReset.kt",
+          "line": 41,
+          "snippet": "ResetGlyph()",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuPanelReset.kt",
+          "line": 49,
+          "snippet": "internal fun ResetGlyph() {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Reset.Regular",
+        "family": "Miuix",
+        "name": "Reset",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:ChargeGlyph",
+      "currentName": "ChargeGlyph",
+      "semantic": "给 UP 主充电",
+      "scenes": [
+        "个人空间"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileDetails.kt",
+          "line": 159,
+          "snippet": "ChargeGlyph(size = 14.dp)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceHeaderControls.kt",
+          "line": 48,
+          "snippet": "internal fun ChargeGlyph(size: androidx.compose.ui.unit.Dp) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide-extended:zap-filled",
+        "family": "Lucide Extended",
+        "name": "zap-filled",
+        "variant": "Filled"
+      }
+    },
+    {
+      "currentId": "current:LiveCloseGlyph",
+      "currentName": "LiveCloseGlyph",
+      "semantic": "关闭直播面板",
+      "scenes": [
+        "直播"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LivePlaybackSettings.kt",
+          "line": 142,
+          "snippet": "LiveCloseGlyph()",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LivePlaybackSettings.kt",
+          "line": 198,
+          "snippet": "internal fun LiveCloseGlyph(tint: Color = Color.White.copy(alpha = 0.7f)) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Close.Regular",
+        "family": "Miuix",
+        "name": "Close",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:LiveCheckGlyph",
+      "currentName": "LiveCheckGlyph",
+      "semantic": "直播设置选中",
+      "scenes": [
+        "直播"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LivePlaybackSettings.kt",
+          "line": 190,
+          "snippet": "if (active) LiveCheckGlyph(BrandPink)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LivePlaybackSettings.kt",
+          "line": 220,
+          "snippet": "internal fun LiveCheckGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Ok.Regular",
+        "family": "Miuix",
+        "name": "Ok",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:ScrollTopCanvas0",
+      "currentName": "ScrollTopCanvas0",
+      "semantic": "回到顶部",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/ScrollTop.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:arrow-up",
+        "family": "Lucide",
+        "name": "arrow-up",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:SpaceSignToggleCanvas0",
+      "currentName": "SpaceSignToggleCanvas0",
+      "semantic": "展开 / 收起个人签名",
+      "scenes": [
+        "个人空间"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceSignToggle.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Basic.ArrowUpDown",
+        "family": "Miuix",
+        "name": "ArrowUpDown",
+        "variant": "Basic"
+      }
+    },
+    {
+      "currentId": "current:LibrarySearchHeaderCanvas0",
+      "currentName": "LibrarySearchHeaderCanvas0",
+      "semantic": "退出媒体库搜索",
+      "scenes": [
+        "媒体库"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/library/LibrarySearchHeader.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:ChevronBackward.Regular",
+        "family": "Miuix",
+        "name": "ChevronBackward",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:LibrarySearchHeaderCanvas1",
+      "currentName": "LibrarySearchHeaderCanvas1",
+      "semantic": "媒体库搜索",
+      "scenes": [
+        "媒体库"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/library/LibrarySearchHeader.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Search.Regular",
+        "family": "Miuix",
+        "name": "Search",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:LibrarySearchHeaderCanvas2",
+      "currentName": "LibrarySearchHeaderCanvas2",
+      "semantic": "清空媒体库搜索",
+      "scenes": [
+        "媒体库"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/library/LibrarySearchHeader.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Basic.SearchCleanup",
+        "family": "Miuix",
+        "name": "SearchCleanup",
+        "variant": "Basic"
+      }
+    },
+    {
+      "currentId": "current:SpaceWidgetsCanvas0",
+      "currentName": "SpaceWidgetsCanvas0",
+      "semantic": "进入空间条目",
+      "scenes": [
+        "个人空间"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceWidgets.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Basic.ArrowRight",
+        "family": "Miuix",
+        "name": "ArrowRight",
+        "variant": "Basic"
+      }
+    },
+    {
+      "currentId": "current:AllFeedAvatarCanvas0",
+      "currentName": "AllFeedAvatarCanvas0",
+      "semantic": "全部动态",
+      "scenes": [
+        "动态 / 竖屏流"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/AllFeedAvatar.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:All.Regular",
+        "family": "Miuix",
+        "name": "All",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:SpaceProfileAvatarCanvas0",
+      "currentName": "SpaceProfileAvatarCanvas0",
+      "semantic": "空间头像加载指示",
+      "scenes": [
+        "个人空间"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileAvatar.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:LiveGesture.true",
+      "currentName": "LiveGesture.true",
+      "semantic": "调整亮度",
+      "scenes": [
+        "直播"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveGestureTip.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:sun",
+        "family": "Lucide",
+        "name": "sun",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:LiveGesture.false",
+      "currentName": "LiveGesture.false",
+      "semantic": "调整音量",
+      "scenes": [
+        "直播"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveGestureTip.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:volume-1",
+        "family": "Lucide",
+        "name": "volume-1",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:Miuix.Album",
+      "currentName": "Miuix.Album",
+      "semantic": "动态 / 内容集合",
+      "scenes": [
+        "主界面导航",
+        "首页"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/shell/MainDestinations.kt",
+          "line": 22,
+          "snippet": "Destination(\"dynamics\", \"动态\", MiuixIcons.Album),",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/home/src/main/kotlin/com/aritxonly/bdfun/feature/home/presentation/HomeVideoActionSheet.kt",
+          "line": 96,
+          "snippet": "}, MiuixIcons.Album, show && !state.busy && displayed.category.isNotBlank()) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Basic.ArrowRight",
+      "currentName": "Miuix.Basic.ArrowRight",
+      "semantic": "进入详情",
+      "scenes": [
+        "番剧"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/CreditsScreen.kt",
+          "line": 90,
+          "snippet": "imageVector = top.yukonga.miuix.kmp.icon.MiuixIcons.Basic.ArrowRight,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/pgc/BangumiRankPage.kt",
+          "line": 159,
+          "snippet": "imageVector = MiuixIcons.Basic.ArrowRight,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.ChevronBackward",
+      "currentName": "Miuix.ChevronBackward",
+      "semantic": "返回",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "直播",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveRoomHeader.kt",
+          "line": 68,
+          "snippet": "imageVector = MiuixIcons.ChevronBackward,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveChromeHeader.kt",
+          "line": 127,
+          "snippet": "imageVector = MiuixIcons.ChevronBackward,",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/VideoCollapseOverlay.kt",
+          "line": 95,
+          "snippet": "imageVector = MiuixIcons.ChevronBackward,",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/PlayerGlyphs.kt",
+          "line": 49,
+          "snippet": "androidx.compose.material3.Icon(MiuixIcons.ChevronBackward, contentDescription = \"返回\",",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDrawing.kt",
+          "line": 39,
+          "snippet": "androidx.compose.material3.Icon(MiuixIcons.ChevronBackward, contentDescription = \"返回\",",
+          "kind": "引用"
+        },
+        {
+          "path": "TeakUI/src/main/kotlin/com/aritxonly/teak/common/chrome/TeakGlassBackButton.kt",
+          "line": 82,
+          "snippet": "imageVector = MiuixIcons.ChevronBackward,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:ChevronBackward.Regular",
+        "family": "Miuix",
+        "name": "ChevronBackward",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:Miuix.Close",
+      "currentName": "Miuix.Close",
+      "semantic": "关闭 / 清空",
+      "scenes": [
+        "主界面导航",
+        "媒体库",
+        "设置",
+        "评论",
+        "首页"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/feature/library/presentation/FavoriteFolderSheet.kt",
+          "line": 72,
+          "snippet": "IconButton(onClick = onDismiss, enabled = !busy) { Icon(MiuixIcons.Close, \"关闭\") }",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/SettingsBrowserChrome.kt",
+          "line": 61,
+          "snippet": "Icon(MiuixIcons.Close, \"关闭搜索\", tint = MiuixTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/thread/CommentThreadFades.kt",
+          "line": 77,
+          "snippet": "imageVector = MiuixIcons.Close,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/shell/homebar/HomeTopBarRight.kt",
+          "line": 40,
+          "snippet": "Icon(MiuixIcons.Close, contentDescription = \"清空搜索\", tint = BrandPink,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/common/photo/PhotoViewerOverlay.kt",
+          "line": 179,
+          "snippet": "imageVector = MiuixIcons.Close,",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/home/src/main/kotlin/com/aritxonly/bdfun/feature/home/presentation/HomeVideoActionSheet.kt",
+          "line": 64,
+          "snippet": "Icon(MiuixIcons.Close, \"关闭\")",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/home/src/main/kotlin/com/aritxonly/bdfun/feature/home/presentation/HomeVideoActionSheet.kt",
+          "line": 89,
+          "snippet": "HomeSheetAction(\"不感兴趣：当前视频\", MiuixIcons.Close, show && !state.busy) {",
+          "kind": "引用"
+        },
+        {
+          "path": "TeakUI/src/main/kotlin/com/aritxonly/teak/common/modal/TeakActionSheet.kt",
+          "line": 30,
+          "snippet": "Icon(MiuixIcons.Close, contentDescription = \"关闭\")",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Contacts",
+      "currentName": "Miuix.Contacts",
+      "semantic": "用户",
+      "scenes": [
+        "首页"
+      ],
+      "locations": [
+        {
+          "path": "feature/home/src/main/kotlin/com/aritxonly/bdfun/feature/home/presentation/HomeVideoActionSheet.kt",
+          "line": 92,
+          "snippet": "HomeSheetAction(\"不感兴趣：UP\", MiuixIcons.Contacts,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.ContactsCircle",
+      "currentName": "Miuix.ContactsCircle",
+      "semantic": "个人中心 / 用户头像",
+      "scenes": [
+        "主界面导航"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakAvatar.kt",
+          "line": 55,
+          "snippet": "imageVector = MiuixIcons.ContactsCircle,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/shell/MainDestinations.kt",
+          "line": 23,
+          "snippet": "Destination(\"mine\", \"我的\", MiuixIcons.ContactsCircle),",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Delete",
+      "currentName": "Miuix.Delete",
+      "semantic": "删除",
+      "scenes": [
+        "消息 / 私信"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageFeedSheet.kt",
+          "line": 53,
+          "snippet": "ActionSheetRow(\"确认删除这条通知\", enabled, MiuixIcons.Delete) {",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageFeedSheet.kt",
+          "line": 61,
+          "snippet": "ActionSheetRow(\"删除通知\", enabled, MiuixIcons.Delete) { menu.confirmDelete = true }",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageSessionSheets.kt",
+          "line": 58,
+          "snippet": "ActionSheetRow(\"确认清空\", !busy && !loading, MiuixIcons.Delete) { onClearList() }",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageSessionSheets.kt",
+          "line": 66,
+          "snippet": "ActionSheetRow(\"确认删除会话\", enabled, MiuixIcons.Delete) { onMutate(SessionAction.Delete) }",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageSessionSheets.kt",
+          "line": 78,
+          "snippet": "if (target.talkerId > 0) ActionSheetRow(\"删除会话\", enabled, MiuixIcons.Delete) { menu.confirmDelete = true }",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Download",
+      "currentName": "Miuix.Download",
+      "semantic": "离线缓存",
+      "scenes": [
+        "半屏播放器",
+        "我的",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineActions.kt",
+          "line": 47,
+          "snippet": "androidx.compose.material3.Icon(MiuixIcons.Download, null, Modifier.size(26.dp), tint = MineBlue)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreControls.kt",
+          "line": 95,
+          "snippet": "\"缓存\" -> androidx.compose.material3.Icon(MiuixIcons.Download, null, Modifier.size(24.dp), tint = tint)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Folder",
+      "currentName": "Miuix.Folder",
+      "semantic": "收藏夹",
+      "scenes": [
+        "媒体库"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/feature/library/presentation/FavoriteFolderSheet.kt",
+          "line": 119,
+          "snippet": "Icon(MiuixIcons.Folder, null, Modifier.size(28.dp), tint = if (selected) colors.primary else colors.onSurfaceVariantSummary)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/feature/library/presentation/FavoriteFolderSheet.kt",
+          "line": 136,
+          "snippet": "Icon(MiuixIcons.Folder, null, Modifier.size(40.dp), tint = MiuixTheme.colorScheme.onSurfaceVariantSummary)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Home",
+      "currentName": "Miuix.Home",
+      "semantic": "首页",
+      "scenes": [
+        "主界面导航"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/shell/MainDestinations.kt",
+          "line": 21,
+          "snippet": "Destination(\"home\", \"首页\", MiuixIcons.Home),",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Info",
+      "currentName": "Miuix.Info",
+      "semantic": "信息 / 关于",
+      "scenes": [
+        "使用引导"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/onboarding/NoticePage.kt",
+          "line": 69,
+          "snippet": "imageVector = MiuixIcons.Info,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Messages",
+      "currentName": "Miuix.Messages",
+      "semantic": "消息 / 私信",
+      "scenes": [
+        "个人空间",
+        "主界面导航",
+        "消息 / 私信",
+        "首页"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageShortcutGroup.kt",
+          "line": 42,
+          "snippet": ") { androidx.compose.material3.Icon(MiuixIcons.Messages, null, Modifier.size(ShortcutGlyphSize), tint = MessageGreen) }",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceHeaderControls.kt",
+          "line": 39,
+          "snippet": "imageVector = MiuixIcons.Messages,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/shell/homebar/HomeTopBarRight.kt",
+          "line": 50,
+          "snippet": "Icon(MiuixIcons.Messages, contentDescription = \"消息\", tint = BrandPink,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.More",
+      "currentName": "Miuix.More",
+      "semantic": "更多操作",
+      "scenes": [
+        "个人空间",
+        "媒体库",
+        "消息 / 私信",
+        "直播",
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageRowDetails.kt",
+          "line": 90,
+          "snippet": "imageVector = MiuixIcons.More,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/library/LibraryChrome.kt",
+          "line": 114,
+          "snippet": "imageVector = top.yukonga.miuix.kmp.icon.MiuixIcons.More,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveRoomHeader.kt",
+          "line": 103,
+          "snippet": "imageVector = MiuixIcons.More,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceTopChrome.kt",
+          "line": 63,
+          "snippet": "Icon(MiuixIcons.More, contentDescription = \"更多\", tint = tint, modifier = Modifier.size(20.dp))",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentRowMore.kt",
+          "line": 30,
+          "snippet": "imageVector = top.yukonga.miuix.kmp.icon.MiuixIcons.More,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Normal.Background",
+      "currentName": "Miuix.Normal.Background",
+      "semantic": "外观设置",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/SettingsCategoryIcon.kt",
+          "line": 19,
+          "snippet": "\"Background\" -> MiuixIcons.Normal.Background",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Normal.ContactsCircle",
+      "currentName": "Miuix.Normal.ContactsCircle",
+      "semantic": "个人中心 / 用户头像",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/SettingsCategoryIcon.kt",
+          "line": 23,
+          "snippet": "\"ContactsCircle\" -> MiuixIcons.Normal.ContactsCircle",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:ContactsBook.Regular",
+        "family": "Miuix",
+        "name": "ContactsBook",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:Miuix.Normal.Home",
+      "currentName": "Miuix.Normal.Home",
+      "semantic": "首页",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/SettingsCategoryIcon.kt",
+          "line": 22,
+          "snippet": "\"Home\" -> MiuixIcons.Normal.Home",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Normal.Info",
+      "currentName": "Miuix.Normal.Info",
+      "semantic": "信息 / 关于",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/SettingsCategoryIcon.kt",
+          "line": 24,
+          "snippet": "\"Info\" -> MiuixIcons.Normal.Info",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Normal.Messages",
+      "currentName": "Miuix.Normal.Messages",
+      "semantic": "消息 / 私信",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/SettingsCategoryIcon.kt",
+          "line": 21,
+          "snippet": "\"Messages\" -> MiuixIcons.Normal.Messages",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Normal.Play",
+      "currentName": "Miuix.Normal.Play",
+      "semantic": "播放",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/SettingsCategoryIcon.kt",
+          "line": 20,
+          "snippet": "\"Play\" -> MiuixIcons.Normal.Play",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Normal.Settings",
+      "currentName": "Miuix.Normal.Settings",
+      "semantic": "设置",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/SettingsCategoryIcon.kt",
+          "line": 25,
+          "snippet": "else -> MiuixIcons.Normal.Settings",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Playlist",
+      "currentName": "Miuix.Playlist",
+      "semantic": "播放列表",
+      "scenes": [
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+          "line": 42,
+          "snippet": "imageVector = MiuixIcons.Playlist,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Promotions",
+      "currentName": "Miuix.Promotions",
+      "semantic": "消息通知",
+      "scenes": [
+        "消息 / 私信"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageShortcutGroup.kt",
+          "line": 52,
+          "snippet": "androidx.compose.material3.Icon(MiuixIcons.Promotions, null, Modifier.size(ShortcutGlyphSize), tint = colors.primary)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Recent",
+      "currentName": "Miuix.Recent",
+      "semantic": "历史记录",
+      "scenes": [
+        "我的"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineActions.kt",
+          "line": 50,
+          "snippet": "androidx.compose.material3.Icon(MiuixIcons.Recent, null, Modifier.size(26.dp), tint = MineBlue)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Refresh",
+      "currentName": "Miuix.Refresh",
+      "semantic": "刷新",
+      "scenes": [
+        "关注 / 粉丝",
+        "直播"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/relations/RelationScreen.kt",
+          "line": 54,
+          "snippet": "Icon(MiuixIcons.Refresh, contentDescription = \"刷新$title\", tint = MiuixTheme.colorScheme.onBackground,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveChromeControls.kt",
+          "line": 79,
+          "snippet": "imageVector = MiuixIcons.Refresh,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Search",
+      "currentName": "Miuix.Search",
+      "semantic": "搜索",
+      "scenes": [
+        "个人空间",
+        "主界面导航",
+        "媒体库",
+        "设置",
+        "首页"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/shell/MainWideNavigation.kt",
+          "line": 50,
+          "snippet": "Icon(top.yukonga.miuix.kmp.icon.MiuixIcons.Search,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/shell/MainBottomSearchButton.kt",
+          "line": 19,
+          "snippet": "Icon(MiuixIcons.Search, contentDescription = \"搜索\", tint = MaterialTheme.colorScheme.onSurface,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/library/LibraryChrome.kt",
+          "line": 104,
+          "snippet": "imageVector = top.yukonga.miuix.kmp.icon.MiuixIcons.Search,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceTopChrome.kt",
+          "line": 60,
+          "snippet": "Icon(MiuixIcons.Search, contentDescription = \"搜索\", tint = tint, modifier = Modifier.size(20.dp))",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/SettingsBrowserChrome.kt",
+          "line": 40,
+          "snippet": "Icon(MiuixIcons.Search, \"搜索当前分类\", tint = MiuixTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/SettingsBrowserChrome.kt",
+          "line": 54,
+          "snippet": "Icon(MiuixIcons.Search, null, tint = MiuixTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/shell/homebar/HomeSearchContents.kt",
+          "line": 36,
+          "snippet": "imageVector = MiuixIcons.Search,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.SearchDevice",
+      "currentName": "Miuix.SearchDevice",
+      "semantic": "稍后再看入口",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "我的",
+        "视频详情 / 播放器",
+        "首页"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineActions.kt",
+          "line": 56,
+          "snippet": "androidx.compose.material3.Icon(MiuixIcons.SearchDevice, null, Modifier.size(26.dp), tint = MineBlue)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/home/src/main/kotlin/com/aritxonly/bdfun/feature/home/presentation/HomeVideoActionSheet.kt",
+          "line": 81,
+          "snippet": "MiuixIcons.SearchDevice, show && !state.busy) { onAction(HomeVideoAction.WatchLater) }",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreControls.kt",
+          "line": 94,
+          "snippet": "\"稍后再看\" -> androidx.compose.material3.Icon(MiuixIcons.SearchDevice, null, Modifier.size(24.dp), tint = tint)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenMorePanel.kt",
+          "line": 54,
+          "snippet": "QuickAction(\"稍后再看\", Modifier.weight(1f), { androidx.compose.material3.Icon(MiuixIcons.SearchDevice, null, Modifier.size(24.dp), tint = Color.White) }) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.Settings",
+      "currentName": "Miuix.Settings",
+      "semantic": "设置",
+      "scenes": [
+        "我的"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineSettingsCard.kt",
+          "line": 24,
+          "snippet": "Icon(MiuixIcons.Settings, contentDescription = null,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineTopAppBar.kt",
+          "line": 28,
+          "snippet": "Icon(MiuixIcons.Settings, \"设置\", tint = MiuixTheme.colorScheme.onSurfaceContainer,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.VolumeOff",
+      "currentName": "Miuix.VolumeOff",
+      "semantic": "静音",
+      "scenes": [
+        "动态 / 竖屏流"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedVideoMetrics.kt",
+          "line": 71,
+          "snippet": "imageVector = if (muted) MiuixIcons.VolumeOff else MiuixIcons.VolumeUp,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:Miuix.VolumeUp",
+      "currentName": "Miuix.VolumeUp",
+      "semantic": "开启声音",
+      "scenes": [
+        "动态 / 竖屏流"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedVideoMetrics.kt",
+          "line": 71,
+          "snippet": "imageVector = if (muted) MiuixIcons.VolumeOff else MiuixIcons.VolumeUp,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:act_coin",
+      "currentName": "act_coin",
+      "semantic": "投币",
+      "scenes": [
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 23,
+          "snippet": "val Coin = R.drawable.act_coin",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/VideoMetadataAssembly.kt",
+          "line": 19,
+          "snippet": "VideoActionIcons(TeakIcon.Like, TeakIcon.Dislike, TeakIcon.Coin, TeakIcon.Star, TeakIcon.Share)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide-extended:coins-filled",
+        "family": "Lucide Extended",
+        "name": "coins-filled",
+        "variant": "Filled"
+      }
+    },
+    {
+      "currentId": "current:act_dislike",
+      "currentName": "act_dislike",
+      "semantic": "踩 / 不感兴趣",
+      "scenes": [
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 21,
+          "snippet": "val Dislike = R.drawable.act_dislike",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/VideoMetadataAssembly.kt",
+          "line": 19,
+          "snippet": "VideoActionIcons(TeakIcon.Like, TeakIcon.Dislike, TeakIcon.Coin, TeakIcon.Star, TeakIcon.Share)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:thumbs-down",
+        "family": "Lucide",
+        "name": "thumbs-down",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:act_like",
+      "currentName": "act_like",
+      "semantic": "点赞（实心）",
+      "scenes": [
+        "消息 / 私信",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 20,
+          "snippet": "val Like = R.drawable.act_like",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/VideoMetadataAssembly.kt",
+          "line": 19,
+          "snippet": "VideoActionIcons(TeakIcon.Like, TeakIcon.Dislike, TeakIcon.Coin, TeakIcon.Star, TeakIcon.Share)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageShortcutGroup.kt",
+          "line": 48,
+          "snippet": ") { ResourceGlyph(res = TeakIcon.Like, tint = MessagePink, size = ShortcutGlyphSize) }",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide-extended:thumbs-up-filled",
+        "family": "Lucide Extended",
+        "name": "thumbs-up-filled",
+        "variant": "Filled"
+      }
+    },
+    {
+      "currentId": "current:act_like_outline",
+      "currentName": "act_like_outline",
+      "semantic": "点赞（描边）",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 22,
+          "snippet": "val LikeOutline = R.drawable.act_like_outline",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:thumbs-up",
+        "family": "Lucide",
+        "name": "thumbs-up",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:act_share",
+      "currentName": "act_share",
+      "semantic": "分享",
+      "scenes": [
+        "动态 / 竖屏流",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 25,
+          "snippet": "val Share = R.drawable.act_share",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/VideoMetadataAssembly.kt",
+          "line": 19,
+          "snippet": "VideoActionIcons(TeakIcon.Like, TeakIcon.Dislike, TeakIcon.Coin, TeakIcon.Star, TeakIcon.Share)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedCardFooter.kt",
+          "line": 44,
+          "snippet": "res = TeakIcon.Share,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerActions.kt",
+          "line": 21,
+          "snippet": "ResourceGlyph(TeakIcon.Share, Color.White, size = 20.dp)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide-extended:share-2-filled",
+        "family": "Lucide Extended",
+        "name": "share-2-filled",
+        "variant": "Filled"
+      }
+    },
+    {
+      "currentId": "current:act_star",
+      "currentName": "act_star",
+      "semantic": "收藏",
+      "scenes": [
+        "我的",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 24,
+          "snippet": "val Star = R.drawable.act_star",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/VideoMetadataAssembly.kt",
+          "line": 19,
+          "snippet": "VideoActionIcons(TeakIcon.Like, TeakIcon.Dislike, TeakIcon.Coin, TeakIcon.Star, TeakIcon.Share)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineActions.kt",
+          "line": 53,
+          "snippet": "ResourceGlyph(res = TeakIcon.Star, tint = MineBlue, size = 26.dp)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide-extended:star-filled",
+        "family": "Lucide Extended",
+        "name": "star-filled",
+        "variant": "Filled"
+      }
+    },
+    {
+      "currentId": "current:bili_lv1",
+      "currentName": "bili_lv1",
+      "semantic": "哔哩哔哩用户等级 1",
+      "scenes": [
+        "个人空间",
+        "我的",
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentRowAuthor.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineProfileCard.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileBadges.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:bili_lv2",
+      "currentName": "bili_lv2",
+      "semantic": "哔哩哔哩用户等级 2",
+      "scenes": [
+        "个人空间",
+        "我的",
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentRowAuthor.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineProfileCard.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileBadges.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:bili_lv3",
+      "currentName": "bili_lv3",
+      "semantic": "哔哩哔哩用户等级 3",
+      "scenes": [
+        "个人空间",
+        "我的",
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentRowAuthor.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineProfileCard.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileBadges.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:bili_lv4",
+      "currentName": "bili_lv4",
+      "semantic": "哔哩哔哩用户等级 4",
+      "scenes": [
+        "个人空间",
+        "我的",
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentRowAuthor.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineProfileCard.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileBadges.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:bili_lv5",
+      "currentName": "bili_lv5",
+      "semantic": "哔哩哔哩用户等级 5",
+      "scenes": [
+        "个人空间",
+        "我的",
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentRowAuthor.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineProfileCard.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileBadges.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:bili_lv6",
+      "currentName": "bili_lv6",
+      "semantic": "哔哩哔哩用户等级 6",
+      "scenes": [
+        "个人空间",
+        "我的",
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentRowAuthor.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineProfileCard.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileBadges.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:comment_bubble",
+      "currentName": "comment_bubble",
+      "semantic": "评论",
+      "scenes": [
+        "动态 / 竖屏流"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 27,
+          "snippet": "val CommentBubble = R.drawable.comment_bubble",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedCardFooter.kt",
+          "line": 56,
+          "snippet": "res = TeakIcon.CommentBubble,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerActions.kt",
+          "line": 30,
+          "snippet": "ResourceGlyph(TeakIcon.CommentBubble, Color.White, size = 20.dp)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Messages.Regular",
+        "family": "Miuix",
+        "name": "Messages",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:comment_dislike",
+      "currentName": "comment_dislike",
+      "semantic": "评论点踩（未选中）",
+      "scenes": [
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 30,
+          "snippet": "val CommentDislike = R.drawable.comment_dislike",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentRowDislike.kt",
+          "line": 30,
+          "snippet": "if (disliked) TeakIcon.CommentDislikeFilled else TeakIcon.CommentDislike,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:comment_dislike_filled",
+      "currentName": "comment_dislike_filled",
+      "semantic": "评论点踩（选中）",
+      "scenes": [
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 31,
+          "snippet": "val CommentDislikeFilled = R.drawable.comment_dislike_filled",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentRowDislike.kt",
+          "line": 30,
+          "snippet": "if (disliked) TeakIcon.CommentDislikeFilled else TeakIcon.CommentDislike,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:comment_like",
+      "currentName": "comment_like",
+      "semantic": "评论点赞（未选中）",
+      "scenes": [
+        "动态 / 竖屏流",
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 28,
+          "snippet": "val CommentLike = R.drawable.comment_like",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedCardFooter.kt",
+          "line": 68,
+          "snippet": "res = if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerActions.kt",
+          "line": 40,
+          "snippet": "if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentRowLike.kt",
+          "line": 34,
+          "snippet": "if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentPreviewLike.kt",
+          "line": 35,
+          "snippet": "if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:comment_like_filled",
+      "currentName": "comment_like_filled",
+      "semantic": "评论点赞（选中）",
+      "scenes": [
+        "动态 / 竖屏流",
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 29,
+          "snippet": "val CommentLikeFilled = R.drawable.comment_like_filled",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedCardFooter.kt",
+          "line": 68,
+          "snippet": "res = if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerActions.kt",
+          "line": 40,
+          "snippet": "if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentRowLike.kt",
+          "line": 34,
+          "snippet": "if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentPreviewLike.kt",
+          "line": 35,
+          "snippet": "if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:dev_artix",
+      "currentName": "dev_artix",
+      "semantic": "关于页开发者头像",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/IndexedSettingsActions.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:dev_teak",
+      "currentName": "dev_teak",
+      "semantic": "关于页开发者头像",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/page/IndexedSettingsActions.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:donation_alipay",
+      "currentName": "donation_alipay",
+      "semantic": "赞助收款二维码",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/DonationScreen.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:donation_qr",
+      "currentName": "donation_qr",
+      "semantic": "赞助收款二维码",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/DonationScreen.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:fs_comment",
+      "currentName": "fs_comment",
+      "semantic": "全屏评论",
+      "scenes": [
+        "全屏播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 47,
+          "snippet": "val PlayerComment = R.drawable.fs_comment",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/FullscreenChromeAssembly.kt",
+          "line": 18,
+          "snippet": "TeakIcon.PlayerLike, TeakIcon.PlayerComment, TeakIcon.PlayerStar, TeakIcon.PlayerShare)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:fs_danmaku_off",
+      "currentName": "fs_danmaku_off",
+      "semantic": "关闭弹幕",
+      "scenes": [
+        "全屏播放器",
+        "直播"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 43,
+          "snippet": "val PlayerDanmakuOff = R.drawable.fs_danmaku_off",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/FullscreenChromeAssembly.kt",
+          "line": 17,
+          "snippet": "TeakIcon.PlayerDanmakuOff, TeakIcon.PlayerDanmakuSettings,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveChromeControls.kt",
+          "line": 96,
+          "snippet": "res = if (danmakuEnabled) TeakIcon.PlayerDanmakuOn else TeakIcon.PlayerDanmakuOff,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:fs_danmaku_on",
+      "currentName": "fs_danmaku_on",
+      "semantic": "开启弹幕",
+      "scenes": [
+        "全屏播放器",
+        "直播"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 42,
+          "snippet": "val PlayerDanmakuOn = R.drawable.fs_danmaku_on",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/FullscreenChromeAssembly.kt",
+          "line": 16,
+          "snippet": "FullscreenIconAssets(TeakIcon.PlayerPlay, TeakIcon.PlayerNext, TeakIcon.PlayerDanmakuOn,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveChromeControls.kt",
+          "line": 96,
+          "snippet": "res = if (danmakuEnabled) TeakIcon.PlayerDanmakuOn else TeakIcon.PlayerDanmakuOff,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:fs_danmaku_settings",
+      "currentName": "fs_danmaku_settings",
+      "semantic": "弹幕设置",
+      "scenes": [
+        "全屏播放器",
+        "直播"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 44,
+          "snippet": "val PlayerDanmakuSettings = R.drawable.fs_danmaku_settings",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/FullscreenChromeAssembly.kt",
+          "line": 17,
+          "snippet": "TeakIcon.PlayerDanmakuOff, TeakIcon.PlayerDanmakuSettings,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveChromeControls.kt",
+          "line": 114,
+          "snippet": "LivePixelIcon(res = TeakIcon.PlayerDanmakuSettings, size = 23.dp)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:fs_like",
+      "currentName": "fs_like",
+      "semantic": "全屏点赞",
+      "scenes": [
+        "全屏播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 46,
+          "snippet": "val PlayerLike = R.drawable.fs_like",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/FullscreenChromeAssembly.kt",
+          "line": 18,
+          "snippet": "TeakIcon.PlayerLike, TeakIcon.PlayerComment, TeakIcon.PlayerStar, TeakIcon.PlayerShare)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:fs_next",
+      "currentName": "fs_next",
+      "semantic": "下一条 / 下一分 P",
+      "scenes": [
+        "全屏播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 45,
+          "snippet": "val PlayerNext = R.drawable.fs_next",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/FullscreenChromeAssembly.kt",
+          "line": 16,
+          "snippet": "FullscreenIconAssets(TeakIcon.PlayerPlay, TeakIcon.PlayerNext, TeakIcon.PlayerDanmakuOn,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:fs_play",
+      "currentName": "fs_play",
+      "semantic": "播放",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "直播",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 37,
+          "snippet": "val Play = R.drawable.fs_play",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 41,
+          "snippet": "val PlayerPlay = R.drawable.fs_play",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/InlinePlayerAssembly.kt",
+          "line": 9,
+          "snippet": "internal fun inlinePlayerAppearance() = InlinePlayerAppearance(TeakIcon.PlayerPlay, TeakIcon.Fullscreen, BrandPink)",
+          "kind": "定义"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/FullscreenChromeAssembly.kt",
+          "line": 16,
+          "snippet": "FullscreenIconAssets(TeakIcon.PlayerPlay, TeakIcon.PlayerNext, TeakIcon.PlayerDanmakuOn,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/video/VideoScreenLayout.kt",
+          "line": 23,
+          "snippet": "togglePlayback = background::togglePlayPause, accentColor = BrandPink, playIcon = TeakIcon.PlayerPlay,",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveChromeControls.kt",
+          "line": 65,
+          "snippet": "PlayGlyph(com.aritxonly.bdfun.ui.TeakIcon.PlayerPlay, size = if (landscape) 24.dp else 22.dp)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/VideoCollapseOverlay.kt",
+          "line": 73,
+          "snippet": "// 和播放器控件同一个播放图标（TeakIcon.PlayerPlay），无底色、纯白。",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:fs_share",
+      "currentName": "fs_share",
+      "semantic": "全屏分享",
+      "scenes": [
+        "全屏播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 49,
+          "snippet": "val PlayerShare = R.drawable.fs_share",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/FullscreenChromeAssembly.kt",
+          "line": 18,
+          "snippet": "TeakIcon.PlayerLike, TeakIcon.PlayerComment, TeakIcon.PlayerStar, TeakIcon.PlayerShare)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:fs_star",
+      "currentName": "fs_star",
+      "semantic": "全屏收藏",
+      "scenes": [
+        "全屏播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 48,
+          "snippet": "val PlayerStar = R.drawable.fs_star",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/FullscreenChromeAssembly.kt",
+          "line": 18,
+          "snippet": "TeakIcon.PlayerLike, TeakIcon.PlayerComment, TeakIcon.PlayerStar, TeakIcon.PlayerShare)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:ic_fullscreen",
+      "currentName": "ic_fullscreen",
+      "semantic": "进入全屏",
+      "scenes": [
+        "半屏播放器",
+        "直播"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 36,
+          "snippet": "val Fullscreen = R.drawable.ic_fullscreen",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/playback/InlinePlayerAssembly.kt",
+          "line": 9,
+          "snippet": "internal fun inlinePlayerAppearance() = InlinePlayerAppearance(TeakIcon.PlayerPlay, TeakIcon.Fullscreen, BrandPink)",
+          "kind": "定义"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveChromeControls.kt",
+          "line": 150,
+          "snippet": "res = TeakIcon.Fullscreen,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:ic_image",
+      "currentName": "ic_image",
+      "semantic": "添加图片",
+      "scenes": [
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 52,
+          "snippet": "val Image = R.drawable.ic_image",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/composer/ComposerIconButton.kt",
+          "line": 47,
+          "snippet": "if (kind == ComposerIcon.Send) TeakIcon.Send else TeakIcon.Image,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:ic_launcher_adaptive_background",
+      "currentName": "ic_launcher_adaptive_background",
+      "semantic": "应用启动图 / 图标图层",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:ic_launcher_adaptive_foreground",
+      "currentName": "ic_launcher_adaptive_foreground",
+      "semantic": "应用启动图 / 图标图层",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:ic_launcher_foreground",
+      "currentName": "ic_launcher_foreground",
+      "semantic": "应用启动图 / 图标图层",
+      "scenes": [
+        "使用引导"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/onboarding/BdFunMark.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:ic_metric_danmaku",
+      "currentName": "ic_metric_danmaku",
+      "semantic": "弹幕数量",
+      "scenes": [
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 34,
+          "snippet": "val MetricDanmaku = R.drawable.ic_metric_danmaku",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/video/card/MetricGlyph.kt",
+          "line": 21,
+          "snippet": "if (play) TeakIcon.MetricPlay else TeakIcon.MetricDanmaku,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:ic_metric_play",
+      "currentName": "ic_metric_play",
+      "semantic": "播放量",
+      "scenes": [
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 33,
+          "snippet": "val MetricPlay = R.drawable.ic_metric_play",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/video/card/MetricGlyph.kt",
+          "line": 21,
+          "snippet": "if (play) TeakIcon.MetricPlay else TeakIcon.MetricDanmaku,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:ic_seek_thumb",
+      "currentName": "ic_seek_thumb",
+      "semantic": "播放进度拖动手柄",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 38,
+          "snippet": "val SeekThumb = R.drawable.ic_seek_thumb",
+          "kind": "引用"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:ic_send",
+      "currentName": "ic_send",
+      "semantic": "发送消息",
+      "scenes": [
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
+          "line": 51,
+          "snippet": "val Send = R.drawable.ic_send",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/composer/ComposerIconButton.kt",
+          "line": 47,
+          "snippet": "if (kind == ComposerIcon.Send) TeakIcon.Send else TeakIcon.Image,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:send",
+        "family": "Lucide",
+        "name": "send",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:teak_loading_00",
+      "currentName": "teak_loading_00",
+      "semantic": "加载动画帧 00",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_01",
+      "currentName": "teak_loading_01",
+      "semantic": "加载动画帧 01",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_02",
+      "currentName": "teak_loading_02",
+      "semantic": "加载动画帧 02",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_03",
+      "currentName": "teak_loading_03",
+      "semantic": "加载动画帧 03",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_04",
+      "currentName": "teak_loading_04",
+      "semantic": "加载动画帧 04",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_05",
+      "currentName": "teak_loading_05",
+      "semantic": "加载动画帧 05",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_06",
+      "currentName": "teak_loading_06",
+      "semantic": "加载动画帧 06",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_07",
+      "currentName": "teak_loading_07",
+      "semantic": "加载动画帧 07",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_08",
+      "currentName": "teak_loading_08",
+      "semantic": "加载动画帧 08",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_09",
+      "currentName": "teak_loading_09",
+      "semantic": "加载动画帧 09",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_10",
+      "currentName": "teak_loading_10",
+      "semantic": "加载动画帧 10",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_11",
+      "currentName": "teak_loading_11",
+      "semantic": "加载动画帧 11",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_12",
+      "currentName": "teak_loading_12",
+      "semantic": "加载动画帧 12",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_13",
+      "currentName": "teak_loading_13",
+      "semantic": "加载动画帧 13",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_14",
+      "currentName": "teak_loading_14",
+      "semantic": "加载动画帧 14",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:teak_loading_15",
+      "currentName": "teak_loading_15",
+      "semantic": "加载动画帧 15",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakLoading.kt",
+          "line": 1,
+          "snippet": "源文件级引用；需回到页面核对具体绘制位置",
+          "kind": "源文件"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:InlineBackGlyph",
+      "currentName": "InlineBackGlyph",
+      "semantic": "半屏播放器返回",
+      "scenes": [
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerChrome.kt",
+          "line": 109,
+          "snippet": "InlineBackGlyph()",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/PlayerGlyphs.kt",
+          "line": 48,
+          "snippet": "internal fun InlineBackGlyph() {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:ChevronBackward.Regular",
+        "family": "Miuix",
+        "name": "ChevronBackward",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:InlineHomeGlyph",
+      "currentName": "InlineHomeGlyph",
+      "semantic": "返回首页",
+      "scenes": [
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerChrome.kt",
+          "line": 112,
+          "snippet": "InlineHomeGlyph(tint = Color.White)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/PlayerGlyphs.kt",
+          "line": 55,
+          "snippet": "internal fun InlineHomeGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Home.Regular",
+        "family": "Miuix",
+        "name": "Home",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:InlineHeadphoneGlyph",
+      "currentName": "InlineHeadphoneGlyph",
+      "semantic": "后台听视频",
+      "scenes": [
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerChrome.kt",
+          "line": 125,
+          "snippet": "InlineTopIcon(size = 34.dp, onClick = actions.onListen) { InlineHeadphoneGlyph() }",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/PlayerGlyphs.kt",
+          "line": 70,
+          "snippet": "internal fun InlineHeadphoneGlyph() {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:headphones",
+        "family": "Lucide",
+        "name": "headphones",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:InlineCastGlyph",
+      "currentName": "InlineCastGlyph",
+      "semantic": "半屏播放器投屏",
+      "scenes": [
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerChrome.kt",
+          "line": 126,
+          "snippet": "InlineTopIcon(size = 34.dp, onClick = actions.onCast) { InlineCastGlyph() }",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/PlayerGlyphs.kt",
+          "line": 83,
+          "snippet": "internal fun InlineCastGlyph() {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:ScreenMirroring.Regular",
+        "family": "Miuix",
+        "name": "ScreenMirroring",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:InlineMoreGlyph",
+      "currentName": "InlineMoreGlyph",
+      "semantic": "半屏播放器更多",
+      "scenes": [
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerChrome.kt",
+          "line": 128,
+          "snippet": "InlineMoreGlyph(tint = Color.White)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/PlayerGlyphs.kt",
+          "line": 96,
+          "snippet": "internal fun InlineMoreGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:More.Regular",
+        "family": "Miuix",
+        "name": "More",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:DanmakuSettingsGlyph",
+      "currentName": "DanmakuSettingsGlyph",
+      "semantic": "弹幕设置",
+      "scenes": [
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/PlayerGlyphs.kt",
+          "line": 109,
+          "snippet": "internal fun DanmakuSettingsGlyph(tint: Color) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Tune.Regular",
+        "family": "Miuix",
+        "name": "Tune",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:BackgroundPlayGlyph",
+      "currentName": "BackgroundPlayGlyph",
+      "semantic": "后台播放",
+      "scenes": [
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/PlayerGlyphs.kt",
+          "line": 134,
+          "snippet": "internal fun BackgroundPlayGlyph(tint: Color) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:headphones",
+        "family": "Lucide",
+        "name": "headphones",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:AutoPlayNextGlyph",
+      "currentName": "AutoPlayNextGlyph",
+      "semantic": "自动播放下一条",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreSheet.kt",
+          "line": 96,
+          "snippet": "glyph = { AutoPlayNextGlyph(colors.onBackground) },",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenMorePanel.kt",
+          "line": 76,
+          "snippet": "glyph = { AutoPlayNextGlyph() },",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 24,
+          "snippet": "fun AutoPlayNextGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:circle-fading-play",
+        "family": "Lucide",
+        "name": "circle-fading-play",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:LoopGlyph",
+      "currentName": "LoopGlyph",
+      "semantic": "循环播放",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreControls.kt",
+          "line": 154,
+          "snippet": "LoopGlyph(colors.onBackground)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenMoreControls.kt",
+          "line": 83,
+          "snippet": "Box(modifier = Modifier.size(24.dp), contentAlignment = Alignment.Center) { LoopGlyph() }",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 46,
+          "snippet": "fun LoopGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:repeat-2",
+        "family": "Lucide",
+        "name": "repeat-2",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:MirrorGlyph",
+      "currentName": "MirrorGlyph",
+      "semantic": "镜像画面",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreSheet.kt",
+          "line": 144,
+          "snippet": "glyph = { MirrorGlyph(colors.onBackground) },",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenMorePanel.kt",
+          "line": 89,
+          "snippet": "glyph = { MirrorGlyph() },",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 77,
+          "snippet": "fun MirrorGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:mirror-rectangular",
+        "family": "Lucide",
+        "name": "mirror-rectangular",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:BackgroundListenGlyph",
+      "currentName": "BackgroundListenGlyph",
+      "semantic": "后台听视频",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreSheet.kt",
+          "line": 122,
+          "snippet": "glyph = { BackgroundListenGlyph(colors.onBackground) },",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenMorePanel.kt",
+          "line": 97,
+          "snippet": "glyph = { BackgroundListenGlyph() },",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 110,
+          "snippet": "fun BackgroundListenGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide-extended:book-headphones-filled",
+        "family": "Lucide Extended",
+        "name": "book-headphones-filled",
+        "variant": "Filled"
+      }
+    },
+    {
+      "currentId": "current:ResizeGlyph",
+      "currentName": "ResizeGlyph",
+      "semantic": "画面缩放 / 比例",
+      "scenes": [
+        "全屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenMorePanel.kt",
+          "line": 108,
+          "snippet": "glyph = { ResizeGlyph() },",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 141,
+          "snippet": "internal fun ResizeGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:ExpandMore.Regular",
+        "family": "Miuix",
+        "name": "ExpandMore",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:ColorAssistGlyph",
+      "currentName": "ColorAssistGlyph",
+      "semantic": "画面色彩辅助",
+      "scenes": [
+        "全屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenMorePanel.kt",
+          "line": 119,
+          "snippet": "glyph = { ColorAssistGlyph() },",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 166,
+          "snippet": "internal fun ColorAssistGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:circle-pile",
+        "family": "Lucide",
+        "name": "circle-pile",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:SpeedGlyph",
+      "currentName": "SpeedGlyph",
+      "semantic": "播放倍速",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreControls.kt",
+          "line": 42,
+          "snippet": "SpeedGlyph(colors.onBackground)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 177,
+          "snippet": "fun SpeedGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:gauge",
+        "family": "Lucide",
+        "name": "gauge",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:TimerGlyph",
+      "currentName": "TimerGlyph",
+      "semantic": "定时停止播放",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreSheet.kt",
+          "line": 103,
+          "snippet": "glyph = { TimerGlyph(colors.onBackground) },",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 201,
+          "snippet": "fun TimerGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:timer",
+        "family": "Lucide",
+        "name": "timer",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:SubtitleGlyph",
+      "currentName": "SubtitleGlyph",
+      "semantic": "字幕设置",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreSheet.kt",
+          "line": 129,
+          "snippet": "glyph = { SubtitleGlyph(colors.onBackground) },",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 213,
+          "snippet": "fun SubtitleGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:captions",
+        "family": "Lucide",
+        "name": "captions",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:DanmakuSettingGlyph",
+      "currentName": "DanmakuSettingGlyph",
+      "semantic": "弹幕设置",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreSheet.kt",
+          "line": 135,
+          "snippet": "glyph = { DanmakuSettingGlyph(colors.onBackground) },",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 230,
+          "snippet": "fun DanmakuSettingGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Tune.Regular",
+        "family": "Miuix",
+        "name": "Tune",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:DislikeGlyph",
+      "currentName": "DislikeGlyph",
+      "semantic": "不感兴趣",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreControls.kt",
+          "line": 93,
+          "snippet": "\"不感兴趣\" -> DislikeGlyph(tint)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 253,
+          "snippet": "fun DislikeGlyph(tint: Color = Color.White, sizeDp: androidx.compose.ui.unit.Dp = 24.dp) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:face-slightly-frowning",
+        "family": "Lucide",
+        "name": "face-slightly-frowning",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:WatchLaterGlyph",
+      "currentName": "WatchLaterGlyph",
+      "semantic": "稍后再看",
+      "scenes": [
+        "全屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 269,
+          "snippet": "internal fun WatchLaterGlyph(tint: Color = Color.White, sizeDp: androidx.compose.ui.unit.Dp = 24.dp) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:clock-fading",
+        "family": "Lucide",
+        "name": "clock-fading",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:CacheGlyphSmall",
+      "currentName": "CacheGlyphSmall",
+      "semantic": "缓存视频",
+      "scenes": [
+        "全屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 286,
+          "snippet": "internal fun CacheGlyphSmall(tint: Color = Color.White, sizeDp: androidx.compose.ui.unit.Dp = 24.dp) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Download.Regular",
+        "family": "Miuix",
+        "name": "Download",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:PipGlyphSmall",
+      "currentName": "PipGlyphSmall",
+      "semantic": "画中画",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreControls.kt",
+          "line": 96,
+          "snippet": "\"小窗播放\" -> PipGlyphSmall(tint)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 300,
+          "snippet": "fun PipGlyphSmall(tint: Color = Color.White, sizeDp: androidx.compose.ui.unit.Dp = 24.dp) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:picture-in-picture-2",
+        "family": "Lucide",
+        "name": "picture-in-picture-2",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:CastGlyphSmall",
+      "currentName": "CastGlyphSmall",
+      "semantic": "投屏",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreControls.kt",
+          "line": 97,
+          "snippet": "else -> CastGlyphSmall(tint)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/PlayerSettingGlyphs.kt",
+          "line": 321,
+          "snippet": "fun CastGlyphSmall(tint: Color = Color.White, sizeDp: androidx.compose.ui.unit.Dp = 24.dp) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:ScreenMirroring.Regular",
+        "family": "Miuix",
+        "name": "ScreenMirroring",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:LockGlyph.true",
+      "currentName": "LockGlyph.true",
+      "semantic": "锁定全屏控件",
+      "scenes": [
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/player/PlayerFullscreenOverlays.kt",
+          "line": 185,
+          "snippet": "LockGlyph(locked = fsLocked)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/player/VideoPlayerStatusGlyphs.kt",
+          "line": 25,
+          "snippet": "fun LockGlyph(locked: Boolean) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Lock.Regular",
+        "family": "Miuix",
+        "name": "Lock",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:LockGlyph.false",
+      "currentName": "LockGlyph.false",
+      "semantic": "解锁全屏控件",
+      "scenes": [
+        "播放器",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/player/PlayerFullscreenOverlays.kt",
+          "line": 185,
+          "snippet": "LockGlyph(locked = fsLocked)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/player/VideoPlayerStatusGlyphs.kt",
+          "line": 25,
+          "snippet": "fun LockGlyph(locked: Boolean) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Unlock.Regular",
+        "family": "Miuix",
+        "name": "Unlock",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:Menu.Reply",
+      "currentName": "Menu.Reply",
+      "semantic": "回复评论",
+      "scenes": [
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/comment/CommentMenu.kt",
+          "line": 134,
+          "snippet": "CommentMenuRow(\"回复\", MenuGlyphKind.Reply, colors.onBackground) { menu.reply(target) }",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/common/glyph/MenuGlyph.kt",
+          "line": 28,
+          "snippet": "MenuGlyphKind.Reply -> drawAppMenuReplyGlyph(tint, w, h, stroke)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Reply.Regular",
+        "family": "Miuix",
+        "name": "Reply",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:Menu.Copy",
+      "currentName": "Menu.Copy",
+      "semantic": "复制内容",
+      "scenes": [
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/comment/CommentMenu.kt",
+          "line": 135,
+          "snippet": "CommentMenuRow(\"复制\", MenuGlyphKind.Copy, colors.onBackground) { menu.copy(target, false) }",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/comment/CommentMenu.kt",
+          "line": 136,
+          "snippet": "CommentMenuRow(\"自由复制\", MenuGlyphKind.Copy, colors.onBackground) { menu.freeCopy(target) }",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/comment/CommentMenu.kt",
+          "line": 139,
+          "snippet": "CommentMenuRow(\"保存全部图片\", MenuGlyphKind.Copy, colors.onBackground) {",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/common/glyph/MenuGlyph.kt",
+          "line": 29,
+          "snippet": "MenuGlyphKind.Copy -> drawAppMenuCopyGlyph(tint, w, h, stroke)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/common/photo/PhotoViewerOverlay.kt",
+          "line": 129,
+          "snippet": "CommentMenuRow(\"保存该图片\", MenuGlyphKind.Copy, colors.onBackground) {",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/common/photo/PhotoViewerOverlay.kt",
+          "line": 132,
+          "snippet": "CommentMenuRow(\"保存全部图片\", MenuGlyphKind.Copy, colors.onBackground) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Copy.Regular",
+        "family": "Miuix",
+        "name": "Copy",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:Menu.Report",
+      "currentName": "Menu.Report",
+      "semantic": "举报",
+      "scenes": [
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/comment/CommentMenu.kt",
+          "line": 143,
+          "snippet": "CommentMenuRow(\"举报\", MenuGlyphKind.Report, Color(0xFFE5484D)) { menu.report(target) }",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/common/glyph/MenuGlyph.kt",
+          "line": 30,
+          "snippet": "MenuGlyphKind.Report -> drawAppMenuReportGlyph(tint, w, h, stroke)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/common/photo/PhotoViewerOverlay.kt",
+          "line": 135,
+          "snippet": "CommentMenuRow(\"举报\", MenuGlyphKind.Report, PhotoDangerRed) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Report.Regular",
+        "family": "Miuix",
+        "name": "Report",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:Menu.Block",
+      "currentName": "Menu.Block",
+      "semantic": "屏蔽",
+      "scenes": [
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/comment/CommentMenu.kt",
+          "line": 144,
+          "snippet": "CommentMenuRow(\"加入黑名单\", MenuGlyphKind.Block, Color(0xFFE5484D)) { menu.block(target) }",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/common/glyph/MenuGlyph.kt",
+          "line": 31,
+          "snippet": "MenuGlyphKind.Block -> drawAppMenuBlockGlyph(tint, w, h, stroke)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Blocklist.Regular",
+        "family": "Miuix",
+        "name": "Blocklist",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:Menu.Delete",
+      "currentName": "Menu.Delete",
+      "semantic": "删除",
+      "scenes": [
+        "评论"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/comment/CommentMenu.kt",
+          "line": 146,
+          "snippet": "CommentMenuRow(\"删除\", MenuGlyphKind.Delete, Color(0xFFE5484D), danger = true) { menu.delete(target) }",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/common/glyph/MenuGlyph.kt",
+          "line": 32,
+          "snippet": "MenuGlyphKind.Delete -> drawAppMenuDeleteGlyph(tint, w, h, stroke)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Delete.Regular",
+        "family": "Miuix",
+        "name": "Delete",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:Menu.Coin",
+      "currentName": "Menu.Coin",
+      "semantic": "投币",
+      "scenes": [
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/video/VideoDetailSheets.kt",
+          "line": 19,
+          "snippet": "SheetActionRow(\"投 1 枚硬币\", MenuGlyphKind.Coin, MiuixTheme.colorScheme.onBackground) {",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/video/VideoDetailSheets.kt",
+          "line": 22,
+          "snippet": "SheetActionRow(\"投 2 枚硬币\", MenuGlyphKind.Coin, MiuixTheme.colorScheme.onBackground) {",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/common/glyph/MenuGlyph.kt",
+          "line": 33,
+          "snippet": "MenuGlyphKind.Coin -> drawAppMenuCoinGlyph(tint, w, h, stroke)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide-extended:coins-filled",
+        "family": "Lucide Extended",
+        "name": "coins-filled",
+        "variant": "Filled"
+      }
+    },
+    {
+      "currentId": "current:Menu.Star",
+      "currentName": "Menu.Star",
+      "semantic": "收藏",
+      "scenes": [
+        "资源 / 公共组件"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/common/glyph/MenuGlyph.kt",
+          "line": 34,
+          "snippet": "MenuGlyphKind.Star -> drawAppMenuStarGlyph(tint, w, h, stroke)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:star",
+        "family": "Lucide",
+        "name": "star",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:Danmaku.Fixed",
+      "currentName": "Danmaku.Fixed",
+      "semantic": "固定弹幕",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuGlyphs.kt",
+          "line": 30,
+          "snippet": "DmIconKind.Fixed -> drawDmFixed(tint)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuPanelFilters.kt",
+          "line": 60,
+          "snippet": "DmChip(\"固定\", DmIconKind.Fixed, !settings.danmakuBlockFixed, tile) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:captions",
+        "family": "Lucide",
+        "name": "captions",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:Danmaku.Scroll",
+      "currentName": "Danmaku.Scroll",
+      "semantic": "滚动弹幕",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuGlyphs.kt",
+          "line": 31,
+          "snippet": "DmIconKind.Scroll -> drawDmScroll(tint)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuPanelFilters.kt",
+          "line": 63,
+          "snippet": "DmChip(\"滚动\", DmIconKind.Scroll, !settings.danmakuBlockScroll, tile) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:arrow-left-right",
+        "family": "Lucide",
+        "name": "arrow-left-right",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:Danmaku.Color",
+      "currentName": "Danmaku.Color",
+      "semantic": "彩色弹幕",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuGlyphs.kt",
+          "line": 32,
+          "snippet": "DmIconKind.Color -> drawDmColor(tint)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuPanelFilters.kt",
+          "line": 66,
+          "snippet": "DmChip(\"彩色\", DmIconKind.Color, !settings.danmakuBlockColor, tile) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:palette",
+        "family": "Lucide",
+        "name": "palette",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:Danmaku.Advanced",
+      "currentName": "Danmaku.Advanced",
+      "semantic": "高级弹幕",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuGlyphs.kt",
+          "line": 33,
+          "snippet": "DmIconKind.Advanced -> drawDmAdvanced(tint)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuPanelFilters.kt",
+          "line": 69,
+          "snippet": "DmChip(\"高级\", DmIconKind.Advanced, !settings.danmakuBlockAdvanced, tile) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:graph-star",
+        "family": "Lucide",
+        "name": "graph-star",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:Danmaku.Count",
+      "currentName": "Danmaku.Count",
+      "semantic": "弹幕数量限制",
+      "scenes": [
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuGlyphs.kt",
+          "line": 34,
+          "snippet": "DmIconKind.Count -> drawDmCount(tint)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuPanelFilters.kt",
+          "line": 72,
+          "snippet": "DmChip(\"计数\", DmIconKind.Count, !settings.danmakuBlockCount, tile) {",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "lucide:lamp-ceiling",
+        "family": "Lucide",
+        "name": "lamp-ceiling",
+        "variant": "Outline"
+      }
+    },
+    {
+      "currentId": "current:MarkRead",
+      "currentName": "MarkRead",
+      "semantic": "标记消息已读",
+      "scenes": [
+        "消息 / 私信"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageGlyphs.kt",
+          "line": 20,
+          "snippet": "internal fun MarkReadGlyph() {",
+          "kind": "定义"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageTopActions.kt",
+          "line": 15,
+          "snippet": "modifier = Modifier.semantics { contentDescription = \"全部已读\" }) { MarkReadGlyph() }",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Community.Regular",
+        "family": "Miuix",
+        "name": "Community",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:ThreeDots",
+      "currentName": "ThreeDots",
+      "semantic": "更多消息操作",
+      "scenes": [
+        "消息 / 私信"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageGlyphs.kt",
+          "line": 59,
+          "snippet": "internal fun ThreeDotsGlyph() {",
+          "kind": "定义"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageTopActions.kt",
+          "line": 17,
+          "snippet": "modifier = Modifier.semantics { contentDescription = \"更多消息操作\" }) { ThreeDotsGlyph() }",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:More.Regular",
+        "family": "Miuix",
+        "name": "More",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:Comment",
+      "currentName": "Comment",
+      "semantic": "查看 / 发送评论",
+      "scenes": [
+        "动态 / 竖屏流"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedCommentGlyph.kt",
+          "line": 16,
+          "snippet": "internal fun CommentGlyph(tint: Color, size: Dp) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Reply.Regular",
+        "family": "Miuix",
+        "name": "Reply",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:Pause",
+      "currentName": "Pause",
+      "semantic": "暂停播放",
+      "scenes": [
+        "全屏播放器",
+        "半屏播放器",
+        "播放器",
+        "直播",
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveChromeControls.kt",
+          "line": 63,
+          "snippet": "PauseGlyph()",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerAudioMode.kt",
+          "line": 169,
+          "snippet": "if (playing) PauseGlyph() else PlayGlyph(playIcon)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerChrome.kt",
+          "line": 145,
+          "snippet": "if (state.playing) PauseGlyph() else PlayGlyph(appearance.playIcon, size = 22.dp)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenAudioMode.kt",
+          "line": 198,
+          "snippet": "if (playback.playing) PauseGlyph(Color.Black) else PlayGlyph(playIcon, Color.Black, 26.dp)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenBottomControls.kt",
+          "line": 44,
+          "snippet": "PauseGlyph()",
+          "kind": "引用"
+        },
+        {
+          "path": "TeakUI/src/main/kotlin/com/aritxonly/teak/common/player/PlayerGlyphs.kt",
+          "line": 48,
+          "snippet": "fun PauseGlyph(tint: Color = Color.White) {",
+          "kind": "定义"
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null
+    },
+    {
+      "currentId": "current:字符 ›",
+      "currentName": "字符 ›",
+      "semantic": "进入下一层",
+      "scenes": [
+        "使用引导",
+        "半屏播放器",
+        "发送记录",
+        "视频详情 / 播放器",
+        "设置"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/sent/SentRecordRow.kt",
+          "line": 75,
+          "snippet": "Text(text = \"›\", color = colors.outline, fontSize = 14.sp)",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/onboarding/NoticePage.kt",
+          "line": 129,
+          "snippet": "text = \"›\",",
+          "kind": "引用"
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuPanelRows.kt",
+          "line": 122,
+          "snippet": "Text(text = \"›\", color = Color.White.copy(alpha = 0.4f), fontSize = 16.sp)",
+          "kind": "引用"
+        },
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreControls.kt",
+          "line": 204,
+          "snippet": "Text(text = \"›\", color = colors.onBackgroundVariant, fontSize = 16.sp)",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Basic.ArrowRight",
+        "family": "Miuix",
+        "name": "ArrowRight",
+        "variant": "Basic"
+      }
+    },
+    {
+      "currentId": "current:字符 ⌄",
+      "currentName": "字符 ⌄",
+      "semantic": "展开 / 收起",
+      "scenes": [
+        "动态 / 竖屏流"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerAuthor.kt",
+          "line": 50,
+          "snippet": "text = \"⌄\",",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Basic.ArrowUpDown",
+        "family": "Miuix",
+        "name": "ArrowUpDown",
+        "variant": "Basic"
+      }
+    },
+    {
+      "currentId": "current:字符 ✓",
+      "currentName": "字符 ✓",
+      "semantic": "选中状态",
+      "scenes": [
+        "视频详情 / 播放器"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/video/card/GridCoverSelection.kt",
+          "line": 38,
+          "snippet": "text = \"✓\",",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Ok.Regular",
+        "family": "Miuix",
+        "name": "Ok",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:字符 ✓  ",
+      "currentName": "字符 ✓  ",
+      "semantic": "选中状态",
+      "scenes": [
+        "消息 / 私信"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageSettingsContent.kt",
+          "line": 47,
+          "snippet": "Text((if (choice.selected) \"✓  \" else \"    \") + choice.text,",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Ok.Regular",
+        "family": "Miuix",
+        "name": "Ok",
+        "variant": "Regular"
+      }
+    },
+    {
+      "currentId": "current:字符 ✕",
+      "currentName": "字符 ✕",
+      "semantic": "关闭",
+      "scenes": [
+        "动态 / 竖屏流"
+      ],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerTopBar.kt",
+          "line": 29,
+          "snippet": "text = \"✕\",",
+          "kind": "引用"
+        }
+      ],
+      "mode": "replace",
+      "reviewed": true,
+      "note": "",
+      "replacement": {
+        "id": "miuix:Close.Regular",
+        "family": "Miuix",
+        "name": "Close",
+        "variant": "Regular"
+      }
+    }
+  ]
+}

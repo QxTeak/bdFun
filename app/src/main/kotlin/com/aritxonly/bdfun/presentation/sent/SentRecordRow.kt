@@ -22,8 +22,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.core.model.user.SentRecord
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import com.aritxonly.bdfun.feature.sent.application.*
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.*
+import top.yukonga.miuix.kmp.icon.extended.*
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun SentRecordRow(
@@ -72,7 +76,7 @@ internal fun SentRecordRow(
                 fontSize = 10.5.sp,
             )
             Spacer(Modifier.weight(1f))
-            Text(text = "›", color = colors.outline, fontSize = 14.sp)
+            AppGlyph(MiuixIcons.Basic.ArrowRight, size = 14.dp, tint = colors.outline)
         }
         Spacer(Modifier.height(6.dp))
         Text(

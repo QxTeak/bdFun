@@ -641,3 +641,7 @@ UPD-01 页面无更新默认展示当前版本日志，历史日志由同一仓�
 关于页的版本/版本快照/编译时间统一在“版本信息”设置组，顶部身份区不再显示快照和编译时间；讨论/帮助等在独立组。日志复用presentation/update/ChangelogScreen中的原列表、版本标签和彩色圆点布局，经应用装配自动加载GitHub，ui/ChangelogScreen.kt已删除。
 
 快照为设置项展示名（键仍为version_snapshot），commit/dirty与编译时间均由Gradle自动生成。更新页与日志页使用AnimatedContent水平位移+淡入淡出，遵循animationsEnabled。
+
+### 2026-11-16 ICON-16 图标预设
+
+图标选择依据 docs/icon-presets/issue-16.json。Miuix 扩展图标只用 MiuixIcons.Name 的默认 Regular，不显式指定其他字重；Basic 系列没有字重 API，沿用预设选中的 Basic 图形。Lucide / Extended 仅打包已选择的28项矢量，来源固定在 tools/icons/lucide-selected.json，经 generate_lucide.py 生成 TeakUI 共享 drawable 与 LucideIcons 资源索引。线框使用24视口/1.8描边、填充图形92%光学收边；页面通过 AppGlyph 显式传入原场景尺寸和颜色，不改变触摸区域。相同语义与图形共用资源；预设明确不同的半屏/全屏投屏、后台听音频等不强行合并。预设不是运行时动态配置，不读取 Downloads；图标改动仍需视频旋转/画中画/后台及登录页面手动回归。

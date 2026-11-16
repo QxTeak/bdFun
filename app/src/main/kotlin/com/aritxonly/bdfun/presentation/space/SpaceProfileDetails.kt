@@ -1,6 +1,5 @@
 package com.aritxonly.bdfun
 
-import com.aritxonly.bdfun.navigation.createRouteIntent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,7 +21,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.bdfun.navigation.createRouteIntent
 import com.aritxonly.bdfun.ui.showToast
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.*
+import top.yukonga.miuix.kmp.icon.extended.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -112,12 +116,7 @@ internal fun SpaceOfficialProfile(
     if (verify.isNotBlank()) {
         Spacer(Modifier.height(10.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "✔",
-                color = Color(0xFF3B82F6),
-                fontSize = 11.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
+            AppGlyph(MiuixIcons.Ok, size = 11.dp, tint = Color(0xFF3B82F6))
             Spacer(Modifier.width(4.dp))
             Text(
                 text = verify,

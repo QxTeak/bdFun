@@ -4,7 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -13,19 +12,16 @@ import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
 import com.aritxonly.teak.common.chrome.teakGlassGlyphColor
+import com.aritxonly.teak.common.icons.AppGlyph
+import com.aritxonly.teak.common.icons.LucideIcons
 import com.aritxonly.teak.common.material.TeakGlassIconButton
 import kotlinx.coroutines.launch
 
@@ -68,33 +64,7 @@ fun BoxScope.ScrollTopButton(settings: SettingsBindings, bottomObstruction: andr
             onClick = { action?.invoke() },
             modifier = Modifier.size(40.dp),
         ) {
-            Canvas(modifier = Modifier.size(18.dp)) {
-                val w = size.width
-                val h = size.height
-                val stroke = 1.8.dp.toPx()
-                val color: Color = glyphColor
-                drawLine(
-                    color = color,
-                    start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.82f),
-                    end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.18f),
-                    strokeWidth = stroke,
-                    cap = StrokeCap.Round,
-                )
-                drawLine(
-                    color = color,
-                    start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.18f),
-                    end = androidx.compose.ui.geometry.Offset(w * 0.22f, h * 0.46f),
-                    strokeWidth = stroke,
-                    cap = StrokeCap.Round,
-                )
-                drawLine(
-                    color = color,
-                    start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.18f),
-                    end = androidx.compose.ui.geometry.Offset(w * 0.78f, h * 0.46f),
-                    strokeWidth = stroke,
-                    cap = StrokeCap.Round,
-                )
-            }
+            AppGlyph(LucideIcons.ArrowUp, glyphColor, size = 18.dp)
         }
     }
 }

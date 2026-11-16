@@ -1,6 +1,5 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -20,15 +19,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.feature.library.application.*
+import com.aritxonly.teak.common.icons.AppGlyph
 import com.kyant.shapes.Capsule
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.*
+import top.yukonga.miuix.kmp.icon.extended.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -56,24 +57,7 @@ internal fun LibrarySearchBackButton(onBack: () -> Unit) {
             .clickable(interactionSource = null, indication = null, onClick = onBack),
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(modifier = Modifier.size(18.dp)) {
-            val w = size.width
-            val h = size.height
-            drawLine(
-                color = colors.onBackground,
-                start = Offset(w * 0.62f, h * 0.18f),
-                end = Offset(w * 0.3f, h * 0.5f),
-                strokeWidth = w * 0.11f,
-                cap = StrokeCap.Round,
-            )
-            drawLine(
-                color = colors.onBackground,
-                start = Offset(w * 0.3f, h * 0.5f),
-                end = Offset(w * 0.62f, h * 0.82f),
-                strokeWidth = w * 0.11f,
-                cap = StrokeCap.Round,
-            )
-        }
+        AppGlyph(MiuixIcons.ChevronBackward, colors.onBackground, size = 18.dp)
     }
 }
 
@@ -99,24 +83,7 @@ internal fun androidx.compose.foundation.layout.RowScope.LibrarySearchField(titl
 @Composable
 internal fun LibrarySearchMagnifier() {
     val colors = MiuixTheme.colorScheme
-    Canvas(modifier = Modifier.size(16.dp)) {
-        val c = colors.onBackgroundVariant
-        drawCircle(
-            color = c,
-            radius = size.width * 0.29f,
-            center = Offset(size.width * 0.43f, size.height * 0.43f),
-            style = androidx.compose.ui.graphics.drawscope.Stroke(
-                width = size.width * 0.09f,
-            ),
-        )
-        drawLine(
-            color = c,
-            start = Offset(size.width * 0.64f, size.height * 0.64f),
-            end = Offset(size.width * 0.87f, size.height * 0.87f),
-            strokeWidth = size.width * 0.09f,
-            cap = StrokeCap.Round,
-        )
-    }
+    AppGlyph(MiuixIcons.Search, colors.onBackgroundVariant, size = 16.dp)
 }
 
 @Composable
@@ -158,23 +125,7 @@ internal fun LibrarySearchClearButton(state: LibrarySearchState, events: Library
         contentAlignment = Alignment.Center,
     ) {
         if (state.draft.isNotEmpty()) {
-            Canvas(modifier = Modifier.size(14.dp)) {
-                val stroke = size.width * 0.12f
-                drawLine(
-                    color = colors.onBackgroundVariant,
-                    start = Offset(size.width * 0.2f, size.height * 0.2f),
-                    end = Offset(size.width * 0.8f, size.height * 0.8f),
-                    strokeWidth = stroke,
-                    cap = StrokeCap.Round,
-                )
-                drawLine(
-                    color = colors.onBackgroundVariant,
-                    start = Offset(size.width * 0.8f, size.height * 0.2f),
-                    end = Offset(size.width * 0.2f, size.height * 0.8f),
-                    strokeWidth = stroke,
-                    cap = StrokeCap.Round,
-                )
-            }
+            AppGlyph(MiuixIcons.Basic.SearchCleanup, colors.onBackgroundVariant, size = 14.dp)
         }
     }
 }

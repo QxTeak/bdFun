@@ -23,20 +23,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.BrandPink
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.*
+import top.yukonga.miuix.kmp.icon.extended.*
 
 @Composable
 internal fun LiveSettingsOverlay(
@@ -196,42 +195,11 @@ internal fun LiveSettingsContent(
 
 @Composable
 internal fun LiveCloseGlyph(tint: Color = Color.White.copy(alpha = 0.7f)) {
-    androidx.compose.foundation.Canvas(modifier = Modifier.size(18.dp)) {
-        val stroke = size.width * 0.12f
-        drawLine(
-            tint,
-            Offset(size.width * 0.2f, size.height * 0.2f),
-            Offset(size.width * 0.8f, size.height * 0.8f),
-            stroke,
-            StrokeCap.Round,
-        )
-        drawLine(
-            tint,
-            Offset(size.width * 0.8f, size.height * 0.2f),
-            Offset(size.width * 0.2f, size.height * 0.8f),
-            stroke,
-            StrokeCap.Round,
-        )
-    }
+    AppGlyph(MiuixIcons.Close, tint, size = 18.dp)
 }
 
 
 @Composable
 internal fun LiveCheckGlyph(tint: Color = Color.White) {
-    androidx.compose.foundation.Canvas(modifier = Modifier.size(15.dp)) {
-        val path = androidx.compose.ui.graphics.Path().apply {
-            moveTo(size.width * 0.16f, size.height * 0.52f)
-            lineTo(size.width * 0.42f, size.height * 0.78f)
-            lineTo(size.width * 0.86f, size.height * 0.25f)
-        }
-        drawPath(
-            path,
-            tint,
-            style = Stroke(
-                size.width * 0.13f,
-                cap = StrokeCap.Round,
-                join = androidx.compose.ui.graphics.StrokeJoin.Round,
-            ),
-        )
-    }
+    AppGlyph(MiuixIcons.Ok, tint, size = 15.dp)
 }

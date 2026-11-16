@@ -12,7 +12,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.core.model.message.ImSetting
 import com.aritxonly.bdfun.core.navigation.Route
-import com.aritxonly.bdfun.navigation.createRouteIntent
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Ok
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -44,10 +46,19 @@ internal fun MessageSettingRow(setting: ImSetting, busy: Boolean, onSet: (Boolea
                 onCheckedChange = { onSet(it, null) }, enabled = !busy)
         }
         setting.choices.forEach { choice ->
-            Text((if (choice.selected) "✓  " else "    ") + choice.text,
-                color = if (choice.selected) colors.primary else colors.onBackground,
-                modifier = Modifier.fillMaxWidth().clickable(enabled = !busy && !choice.selected) { onSet(null, choice.value) }
-                    .padding(horizontal = 24.dp, vertical = 14.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth()
+                    .clickable(enabled = !busy && !choice.selected) { onSet(null, choice.value) }
+                    .padding(horizontal = 24.dp, vertical = 14.dp),
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically,
+            ) {
+                Box(Modifier.width(24.dp)) {
+                    if (choice.selected) {
+                        AppGlyph(MiuixIcons.Ok, colors.primary, size = 18.dp)
+                    }
+                }
+                Text(choice.text, color = if (choice.selected) colors.primary else colors.onBackground)
+            }
         }
     }
 }
