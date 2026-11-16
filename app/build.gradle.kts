@@ -8,7 +8,21 @@ plugins {
 }
 
 /** 构建时刻，写进 BuildConfig 用于核对设备上装的是哪一次构建。 */
-val buildStamp: String = SimpleDateFormat("MM-dd HH:mm").format(Date())
+val buildInstant = Date()
+val buildStamp: String = SimpleDateFormat("MM-dd HH:mm").format(buildInstant)
+val buildTime: String = SimpleDateFormat("yyyy-MM-dd HH:mm:ss XXX").format(buildInstant)
+val sourceRevision: String = runCatching {
+    providers.exec {
+        workingDir(rootProject.projectDir)
+        commandLine("git", "rev-parse", "--short=8", "HEAD")
+    }.standardOutput.asText.get().trim().let { revision ->
+        val dirty = providers.exec {
+            workingDir(rootProject.projectDir)
+            commandLine("git", "status", "--porcelain", "--untracked-files=normal")
+        }.standardOutput.asText.get().isNotBlank()
+        if (dirty) "$revision-dirty" else revision
+    }
+}.getOrDefault("unknown")
 
 /**
  * 允许命令行临时改包名，用来做实验（比如伪装成系统名单里的某个包）：
@@ -28,6 +42,13 @@ val keystoreProps = Properties().apply {
 
 val releaseStoreFile = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
 
+val releaseVersion = providers.gradleProperty("releaseVersion").orElse("preview-5.0").get()
+val versionMatch = Regex("(?:preview-(0|[1-9][0-9]?)\\.(0|[1-9][0-9]?)|(0|[1-9][0-9]{0,2})\\.(0|[1-9][0-9]?)\\.(0|[1-9][0-9]?))").matchEntire(releaseVersion)
+    ?: error("版本号必须为 preview-y.z 或 x.y.z，y/z 为 0..99")
+val versionParts = if (releaseVersion.startsWith("preview-")) listOf(0, versionMatch.groupValues[1].toInt(), versionMatch.groupValues[2].toInt())
+    else versionMatch.groupValues.drop(3).map(String::toInt)
+val releaseCode = versionParts[0] * 10000 + versionParts[1] * 100 + versionParts[2]
+
 android {
     namespace = "com.aritxonly.bdfun"
     compileSdk = 37
@@ -39,10 +60,12 @@ android {
         minSdk = 33
         testInstrumentationRunner = "com.aritxonly.bdfun.PrivateChatLaunchRegression"
         targetSdk = 37
-        versionCode = 500
-        versionName = "preview-5.0"
+        versionCode = releaseCode
+        versionName = releaseVersion
         // 每次配置都刷新，打进 BuildConfig 后可以直接在「设置 → 关于 → 版本」里核对装的是哪一版。
         buildConfigField("String", "BUILD_STAMP", "\"$buildStamp\"")
+        buildConfigField("String", "BUILD_TIME", "\"$buildTime\"")
+        buildConfigField("String", "SOURCE_REVISION", "\"$sourceRevision\"")
         vectorDrawables.useSupportLibrary = true
     }
 

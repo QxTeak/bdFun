@@ -31,6 +31,7 @@ internal fun SettingsScreenRoute(activity: ComponentActivity) {
 
 private fun openSettingsDestination(context: ComponentActivity, destination: SettingsDestination) {
     when (destination) {
+        SettingsDestination.Update -> context.startActivity(Intent(context, UpdateActivity::class.java))
         SettingsDestination.Discussion -> openSettingsTelegramGroup(context)
         SettingsDestination.Changelog -> navigateToChangelog(context)
         SettingsDestination.Help -> navigateToHelp(context)

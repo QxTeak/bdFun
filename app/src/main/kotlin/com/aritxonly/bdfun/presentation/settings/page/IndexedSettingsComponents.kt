@@ -24,7 +24,7 @@ internal fun IndexedSettingComponent(entry: Setting, value: SettingValue?, runti
         "cdn_dropdown" -> CdnIndexedDropdown(entry, runtime)
         "font_scale" -> GlobalFontScaleRow(runtime.settings.fontScale, { runtime.settings.fontScale = it }, entry.title)
         "extension" -> runtime.extensions[entry.prefName]?.invoke(entry)
-        "app_identity" -> SettingsAboutAppHeader(entry.title)
+        "app_identity" -> SettingsAboutAppHeader(entry.title) { runtime.navigation.onAbout(SettingsDestination.Update) }
         "page_switches" -> ScrollPageSwitches(runtime)
         "mine_switch" -> MineIndexedSwitch(entry, runtime)
         else -> IndexedActionComponent(entry, runtime)

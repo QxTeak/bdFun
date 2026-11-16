@@ -45,3 +45,6 @@ signing.properties
 # Python tooling caches
 __pycache__/
 *.py[cod]
+
+# Release workflow generated notes
+/release-notes.md

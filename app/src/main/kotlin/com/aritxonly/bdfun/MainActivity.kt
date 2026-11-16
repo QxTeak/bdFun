@@ -47,6 +47,7 @@ class MainActivity : ComponentActivity() {
                 AppGraph.refreshAutomaticCdn()
             }
         }
+        if (savedInstanceState == null) checkUpdateOnStartup()
         handleIntent(intent)
         setContent {
             // 图片查看器挂在窗口最外层，才能盖住底栏、顶栏和状态栏（和 Telegram 一致）。

@@ -11,6 +11,7 @@ import com.aritxonly.bdfun.core.model.settings.SettingValue
 import com.aritxonly.bdfun.feature.settings.application.IndexedSettingsStateHolder
 import com.aritxonly.teak.common.chrome.TrackTeakPageScroll
 import com.aritxonly.teak.common.chrome.TeakLargeTitle
+import com.aritxonly.teak.common.chrome.centeredListWidth
 
 @Composable
 internal fun SettingsAboutContent(session: SettingsBrowserSession, values: Map<String, SettingValue>,
@@ -22,7 +23,7 @@ internal fun SettingsAboutContent(session: SettingsBrowserSession, values: Map<S
     val progress by remember(scroll, distance) { derivedStateOf { (scroll.value / distance).coerceIn(0f, 1f) } }
     Box(modifier) {
         SettingsAboutFloatingBackground(Modifier.matchParentSize(), { 1f - progress }, runtime.settings.animationsEnabled)
-        Column(Modifier.fillMaxSize().verticalScroll(scroll).padding(settingsListPadding())) {
+        Column(Modifier.fillMaxSize().centeredListWidth().verticalScroll(scroll).padding(settingsListPadding())) {
             TeakLargeTitle(category.name)
             category.groups.forEach { group ->
                 SettingsIndexedGroup(group, session, values, runtime, controller, progress)

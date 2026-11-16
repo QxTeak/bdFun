@@ -1,62 +1,45 @@
-# 手动运行构建与发布（GitHub Actions）
+# Release 发布与自动更新
 
-- **Android 手动构建**：仅在 Actions 页面点击 **Run workflow** 时运行，构建 Debug 和 Release，检查 Release 的代码压缩构建，并直接上传 Debug APK（保留 14 天），下载时无需解压 ZIP。普通构建不需要 Secrets。
-- **Android 手动发布**：仅在 Actions 页面点击 **Run workflow** 并填写已有版本标签时运行。流程检出该标签的代码，构建正式签名的 Release APK，校验签名，再自动创建 GitHub Release、生成更新说明并上传 APK、`SHA256SUMS.txt` 和混淆映射 `mapping.txt`。所有自动创建的版本统一标记为预发布，管理员验证后可编辑 Release，取消预发布标记并保存，手动转为正式版。
-- 推送代码、创建 PR 或推送标签均不会自动运行这两个工作流。
-- 标签必须是 `v` 加上 `app/build.gradle.kts` 中的 `versionName`，例如版本名为 `preview-5.0` 时对应 `vpreview-5.0`；不匹配会停止发布。同一个标签重跑时只更新附件，保留管理员设置的正式版或预发布状态。
+Actions → Android 手动发布 → 选择待发布分支 → 填写 `version`。
+不必修改源码版本或预建 tag；流程构建所选提交，成功后创建 `v版本号` 标签和 Release。
+已经存在的标签拒绝覆盖，请递增版本重新发布。
 
-## 首次配置签名
+版本规则：`preview-y.z` 或 `x.y.z`；y/z 为 0..99，x 为 0..999，禁止前导零。
+versionCode = x×10000+y×100+z，preview 的 x=0。例如 preview-5.0=500，1.1.0=10100。
+本地构建可用 `bash ./gradlew :app:assembleRelease -PreleaseVersion=1.1.0`。
+BUILD_STAMP 仍记录构建时刻，debug 仍增加 -debug 后缀。
 
-在 GitHub 仓库 **Settings → Secrets and variables → Actions → New repository secret** 添加：
+`notes` 支持 Markdown 列表并优先使用。留空时必须启用 `generate_notes`，由 DeepSeek
+Agent 读取上一标签至 HEAD 的提交，生成列表并自审一轮。首版使用全部提交。
+生成失败阻止发布，可填写手动日志重新运行。发布后应检查 Release 日志准确性。
 
-| Secret | 内容 |
-| --- | --- |
-| `KEYSTORE_BASE64` | 签名 keystore 文件的 Base64 编码 |
-| `KEYSTORE_PASSWORD` | keystore 密码 |
-| `KEY_ALIAS` | 签名密钥别名 |
-| `KEY_PASSWORD` | 签名密钥密码 |
+Secrets：KEYSTORE_BASE64、KEYSTORE_PASSWORD、KEY_ALIAS、KEY_PASSWORD；
+自动日志另需 DEEPSEEK_API_KEY，可用变量 DEEPSEEK_MODEL 覆盖默认 deepseek-chat。
+API Key 仅供 Actions 使用，不编译进 APK。四项签名配置缺一即停止，禁止 CI 退回 debug 签名。
+工具链沿用 JDK21 / SDK37 / Build Tools37.0.0 与固定 Miuix 快照。
+构建运行 domain/infra-bili/app JVM 测试及 R8 release，校验签名并附 APK、SHA256SUMS 与 mapping。
+preview 自动标记 prerelease，正式版本发布为 stable。推送和 PR 不自动发布。
 
-如果已有发行版本，应使用原来的签名密钥，以便用户覆盖升级。没有密钥时，可使用 JDK 自带的工具创建，按提示设置密码并妥善备份：
+客户端：设置 → 关于 → 点击顶部图标/名称/版本身份区，进入页面自动检查。release 冷启动每日检查一次，debug 不自动弹更新。
+preview 安装检查 preview 与正式版；正式安装只检查正式版；按 versionCode 比较，
+更新比较忽略无效标签、draft 与 debug APK（旧标签仍在历史列表展示）；多 APK 时使用发布页面避免选错架构。
+无更新时显示当前版本日志，底部并列 primary / 中性柔光玻璃按钮及渐进遮罩；更新日志页展示各版本日志。
+有更新时底部为单条 primary 下载按钮，历史入口位于品牌头部之后。
+更新页内嵌设置导航，横屏仅占右侧详情栏；独立 Activity 供启动更新提示使用。首次下载申请通知权限，
+系统 DownloadManager 在通知栏显示后台下载进度，进程退出仍继续；完成后点击系统通知安装。
+每个版本保留发布页入口作为浏览器兜底。
+系统首次安装授权及 debug/release 不同包名遵循 Android 自身行为。
 
-```bash
-keytool -genkeypair -v -keystore release.jks -storetype JKS -alias bdfun -keyalg RSA -keysize 4096 -validity 10000
-```
+手动验证：最新/可更新/网络失败/无附件；长日志滚动；下载失败重试；退后台完成下载；
+点击通知安装并核对签名覆盖升级；preview 到 stable；横竖屏与深色模式。
 
-在 PowerShell 中将文件编码并复制到剪贴板，粘贴为 `KEYSTORE_BASE64`：
+GitHub mapper 固定样本取自 2026-11-16 的公开 releases API 返回，包含实际 preview-5.0 当前日志、debug 附件过滤与旧标签。
 
-```powershell
-[Convert]::ToBase64String([IO.File]::ReadAllBytes((Resolve-Path ./release.jks).Path)) | Set-Clipboard
-```
+接口依据：[GitHub Releases REST](https://docs.github.com/en/rest/releases/releases)、
+[DeepSeek Chat Completions](https://api-docs.deepseek.com/api/create-chat-completion/)。
 
-Linux 可使用 `base64 -w 0 release.jks`；macOS 可使用 `base64 -i release.jks | tr -d '\n'`。不要将密钥或密码提交到仓库。Release 工作流缺少任一签名 Secret 时会失败，不会发布临时调试签名的 APK。
+关于页外部的更新日志索引入口已移除，统一从检查更新页右下角“更新日志”进入。检查按钮在禁用态使用当前主题 primary 的淡色，不使用库默认蓝色。
 
-## 手动构建
+关于页版本、快照、编译时间归入同一“版本信息”设置组，讨论等动作另组。更新日志采用原ChangelogScreen列表布局，自动加载仓储发布数据，展示加载、空与失败重试状态。
 
-构建环境使用 JDK 21、Android SDK Platform 37 和 Build Tools 37.0.0。SDK 平台包在官方仓库中的实际标识为 `platforms;android-37.0`，安装命令如下；项目的 `compileSdk = 37` 无需因此修改：
-
-```bash
-sdkmanager 'platforms;android-37.0' 'build-tools;37.0.0'
-```
-
-将工作流提交到仓库默认分支后，进入 **Actions → Android 手动构建 → Run workflow**，选择需要构建的分支并确认运行。完成后在该次运行的 Artifacts 中点击 `bdFun-debug-提交哈希.apk`，即可直接下载 APK 文件。
-
-工作流使用 `actions/upload-artifact@v7` 的 `archive: false` 上传原文件。发布流程也将 APK、校验文件和混淆映射分别上传；既可在 Actions 的 Artifacts 中逐个下载，也可在发布成功后从 Releases 页面下载。
-
-## 手动发布新版本
-
-1. 修改 `app/build.gradle.kts` 中的 `versionName`，并递增 `versionCode`，提交代码。
-2. 将工作流提交到仓库默认分支，并将版本修改推送到 GitHub，再推送对应标签。以下命令以在 `main` 分支发布为例：
-
-```bash
-git push origin main
-git tag vpreview-5.0
-git push origin vpreview-5.0
-```
-
-3. 进入 **Actions → Android 手动发布 → Run workflow**，在分支选择器中选择包含最新工作流的默认分支，在版本标签输入框中填写 `vpreview-5.0`，然后确认运行。实际构建的代码来自输入的标签；标签必须已经存在。
-
-以上为版本标签格式的示例；后续请替换成新版本标签。仅推送标签不会启动发布。构建完成后可在仓库的 Releases 页面下载。发布使用 GitHub 自动提供的 `GITHUB_TOKEN`，不需要额外的个人令牌。
-
-本地 `assembleRelease` 未设置签名环境变量时优先读取原有 keystore.properties，缺少该文件才回退调试签名。若要本地正式签名，设置 `ANDROID_KEYSTORE_PATH`（绝对路径）以及同名的三个密码/别名环境变量。使用正式密钥前已安装的调试签名版本可能需要先卸载；卸载会清除应用数据。
-
-PR 自动检查与签名测试包请参阅 [CI.md](CI.md)。手动发布使用仓库 Secrets，PR 签名使用 pr-signing Environment Secrets；两处使用相同的四个名称。云端签名优先于本地 keystore.properties，使用 V2。
+快照内容与编译时间均由 Gradle 配置阶段自动生成，快照显示 Git commit，存在本地改动时带 -dirty 后缀。

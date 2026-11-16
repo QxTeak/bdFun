@@ -50,7 +50,7 @@ window.SETTINGS_CATALOG = [
             "default": 0,
             "options": [
               {
-                "title": "官方",
+                "title": "哔哩哔哩",
                 "value": 0
               },
               {
@@ -138,6 +138,9 @@ window.SETTINGS_CATALOG = [
             "default": [
               "home",
               "dynamic",
+              "live",
+              "pgc",
+              "comment",
               "space",
               "library",
               "message",
@@ -712,7 +715,7 @@ window.SETTINGS_CATALOG = [
         ]
       },
       {
-        "title": "关于",
+        "title": "版本信息",
         "settings": [
           {
             "pref_name": "version",
@@ -722,16 +725,28 @@ window.SETTINGS_CATALOG = [
             "default": ""
           },
           {
-            "pref_name": "discussion",
-            "type": "action",
-            "title": "加入讨论组",
+            "pref_name": "version_snapshot",
+            "type": "version",
+            "title": "快照",
             "storage": "none",
             "default": ""
           },
           {
-            "pref_name": "changelog",
+            "pref_name": "build_time",
+            "type": "version",
+            "title": "编译时间",
+            "storage": "none",
+            "default": ""
+          }
+        ]
+      },
+      {
+        "title": "关于",
+        "settings": [
+          {
+            "pref_name": "discussion",
             "type": "action",
-            "title": "更新日志",
+            "title": "加入讨论组",
             "storage": "none",
             "default": ""
           },
