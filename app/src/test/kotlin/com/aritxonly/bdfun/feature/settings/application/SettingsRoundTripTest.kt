@@ -15,6 +15,8 @@ class SettingsRoundTripTest(private val case: SettingCase<*>) {
         @JvmStatic @Parameterized.Parameters(name = "{0}")
         fun cases(): List<Array<Any>> {
             val cases = listOf(
+            SettingCase("feedRefreshRate", 60, 120, { it.feedRefreshRate }, { s, v -> s.feedRefreshRate = v }),
+            SettingCase("feedRefreshRate", 60, 0, { it.feedRefreshRate }, { s, v -> s.feedRefreshRate = v }),
             SettingCase("dynamicColor", false, true, { it.dynamicColor }, { s, v -> s.dynamicColor = v }),
             SettingCase("previewNoticeAcked", false, true, { it.previewNoticeAcked }, { s, v -> s.previewNoticeAcked = v }),
             SettingCase("refractionEnabled", true, false, { it.refractionEnabled }, { s, v -> s.refractionEnabled = v }),

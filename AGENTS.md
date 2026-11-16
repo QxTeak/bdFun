@@ -641,3 +641,6 @@ UPD-01 页面无更新默认展示当前版本日志，历史日志由同一仓�
 关于页的版本/版本快照/编译时间统一在“版本信息”设置组，顶部身份区不再显示快照和编译时间；讨论/帮助等在独立组。日志复用presentation/update/ChangelogScreen中的原列表、版本标签和彩色圆点布局，经应用装配自动加载GitHub，ui/ChangelogScreen.kt已删除。
 
 快照为设置项展示名（键仍为version_snapshot），commit/dirty与编译时间均由Gradle自动生成。更新页与日志页使用AnimatedContent水平位移+淡入淡出，遵循animationsEnabled。
+
+### 信息流帧率设置
+主界面默认请求 60Hz，可在外观设置选择 120 或自适应（0，交给系统）；MainActivity 观察设置状态应用窗口偏好，不改变播放器智能刷新率策略。
