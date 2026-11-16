@@ -43,9 +43,9 @@ fun ComposerIconButton(
         contentAlignment = Alignment.Center,
     ) {
         Image(
-            painter = androidx.compose.ui.res.painterResource(
+            painter = com.aritxonly.teak.common.icons.rememberAntialiasedIconPainter(androidx.compose.ui.res.painterResource(
                 if (kind == ComposerIcon.Send) TeakIcon.Send else TeakIcon.Image,
-            ),
+            )),
             contentDescription = null,
             colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(color),
             modifier = Modifier.size(19.dp),

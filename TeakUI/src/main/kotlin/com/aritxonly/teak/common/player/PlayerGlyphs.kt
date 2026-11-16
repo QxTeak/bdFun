@@ -1,17 +1,12 @@
 package com.aritxonly.teak.common.player
 
-import android.graphics.BitmapFactory
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.kyant.shapes.Capsule
 import androidx.compose.foundation.layout.Arrangement
@@ -31,16 +26,13 @@ fun PixelIcon(
     contentDescription: String? = null,
 ) {
 
-    val context = LocalContext.current
-    val bitmap = remember(res) {
-        BitmapFactory.decodeResource(context.resources, res).asImageBitmap()
-    }
+    val source = androidx.compose.ui.res.painterResource(res)
+    val painter = com.aritxonly.teak.common.icons.rememberAntialiasedIconPainter(source)
     Image(
-        bitmap = bitmap,
+        painter = painter,
         contentDescription = contentDescription,
         modifier = modifier,
         colorFilter = tint?.let { androidx.compose.ui.graphics.ColorFilter.tint(it) },
-        filterQuality = FilterQuality.High,
     )
 }
 

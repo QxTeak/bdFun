@@ -26,9 +26,9 @@ internal fun CommentRowDislike(disliked: Boolean, onDislike: () -> Unit) {
             ),
     ) {
         Image(
-            painter = androidx.compose.ui.res.painterResource(
+            painter = com.aritxonly.teak.common.icons.rememberAntialiasedIconPainter(androidx.compose.ui.res.painterResource(
                 if (disliked) TeakIcon.CommentDislikeFilled else TeakIcon.CommentDislike,
-            ),
+            )),
             contentDescription = "点踩",
             colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(
                 if (disliked) BrandPink else colors.onBackgroundVariant,

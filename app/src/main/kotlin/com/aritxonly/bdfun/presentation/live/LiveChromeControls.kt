@@ -177,7 +177,7 @@ internal fun LivePixelIcon(
     size: androidx.compose.ui.unit.Dp,
 ) {
     Image(
-        painter = painterResource(res),
+        painter = com.aritxonly.teak.common.icons.rememberAntialiasedIconPainter(painterResource(res)),
         contentDescription = null,
         modifier = Modifier.size(size),
     )

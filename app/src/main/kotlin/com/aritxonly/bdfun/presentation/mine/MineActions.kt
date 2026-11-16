@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -97,7 +98,7 @@ private fun QuickAction(
 internal fun MineRow(
     text: String,
     color: Color? = null,
-    trailingText: String = "＞",
+    trailingText: String = "",
     onClick: () -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
@@ -114,10 +115,12 @@ internal fun MineRow(
             fontSize = 14.sp,
             modifier = Modifier.weight(1f),
         )
-        if (trailingText == "＞") {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (trailingText.isNotEmpty()) {
+                Text(text = trailingText, color = colors.outline, fontSize = 12.sp)
+                Spacer(Modifier.width(4.dp))
+            }
             AppGlyph(MiuixIcons.Basic.ArrowRight, colors.outline, size = 12.dp)
-        } else {
-            Text(text = trailingText, color = colors.outline, fontSize = 12.sp)
         }
     }
 }

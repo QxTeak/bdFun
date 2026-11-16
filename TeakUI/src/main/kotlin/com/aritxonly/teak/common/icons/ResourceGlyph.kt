@@ -19,7 +19,7 @@ fun ResourceGlyph(
     size: Dp = 16.dp,
 ) {
     Image(
-        painter = painterResource(res),
+        painter = rememberAntialiasedIconPainter(painterResource(res)),
         contentDescription = null,
         colorFilter = ColorFilter.tint(tint),
         modifier = modifier.size(size),

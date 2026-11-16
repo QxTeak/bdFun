@@ -1,6 +1,6 @@
 # Issue 16：现有图标审阅清单
 
-基线：2026-11-16，origin/main `3566d1c`。当前阶段仅盘点，尚未替换图标。
+基线：2026-11-16，origin/main `3566d1c`。原始图册基线；后续替换与补齐见 `icon-presets/IMPLEMENTATION.md`。
 
 ## 审阅范围
 
@@ -191,3 +191,7 @@
 | 8 | 18 | 字符 ✓ | 字符 | app/src/main/kotlin/com/aritxonly/bdfun/presentation/video/card/GridCoverSelection.kt |
 | 8 | 19 | 字符 ✓ | 字符 | app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageSettingsContent.kt |
 | 8 | 20 | 字符 ✕ | 字符 | app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerTopBar.kt |
+
+## 补充盘点（2026-11-16）
+
+映射台清单扩展到 167 项：新增合集标题、回顶、回底、定位当前播放、展开箭头，以及详情播放量/弹幕数。视频卡片计数保留原条目并标明独立场景。21 个保留造型的原生 PNG 已转为曲线矢量；原 160 个 ID 不变，旧预设可完整导入。此处来源统计仅描述原始图册。

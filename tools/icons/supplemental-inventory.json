@@ -1,0 +1,446 @@
+{
+  "legacyCatalogIds": [
+    "current:BackChevron",
+    "current:MoreGlyph",
+    "current:CloseGlyph",
+    "current:CheckGlyph",
+    "current:ChevronRightGlyph",
+    "current:HeadphoneGlyph",
+    "current:ClockGlyph",
+    "current:PipGlyph",
+    "current:CastGlyph",
+    "current:ViewerGlyph",
+    "current:字符 ⋮",
+    "current:字符 ＞",
+    "current:字符 ✔",
+    "current:字符 ➤",
+    "current:字符 😀",
+    "current:SearchSuggestGlyph",
+    "current:FunnelGlyph",
+    "current:ResetGlyph",
+    "current:ChargeGlyph",
+    "current:LiveCloseGlyph",
+    "current:LiveCheckGlyph",
+    "current:ScrollTopCanvas0",
+    "current:SpaceSignToggleCanvas0",
+    "current:LibrarySearchHeaderCanvas0",
+    "current:LibrarySearchHeaderCanvas1",
+    "current:LibrarySearchHeaderCanvas2",
+    "current:SpaceWidgetsCanvas0",
+    "current:AllFeedAvatarCanvas0",
+    "current:SpaceProfileAvatarCanvas0",
+    "current:LiveGesture.true",
+    "current:LiveGesture.false",
+    "current:Miuix.Album",
+    "current:Miuix.Basic.ArrowRight",
+    "current:Miuix.ChevronBackward",
+    "current:Miuix.Close",
+    "current:Miuix.Contacts",
+    "current:Miuix.ContactsCircle",
+    "current:Miuix.Delete",
+    "current:Miuix.Download",
+    "current:Miuix.Folder",
+    "current:Miuix.Home",
+    "current:Miuix.Info",
+    "current:Miuix.Messages",
+    "current:Miuix.More",
+    "current:Miuix.Normal.Background",
+    "current:Miuix.Normal.ContactsCircle",
+    "current:Miuix.Normal.Home",
+    "current:Miuix.Normal.Info",
+    "current:Miuix.Normal.Messages",
+    "current:Miuix.Normal.Play",
+    "current:Miuix.Normal.Settings",
+    "current:Miuix.Playlist",
+    "current:Miuix.Promotions",
+    "current:Miuix.Recent",
+    "current:Miuix.Refresh",
+    "current:Miuix.Search",
+    "current:Miuix.SearchDevice",
+    "current:Miuix.Settings",
+    "current:Miuix.VolumeOff",
+    "current:Miuix.VolumeUp",
+    "current:act_coin",
+    "current:act_dislike",
+    "current:act_like",
+    "current:act_like_outline",
+    "current:act_share",
+    "current:act_star",
+    "current:bili_lv1",
+    "current:bili_lv2",
+    "current:bili_lv3",
+    "current:bili_lv4",
+    "current:bili_lv5",
+    "current:bili_lv6",
+    "current:comment_bubble",
+    "current:comment_dislike",
+    "current:comment_dislike_filled",
+    "current:comment_like",
+    "current:comment_like_filled",
+    "current:dev_artix",
+    "current:dev_teak",
+    "current:donation_alipay",
+    "current:donation_qr",
+    "current:fs_comment",
+    "current:fs_danmaku_off",
+    "current:fs_danmaku_on",
+    "current:fs_danmaku_settings",
+    "current:fs_like",
+    "current:fs_next",
+    "current:fs_play",
+    "current:fs_share",
+    "current:fs_star",
+    "current:ic_fullscreen",
+    "current:ic_image",
+    "current:ic_launcher_adaptive_background",
+    "current:ic_launcher_adaptive_foreground",
+    "current:ic_launcher_foreground",
+    "current:ic_metric_danmaku",
+    "current:ic_metric_play",
+    "current:ic_seek_thumb",
+    "current:ic_send",
+    "current:teak_loading_00",
+    "current:teak_loading_01",
+    "current:teak_loading_02",
+    "current:teak_loading_03",
+    "current:teak_loading_04",
+    "current:teak_loading_05",
+    "current:teak_loading_06",
+    "current:teak_loading_07",
+    "current:teak_loading_08",
+    "current:teak_loading_09",
+    "current:teak_loading_10",
+    "current:teak_loading_11",
+    "current:teak_loading_12",
+    "current:teak_loading_13",
+    "current:teak_loading_14",
+    "current:teak_loading_15",
+    "current:InlineBackGlyph",
+    "current:InlineHomeGlyph",
+    "current:InlineHeadphoneGlyph",
+    "current:InlineCastGlyph",
+    "current:InlineMoreGlyph",
+    "current:DanmakuSettingsGlyph",
+    "current:BackgroundPlayGlyph",
+    "current:AutoPlayNextGlyph",
+    "current:LoopGlyph",
+    "current:MirrorGlyph",
+    "current:BackgroundListenGlyph",
+    "current:ResizeGlyph",
+    "current:ColorAssistGlyph",
+    "current:SpeedGlyph",
+    "current:TimerGlyph",
+    "current:SubtitleGlyph",
+    "current:DanmakuSettingGlyph",
+    "current:DislikeGlyph",
+    "current:WatchLaterGlyph",
+    "current:CacheGlyphSmall",
+    "current:PipGlyphSmall",
+    "current:CastGlyphSmall",
+    "current:LockGlyph.true",
+    "current:LockGlyph.false",
+    "current:Menu.Reply",
+    "current:Menu.Copy",
+    "current:Menu.Report",
+    "current:Menu.Block",
+    "current:Menu.Delete",
+    "current:Menu.Coin",
+    "current:Menu.Star",
+    "current:Danmaku.Fixed",
+    "current:Danmaku.Scroll",
+    "current:Danmaku.Color",
+    "current:Danmaku.Advanced",
+    "current:Danmaku.Count",
+    "current:MarkRead",
+    "current:ThreeDots",
+    "current:Comment",
+    "current:Pause",
+    "current:字符 ›",
+    "current:字符 ⌄",
+    "current:字符 ✓",
+    "current:字符 ✓  ",
+    "current:字符 ✕"
+  ],
+  "icons": [
+    {
+      "id": "current:CollectionHeader",
+      "name": "CollectionHeader",
+      "semantic": "合集标题图标",
+      "group": "合集 / 详情统计",
+      "sources": [
+        "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+          "line": 42,
+          "snippet": "imageVector = MiuixIcons.Playlist,",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "scenes": [
+        "视频详情 / 播放器",
+        "合集"
+      ],
+      "status": "源码原形 · 默认保留，待审阅",
+      "semanticBasis": "按源码实际绘制与交互确认",
+      "implementation": {
+        "kind": "vector",
+        "previewId": "miuix:Playlist.Regular",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+            "line": 42,
+            "snippet": "imageVector = MiuixIcons.Playlist,",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "current:CollectionTopButton",
+      "name": "CollectionTopButton",
+      "semantic": "合集 · 回到顶部",
+      "group": "合集 / 详情统计",
+      "sources": [
+        "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+          "line": 76,
+          "snippet": "private fun CollectionTopButton(onClick: () -> Unit) {",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "scenes": [
+        "视频详情 / 播放器",
+        "合集"
+      ],
+      "status": "源码原形 · 默认保留，待审阅",
+      "semanticBasis": "按源码实际绘制与交互确认",
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:CollectionTopButton",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+            "line": 76,
+            "snippet": "private fun CollectionTopButton(onClick: () -> Unit) {",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "current:CollectionBottomButton",
+      "name": "CollectionBottomButton",
+      "semantic": "合集 · 回到底部",
+      "group": "合集 / 详情统计",
+      "sources": [
+        "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+          "line": 125,
+          "snippet": "private fun CollectionBottomButton(onClick: () -> Unit) {",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "scenes": [
+        "视频详情 / 播放器",
+        "合集"
+      ],
+      "status": "源码原形 · 默认保留，待审阅",
+      "semanticBasis": "按源码实际绘制与交互确认",
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:CollectionBottomButton",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+            "line": 125,
+            "snippet": "private fun CollectionBottomButton(onClick: () -> Unit) {",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "current:CollectionCurrentButton",
+      "name": "CollectionCurrentButton",
+      "semantic": "合集 · 定位当前播放",
+      "group": "合集 / 详情统计",
+      "sources": [
+        "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+          "line": 173,
+          "snippet": "private fun CollectionCurrentButton(onClick: () -> Unit) {",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "scenes": [
+        "视频详情 / 播放器",
+        "合集"
+      ],
+      "status": "源码原形 · 默认保留，待审阅",
+      "semanticBasis": "按源码实际绘制与交互确认",
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:CollectionCurrentButton",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+            "line": 173,
+            "snippet": "private fun CollectionCurrentButton(onClick: () -> Unit) {",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "current:CollectionExpandChevron",
+      "name": "CollectionExpandChevron",
+      "semantic": "合集 / 简介 · 展开收起",
+      "group": "合集 / 详情统计",
+      "sources": [
+        "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoDescription.kt"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoDescription.kt",
+          "line": 81,
+          "snippet": "fun ExpandChevron(expanded: Boolean) {",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "scenes": [
+        "视频详情 / 播放器",
+        "合集"
+      ],
+      "status": "源码原形 · 默认保留，待审阅",
+      "semanticBasis": "按源码实际绘制与交互确认",
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:CollectionExpandChevron",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoDescription.kt",
+            "line": 81,
+            "snippet": "fun ExpandChevron(expanded: Boolean) {",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "current:DetailMetricPlay",
+      "name": "DetailMetricPlay",
+      "semantic": "视频详情 · 播放量",
+      "group": "合集 / 详情统计",
+      "sources": [
+        "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoActionStats.kt"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoActionStats.kt",
+          "line": 53,
+          "snippet": "internal fun MiniStat(text: String, playIcon: Boolean) {",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "scenes": [
+        "视频详情 / 播放器",
+        "详情统计"
+      ],
+      "status": "源码原形 · 默认保留，待审阅",
+      "semanticBasis": "按源码实际绘制与交互确认",
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:DetailMetricPlay",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoActionStats.kt",
+            "line": 53,
+            "snippet": "internal fun MiniStat(text: String, playIcon: Boolean) {",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "current:DetailMetricDanmaku",
+      "name": "DetailMetricDanmaku",
+      "semantic": "视频详情 · 弹幕数",
+      "group": "合集 / 详情统计",
+      "sources": [
+        "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoActionStats.kt"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoActionStats.kt",
+          "line": 66,
+          "snippet": "drawRoundRect(",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "scenes": [
+        "视频详情 / 播放器",
+        "详情统计"
+      ],
+      "status": "源码原形 · 默认保留，待审阅",
+      "semanticBasis": "按源码实际绘制与交互确认",
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:DetailMetricDanmaku",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoActionStats.kt",
+            "line": 66,
+            "snippet": "drawRoundRect(",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    }
+  ]
+}

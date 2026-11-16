@@ -369,7 +369,7 @@
           "line": 71,
           "snippet": "AppGlyph(MiuixIcons.More, size = 18.dp, modifier = Modifier.clickable(onClick = onMore).padding(12.dp), tint = colors.onBackgroundVariant)",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         },
         {
@@ -377,7 +377,7 @@
           "line": 37,
           "snippet": "AppGlyph(MiuixIcons.More, size = 22.dp, tint = Color.White,",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         }
       ],
@@ -400,14 +400,14 @@
           "name": "More",
           "variant": "Regular"
         },
-        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
         "locations": [
           {
             "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/MessageListComponents.kt",
             "line": 71,
             "snippet": "AppGlyph(MiuixIcons.More, size = 18.dp, modifier = Modifier.clickable(onClick = onMore).padding(12.dp), tint = colors.onBackgroundVariant)",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           },
           {
@@ -415,7 +415,7 @@
             "line": 37,
             "snippet": "AppGlyph(MiuixIcons.More, size = 22.dp, tint = Color.White,",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           }
         ],
@@ -433,10 +433,10 @@
       "locations": [
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineActions.kt",
-          "line": 118,
+          "line": 123,
           "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, colors.outline, size = 12.dp)",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         },
         {
@@ -444,7 +444,7 @@
           "line": 43,
           "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 11.dp, tint = colors.onBackgroundVariant)",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         }
       ],
@@ -467,14 +467,14 @@
           "name": "ArrowRight",
           "variant": "Basic"
         },
-        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
         "locations": [
           {
             "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineActions.kt",
-            "line": 118,
+            "line": 123,
             "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, colors.outline, size = 12.dp)",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           },
           {
@@ -482,7 +482,7 @@
             "line": 43,
             "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 11.dp, tint = colors.onBackgroundVariant)",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           }
         ],
@@ -502,7 +502,7 @@
           "line": 119,
           "snippet": "AppGlyph(MiuixIcons.Ok, size = 11.dp, tint = Color(0xFF3B82F6))",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         }
       ],
@@ -525,14 +525,14 @@
           "name": "Ok",
           "variant": "Regular"
         },
-        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
         "locations": [
           {
             "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileDetails.kt",
             "line": 119,
             "snippet": "AppGlyph(MiuixIcons.Ok, size = 11.dp, tint = Color(0xFF3B82F6))",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           }
         ],
@@ -553,7 +553,7 @@
           "line": 148,
           "snippet": "AppGlyph(LucideIcons.SendHorizontalFilled, size = 20.dp, tint = if (text.isBlank()) Color.Black.copy(alpha = 0.25f) else Color(0xFFFB7299))",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         }
       ],
@@ -576,14 +576,14 @@
           "name": "send-horizontal-filled",
           "variant": "Filled"
         },
-        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
         "locations": [
           {
             "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDanmakuComposer.kt",
             "line": 148,
             "snippet": "AppGlyph(LucideIcons.SendHorizontalFilled, size = 20.dp, tint = if (text.isBlank()) Color.Black.copy(alpha = 0.25f) else Color(0xFFFB7299))",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           }
         ],
@@ -603,7 +603,7 @@
           "line": 119,
           "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 18.dp, tint = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f))",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         },
         {
@@ -611,7 +611,7 @@
           "line": 25,
           "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f))",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         },
         {
@@ -619,7 +619,7 @@
           "line": 43,
           "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = MiuixTheme.colorScheme.onBackgroundVariant)",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         },
         {
@@ -627,7 +627,7 @@
           "line": 29,
           "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = MiuixTheme.colorScheme.onBackgroundVariant)",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         }
       ],
@@ -650,14 +650,14 @@
           "name": "face-grinning",
           "variant": "Outline"
         },
-        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
         "locations": [
           {
             "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveRoomInput.kt",
             "line": 119,
             "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 18.dp, tint = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f))",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           },
           {
@@ -665,7 +665,7 @@
             "line": 25,
             "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f))",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           },
           {
@@ -673,7 +673,7 @@
             "line": 43,
             "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = MiuixTheme.colorScheme.onBackgroundVariant)",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           },
           {
@@ -681,7 +681,7 @@
             "line": 29,
             "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = MiuixTheme.colorScheme.onBackgroundVariant)",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           }
         ],
@@ -2004,6 +2004,14 @@
       ],
       "locations": [
         {
+          "path": "app/src/main/res/drawable/act_dislike.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
+        {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 21,
           "snippet": "val Dislike = R.drawable.act_dislike",
@@ -2024,6 +2032,12 @@
         "family": "Lucide",
         "name": "thumbs-down",
         "variant": "Outline"
+      },
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:act_dislike",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/act_dislike.xml"
       }
     },
     {
@@ -2035,6 +2049,14 @@
         "视频详情 / 播放器"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/act_like.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 20,
@@ -2062,6 +2084,12 @@
         "family": "Lucide Extended",
         "name": "thumbs-up-filled",
         "variant": "Filled"
+      },
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:act_like",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/act_like.xml"
       }
     },
     {
@@ -2072,6 +2100,14 @@
         "资源 / 公共组件"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/act_like_outline.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 22,
@@ -2087,6 +2123,12 @@
         "family": "Lucide",
         "name": "thumbs-up",
         "variant": "Outline"
+      },
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:act_like_outline",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/act_like_outline.xml"
       }
     },
     {
@@ -2098,6 +2140,14 @@
         "视频详情 / 播放器"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/act_share.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 25,
@@ -2131,6 +2181,12 @@
         "family": "Lucide Extended",
         "name": "share-2-filled",
         "variant": "Filled"
+      },
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:act_share",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/act_share.xml"
       }
     },
     {
@@ -2142,6 +2198,14 @@
         "视频详情 / 播放器"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/act_star.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 24,
@@ -2169,6 +2233,12 @@
         "family": "Lucide Extended",
         "name": "star-filled",
         "variant": "Filled"
+      },
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:act_star",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/act_star.xml"
       }
     },
     {
@@ -2384,6 +2454,14 @@
       ],
       "locations": [
         {
+          "path": "app/src/main/res/drawable/comment_bubble.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
+        {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 27,
           "snippet": "val CommentBubble = R.drawable.comment_bubble",
@@ -2410,6 +2488,12 @@
         "family": "Miuix",
         "name": "Messages",
         "variant": "Regular"
+      },
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:comment_bubble",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/comment_bubble.xml"
       }
     },
     {
@@ -2420,6 +2504,14 @@
         "评论"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/comment_dislike.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 30,
@@ -2436,7 +2528,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:comment_dislike",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/comment_dislike.xml"
+      }
     },
     {
       "currentId": "current:comment_dislike_filled",
@@ -2446,6 +2544,14 @@
         "评论"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/comment_dislike_filled.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 31,
@@ -2462,7 +2568,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:comment_dislike_filled",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/comment_dislike_filled.xml"
+      }
     },
     {
       "currentId": "current:comment_like",
@@ -2473,6 +2585,14 @@
         "评论"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/comment_like.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 28,
@@ -2507,7 +2627,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:comment_like",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/comment_like.xml"
+      }
     },
     {
       "currentId": "current:comment_like_filled",
@@ -2518,6 +2644,14 @@
         "评论"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/comment_like_filled.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 29,
@@ -2552,7 +2686,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:comment_like_filled",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/comment_like_filled.xml"
+      }
     },
     {
       "currentId": "current:dev_artix",
@@ -2643,6 +2783,14 @@
       ],
       "locations": [
         {
+          "path": "app/src/main/res/drawable/fs_comment.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
+        {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 47,
           "snippet": "val PlayerComment = R.drawable.fs_comment",
@@ -2658,7 +2806,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:fs_comment",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/fs_comment.xml"
+      }
     },
     {
       "currentId": "current:fs_danmaku_off",
@@ -2669,6 +2823,14 @@
         "直播"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/fs_danmaku_off.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 43,
@@ -2691,7 +2853,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:fs_danmaku_off",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/fs_danmaku_off.xml"
+      }
     },
     {
       "currentId": "current:fs_danmaku_on",
@@ -2702,6 +2870,14 @@
         "直播"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/fs_danmaku_on.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 42,
@@ -2724,7 +2900,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:fs_danmaku_on",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/fs_danmaku_on.xml"
+      }
     },
     {
       "currentId": "current:fs_danmaku_settings",
@@ -2735,6 +2917,14 @@
         "直播"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/fs_danmaku_settings.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 44,
@@ -2757,7 +2947,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:fs_danmaku_settings",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/fs_danmaku_settings.xml"
+      }
     },
     {
       "currentId": "current:fs_like",
@@ -2767,6 +2963,14 @@
         "全屏播放器"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/fs_like.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 46,
@@ -2783,7 +2987,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:fs_like",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/fs_like.xml"
+      }
     },
     {
       "currentId": "current:fs_next",
@@ -2793,6 +3003,14 @@
         "全屏播放器"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/fs_next.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 45,
@@ -2809,7 +3027,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:fs_next",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/fs_next.xml"
+      }
     },
     {
       "currentId": "current:fs_play",
@@ -2822,6 +3046,14 @@
         "视频详情 / 播放器"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/fs_play.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 37,
@@ -2868,7 +3100,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:fs_play",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/fs_play.xml"
+      }
     },
     {
       "currentId": "current:fs_share",
@@ -2878,6 +3116,14 @@
         "全屏播放器"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/fs_share.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 49,
@@ -2894,7 +3140,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:fs_share",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/fs_share.xml"
+      }
     },
     {
       "currentId": "current:fs_star",
@@ -2904,6 +3156,14 @@
         "全屏播放器"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/fs_star.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 48,
@@ -2920,7 +3180,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:fs_star",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/fs_star.xml"
+      }
     },
     {
       "currentId": "current:ic_fullscreen",
@@ -3030,11 +3296,19 @@
     {
       "currentId": "current:ic_metric_danmaku",
       "currentName": "ic_metric_danmaku",
-      "semantic": "弹幕数量",
+      "semantic": "视频卡片 · 弹幕数",
       "scenes": [
-        "视频详情 / 播放器"
+        "视频卡片 / 首页 / 搜索 / 媒体库"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/ic_metric_danmaku.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 34,
@@ -3051,16 +3325,30 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:ic_metric_danmaku",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/ic_metric_danmaku.xml"
+      }
     },
     {
       "currentId": "current:ic_metric_play",
       "currentName": "ic_metric_play",
-      "semantic": "播放量",
+      "semantic": "视频卡片 · 播放量",
       "scenes": [
-        "视频详情 / 播放器"
+        "视频卡片 / 首页 / 搜索 / 媒体库"
       ],
       "locations": [
+        {
+          "path": "app/src/main/res/drawable/ic_metric_play.xml",
+          "line": 1,
+          "snippet": "<vector> 原生 PNG 轮廓矢量化",
+          "kind": "资源定义",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/TeakIcons.kt",
           "line": 33,
@@ -3077,7 +3365,13 @@
       "mode": "keep",
       "reviewed": false,
       "note": "",
-      "replacement": null
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "native:ic_metric_play",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "resource": "app/src/main/res/drawable/ic_metric_play.xml"
+      }
     },
     {
       "currentId": "current:ic_seek_thumb",
@@ -4811,7 +5105,7 @@
           "line": 79,
           "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 14.dp, tint = colors.outline)",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         },
         {
@@ -4819,7 +5113,7 @@
           "line": 130,
           "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 22.dp, tint = colors.onSurfaceVariantSummary)",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         },
         {
@@ -4827,7 +5121,7 @@
           "line": 126,
           "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 16.dp, tint = Color.White.copy(alpha = 0.4f))",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         },
         {
@@ -4835,7 +5129,7 @@
           "line": 207,
           "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 16.dp, tint = colors.onBackgroundVariant)",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         }
       ],
@@ -4858,14 +5152,14 @@
           "name": "ArrowRight",
           "variant": "Basic"
         },
-        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
         "locations": [
           {
             "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/sent/SentRecordRow.kt",
             "line": 79,
             "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 14.dp, tint = colors.outline)",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           },
           {
@@ -4873,7 +5167,7 @@
             "line": 130,
             "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 22.dp, tint = colors.onSurfaceVariantSummary)",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           },
           {
@@ -4881,7 +5175,7 @@
             "line": 126,
             "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 16.dp, tint = Color.White.copy(alpha = 0.4f))",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           },
           {
@@ -4889,7 +5183,7 @@
             "line": 207,
             "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 16.dp, tint = colors.onBackgroundVariant)",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           }
         ],
@@ -4909,7 +5203,7 @@
           "line": 53,
           "snippet": "AppGlyph(MiuixIcons.Basic.ArrowUpDown, size = 24.dp, tint = Color.White.copy(alpha = 0.8f),",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         }
       ],
@@ -4932,14 +5226,14 @@
           "name": "ArrowUpDown",
           "variant": "Basic"
         },
-        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
         "locations": [
           {
             "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerAuthor.kt",
             "line": 53,
             "snippet": "AppGlyph(MiuixIcons.Basic.ArrowUpDown, size = 24.dp, tint = Color.White.copy(alpha = 0.8f),",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           }
         ],
@@ -4959,7 +5253,7 @@
           "line": 38,
           "snippet": "AppGlyph(MiuixIcons.Ok, size = 13.dp, tint = Color.White)",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         }
       ],
@@ -4982,14 +5276,14 @@
           "name": "Ok",
           "variant": "Regular"
         },
-        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
         "locations": [
           {
             "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/video/card/GridCoverSelection.kt",
             "line": 38,
             "snippet": "AppGlyph(MiuixIcons.Ok, size = 13.dp, tint = Color.White)",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           }
         ],
@@ -5009,7 +5303,7 @@
           "line": 57,
           "snippet": "AppGlyph(MiuixIcons.Ok, colors.primary, size = 18.dp)",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         }
       ],
@@ -5032,14 +5326,14 @@
           "name": "Ok",
           "variant": "Regular"
         },
-        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
         "locations": [
           {
             "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageSettingsContent.kt",
             "line": 57,
             "snippet": "AppGlyph(MiuixIcons.Ok, colors.primary, size = 18.dp)",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           }
         ],
@@ -5059,7 +5353,7 @@
           "line": 30,
           "snippet": "AppGlyph(MiuixIcons.Close, size = 26.dp, tint = Color.White,",
           "kind": "引用",
-          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
           "localOnly": true
         }
       ],
@@ -5082,20 +5376,286 @@
           "name": "Close",
           "variant": "Regular"
         },
-        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
         "locations": [
           {
             "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerTopBar.kt",
             "line": 30,
             "snippet": "AppGlyph(MiuixIcons.Close, size = 26.dp, tint = Color.White,",
             "kind": "引用",
-            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
             "localOnly": true
           }
         ],
         "replacesSymbol": true
       }
+    },
+    {
+      "currentId": "current:CollectionHeader",
+      "currentName": "CollectionHeader",
+      "semantic": "合集标题图标",
+      "scenes": [
+        "视频详情 / 播放器",
+        "合集"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+          "line": 42,
+          "snippet": "imageVector = MiuixIcons.Playlist,",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null,
+      "implementation": {
+        "kind": "vector",
+        "previewId": "miuix:Playlist.Regular",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+            "line": 42,
+            "snippet": "imageVector = MiuixIcons.Playlist,",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "currentId": "current:CollectionTopButton",
+      "currentName": "CollectionTopButton",
+      "semantic": "合集 · 回到顶部",
+      "scenes": [
+        "视频详情 / 播放器",
+        "合集"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+          "line": 76,
+          "snippet": "private fun CollectionTopButton(onClick: () -> Unit) {",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null,
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:CollectionTopButton",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+            "line": 76,
+            "snippet": "private fun CollectionTopButton(onClick: () -> Unit) {",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "currentId": "current:CollectionBottomButton",
+      "currentName": "CollectionBottomButton",
+      "semantic": "合集 · 回到底部",
+      "scenes": [
+        "视频详情 / 播放器",
+        "合集"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+          "line": 125,
+          "snippet": "private fun CollectionBottomButton(onClick: () -> Unit) {",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null,
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:CollectionBottomButton",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+            "line": 125,
+            "snippet": "private fun CollectionBottomButton(onClick: () -> Unit) {",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "currentId": "current:CollectionCurrentButton",
+      "currentName": "CollectionCurrentButton",
+      "semantic": "合集 · 定位当前播放",
+      "scenes": [
+        "视频详情 / 播放器",
+        "合集"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+          "line": 173,
+          "snippet": "private fun CollectionCurrentButton(onClick: () -> Unit) {",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null,
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:CollectionCurrentButton",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoCollectionHeader.kt",
+            "line": 173,
+            "snippet": "private fun CollectionCurrentButton(onClick: () -> Unit) {",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "currentId": "current:CollectionExpandChevron",
+      "currentName": "CollectionExpandChevron",
+      "semantic": "合集 / 简介 · 展开收起",
+      "scenes": [
+        "视频详情 / 播放器",
+        "合集"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoDescription.kt",
+          "line": 81,
+          "snippet": "fun ExpandChevron(expanded: Boolean) {",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null,
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:CollectionExpandChevron",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoDescription.kt",
+            "line": 81,
+            "snippet": "fun ExpandChevron(expanded: Boolean) {",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "currentId": "current:DetailMetricPlay",
+      "currentName": "DetailMetricPlay",
+      "semantic": "视频详情 · 播放量",
+      "scenes": [
+        "视频详情 / 播放器",
+        "详情统计"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoActionStats.kt",
+          "line": 53,
+          "snippet": "internal fun MiniStat(text: String, playIcon: Boolean) {",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null,
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:DetailMetricPlay",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoActionStats.kt",
+            "line": 53,
+            "snippet": "internal fun MiniStat(text: String, playIcon: Boolean) {",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
+    },
+    {
+      "currentId": "current:DetailMetricDanmaku",
+      "currentName": "DetailMetricDanmaku",
+      "semantic": "视频详情 · 弹幕数",
+      "scenes": [
+        "视频详情 / 播放器",
+        "详情统计"
+      ],
+      "locations": [
+        {
+          "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoActionStats.kt",
+          "line": 66,
+          "snippet": "drawRoundRect(",
+          "kind": "定义 / 绘制",
+          "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+          "localOnly": true
+        }
+      ],
+      "mode": "keep",
+      "reviewed": false,
+      "note": "",
+      "replacement": null,
+      "implementation": {
+        "kind": "canvas",
+        "previewId": "native:DetailMetricDanmaku",
+        "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/metadata/VideoActionStats.kt",
+            "line": 66,
+            "snippet": "drawRoundRect(",
+            "kind": "定义 / 绘制",
+            "revision": "58c041d9a6a6d614c7c7b53410e48835e529316a",
+            "localOnly": true
+          }
+        ]
+      }
     }
   ],
-  "implementationRevision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281"
+  "implementationRevision": "58c041d9a6a6d614c7c7b53410e48835e529316a"
 }
