@@ -13,6 +13,8 @@ import com.aritxonly.bdfun.core.application.*
 internal fun EmoteText(content: EmoteTextContent, style: EmoteTextStyle, modifier: Modifier = Modifier,
     decorations: EmoteTextDecorations = EmoteTextDecorations(), onMentionClick: ((Long) -> Unit)? = null) {
     val dependencies = LocalRichTextDependencies.current
+    // 动态和独立评论页也会直接渲染正文，不应依赖先打开播放器或表情面板。
+    androidx.compose.runtime.LaunchedEffect(dependencies.emotes) { dependencies.emotes.ensure() }
     val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
     val context = androidx.compose.ui.platform.LocalContext.current
     val linkColor = MiuixTheme.colorScheme.primary

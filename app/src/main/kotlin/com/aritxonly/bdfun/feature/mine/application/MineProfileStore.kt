@@ -7,6 +7,7 @@ internal class MineProfileStore(private val now: () -> Long) {
     private var profile: UserProfile? = null
     private var loadedAt = 0L
     private var owner = 0L
+    fun snapshot(mid: Long): UserProfile? = profile?.takeIf { owner == mid }
     fun cached(mid: Long): UserProfile? = profile?.takeIf { owner == mid && now() - loadedAt < TTL }
     fun put(mid: Long, value: UserProfile, startedAt: Long) { owner = mid; profile = value; loadedAt = startedAt }
     fun timestamp() = now()

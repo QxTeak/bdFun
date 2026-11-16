@@ -15,6 +15,8 @@ import com.aritxonly.bdfun.feature.video.presentation.VideoOutput
 /** 使用原 XML 与同一个 PlayerView，不给展示树添加包装节点。 */
 internal class Media3VideoOutput(context: Context, player: Player) : VideoOutput {
     override val view = (LayoutInflater.from(context).inflate(R.layout.teak_player_view, null) as PlayerView).apply {
+        // 换 CDN/清晰度会重新 prepare，保留纹理中的上一帧直到新首帧到达。
+        setKeepContentOnPlayerReset(true)
         this.player = player
         useController = false
         setShutterBackgroundColor(android.graphics.Color.BLACK)

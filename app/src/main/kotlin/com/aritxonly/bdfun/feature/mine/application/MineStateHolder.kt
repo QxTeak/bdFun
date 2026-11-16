@@ -15,7 +15,7 @@ internal class MineStateHolder(
     private val initial: UserProfile?, private val repository: MineRepository,
     private val cache: MineProfileStore, private val currentOwner: () -> Boolean = { true },
 ) {
-    private val mutable = MutableStateFlow(MineUiState(initial))
+    private val mutable = MutableStateFlow(MineUiState(initial?.let { cache.snapshot(it.mid) ?: it }))
     val state = mutable.asStateFlow()
     private var closed = false
     private val active get() = !closed && currentOwner()
@@ -31,10 +31,11 @@ internal class MineStateHolder(
             val relation = request { repository.relationStat(profile.mid) }
             val likes = request { repository.likes(profile.mid) }
             val decoration = request { repository.decoration(profile.mid) }
-            val selected = nav ?: profile
-            val merged = selected.copy(decoration = decoration ?: selected.decoration, stats = selected.stats.copy(
-                following = relation?.first ?: profile.following,
-                follower = relation?.second ?: profile.follower, likes = likes ?: profile.likes))
+            val previous = mutable.value.profile ?: profile
+            val selected = nav ?: previous
+            val merged = selected.copy(decoration = decoration ?: previous.decoration, stats = selected.stats.copy(
+                following = relation?.first ?: previous.following,
+                follower = relation?.second ?: previous.follower, likes = likes ?: previous.likes))
             mutable.value = MineUiState(merged)
             cache.put(profile.mid, merged, startedAt)
         } finally { mutable.value = mutable.value.copy(loading = false) }

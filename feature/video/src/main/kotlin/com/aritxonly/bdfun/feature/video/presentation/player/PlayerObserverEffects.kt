@@ -26,14 +26,13 @@ fun BindPlayerObserver(
     val quality = media.quality
     val latestBvid by rememberUpdatedState(bvid)
     val onPlayStateChanged = actions.transport.onPlayStateChanged
-    var firstFrame by ui.firstFrame
     var controlsVisible by ui.controlsVisible
     val latestInfo by rememberUpdatedState(info)
     val latestQuality by rememberUpdatedState(quality)
     DisposableEffect(Unit) {
         val listener = object : PlaybackController.Listener {
             override fun onRenderedFirstFrame() {
-                firstFrame = true
+                ui.renderedMediaKey.value = ui.preparedMediaKey.value
                 diagnostics.log(
                     "PLAYER",
                     "first-frame bvid=$bvid q=${latestQuality?.id}",
@@ -104,6 +103,10 @@ private fun handlePlayerError(
             "usingOriginal=$usingOriginal usingFallback=$usingFallback " +
             "message=${error.message?.take(300)}",
     )
+    if (com.aritxonly.bdfun.core.domain.isTransientPlaybackNetworkFailure(error.code)) {
+        toast("网络连接中断，请检查网络后重试")
+        return
+    }
     when (selectPlaybackRecovery(latestQuality, latestInfo, usingOriginal, usingFallback)) {
         PlaybackRecoveryAction.RetryOriginal -> usingOriginal = true
         PlaybackRecoveryAction.RetryFallback -> {

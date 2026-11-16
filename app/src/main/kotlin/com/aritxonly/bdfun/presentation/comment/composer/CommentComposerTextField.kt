@@ -21,15 +21,15 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun CommentComposerTextField(content: CommentComposerContent, actions: CommentComposerActions) {
     val colors = MiuixTheme.colorScheme
     val draft = content.snapshot.draft
-    val actionsAlpha = content.actionsAlpha
     val pendingPreview = content.pendingPreview
     val focusRequester = content.focusRequester
     Box(
         modifier = Modifier
-            .fillMaxSize()
+            .fillMaxWidth()
             .padding(
+                top = 13.dp, bottom = 13.dp,
                 start = 16.dp,
-                end = (8f + 64f * actionsAlpha +
+                end = (8f + 64f +
                     (if (pendingPreview != null) 30f else 0f)).dp,
             ),
         contentAlignment = Alignment.CenterStart,
@@ -37,7 +37,8 @@ internal fun CommentComposerTextField(content: CommentComposerContent, actions: 
         BasicTextField(
             value = draft,
             onValueChange = actions::setDraft,
-            singleLine = true,
+            singleLine = false,
+            maxLines = 5,
             textStyle = ComposerTextStyle.copy(color = colors.onBackground),
             cursorBrush = SolidColor(BrandPink),
             modifier = Modifier

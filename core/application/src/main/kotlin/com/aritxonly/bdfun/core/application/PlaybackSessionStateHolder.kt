@@ -30,6 +30,8 @@ class PlaybackSessionStateHolder(private val scope: CoroutineScope) {
 
     private fun bind(controller: PlaybackController) {
         if (this.controller === controller) return
+        // 新视频接管时立即停住旧传输，不能仅依赖窗口生命周期或音频焦点。
+        this.controller?.pause()
         this.controller = controller
         binding?.cancel()
         val version = ++revision

@@ -28,7 +28,9 @@ internal data class HomeFeedUiState(
 ) : UiState
 
 /** 这是首页状态模板：不可变 UiState + StateFlow，界面事件只调用这里的动作。 */
-internal class HomeFeedStateHolder(private val feed: FeedRepository, private val videos: VideoRepository) : StateHolder<HomeFeedUiState> {
+internal class HomeFeedStateHolder(private val feed: FeedRepository, private val videos: VideoRepository,
+    private val cache: HomeFeedCache? = null, private val requestTimeoutMs: Long = 12_000,
+) : StateHolder<HomeFeedUiState> {
     private val mutable = MutableStateFlow(HomeFeedUiState())
     override val state: StateFlow<HomeFeedUiState> = mutable.asStateFlow()
     private val firstLoad = Mutex()
@@ -57,6 +59,10 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
         val ticket = ++generation
         mutable.update { it.copy(loading = true, error = null, loadMoreError = null, empty = false) }
         try {
+            if (mutable.value.videos.isEmpty()) {
+                val saved = (cache?.read() as? Outcome.Success)?.value.orEmpty().filter(exclusions::accepts)
+                if (ticket == generation && saved.isNotEmpty()) mutable.update { it.copy(videos = saved, loading = false) }
+            }
             when (val result = recommendations(1)) {
                 is Outcome.Failure -> if (ticket == generation) mutable.update { it.copy(error = result.error) }
                 is Outcome.Success -> if (ticket == generation) {
@@ -67,6 +73,7 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
                         page = 1
                         started = true
                         mutable.update { it.copy(videos = if (same) old else distinct, endReached = false) }
+                        cache?.write(distinct)
                     } else mutable.update { it.copy(empty = it.videos.isEmpty()) }
                 }
             }
@@ -92,6 +99,7 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
                             old.copy(videos = fresh + old.videos, endReached = if (fresh.isNotEmpty()) false else old.endReached,
                                 scrollRevision = old.scrollRevision + 1)
                         }
+                        cache?.write(items)
                     } else mutable.update { it.copy(empty = it.videos.isEmpty()) }
                 }
             }
@@ -124,7 +132,11 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
         }
     }
 
-    private suspend fun recommendations(page: Int): Outcome<Batch> {
+    private suspend fun recommendations(page: Int): Outcome<Batch> =
+        kotlinx.coroutines.withTimeoutOrNull(requestTimeoutMs) { loadRecommendations(page) }
+            ?: Outcome.Failure(AppError.Network("网络较慢，请稍后重试"))
+
+    private suspend fun loadRecommendations(page: Int): Outcome<Batch> {
         val items = when (val result = feed.recommend(page)) {
             is Outcome.Failure -> return result
             is Outcome.Success -> result.value

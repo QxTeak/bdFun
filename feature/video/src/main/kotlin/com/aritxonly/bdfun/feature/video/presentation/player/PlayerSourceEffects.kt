@@ -47,6 +47,7 @@ fun BindPlayerSource(
                 "usingOriginal=$usingOriginal usingFallback=$usingFallback " +
                 "video=${describeMediaUrl(url)} audio=${describeMediaUrl(audioUrl)}",
         )
+        ui.preparedMediaKey.value = mediaKey
         playback.prepare(PlaybackSource(
             videoUrl = url, audioUrl = audioUrl, mediaKey = mediaKey,
             headers = mapOf("Referer" to "https://www.bilibili.com/video/$bvid/"), userAgent = playback.userAgent,

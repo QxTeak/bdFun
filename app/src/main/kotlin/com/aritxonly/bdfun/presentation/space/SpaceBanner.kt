@@ -48,12 +48,14 @@ internal fun SpaceBanner(bitmap: android.graphics.Bitmap?, aspect: Float = 16f /
 internal suspend fun loadSpaceBannerBitmap(
     context: android.content.Context,
     url: String,
+    cacheOnly: Boolean = false,
 ): android.graphics.Bitmap? = withContext(Dispatchers.IO) {
     val request = ImageRequest.Builder(context)
         .data(com.aritxonly.bdfun.core.common.biliImageUrl(url))
         .setHeader("Referer", "https://space.bilibili.com/")
         .size(1440, 1440)
         .scale(coil.size.Scale.FIT)
+        .networkCachePolicy(if (cacheOnly) coil.request.CachePolicy.DISABLED else coil.request.CachePolicy.ENABLED)
         .allowHardware(false)
         .build()
     val result = coil.Coil.imageLoader(context).execute(request)

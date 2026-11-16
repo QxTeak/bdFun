@@ -36,9 +36,8 @@ fun CommentReplyBar(modifier: Modifier = Modifier) {
     val material = CommentComposerMaterial(
         TeakGlassRecipes.floatingNavigation(LocalTeakMaterialSpec.current.fineTuning), LocalTeakBackdrop.current)
     key(controller) {
-        val actionsAlpha = rememberSmoothFloat(if (snapshot.editing) 1f else 0f, 180f)
         val preview = remember(snapshot.pendingPreview) { snapshot.pendingPreview?.let(Uri::parse) }
-        val content = CommentComposerContent(snapshot, preview, page.replyTarget.name, presentation.focusRequester, actionsAlpha)
+        val content = CommentComposerContent(snapshot, preview, page.replyTarget.name, presentation.focusRequester)
         CommentComposerBody(content, actions, material, modifier)
     }
 }

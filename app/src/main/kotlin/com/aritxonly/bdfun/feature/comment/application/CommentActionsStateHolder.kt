@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.feature.comment.application
 import com.aritxonly.bdfun.core.application.CommentLike
 import com.aritxonly.bdfun.core.application.CommentLikeStore
 import com.aritxonly.bdfun.core.common.Outcome
+import com.aritxonly.bdfun.core.common.AppError
 import com.aritxonly.bdfun.core.domain.*
 import com.aritxonly.bdfun.core.model.comment.CommentItem
 import kotlinx.coroutines.CancellationException
@@ -12,12 +13,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
-internal data class CommentActionState(val sending: Boolean = false, val pending: Set<Long> = emptySet())
+internal data class CommentActionState(val sending: Boolean = false, val pending: Set<Long> = emptySet(), val sendError: AppError? = null)
 
 internal class CommentActionsStateHolder(
     private val repository: CommentContentRepository,
     private val query: CommentQuery,
     private val likes: CommentLikeStore,
+    private val sendTimeoutMs: Long = 20_000,
 ) {
     private val mutableState = MutableStateFlow(CommentActionState())
     val state = mutableState.asStateFlow()
@@ -70,11 +72,15 @@ internal class CommentActionsStateHolder(
 
     suspend fun post(text: String, root: Long, parent: Long, pictures: String? = null): Long? {
         if (!isActive || mutableState.value.sending) return null
-        mutableState.update { it.copy(sending = true) }
+        mutableState.update { it.copy(sending = true, sendError = null) }
         try {
-            val result = repository.post(CommentPost(query, text, root, parent, pictures))
+            val result = kotlinx.coroutines.withTimeoutOrNull(sendTimeoutMs) {
+                repository.post(CommentPost(query, text, root, parent, pictures))
+            } ?: Outcome.Failure(AppError.Network("发送超时，请检查评论是否已发出再重试"))
             currentCoroutineContext().ensureActive()
-            return if (isActive) (result as? Outcome.Success)?.value else null
+            if (!isActive) return null
+            if (result is Outcome.Failure) mutableState.update { it.copy(sendError = result.error) }
+            return (result as? Outcome.Success)?.value
         } finally { if (!closed) mutableState.update { it.copy(sending = false) } }
     }
 

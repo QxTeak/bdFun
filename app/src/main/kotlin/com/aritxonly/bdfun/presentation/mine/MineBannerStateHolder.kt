@@ -18,9 +18,13 @@ internal class MineBannerStateHolder {
         private set
 
     suspend fun load(context: Context, profile: UserProfile?) {
-        bitmap = null
         val candidates = (listOfNotNull(profile?.banner) + profile?.bannerFallbacks.orEmpty() + DEFAULT_SPACE_BANNER)
             .filter(String::isNotBlank).distinct()
+        // 优先读磁盘/内存中的任一候选，弱网下不用等第一个 URL 超时。
+        if (bitmap == null) for (url in candidates) {
+            val cached = loadSpaceBannerBitmap(context, url, cacheOnly = true)
+            if (cached != null) { bitmap = cached; break }
+        }
         for (url in candidates) {
             val loaded = try {
                 loadSpaceBannerBitmap(context, url)

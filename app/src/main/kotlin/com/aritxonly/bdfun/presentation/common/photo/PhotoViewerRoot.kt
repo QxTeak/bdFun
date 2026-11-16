@@ -71,12 +71,27 @@ internal fun PhotoViewerRoot(
             CompositionLocalProvider(LocalPhotoViewer provides state) { content() }
         }
         view.displayed?.let { request ->
-            // 查看器是窗口级覆盖层，外面没有主壳的 backdrop；这里自己录一份，
-            // 长按菜单才能像别处一样采样到大图、做出真正的玻璃模糊。
-            CompositionLocalProvider(LocalTeakBackdrop provides viewerBackdrop) {
-                Box(Modifier.fillMaxSize().layerBackdrop(viewerBackdrop)) {
-                    PhotoViewerOverlay(request = request, view = view, onDismiss = state::close)
+
+            // 楼中楼使用独立窗口；预览也必须开在窗口层，才能覆盖横竖屏弹窗。
+            androidx.compose.ui.window.Dialog(
+                onDismissRequest = state::close,
+                properties = androidx.compose.ui.window.DialogProperties(
+                    usePlatformDefaultWidth = false, decorFitsSystemWindows = false,
+                ),
+            ) {
+                val host = androidx.compose.ui.platform.LocalView.current
+                androidx.compose.runtime.SideEffect {
+                    (host.parent as? androidx.compose.ui.window.DialogWindowProvider)?.window?.apply {
+                        setDimAmount(0f)
+                        setWindowAnimations(0)
+                    }
                 }
+                CompositionLocalProvider(LocalTeakBackdrop provides viewerBackdrop) {
+                    Box(Modifier.fillMaxSize().layerBackdrop(viewerBackdrop)) {
+                        PhotoViewerOverlay(request = request, view = view, onDismiss = state::close)
+                    }
+                }
+
             }
         }
     }
