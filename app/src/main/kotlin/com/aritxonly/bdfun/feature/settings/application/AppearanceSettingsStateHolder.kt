@@ -9,6 +9,16 @@ internal class AppearanceSettingsStateHolder(
     floats: FloatSettingsWriter,
     codec: SearchHistoryCodec,
 ) : SettingsGroupStateHolder(prefs, values, floats, codec), AppearanceSettings {
+    private val feedRefreshRateState = stateCell("feedRefreshRateState",
+        normalizeFeedRefreshRate(prefs.getInt("feed_refresh_rate", DEFAULT_FEED_REFRESH_RATE)))
+
+    override var feedRefreshRate: Int
+        get() = feedRefreshRateState.value
+        set(value) {
+            feedRefreshRateState.value = normalizeFeedRefreshRate(value)
+            prefs.edit().putInt("feed_refresh_rate", feedRefreshRateState.value).apply()
+        }
+
     private val dynamicColorState = stateCell("dynamicColorState", prefs.getBoolean("dynamic_color", false))
 
     private val bottomBarRaiseState = stateCell("bottomBarRaiseState", prefs.getBoolean("bottom_bar_raise", false))

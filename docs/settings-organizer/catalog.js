@@ -47,8 +47,12 @@ window.SETTINGS_CATALOG = [
             "pref_name": "interface_style",
             "type": "dropdown",
             "title": "界面风格",
-            "default": 0,
+            "default": 2,
             "options": [
+              {
+                "title": "HyperOS 4",
+                "value": 2
+              },
               {
                 "title": "哔哩哔哩",
                 "value": 0
@@ -56,10 +60,6 @@ window.SETTINGS_CATALOG = [
               {
                 "title": "经典",
                 "value": 1
-              },
-              {
-                "title": "HyperOS 4",
-                "value": 2
               }
             ]
           }
@@ -71,7 +71,7 @@ window.SETTINGS_CATALOG = [
           {
             "pref_name": "blur",
             "type": "switch",
-            "title": "模糊效果",
+            "title": "高级材质",
             "default": true
           },
           {
@@ -80,6 +80,27 @@ window.SETTINGS_CATALOG = [
             "title": "减弱动态效果",
             "default": true,
             "inverted": true
+          },
+          {
+            "pref_name": "feed_refresh_rate",
+            "type": "dropdown",
+            "title": "信息流帧率",
+            "default": 60,
+            "subtitle": "主界面刷新率；自适应由系统决定",
+            "options": [
+              {
+                "title": "60",
+                "value": 60
+              },
+              {
+                "title": "120",
+                "value": 120
+              },
+              {
+                "title": "自适应",
+                "value": 0
+              }
+            ]
           },
           {
             "pref_name": "smart_refresh",
@@ -101,6 +122,12 @@ window.SETTINGS_CATALOG = [
             "title": "全局字号",
             "default": 1,
             "value_type": "decimal"
+          },
+          {
+            "pref_name": "vibration",
+            "type": "switch",
+            "title": "震动",
+            "default": true
           }
         ]
       },
