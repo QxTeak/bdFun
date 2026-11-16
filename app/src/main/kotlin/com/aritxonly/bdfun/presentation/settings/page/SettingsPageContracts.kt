@@ -10,7 +10,8 @@ internal class SettingsNavigation(
     val onAbout: (SettingsDestination) -> Unit, val onDeveloper: (String) -> Unit, val onNotify: (String) -> Unit,
 )
 internal class SettingsDependencies(val createCdn: () -> CdnSettingsStateHolder,
-    val mineLayout: com.aritxonly.bdfun.core.application.MineLayoutStateHolder)
+    val mineLayout: com.aritxonly.bdfun.core.application.MineLayoutStateHolder,
+    val recommendation: com.aritxonly.bdfun.core.application.RecommendationOptimizer)
 internal class SettingsPageRuntime(
     val settings: SettingsBindings, val cdn: CdnSettingsStateHolder, val cdnState: CdnSettingsUiState,
     val navigation: SettingsNavigation, val scope: kotlinx.coroutines.CoroutineScope, val onPickWallpaper: () -> Unit,

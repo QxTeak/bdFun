@@ -16,7 +16,7 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.homeVideoItems(
     onOpenVideo: (VideoItem) -> Unit, host: HomePresentationHost,
 ) {
     items(items = state.videos, key = { it.bvid }) { video ->
-        host.card(video, largeCards, { onOpenVideo(video) }, { ui.actionVideo = video })
+        host.card(video, largeCards, { state.open(video); onOpenVideo(video) }, { ui.actionVideo = video })
     }
 
 }

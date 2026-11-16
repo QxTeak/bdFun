@@ -32,6 +32,7 @@ internal fun MainTabPager(
     session: UserProfile?, settings: SettingsBindings, dynamicRefreshTick: Int,
     mineList: androidx.compose.foundation.lazy.LazyListState,
     homeSection: Int = 0,
+    homeInteractive: Boolean = true,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val topBarHeight = homeTopBarHeight(settings.interfaceStyle)
@@ -51,6 +52,7 @@ internal fun MainTabPager(
                         state = homeFeed,
                         onOpenVideo = { navigateToVideo(context, it) },
                         cardStyle = settings.homeCardStyle,
+                        interactive = homeInteractive && pager.settledPage == 0 && !pager.isScrollInProgress,
                         topBarHeight = topBarHeight,
                     )
                 } else if (homeSection == 1) {

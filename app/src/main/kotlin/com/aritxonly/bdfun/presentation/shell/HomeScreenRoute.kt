@@ -15,6 +15,7 @@ internal fun HomeScreenRoute(
     state: HomeFeedState,
     onOpenVideo: (VideoItem) -> Unit,
     cardStyle: Int = 0,
+    interactive: Boolean = true,
     topBarHeight: androidx.compose.ui.unit.Dp = HomeTopBarHeight,
 ) {
     val context = LocalContext.current
@@ -29,5 +30,5 @@ internal fun HomeScreenRoute(
             onExit = { if (BuildConfig.DEBUG) com.aritxonly.bdfun.data.LiveCounters.homeInstances-- },
         )
     }
-    HomeScreen(state, onOpenVideo, cardStyle, host)
+    HomeScreen(state, onOpenVideo, cardStyle, host, interactive)
 }

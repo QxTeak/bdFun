@@ -582,6 +582,14 @@ HyperOS 中性色以 Deadliner 的 HyperOS 适配为准：surface 为页面层�
 
 原本显式启用平面背景的玻璃控件统一通过 TeakGlassDefaults.flatBackgroundAlpha 读取深色 0.9 / 浅色 0.96；无平面背景的默认值仍为 0，不要为纯图标按钮补背景。
 
+### 2026-11-13 首页推荐优化设计入口
+
+新增业务设计见 docs/HOME_RECOMMENDATION_DESIGN.md（REC-00 至 REC-05）。2026-11-14 用户要求在 PR #52 同一分支实现；阶段验收状态见 docs/HOME_RECOMMENDATION_IMPLEMENTATION.md。“推荐算法优化”计划默认关闭，关闭旁路新增排序与学习、保持既有推荐源和行为；账号/模式/清除代数拒收迟到事件，禁止伪造曝光或猜测推荐协议。不得将本设计检查点写成全部阶段均已验收。
+
+### 2026-11-14 推荐优化本地 v1
+
+推荐开关与学习归属由 core/application/RecommendationOptimizer 管理，存储为 infra/storage/FileRecommendationStorage 的独立 v1 文件；默认关闭，游客不落盘。首页只在新批次执行 core/domain 的有界排序，已发布条目不重排。关闭、清除和账号变化使旧 ticket 失效；播放学习仅关联首页真实点击，通过共享 PlaybackSessionStateHolder 观察，不改播放行为。不开新推荐接口、不伪造曝光/上报；本地算法实现不等于官方协议、登录账号体验或质量收益已验收。具体剩余项见实现记录。
+
 ### 2026-11-14 SET-01 设置索引与原型
 
 设置索引位于 app/src/main/assets/settings-index.json，JSON 解析在 infra/storage，类型约束与搜索在 core/domain，写入通过 feature/settings/application 的显式白名单绑定调用原设置控制器，不能按任意 pref_name 直接落盘。当前索引包含首批36项开关/固定枚举；动态 CDN、文件选择、账号动作、我的页与推荐独立存储等仍沿用旧页，未宣称全量替换。HTML 原型在 docs/prototypes/settings，Android 页面尚未替换。
@@ -608,3 +616,10 @@ settings-seperation.json独立描述一级卡片分组及入口route/icon/color�
 
 直播首页接口 `/xlive/app-interface/v2/index/feed` 必须带 `fnval=912&network=wifi&scale=2`，少一个就 -400；`card_data.small_card_v1` 是**单个房间对象**，不是 `{list:[]}`，按 list 解析会把整页卡片丢光；观看人数取 `watched_show.text_large`。分区列表改用 BiliPai 验证过的 `/room/v3/area/getRoomList`（app 端 `second/getList` 与 web `getList` 实测均 -352，WBI 也救不回来），分区请求参数必须分开存 `area_id`/`parent_area_id`。登录态首页不下发 `area_entrance_v3`，按 PiliPlus 的做法用 `/room/v1/Area/getList` 补默认分区。关注直播不再用卡片横排，改成和动态页同源的 portal `live_users` 头像行（`LiveFollower`）。直播拉流必须在 ExoPlayer 数据源上带 `Referer: https://live.bilibili.com/`、web UA 和 Cookie，否则有地址也黑屏；竖屏顶栏不再用纯黑色块，改用页面 BackdropGlow + 顶部渐变。图片查看器长按弹 `TeakDropdownPanel`（保存该图片 / 保存全部图片 / 举报红字），位置按长按点换算锚点；保存走 MediaStore `Pictures/bdFun`。评论菜单锚点改成行内记录的按下坐标，带图评论追加「保存全部图片」；「自由复制」改为弹 `CommentCopySheet`，正文进 `SelectionContainer` 可自由拖选。首页三段与动态页顶栏过渡合并为单一 `MainTopBarChrome`，不要再各写一份。下拉刷新的 `canScrollBackward` 调用方不得再取反（会变成不在顶部也能刷新）；分页触发统一 `drop(1)` + 按卡片数比较。
 
+### 2026-11-15 推荐优化与设置索引集成
+
+PR #52 的推荐开关、清除和错误提示由 SettingsScreenRoute 向 main 设置索引的 recommendation_toggle/clear/error 三个扩展槽显式注入，沿用推荐独立存储，不恢复旧设置卡片列表。首页入口同时保留 main 的直播/番剧分段、按风格变化的顶栏高度，以及推荐曝光所需的 interactive 守卫。
+
+### 2026-11-16 推荐优化与首页弱网缓存集成
+
+首页 StateHolder 同时接收 optimizer/cache/requestTimeoutMs，保留 main 的首屏缓存和请求超时；缓存读取完成也须核对账号/模式 ticket。装配层按账号、来源与优化模式隔离缓存文件，关闭优化不复用优化后的缓存顺序。
