@@ -107,3 +107,10 @@
 | 字符 ✓ | miuix:Ok.Regular |
 | 字符 ✓ | miuix:Ok.Regular |
 | 字符 ✕ | miuix:Close.Regular |
+
+## 合入最新 main 后的补充
+
+- 已合入 origin/main `ecd7582`（PR #67，preview-6.0），合并提交 `4070e8c9`。
+- 10类字符替换的导出映射保留原 currentId，同时添加 legacyName 与 implementation，更新为矢量访问名、当前源码行号；旧预设仍按 stable ID 导入。本地尚未推送的源码位置明确标为本地实现，不生成无效的 GitHub 提交链接。
+- AppGlyph 与底栏共享 Painter 使用双倍分辨率矢量缓存再缩小。底栏现有 AnimatedContent 与 graphicsLayer 有非整数缩放，先前会继续缩放当前尺寸的像素缓存；此改动提高缓存分辨率，保持图形、字重、布局和动画参数不变。仅处理 VectorPainter，不把保留的 PNG 伪装成矢量。
+- 提升采样不会恢复原 PNG 已丢失的边缘细节，也不能替代用户设备上的对照验收；真机锯齿反馈仍需复核。

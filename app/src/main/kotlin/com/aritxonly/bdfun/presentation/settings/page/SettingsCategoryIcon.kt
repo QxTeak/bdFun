@@ -3,7 +3,7 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
+import com.aritxonly.teak.common.icons.AppGlyph
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,6 +27,6 @@ internal fun SettingsCategoryIcon(entry: SettingsEntry) {
     Box(Modifier.padding(end = 16.dp).size(32.dp)
         .background(Color(0xFF000000 or entry.color.removePrefix("#").toLong(16)), RoundedCornerShape(9.dp)),
         contentAlignment = Alignment.Center) {
-        Icon(icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(23.dp))
+        AppGlyph(icon, contentDescription = null, tint = Color.White, size = 23.dp)
     }
 }

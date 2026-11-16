@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -19,7 +20,7 @@ fun AppGlyph(
     size: Dp = 22.dp,
     contentDescription: String? = null,
 ) {
-    Icon(icon, contentDescription, modifier.size(size), tint)
+    Icon(rememberAntialiasedIconPainter(rememberVectorPainter(icon)), contentDescription, modifier.size(size), tint)
 }
 
 @Composable
@@ -30,5 +31,5 @@ fun AppGlyph(
     size: Dp = 22.dp,
     contentDescription: String? = null,
 ) {
-    Icon(androidx.compose.ui.res.painterResource(icon), contentDescription, modifier.size(size), tint)
+    Icon(rememberAntialiasedIconPainter(androidx.compose.ui.res.painterResource(icon)), contentDescription, modifier.size(size), tint)
 }

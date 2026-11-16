@@ -357,7 +357,7 @@
     },
     {
       "currentId": "current:字符 ⋮",
-      "currentName": "字符 ⋮",
+      "currentName": "更多操作 · MiuixIcons.More",
       "semantic": "更多操作",
       "scenes": [
         "动态 / 竖屏流",
@@ -366,15 +366,19 @@
       "locations": [
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/MessageListComponents.kt",
-          "line": 68,
-          "snippet": "Text(\"⋮\", Modifier.clickable(onClick = onMore).padding(12.dp), color = colors.onBackgroundVariant)",
-          "kind": "引用"
+          "line": 71,
+          "snippet": "AppGlyph(MiuixIcons.More, size = 18.dp, modifier = Modifier.clickable(onClick = onMore).padding(12.dp), tint = colors.onBackgroundVariant)",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerTopBar.kt",
-          "line": 39,
-          "snippet": "text = \"⋮\",",
-          "kind": "引用"
+          "line": 37,
+          "snippet": "AppGlyph(MiuixIcons.More, size = 22.dp, tint = Color.White,",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         }
       ],
       "mode": "replace",
@@ -385,11 +389,42 @@
         "family": "Miuix",
         "name": "More",
         "variant": "Regular"
+      },
+      "legacyName": "字符 ⋮",
+      "implementation": {
+        "kind": "vector",
+        "access": "MiuixIcons.More",
+        "replacement": {
+          "id": "miuix:More.Regular",
+          "family": "Miuix",
+          "name": "More",
+          "variant": "Regular"
+        },
+        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "locations": [
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/ui/MessageListComponents.kt",
+            "line": 71,
+            "snippet": "AppGlyph(MiuixIcons.More, size = 18.dp, modifier = Modifier.clickable(onClick = onMore).padding(12.dp), tint = colors.onBackgroundVariant)",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          },
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerTopBar.kt",
+            "line": 37,
+            "snippet": "AppGlyph(MiuixIcons.More, size = 22.dp, tint = Color.White,",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          }
+        ],
+        "replacesSymbol": true
       }
     },
     {
       "currentId": "current:字符 ＞",
-      "currentName": "字符 ＞",
+      "currentName": "进入详情 · MiuixIcons.Basic.ArrowRight",
       "semantic": "进入详情",
       "scenes": [
         "我的",
@@ -398,15 +433,19 @@
       "locations": [
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineActions.kt",
-          "line": 101,
-          "snippet": "trailingText: String = \"＞\",",
-          "kind": "引用"
+          "line": 118,
+          "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, colors.outline, size = 12.dp)",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentPreviewOpenLink.kt",
-          "line": 39,
-          "snippet": "Text(text = \"＞\", color = colors.onBackgroundVariant, fontSize = 11.sp)",
-          "kind": "引用"
+          "line": 43,
+          "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 11.dp, tint = colors.onBackgroundVariant)",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         }
       ],
       "mode": "replace",
@@ -417,11 +456,42 @@
         "family": "Miuix",
         "name": "ArrowRight",
         "variant": "Basic"
+      },
+      "legacyName": "字符 ＞",
+      "implementation": {
+        "kind": "vector",
+        "access": "MiuixIcons.Basic.ArrowRight",
+        "replacement": {
+          "id": "miuix:Basic.ArrowRight",
+          "family": "Miuix",
+          "name": "ArrowRight",
+          "variant": "Basic"
+        },
+        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "locations": [
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/mine/MineActions.kt",
+            "line": 118,
+            "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, colors.outline, size = 12.dp)",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          },
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/row/CommentPreviewOpenLink.kt",
+            "line": 43,
+            "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 11.dp, tint = colors.onBackgroundVariant)",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          }
+        ],
+        "replacesSymbol": true
       }
     },
     {
       "currentId": "current:字符 ✔",
-      "currentName": "字符 ✔",
+      "currentName": "认证 / 选中标记 · MiuixIcons.Ok",
       "semantic": "认证 / 选中标记",
       "scenes": [
         "个人空间"
@@ -429,9 +499,11 @@
       "locations": [
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileDetails.kt",
-          "line": 116,
-          "snippet": "text = \"✔\",",
-          "kind": "引用"
+          "line": 119,
+          "snippet": "AppGlyph(MiuixIcons.Ok, size = 11.dp, tint = Color(0xFF3B82F6))",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         }
       ],
       "mode": "replace",
@@ -442,11 +514,34 @@
         "family": "Miuix",
         "name": "Ok",
         "variant": "Regular"
+      },
+      "legacyName": "字符 ✔",
+      "implementation": {
+        "kind": "vector",
+        "access": "MiuixIcons.Ok",
+        "replacement": {
+          "id": "miuix:Ok.Regular",
+          "family": "Miuix",
+          "name": "Ok",
+          "variant": "Regular"
+        },
+        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "locations": [
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/space/SpaceProfileDetails.kt",
+            "line": 119,
+            "snippet": "AppGlyph(MiuixIcons.Ok, size = 11.dp, tint = Color(0xFF3B82F6))",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          }
+        ],
+        "replacesSymbol": true
       }
     },
     {
       "currentId": "current:字符 ➤",
-      "currentName": "字符 ➤",
+      "currentName": "发送弹幕 · LucideIcons.SendHorizontalFilled",
       "semantic": "发送弹幕",
       "scenes": [
         "全屏播放器",
@@ -455,9 +550,11 @@
       "locations": [
         {
           "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDanmakuComposer.kt",
-          "line": 147,
-          "snippet": "text = \"➤\",",
-          "kind": "引用"
+          "line": 148,
+          "snippet": "AppGlyph(LucideIcons.SendHorizontalFilled, size = 20.dp, tint = if (text.isBlank()) Color.Black.copy(alpha = 0.25f) else Color(0xFFFB7299))",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         }
       ],
       "mode": "replace",
@@ -468,16 +565,72 @@
         "family": "Lucide Extended",
         "name": "send-horizontal-filled",
         "variant": "Filled"
+      },
+      "legacyName": "字符 ➤",
+      "implementation": {
+        "kind": "vector",
+        "access": "LucideIcons.SendHorizontalFilled",
+        "replacement": {
+          "id": "lucide-extended:send-horizontal-filled",
+          "family": "Lucide Extended",
+          "name": "send-horizontal-filled",
+          "variant": "Filled"
+        },
+        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "locations": [
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/fullscreen/FullscreenDanmakuComposer.kt",
+            "line": 148,
+            "snippet": "AppGlyph(LucideIcons.SendHorizontalFilled, size = 20.dp, tint = if (text.isBlank()) Color.Black.copy(alpha = 0.25f) else Color(0xFFFB7299))",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          }
+        ],
+        "replacesSymbol": true
       }
     },
     {
       "currentId": "current:字符 😀",
-      "currentName": "字符 😀",
+      "currentName": "打开表情面板 · LucideIcons.FaceGrinning",
       "semantic": "打开表情面板",
       "scenes": [
         "资源 / 公共组件"
       ],
-      "locations": [],
+      "locations": [
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveRoomInput.kt",
+          "line": 119,
+          "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 18.dp, tint = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f))",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/player/danmaku/DanmakuInputEmojiButton.kt",
+          "line": 25,
+          "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f))",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/chat/PrivateChatComposerRow.kt",
+          "line": 43,
+          "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = MiuixTheme.colorScheme.onBackgroundVariant)",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
+        },
+        {
+          "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/composer/CommentComposerRow.kt",
+          "line": 29,
+          "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = MiuixTheme.colorScheme.onBackgroundVariant)",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
+        }
+      ],
       "mode": "replace",
       "reviewed": true,
       "note": "",
@@ -486,6 +639,53 @@
         "family": "Lucide",
         "name": "face-grinning",
         "variant": "Outline"
+      },
+      "legacyName": "字符 😀",
+      "implementation": {
+        "kind": "vector",
+        "access": "LucideIcons.FaceGrinning",
+        "replacement": {
+          "id": "lucide:face-grinning",
+          "family": "Lucide",
+          "name": "face-grinning",
+          "variant": "Outline"
+        },
+        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "locations": [
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/live/LiveRoomInput.kt",
+            "line": 119,
+            "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 18.dp, tint = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f))",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          },
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/player/danmaku/DanmakuInputEmojiButton.kt",
+            "line": 25,
+            "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f))",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          },
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/chat/PrivateChatComposerRow.kt",
+            "line": 43,
+            "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = MiuixTheme.colorScheme.onBackgroundVariant)",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          },
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/comment/composer/CommentComposerRow.kt",
+            "line": 29,
+            "snippet": "AppGlyph(LucideIcons.FaceGrinning, size = 19.dp, tint = MiuixTheme.colorScheme.onBackgroundVariant)",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          }
+        ],
+        "replacesSymbol": true
       }
     },
     {
@@ -4596,7 +4796,7 @@
     },
     {
       "currentId": "current:字符 ›",
-      "currentName": "字符 ›",
+      "currentName": "进入下一层 · MiuixIcons.Basic.ArrowRight",
       "semantic": "进入下一层",
       "scenes": [
         "使用引导",
@@ -4608,27 +4808,35 @@
       "locations": [
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/sent/SentRecordRow.kt",
-          "line": 75,
-          "snippet": "Text(text = \"›\", color = colors.outline, fontSize = 14.sp)",
-          "kind": "引用"
+          "line": 79,
+          "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 14.dp, tint = colors.outline)",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/onboarding/NoticePage.kt",
-          "line": 129,
-          "snippet": "text = \"›\",",
-          "kind": "引用"
+          "line": 130,
+          "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 22.dp, tint = colors.onSurfaceVariantSummary)",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         },
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuPanelRows.kt",
-          "line": 122,
-          "snippet": "Text(text = \"›\", color = Color.White.copy(alpha = 0.4f), fontSize = 16.sp)",
-          "kind": "引用"
+          "line": 126,
+          "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 16.dp, tint = Color.White.copy(alpha = 0.4f))",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         },
         {
           "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreControls.kt",
-          "line": 204,
-          "snippet": "Text(text = \"›\", color = colors.onBackgroundVariant, fontSize = 16.sp)",
-          "kind": "引用"
+          "line": 207,
+          "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 16.dp, tint = colors.onBackgroundVariant)",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         }
       ],
       "mode": "replace",
@@ -4639,11 +4847,58 @@
         "family": "Miuix",
         "name": "ArrowRight",
         "variant": "Basic"
+      },
+      "legacyName": "字符 ›",
+      "implementation": {
+        "kind": "vector",
+        "access": "MiuixIcons.Basic.ArrowRight",
+        "replacement": {
+          "id": "miuix:Basic.ArrowRight",
+          "family": "Miuix",
+          "name": "ArrowRight",
+          "variant": "Basic"
+        },
+        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "locations": [
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/sent/SentRecordRow.kt",
+            "line": 79,
+            "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 14.dp, tint = colors.outline)",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          },
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/onboarding/NoticePage.kt",
+            "line": 130,
+            "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 22.dp, tint = colors.onSurfaceVariantSummary)",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          },
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/settings/danmaku/DanmakuPanelRows.kt",
+            "line": 126,
+            "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 16.dp, tint = Color.White.copy(alpha = 0.4f))",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          },
+          {
+            "path": "feature/video/src/main/kotlin/com/aritxonly/bdfun/feature/video/presentation/inline/InlinePlayerMoreControls.kt",
+            "line": 207,
+            "snippet": "AppGlyph(MiuixIcons.Basic.ArrowRight, size = 16.dp, tint = colors.onBackgroundVariant)",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          }
+        ],
+        "replacesSymbol": true
       }
     },
     {
       "currentId": "current:字符 ⌄",
-      "currentName": "字符 ⌄",
+      "currentName": "展开 / 收起 · MiuixIcons.Basic.ArrowUpDown",
       "semantic": "展开 / 收起",
       "scenes": [
         "动态 / 竖屏流"
@@ -4651,9 +4906,11 @@
       "locations": [
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerAuthor.kt",
-          "line": 50,
-          "snippet": "text = \"⌄\",",
-          "kind": "引用"
+          "line": 53,
+          "snippet": "AppGlyph(MiuixIcons.Basic.ArrowUpDown, size = 24.dp, tint = Color.White.copy(alpha = 0.8f),",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         }
       ],
       "mode": "replace",
@@ -4664,11 +4921,34 @@
         "family": "Miuix",
         "name": "ArrowUpDown",
         "variant": "Basic"
+      },
+      "legacyName": "字符 ⌄",
+      "implementation": {
+        "kind": "vector",
+        "access": "MiuixIcons.Basic.ArrowUpDown",
+        "replacement": {
+          "id": "miuix:Basic.ArrowUpDown",
+          "family": "Miuix",
+          "name": "ArrowUpDown",
+          "variant": "Basic"
+        },
+        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "locations": [
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerAuthor.kt",
+            "line": 53,
+            "snippet": "AppGlyph(MiuixIcons.Basic.ArrowUpDown, size = 24.dp, tint = Color.White.copy(alpha = 0.8f),",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          }
+        ],
+        "replacesSymbol": true
       }
     },
     {
       "currentId": "current:字符 ✓",
-      "currentName": "字符 ✓",
+      "currentName": "选中状态 · MiuixIcons.Ok",
       "semantic": "选中状态",
       "scenes": [
         "视频详情 / 播放器"
@@ -4677,8 +4957,10 @@
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/video/card/GridCoverSelection.kt",
           "line": 38,
-          "snippet": "text = \"✓\",",
-          "kind": "引用"
+          "snippet": "AppGlyph(MiuixIcons.Ok, size = 13.dp, tint = Color.White)",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         }
       ],
       "mode": "replace",
@@ -4689,11 +4971,34 @@
         "family": "Miuix",
         "name": "Ok",
         "variant": "Regular"
+      },
+      "legacyName": "字符 ✓",
+      "implementation": {
+        "kind": "vector",
+        "access": "MiuixIcons.Ok",
+        "replacement": {
+          "id": "miuix:Ok.Regular",
+          "family": "Miuix",
+          "name": "Ok",
+          "variant": "Regular"
+        },
+        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "locations": [
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/video/card/GridCoverSelection.kt",
+            "line": 38,
+            "snippet": "AppGlyph(MiuixIcons.Ok, size = 13.dp, tint = Color.White)",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          }
+        ],
+        "replacesSymbol": true
       }
     },
     {
       "currentId": "current:字符 ✓  ",
-      "currentName": "字符 ✓  ",
+      "currentName": "选中状态 · MiuixIcons.Ok",
       "semantic": "选中状态",
       "scenes": [
         "消息 / 私信"
@@ -4701,9 +5006,11 @@
       "locations": [
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageSettingsContent.kt",
-          "line": 47,
-          "snippet": "Text((if (choice.selected) \"✓  \" else \"    \") + choice.text,",
-          "kind": "引用"
+          "line": 57,
+          "snippet": "AppGlyph(MiuixIcons.Ok, colors.primary, size = 18.dp)",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         }
       ],
       "mode": "replace",
@@ -4714,11 +5021,34 @@
         "family": "Miuix",
         "name": "Ok",
         "variant": "Regular"
+      },
+      "legacyName": "字符 ✓  ",
+      "implementation": {
+        "kind": "vector",
+        "access": "MiuixIcons.Ok",
+        "replacement": {
+          "id": "miuix:Ok.Regular",
+          "family": "Miuix",
+          "name": "Ok",
+          "variant": "Regular"
+        },
+        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "locations": [
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/message/MessageSettingsContent.kt",
+            "line": 57,
+            "snippet": "AppGlyph(MiuixIcons.Ok, colors.primary, size = 18.dp)",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          }
+        ],
+        "replacesSymbol": true
       }
     },
     {
       "currentId": "current:字符 ✕",
-      "currentName": "字符 ✕",
+      "currentName": "关闭 · MiuixIcons.Close",
       "semantic": "关闭",
       "scenes": [
         "动态 / 竖屏流"
@@ -4726,9 +5056,11 @@
       "locations": [
         {
           "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerTopBar.kt",
-          "line": 29,
-          "snippet": "text = \"✕\",",
-          "kind": "引用"
+          "line": 30,
+          "snippet": "AppGlyph(MiuixIcons.Close, size = 26.dp, tint = Color.White,",
+          "kind": "引用",
+          "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+          "localOnly": true
         }
       ],
       "mode": "replace",
@@ -4739,7 +5071,31 @@
         "family": "Miuix",
         "name": "Close",
         "variant": "Regular"
+      },
+      "legacyName": "字符 ✕",
+      "implementation": {
+        "kind": "vector",
+        "access": "MiuixIcons.Close",
+        "replacement": {
+          "id": "miuix:Close.Regular",
+          "family": "Miuix",
+          "name": "Close",
+          "variant": "Regular"
+        },
+        "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+        "locations": [
+          {
+            "path": "app/src/main/kotlin/com/aritxonly/bdfun/presentation/feed/FeedViewerTopBar.kt",
+            "line": 30,
+            "snippet": "AppGlyph(MiuixIcons.Close, size = 26.dp, tint = Color.White,",
+            "kind": "引用",
+            "revision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281",
+            "localOnly": true
+          }
+        ],
+        "replacesSymbol": true
       }
     }
-  ]
+  ],
+  "implementationRevision": "4070e8c9acbf8a6e879ee061b08fa9080cc1f281"
 }
