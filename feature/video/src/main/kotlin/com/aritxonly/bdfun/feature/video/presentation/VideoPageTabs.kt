@@ -29,40 +29,39 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
     val splitPanes = layout.splitPanes
     val statusBarDp = layout.statusBarTop
     val scrollProgress = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current.materialProgress
-    androidx.compose.runtime.CompositionLocalProvider(
-        com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress provides scrollProgress,
-    ) {
-        // 竖屏恢复旧版行为：只保留 VideoPageBody 的渐变遮罩，不铺整条渐进模糊；
-        // 横屏分栏继续保留顶部渐进模糊。
-        com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial(
-            enabled = splitPanes,
-            includeStatusBar = splitPanes,
-            modifier = Modifier
-                .align(if (splitPanes) Alignment.TopEnd else Alignment.TopStart)
-                .then(if (splitPanes) Modifier.width(paneLayout.detailsWidthDp.dp) else Modifier.fillMaxWidth())
-                .graphicsLayer {
-                    alpha = pageOverlayAlpha
-                    translationY = if (splitPanes) 0f else playerBottomPx()
-                },
+    val tabsModifier = Modifier
+        .align(if (splitPanes) Alignment.TopEnd else Alignment.TopStart)
+        .then(if (splitPanes) Modifier.width(paneLayout.detailsWidthDp.dp) else Modifier.fillMaxWidth())
+        .graphicsLayer {
+            alpha = pageOverlayAlpha
+            translationY = if (splitPanes) 0f else playerBottomPx()
+        }
+    val tabsRow: @Composable () -> Unit = {
+        Row(
+            modifier = Modifier.fillMaxWidth()
+                .padding(top = if (splitPanes) statusBarDp else 0.dp)
+                .height(52.dp)
+                .padding(horizontal = if (splitPanes) 8.dp else 16.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth()
-                    .padding(top = if (splitPanes) statusBarDp else 0.dp)
-                    .height(52.dp)
-                    .padding(horizontal = if (splitPanes) 8.dp else 16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TeakPagerTabs(
-                    options = listOf("简介", "评论"), selected = pager.currentPage,
-                    onSelect = onSelect,
-                    itemWidth = if (splitPanes) 48.dp else 60.dp,
-                    flatBackgroundColor = com.aritxonly.teak.common.theme.LocalTeakContentColors.current.groupedBackground,
-                )
-                VideoDanmakuActions(splitPanes, danmakuOn, onOpenInput, onToggleDanmaku)
-            }
+            TeakPagerTabs(
+                options = listOf("简介", "评论"), selected = pager.currentPage,
+                onSelect = onSelect,
+                itemWidth = if (splitPanes) 48.dp else 60.dp,
+                flatBackgroundColor = com.aritxonly.teak.common.theme.LocalTeakContentColors.current.groupedBackground,
+            )
+            VideoDanmakuActions(splitPanes, danmakuOn, onOpenInput, onToggleDanmaku)
         }
     }
-
+    androidx.compose.runtime.CompositionLocalProvider(
+        com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress provides scrollProgress,
+        com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted provides true,
+        com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress provides scrollProgress,
+    ) {
+        // 不做顶部渐进式模糊（横屏分栏也不要）：评论区顶部用 VideoPageBody 里的
+        // 渐变遮罩，和底部保持对称；这里只负责 tab / 发弹幕控件的材质进度。
+        androidx.compose.foundation.layout.Box(tabsModifier) { tabsRow() }
+    }
 }
 
 @Composable

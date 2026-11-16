@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.aritxonly.bdfun.feature.pgc.application.BangumiRankSection
 import com.aritxonly.bdfun.presentation.pgc.BangumiPageStateHolder
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
@@ -55,45 +56,47 @@ internal fun BangumiPage(
     LaunchedEffect(rankState) { rankState.ensureLoaded() }
     // 不在页面里自动 scrollToItem(0)：网格状态是单例，保留离开时的位置；
     // 首屏/榜单/追番晚到都不再抢用户的滚动位置。
-    // 顶部头图：优先当周新番；不足 6 张时用榜单/推荐补位，保证扇形能循环与左右滑动。
+    // 顶部头图：优先当周新番；不足 10 张时用榜单/推荐补位，保证扇形能循环与左右滑动。
     val bannerItems = remember(rankUi.sections, state.cards, state.timeline) {
-        val fromTimeline = state.timeline.mapNotNull { card ->
-            if (card.cover.isBlank()) null
-            else BangumiBannerItem(card.cover, card.title, card.subtitle, card.seasonId)
-        }
-        val fromRank = rankUi.sections.firstOrNull()?.entries.orEmpty().mapNotNull { entry ->
-            val image = entry.banner.ifBlank { entry.cover }
-            if (image.isBlank()) null
-            else BangumiBannerItem(image, entry.title, entry.subtitle, entry.seasonId)
-        }
-        val fromCards = state.cards.map {
-            BangumiBannerItem(it.cover, it.title, it.indexShow, it.seasonId)
-        }
-        (fromTimeline + fromRank + fromCards).distinctBy { it.seasonId }.take(6)
+        bangumiBannerItems(state, rankUi.sections)
     }
     LaunchedEffect(state.timeline) { state.ensureTimelineIntros() }
     BangumiPageEffects(state, pull, pullUi)
 
+    val landscape = androidx.compose.ui.platform.LocalConfiguration.current.orientation ==
+        android.content.res.Configuration.ORIENTATION_LANDSCAPE
+    // 横屏右侧不留 padding，左侧保留 10dp；竖屏左右都保留 10dp。
+    val startPadding = 10.dp
+    val endPadding = if (landscape) 0.dp else 10.dp
+    val columns = remember(landscape) {
+        if (landscape) {
+            GridCells.Adaptive(120.dp)
+        } else {
+            GridCells.Fixed(3)
+        }
+    }
     LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
+        // 横屏用 Adaptive：卡片约 120dp，并把剩余宽度摊到每一列，整行从屏幕最左铺到最右，
+        // 不会因为固定 120dp 上限而在左右留下空白。
+        columns = columns,
         state = gridState,
         modifier = Modifier
             .fillMaxSize()
             .offset { IntOffset(0, pullUi.offset.roundToInt()) }
             .nestedScroll(pull.connection()),
         contentPadding = PaddingValues(
-            start = 10.dp,
-            end = 10.dp,
+            start = startPadding,
+            end = endPadding,
             top = topBarHeight + statusBarTop + 6.dp,
             bottom = 104.dp,
         ),
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item(key = "pgc-banner", span = { GridItemSpan(maxLineSpan) }) {
             BangumiBanner(bannerItems) { seasonId -> openBangumi(context, seasonId, scope) }
         }
-        bangumiFollowSection(state, context)
+        bangumiFollowSection(state, context, startPadding)
         bangumiRankSections(
             sections = rankUi.sections,
             holder = rankState,
@@ -103,6 +106,8 @@ internal fun BangumiPage(
                     com.aritxonly.bdfun.BangumiRankBoardActivity.open(context, tab, section.title)
                 }
             },
+            sidePadding = startPadding,
+            endPadding = endPadding,
         )
         if (state.cards.isNotEmpty()) {
             item(key = "pgc-recommend-title", span = { GridItemSpan(maxLineSpan) }) {
@@ -116,9 +121,27 @@ internal fun BangumiPage(
     }
 }
 
-@Composable
-private fun rememberBangumiPullSession(
+private fun bangumiBannerItems(
     state: BangumiPageStateHolder,
+    sections: List<BangumiRankSection>,
+): List<BangumiBannerItem> {
+    val fromTimeline = state.timeline.mapNotNull { card ->
+        if (card.cover.isBlank()) null
+        else BangumiBannerItem(card.cover, card.title, card.subtitle, card.seasonId)
+    }
+    val fromRank = sections.firstOrNull()?.entries.orEmpty().mapNotNull { entry ->
+        val image = entry.banner.ifBlank { entry.cover }
+        if (image.isBlank()) null
+        else BangumiBannerItem(image, entry.title, entry.subtitle, entry.seasonId)
+    }
+    val fromCards = state.cards.map {
+        BangumiBannerItem(it.cover, it.title, it.indexShow, it.seasonId)
+    }
+    return (fromTimeline + fromRank + fromCards).distinctBy { it.seasonId }.take(10)
+}
+
+@Composable
+private fun rememberBangumiPullSession(    state: BangumiPageStateHolder,
     ui: DiscoverPullUi,
     scope: kotlinx.coroutines.CoroutineScope,
 ): DiscoverPullSession {

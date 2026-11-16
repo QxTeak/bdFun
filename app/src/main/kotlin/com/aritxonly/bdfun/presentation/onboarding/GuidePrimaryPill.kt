@@ -1,7 +1,6 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.heightIn
@@ -31,15 +30,6 @@ internal fun GuidePrimaryPill(
             .heightIn(min = 50.dp)
             .clip(Capsule())
             .background(if (enabled) colors.primary else colors.surfaceContainerHigh)
-            .border(
-                width = 1.dp,
-                color = if (enabled) {
-                    Color.White.copy(alpha = 0.55f)
-                } else {
-                    Color.White.copy(alpha = 0.22f)
-                },
-                shape = Capsule(),
-            )
             .clickable(
                 interactionSource = null,
                 indication = null,

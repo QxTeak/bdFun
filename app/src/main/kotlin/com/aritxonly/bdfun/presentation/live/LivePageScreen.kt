@@ -18,6 +18,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntOffset
@@ -51,7 +52,11 @@ internal fun LivePage(
     LivePageEffects(state, pull, pullUi)
 
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+        columns = if (LocalConfiguration.current.screenWidthDp >= 600) {
+            com.aritxonly.bdfun.ui.BoundedVideoGridCells(180.dp, 260.dp)
+        } else {
+            GridCells.Fixed(2)
+        },
         state = gridState,
         modifier = Modifier
             .fillMaxSize()

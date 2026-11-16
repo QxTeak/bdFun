@@ -19,9 +19,16 @@ internal fun rememberPlayerRenderPorts(
     return PlayerRenderPorts(
         page = page,
         gestures = PlayerGestureOptions({ settings.gestureBrightnessVolume }, { settings.boostDefaultSpeed },
-            { settings.gestureCenterFullscreen }, { settings.gestureBoostSwipe }),
+            { settings.gestureCenterFullscreen }, { settings.gestureBoostSwipe },
+            { settings.vibrationEnabled }),
         fullscreenActions = fsActions,
-        picture = VideoPictureSettings(settings.progressBarMode, settings.hotDanmakuEnabled, BrandPink),
+        picture = VideoPictureSettings(
+            settings.progressBarMode,
+            settings.hotDanmakuEnabled,
+            BrandPink,
+            settings.danmakuStroke,
+            if (presentation.fullscreen) settings.danmakuScaleFullscreen else settings.danmakuScaleInline,
+        ),
         surface = rememberPlayerSurfaceSlots(),
         buffering = { modifier -> TvBuffering(modifier = modifier, tvSize = 26.4.dp) },
         cover = { cover, modifier -> InlinePlayerCover(cover, modifier) },

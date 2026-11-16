@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
@@ -56,6 +55,7 @@ import com.aritxonly.bdfun.BrandPink
 import com.aritxonly.bdfun.core.model.pgc.BangumiRankEntry
 import com.aritxonly.bdfun.feature.pgc.application.BangumiRankSection
 import com.aritxonly.bdfun.feature.pgc.application.BangumiRankStateHolder
+import com.aritxonly.bdfun.presentation.common.FullBleedRow
 import com.aritxonly.bdfun.ui.FeedCardShape
 import com.aritxonly.bdfun.ui.TeakLoading
 import com.aritxonly.bdfun.ui.rememberImageRequest
@@ -82,10 +82,12 @@ internal fun LazyGridScope.bangumiRankSections(
     holder: BangumiRankStateHolder,
     onOpenSeason: (Long) -> Unit,
     onOpenBoard: (BangumiRankSection) -> Unit,
+    sidePadding: Dp = 10.dp,
+    endPadding: Dp = 10.dp,
 ) {
     sections.forEachIndexed { index, section ->
         item(key = "pgc-rank-${section.key}", span = { GridItemSpan(maxLineSpan) }) {
-            RankSectionBlock(holder, index, section, onOpenSeason, onOpenBoard)
+            RankSectionBlock(holder, index, section, onOpenSeason, onOpenBoard, sidePadding, endPadding)
         }
     }
 }
@@ -97,13 +99,15 @@ private fun RankSectionBlock(
     fallback: BangumiRankSection,
     onOpenSeason: (Long) -> Unit,
     onOpenBoard: (BangumiRankSection) -> Unit,
+    sidePadding: Dp,
+    endPadding: Dp,
 ) {
     // 必须在这里 collect：直接读 state.value 只拿到一次性快照，加载完成不会重组。
     val ui by holder.state.collectAsState()
     val section = ui.sections.getOrNull(index) ?: fallback
     LaunchedEffect(index) { holder.ensureSection(index) }
     Column(Modifier.fillMaxWidth()) {
-        RankSectionHeader(section.title) { onOpenBoard(section) }
+        RankSectionHeader(section.title, endPadding) { onOpenBoard(section) }
         Spacer(Modifier.height(8.dp))
         when {
             section.entries.isEmpty() && section.loading -> Box(
@@ -115,14 +119,14 @@ private fun RankSectionBlock(
                 holder.retrySection(index)
             }
 
-            else -> RankCardRow(section.entries.take(PREVIEW_COUNT), onOpenSeason)
+            else -> RankCardRow(section.entries.take(PREVIEW_COUNT + 6), onOpenSeason, sidePadding)
         }
         Spacer(Modifier.height(6.dp))
     }
 }
 
 @Composable
-private fun RankSectionHeader(title: String, onMore: () -> Unit) {
+private fun RankSectionHeader(title: String, endPadding: Dp, onMore: () -> Unit) {
     val colors = MiuixTheme.colorScheme
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
         Box(
@@ -144,10 +148,10 @@ private fun RankSectionHeader(title: String, onMore: () -> Unit) {
             modifier = Modifier.widthIn(max = 220.dp),
         )
         Spacer(Modifier.weight(1f))
-        // 网格左右各有 10dp padding，往右偏 10dp 才能贴到屏幕右边。
+        // 网格右侧 padding 为 endPadding；往右偏同样的量才能贴到屏幕右边。
         Row(
             modifier = Modifier
-                .offset(x = 10.dp)
+                .offset(x = endPadding)
                 .clip(RoundedCornerShape(8.dp))
                 .clickable(onClick = onMore)
                 .padding(start = 8.dp, end = 10.dp, top = 6.dp, bottom = 6.dp),
@@ -172,10 +176,11 @@ private object HorizontalOverscrollConsumer : NestedScrollConnection {
 }
 
 @Composable
-private fun RankCardRow(entries: List<BangumiRankEntry>, onOpenSeason: (Long) -> Unit) {
+private fun RankCardRow(entries: List<BangumiRankEntry>, onOpenSeason: (Long) -> Unit, sidePadding: Dp) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
-        val cardWidth: Dp = (maxWidth - 16.dp) / 3.35f
-        LazyRow(
+        val cardWidth: Dp = ((maxWidth - 16.dp) / 3.35f).coerceAtMost(120.dp)
+        FullBleedRow(
+            sidePadding = sidePadding,
             modifier = Modifier.nestedScroll(HorizontalOverscrollConsumer),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {

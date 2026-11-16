@@ -26,7 +26,12 @@ import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-internal fun FeedAuthorSidebar(state: FeedState, modifier: Modifier = Modifier) {
+internal fun FeedAuthorSidebar(
+    state: FeedState,
+    modifier: Modifier = Modifier,
+    topPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
+) {
     val colors = MiuixTheme.colorScheme
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -38,7 +43,10 @@ internal fun FeedAuthorSidebar(state: FeedState, modifier: Modifier = Modifier) 
             if (count > 0 && last != null && last >= count - 3 && state.authorsError == null) state.loadMoreAuthors()
         }
     }
-    LazyColumn(state = authorState, modifier = modifier, contentPadding = PaddingValues(8.dp),
+    LazyColumn(state = authorState, modifier = modifier,
+        // 用列表内边距而不是外层 padding：初始位置不变，但滚动时可以自然滑到
+        // 顶栏/底栏下面，由屏幕边缘裁切，而不是被一个固定视口范围切断。
+        contentPadding = PaddingValues(start = 8.dp, end = 8.dp, top = topPadding, bottom = bottomPadding),
         verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item(key = "all") {
             FeedAuthorRow("全部动态", "", state.filterMid == null, false) {

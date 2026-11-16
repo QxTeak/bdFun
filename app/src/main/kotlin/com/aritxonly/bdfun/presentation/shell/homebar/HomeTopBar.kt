@@ -64,53 +64,104 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
             Box(modifier = Modifier.matchParentSize().blockTouches(true))
         }
         Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
-            Row(
-                // 先固定整行 64dp，再在内部留 6dp 上下边距；否则 padding+height 会把行撑到 76dp，
-                // 第二行分段条被顶下去、底部还会被外层高度裁掉（看起来比 HyperOS 4 小一圈）。
-                modifier = Modifier.fillMaxWidth()
-                    .height(HomeTopBarHeight)
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            val inline = tabs
+            val inlineTabs = inline != null && !tabsBelowSearch
+            if (wide && inlineTabs && inline != null) {
+                HomeTopBarWideTabsRow(content, search, actions, inline, material)
+            } else {
+                HomeTopBarMainRow(content, search, actions, tabs, material, wide, tabsBelowSearch)
+            }
+            if (tabs != null && tabsBelowSearch) HomeTopBarTabsBelow(tabs)
+        }
+    }
+}
+
+/** 横屏：分段条相对整行真正居中，不再被左右图标宽度带偏。 */
+@Composable
+private fun HomeTopBarWideTabsRow(
+    content: HomeTopBarContent, search: HomeTopBarSearch, actions: HomeTopBarActions,
+    tabs: HomeTopBarTabs, material: HomeTopBarMaterial,
+) {
+    Box(
+        modifier = Modifier.fillMaxWidth()
+            .height(HomeTopBarHeight)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+    ) {
+        Box(Modifier.align(Alignment.CenterStart)) {
+            HomeTopBarLeft(content, search, actions)
+        }
+        TeakSegmentedBar(
+            options = tabs.options,
+            selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
+            itemWidth = 64.dp,
+            materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
+            onSelect = tabs.onSelect,
+            modifier = Modifier.align(Alignment.Center),
+        )
+        Box(Modifier.align(Alignment.CenterEnd)) {
+            HomeTopBarRight(content, search, actions, material)
+        }
+    }
+}
+
+@Composable
+private fun HomeTopBarMainRow(
+    content: HomeTopBarContent, search: HomeTopBarSearch, actions: HomeTopBarActions,
+    tabs: HomeTopBarTabs?, material: HomeTopBarMaterial, wide: Boolean, tabsBelowSearch: Boolean,
+) {
+    Row(
+        // 先固定整行 64dp，再在内部留 6dp 上下边距；否则 padding+height 会把行撑到 76dp，
+        // 第二行分段条被顶下去、底部还会被外层高度裁掉（看起来比 HyperOS 4 小一圈）。
+        modifier = Modifier.fillMaxWidth()
+            .height(HomeTopBarHeight)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HomeTopBarLeft(content, search, actions)
+        Spacer(Modifier.width(10.dp))
+        if (tabs != null && !tabsBelowSearch) {
+            // HyperOS 4：首页不再有顶部搜索框，中间位置让给和动态页同款的分段控件。
+            // 用居中容器而不是 weight，避免左右图标宽度变化时 tab 跟着抖。
+            Box(
+                modifier = Modifier.weight(1f),
+                contentAlignment = Alignment.Center,
             ) {
-                HomeTopBarLeft(content, search, actions)
-                Spacer(Modifier.width(10.dp))
-                if (tabs != null && !tabsBelowSearch) {
-                    // HyperOS 4：首页不再有顶部搜索框，中间位置让给和动态页同款的分段控件。
-                    // 用居中容器而不是 weight，避免左右图标宽度变化时 tab 跟着抖。
-                    Box(
-                        modifier = Modifier.weight(1f),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        TeakSegmentedBar(
-                            options = tabs.options,
-                            selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
-                            itemWidth = 64.dp,
-                            materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
-                            onSelect = tabs.onSelect,
-                        )
-                    }
-                } else {
+                TeakSegmentedBar(
+                    options = tabs.options,
+                    selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
+                    itemWidth = 64.dp,
+                    materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
+                    onSelect = tabs.onSelect,
+                )
+            }
+        } else if (wide) {
+            // 横屏搜索页：搜索框相对整行居中，不再贴左/靠右。
+            Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     HomeSearchSurface(search, actions, material)
                 }
-                if (wide) Spacer(Modifier.weight(1f))
-                Spacer(Modifier.width(10.dp))
-                HomeTopBarRight(content, search, actions, material)
             }
-            if (tabs != null && tabsBelowSearch) {
-                // 官方风格：搜索框保持原位，分段条放在它下面一行。
-                Box(
-                    modifier = Modifier.fillMaxWidth().height(HomeTopBarTabsHeight),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    TeakSegmentedBar(
-                        options = tabs.options,
-                        selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
-                        itemWidth = 64.dp,
-                        materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
-                        onSelect = tabs.onSelect,
-                    )
-                }
-            }
+        } else {
+            HomeSearchSurface(search, actions, material)
         }
+        Spacer(Modifier.width(10.dp))
+        HomeTopBarRight(content, search, actions, material)
+    }
+}
+
+/** 官方风格：搜索框保持原位，分段条放在它下面一行。 */
+@Composable
+private fun HomeTopBarTabsBelow(tabs: HomeTopBarTabs) {
+    Box(
+        modifier = Modifier.fillMaxWidth().height(HomeTopBarTabsHeight),
+        contentAlignment = Alignment.Center,
+    ) {
+        TeakSegmentedBar(
+            options = tabs.options,
+            selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
+            itemWidth = 64.dp,
+            materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
+            onSelect = tabs.onSelect,
+        )
     }
 }

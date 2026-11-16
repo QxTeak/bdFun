@@ -16,6 +16,12 @@ interface DanmakuEngine : AutoCloseable {
     fun updateConfig(config: DanmakuRenderConfig)
 
     /**
+     * 顶部让位高度（px）。只阻止新弹幕排进这块区域，已在屏上的弹幕保持原位。
+     * 传 0 表示恢复整块顶部可用。
+     */
+    fun setReservedTop(heightPx: Float)
+
+    /**
      * Hides ordinary danmaku matching a selected ID or exact original text.
      * Active items keep moving; clearing both sets restores their visibility.
      * This update may be called from any thread and does not replace the timeline.

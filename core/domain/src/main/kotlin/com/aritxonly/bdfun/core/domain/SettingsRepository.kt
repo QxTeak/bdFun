@@ -14,6 +14,8 @@ interface AppearanceSettings {
     var scrollTopSide: Int
     var scrollTopPages: Set<String>
     var blurEnabled: Boolean
+    /** 全局触感/震动总开关；关闭后 App 内不再触发任何震动。 */
+    var vibrationEnabled: Boolean
     var commentFontScale: Float
     var splashWallpaper: String
     var fontScale: Float

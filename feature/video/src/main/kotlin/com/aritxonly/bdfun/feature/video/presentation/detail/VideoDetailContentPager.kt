@@ -93,7 +93,9 @@ private fun VideoScreenComments(
     if (d != null) {
         slots.comments(VideoCommentPane(
             detail = d, root = initialCommentRoot, target = initialCommentTarget,
-            topInset = if (splitPanes) statusBarTop + 52.dp else playerBlockHeight + 14.dp +
+            // 分栏时列表自己会补状态栏；这里只需要 tab 行高度（52dp），
+            // 再留 4dp 给「共 N 条评论」，不能再重复加一次状态栏。
+            topInset = if (splitPanes) 52.dp else playerBlockHeight + 24.dp +
                 (if (immersiveStatusBar) 36.dp else 0.dp),
             trackBackProgress = pager.currentPage == 1,
             threadPlayerBottom = if (splitPanes) statusBarTop + 52.dp else playerBlockHeight,

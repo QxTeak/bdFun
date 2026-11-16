@@ -21,6 +21,7 @@ fun VideoPageBody(
 ) {
     Box(modifier = Modifier.fillMaxSize().background(LocalTeakContentColors.current.background)) {
         detail()
+        if (layout.splitPanes) VideoCommentTopFade(layout)
         VideoPageTopFade(layout, playerBottomPx)
         if (commentsVisible) VideoCommentBottomFade(layout)
         var current by ui.comments
@@ -31,6 +32,29 @@ fun VideoPageBody(
             }
         }
     }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.VideoCommentTopFade(layout: VideoActivityLayout) {
+    val pipMode = layout.pictureInPicture
+    val pageOverlayAlpha = layout.overlayAlpha
+    val paneLayout = layout.paneLayout
+    val fadeColor = LocalTeakContentColors.current.background
+    // 横屏分栏：评论区顶部也要有一层和底部对称的渐变，内容滚到 tab 下面时被盖住。
+    Box(
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .width(paneLayout.detailsWidthDp.dp)
+            .height(layout.statusBarTop + 52.dp)
+            .graphicsLayer { alpha = if (pipMode) 0f else pageOverlayAlpha }
+            .background(
+                Brush.verticalGradient(
+                    0f to fadeColor,
+                    0.55f to fadeColor.copy(alpha = 0.88f),
+                    1f to androidx.compose.ui.graphics.Color.Transparent,
+                ),
+            ),
+    )
 }
 
 @Composable

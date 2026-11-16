@@ -19,7 +19,7 @@ internal class AppearanceSettingsStateHolder(
     private val colorStyleState = stateCell("colorStyleState", prefs.getInt("color_style", 0))
     /** 界面风格：0 官方，1 经典，2 HyperOS 4（底部搜索）。 */
 
-    private val interfaceStyleState = stateCell("interfaceStyleState", prefs.getInt("interface_style", 0))
+    private val interfaceStyleState = stateCell("interfaceStyleState", prefs.getInt("interface_style", 2))
     /** 首页卡片样式：0 = 双排小卡，1 = 大卡（动态页视频卡同款）。 */
 
     private val homeCardStyleState = stateCell("homeCardStyleState", prefs.getInt("home_card_style", 0))
@@ -50,6 +50,8 @@ internal class AppearanceSettingsStateHolder(
     }
 
     private val blurState = stateCell("blurState", prefs.getBoolean("blur", true))
+
+    private val vibrationState = stateCell("vibrationState", prefs.getBoolean("vibration", true))
 
     private val commentFontScaleState =
         stateCell("commentFontScaleState", prefs.getFloat("comment_font_scale", 1.1f))
@@ -176,6 +178,13 @@ internal class AppearanceSettingsStateHolder(
      * If the previous process died while blur was armed, disable blur before
      * the first frame so a driver/shader crash cannot brick the app.
      */
+
+    override var vibrationEnabled: Boolean
+        get() = vibrationState.value
+        set(value) {
+            vibrationState.value = value
+            prefs.edit().putBoolean("vibration", value).apply()
+        }
 
     override var commentFontScale: Float
         get() = commentFontScaleState.value

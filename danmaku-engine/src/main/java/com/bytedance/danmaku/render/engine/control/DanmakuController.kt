@@ -158,6 +158,11 @@ class DanmakuController(private var mDanmakuView: View): ConfigChangeListener, I
         mDanmakuView.postInvalidateCompat()
     }
 
+    /** 顶部让位：只影响后续新弹幕的行分配，不移动屏上已有弹幕。 */
+    fun setReservedTop(heightPx: Float) {
+        mRenderEngine.setReservedTop(heightPx)
+    }
+
     /** Reanchors the media clock while preserving the active render lines. */
     fun synchronizeTo(playTime: Long) {
         mDataManager.synchronizePlayTime(playTime)

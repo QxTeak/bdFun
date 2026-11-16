@@ -1,8 +1,12 @@
 package com.aritxonly.bdfun.ui
 
 
-internal class VideoActionHaptics(private val context: android.content.Context) {
+internal class VideoActionHaptics(
+    private val context: android.content.Context,
+    private val enabled: Boolean = true,
+) {
     fun defaultVibrator(): android.os.Vibrator? {
+        if (!enabled) return null
         val vibrator = if (android.os.Build.VERSION.SDK_INT >= 31) {
             (context.getSystemService(android.content.Context.VIBRATOR_MANAGER_SERVICE)
                 as? android.os.VibratorManager)?.defaultVibrator

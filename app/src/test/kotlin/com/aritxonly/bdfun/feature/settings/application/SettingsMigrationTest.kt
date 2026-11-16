@@ -81,10 +81,10 @@ class SettingsMigrationTest {
             val prefs = MemorySettingsPreferences(linkedMapOf("bottom_search" to true))
             val state = SettingsStateHolder.create(prefs, TestHistoryCodec, scope)
             assertFalse(prefs.contains("bottom_search"))
-            assertEquals(0, state.interfaceStyle)
-            state.interfaceStyle = 2
+            assertEquals(2, state.interfaceStyle)
+            state.interfaceStyle = 0
             val restored = SettingsStateHolder.create(prefs, TestHistoryCodec, scope)
-            assertEquals(2, restored.interfaceStyle)
+            assertEquals(0, restored.interfaceStyle)
             restored.interfaceStyle = 8
             assertEquals(2, restored.interfaceStyle)
             restored.colorStyle = 8
