@@ -23,7 +23,8 @@ internal fun CommentThreadTextField(
     BasicTextField(
         value = transient.draft,
         onValueChange = { transient.draft = it },
-        singleLine = true,
+        singleLine = false,
+        maxLines = 5,
         textStyle = ComposerTextStyle.copy(
             color = colors.onBackground,
         ),

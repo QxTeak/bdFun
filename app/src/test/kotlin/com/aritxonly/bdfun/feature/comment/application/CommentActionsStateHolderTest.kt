@@ -158,4 +158,15 @@ class CommentActionsStateHolderTest {
         assertFalse(old.isActive); assertTrue(fresh.isActive)
         assertEquals(1, fake.likes); assertEquals(11, likes.state.value[1]?.count)
     }
+
+    @Test fun sendTimeoutPublishesFeedbackAndAllowsRetry() = runBlocking {
+        val fake = Fake().apply { postAction = { awaitCancellation() } }
+        val holder = CommentActionsStateHolder(fake, query, CommentLikeStore(), sendTimeoutMs = 10)
+        assertNull(holder.post("text", 1, 2))
+        assertFalse(holder.state.value.sending)
+        assertTrue(holder.state.value.sendError is AppError.Network)
+        fake.postAction = { Outcome.Success(99L) }
+        assertEquals(99L, holder.post("retry", 1, 2))
+        assertNull(holder.state.value.sendError)
+    }
 }

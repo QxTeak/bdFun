@@ -176,4 +176,22 @@ class HomeFeedStateHolderTest {
         assertEquals(listOf("kept"), state.state.value.videos.map { it.bvid })
         assertFalse(state.state.value.loadingMore)
     }
+    @Test fun cachedFirstScreenIsVisibleWhileNetworkWaitsAndSurvivesTimeout() = runBlocking {
+        val saved = item("cached")
+        val cache = object : HomeFeedCache {
+            override suspend fun read() = Outcome.Success(listOf(saved))
+            override suspend fun write(items: List<VideoItem>) = Outcome.Success(Unit)
+        }
+        val gate = CompletableDeferred<Unit>()
+        val feed = Feed().apply { load = { gate.complete(Unit); awaitCancellation() } }
+        val holder = HomeFeedStateHolder(feed, videoRepository, cache = cache, requestTimeoutMs = 50)
+        val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.ensureLoaded() }
+        gate.await()
+        assertEquals(listOf(saved), holder.state.value.videos)
+        assertFalse(holder.state.value.loading)
+        job.join()
+        assertNotNull(holder.state.value.error)
+        assertEquals(listOf(saved), holder.state.value.videos)
+    }
+
 }

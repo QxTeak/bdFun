@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.ui
 
 import android.content.Context
+import com.aritxonly.bdfun.core.common.messageOr
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.*
@@ -44,11 +45,15 @@ internal class CommentThreadRuntime(
             if (!controller.isActive) return@launch
             if (result != null) {
                 dependencies.sentHistory.record("comment", text, input.bvid, input.videoTitle)
-                transient.draft = ""
-                transient.replyTarget = null
+                if (transient.draft.trim() == text && transient.replyTarget?.rpid == target.rpid) {
+                    transient.draft = ""
+                    transient.replyTarget = null
+                }
                 keyboard?.hide()
                 context.showToast("回复成功")
-            } else context.showToast("发送失败，请确认已登录")
+                // LazyColumn 保持原可见条目的锚点，新回复插到顶部后要主动展示。
+                listState.animateScrollToItem(2)
+            } else context.showToast(actions.state.value.sendError?.messageOr("发送失败，请稍后重试") ?: "发送失败，请稍后重试")
         }
     }
     fun toggleLike(item: CommentItem) {

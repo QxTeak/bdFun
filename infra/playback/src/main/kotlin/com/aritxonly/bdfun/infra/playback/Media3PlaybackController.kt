@@ -12,6 +12,8 @@ import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.MergingMediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import com.aritxonly.bdfun.core.application.*
+import kotlinx.coroutines.*
+import com.aritxonly.bdfun.core.domain.playbackNetworkRetryDelay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.CopyOnWriteArrayList
@@ -24,6 +26,11 @@ class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackCon
     override val state = mutableState.asStateFlow()
     private val listeners = CopyOnWriteArrayList<PlaybackController.Listener>()
     private var released = false
+    private var lastSource: PlaybackSource? = null
+    private var sourceRevision = 0L
+    private var retryCount = 0
+    private val recoveryScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var retryJob: Job? = null
     private var mediaKey: String? = null
     private val observer = object : Player.Listener {
         override fun onRenderedFirstFrame() { listeners.forEach { it.onRenderedFirstFrame() } }
@@ -39,7 +46,7 @@ class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackCon
         override fun onPlayerError(error: PlaybackException) {
             val failure = PlaybackFailure(error.errorCodeName, error.message)
             mutableState.value = mutableState.value.copy(error = failure)
-            listeners.forEach { it.onError(failure) }
+            if (!retryNetworkFailure(failure)) listeners.forEach { it.onError(failure) }
         }
     }
     init { player.addListener(observer) }
@@ -59,8 +66,16 @@ class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackCon
         return mutableState.value
     }
 
-    override fun prepare(source: PlaybackSource) {
+    override fun prepare(source: PlaybackSource) = prepareSource(source, recovering = false)
+
+    private fun prepareSource(source: PlaybackSource, recovering: Boolean) {
         if (released) return
+        if (!recovering) {
+            sourceRevision++
+            retryJob?.cancel()
+            retryCount = 0
+        }
+        lastSource = source
         val continued = continuePlaybackSource(mediaKey, source, refresh())
         val http = DefaultHttpDataSource.Factory()
             .setConnectTimeoutMs(15_000).setReadTimeoutMs(30_000).setUserAgent(source.userAgent).setDefaultRequestProperties(source.headers)
@@ -78,6 +93,23 @@ class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackCon
         player.setPlaybackSpeed(continued.speed)
         refresh()
     }
+    private fun retryNetworkFailure(failure: PlaybackFailure): Boolean {
+        if (released || lastSource == null) return false
+        val waitMs = playbackNetworkRetryDelay(failure.code, retryCount) ?: return false
+        val revision = sourceRevision
+        retryCount++
+        retryJob?.cancel()
+        retryJob = recoveryScope.launch {
+            delay(waitMs)
+            if (released || revision != sourceRevision) return@launch
+            val current = refresh()
+            val source = lastSource ?: return@launch
+            // 重试属于传输层，页面退出交接后台后也有效；位置/暂停/倍速在执行时读取。
+            prepareSource(source.copy(resumePositionMs = current.positionMs,
+                autoPlay = current.playWhenReady, speed = current.speed), recovering = true)
+        }
+        return true
+    }
     override fun play() { if (!released) { player.play(); refresh() } }
     override fun pause() { if (!released) { player.pause(); refresh() } }
     override fun seekTo(positionMs: Long) { if (!released) { player.seekTo(positionMs); refresh() } }
@@ -93,6 +125,8 @@ class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackCon
         }
         if (released) return
         released = true
+        sourceRevision++
+        recoveryScope.cancel()
         player.removeListener(observer)
         listeners.clear()
         player.release()

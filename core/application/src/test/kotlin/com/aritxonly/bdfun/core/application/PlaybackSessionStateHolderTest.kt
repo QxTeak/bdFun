@@ -70,4 +70,18 @@ class PlaybackSessionStateHolderTest {
         val tick = reducePlaybackSnapshot(acknowledged, PlaybackPhase.Ended, false, true, 1000, 1000, 1000, 1f)
         assertFalse(tick.ended)
     }
+
+    @Test fun newVideoPausesPreviousTransportButSamePlayerHandOffDoesNot() = test { session ->
+        val old = FakePlaybackController()
+        session.attach(Any(), old)
+        old.play()
+        val next = FakePlaybackController()
+        session.attach(Any(), next)
+        assertFalse(old.state.value.playWhenReady)
+        assertTrue(old.commands.contains("pause"))
+        next.play()
+        session.adopt(next)
+        assertTrue(next.state.value.playWhenReady)
+        assertFalse(next.commands.contains("pause"))
+    }
 }
