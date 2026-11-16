@@ -85,28 +85,12 @@ fun ExpandChevron(expanded: Boolean) {
         modifier = Modifier.size(width = 24.dp, height = 24.dp),
         contentAlignment = Alignment.Center,
     ) {
-        androidx.compose.foundation.Canvas(
-            modifier = Modifier
-                .size(width = 12.dp, height = 8.dp)
-                .graphicsLayer { rotationZ = 180f * progress },
-        ) {
-            val w = size.width
-            val h = size.height
-            val path = androidx.compose.ui.graphics.Path().apply {
-                moveTo(w * 0.12f, h * 0.28f)
-                lineTo(w * 0.5f, h * 0.72f)
-                lineTo(w * 0.88f, h * 0.28f)
-            }
-            drawPath(
-                path = path,
-                color = colors.onBackgroundVariant,
-                style = androidx.compose.ui.graphics.drawscope.Stroke(
-                    width = 1.6.dp.toPx(),
-                    cap = androidx.compose.ui.graphics.StrokeCap.Round,
-                    join = androidx.compose.ui.graphics.StrokeJoin.Round,
-                ),
-            )
-        }
+        com.aritxonly.teak.common.icons.AppGlyph(
+            com.aritxonly.teak.common.icons.LucideIcons.ChevronDown,
+            tint = colors.onBackgroundVariant,
+            modifier = Modifier.graphicsLayer { rotationZ = 180f * progress },
+            size = 14.dp,
+        )
     }
 }
 

@@ -40,5 +40,4 @@ internal object TeakIcon {
     val PlayerShare = R.drawable.fs_share
 
     val Send = com.aritxonly.teak.common.icons.LucideIcons.Send
-    val Image = R.drawable.ic_image
 }

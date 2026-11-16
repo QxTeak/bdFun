@@ -280,6 +280,46 @@
       "width": 24,
       "height": 24,
       "tags": ""
+    },
+    {
+      "id": "lucide:arrow-up-to-line",
+      "name": "arrow-up-to-line",
+      "family": "Lucide",
+      "variant": "Outline",
+      "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M5 3h14m-1 10l-6-6l-6 6m6-6v14\"/>",
+      "width": 24,
+      "height": 24,
+      "tags": ""
+    },
+    {
+      "id": "lucide:arrow-down-to-line",
+      "name": "arrow-down-to-line",
+      "family": "Lucide",
+      "variant": "Outline",
+      "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 17V3m-6 8l6 6l6-6m1 10H5\"/>",
+      "width": 24,
+      "height": 24,
+      "tags": ""
+    },
+    {
+      "id": "lucide-extended:locate-fixed-filled",
+      "name": "locate-fixed-filled",
+      "family": "Lucide Extended",
+      "variant": "Filled",
+      "body": "<path fill=\"currentColor\" d=\"M12 8a4 4 0 1 1 0 8a4 4 0 0 1 0-8\"/><path fill=\"currentColor\" fill-rule=\"evenodd\" d=\"M12 1a1 1 0 0 1 1 1v2.063A8 8 0 0 1 19.936 11H22a1 1 0 1 1 0 2h-2.064A8 8 0 0 1 13 19.936V22a1 1 0 1 1-2 0v-2.064A8 8 0 0 1 4.064 13H2a1 1 0 1 1 0-2h2.064A8 8 0 0 1 11 4.063V2a1 1 0 0 1 1-1m0 5a6 6 0 1 0 0 12a6 6 0 0 0 0-12\" clip-rule=\"evenodd\"/>",
+      "width": 24,
+      "height": 24,
+      "tags": ""
+    },
+    {
+      "id": "lucide:chevron-down",
+      "name": "chevron-down",
+      "family": "Lucide",
+      "variant": "Outline",
+      "body": "<path fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"m6 9l6 6l6-6\"/>",
+      "width": 24,
+      "height": 24,
+      "tags": ""
     }
   ]
 }

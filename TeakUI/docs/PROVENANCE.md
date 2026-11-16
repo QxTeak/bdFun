@@ -133,7 +133,7 @@
 
 ## ICON-16: Lucide / Lucide Extended (2026-11-16)
 
-`src/main/res/drawable/hybrid_*.xml` 来源于 Lucide 和 Lucide Extended 的已审阅 SVG 快照，仅包含 bdFun issue 16 预设所用的28个图形。
+`src/main/res/drawable/hybrid_*.xml` 来源于 Lucide 和 Lucide Extended 的已审阅 SVG 快照，仅包含 bdFun issue 16 预设所用的32个图形。
 
 - Lucide: https://github.com/lucide-icons/lucide
 - Lucide Extended: https://github.com/applifted/lucide-extended

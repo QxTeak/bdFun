@@ -32,4 +32,8 @@ object LucideIcons {
     val Timer = R.drawable.hybrid_timer
     val Users = R.drawable.hybrid_users
     val Volume1 = R.drawable.hybrid_volume_1
+    val ArrowUpToLine = R.drawable.hybrid_arrow_up_to_line
+    val ArrowDownToLine = R.drawable.hybrid_arrow_down_to_line
+    val LocateFixedFilled = R.drawable.hybrid_locate_fixed_filled
+    val ChevronDown = R.drawable.hybrid_chevron_down
 }
