@@ -623,3 +623,21 @@ PR #52 的推荐开关、清除和错误提示由 SettingsScreenRoute 向 main �
 ### 2026-11-16 推荐优化与首页弱网缓存集成
 
 首页 StateHolder 同时接收 optimizer/cache/requestTimeoutMs，保留 main 的首屏缓存和请求超时；缓存读取完成也须核对账号/模式 ticket。装配层按账号、来源与优化模式隔离缓存文件，关闭优化不复用优化后的缓存顺序。
+
+### 2026-11-16 UPD-01 GitHub 更新与发布
+
+更新策略与版本规则在 core/domain/update，检查状态在 feature/update/application，GitHub 适配在 infra/bili/update，系统后台下载在 infra/storage/update。preview 检查所有渠道、正式版仅正式渠道；设置关于版本行进入 UpdateActivity，release 冷启动每日检查。release 工作流输入 version 自动计算 versionCode，支持手填列表日志及 DeepSeek Agent 生成自审；密钥仅用于 CI。发布创建新标签，禁止覆盖既有标签。关于页背景全宽，列表独立使用 centeredListWidth。
+
+UPD-01 页面无更新默认展示当前版本日志，历史日志由同一仓储列表提供；底部双玻璃按钮配渐进遮罩，有更新仅显示下载条，下载前申请通知权限。DownloadManager 系统通知持有后台进度。旧非标准标签只展示历史，不参与版本比较。
+
+### 2026-11-16 UPD-02 设置更新入口与右栏
+
+关于页顶部身份区整块通过 SettingsDestination.Update 进入内嵌更新页，横屏保留左侧设置目录。UpdateScreenRoute 为 Activity 和设置右栏共用的装配入口，展示不创建 Activity 或仓储；版本行只显示版本。更新页以 bdFun 品牌标题和版本号为主，状态作为次要说明；底部玻璃按钮最小高度为48dp。
+
+关于页版本快照由 BuildConfig.SOURCE_REVISION/BUILD_TIME 提供，记录8位commit（含未提交改动时标记dirty）与带时区的编译时间，身份区与下方卡片保留独立留白。
+
+更新日志入口集中在检查更新页（原历史版本按钮），关于页索引不再包含changelog动作。检查按钮禁用色显式从当前primary派生，避免回落到Miuix默认蓝色。
+
+关于页的版本/版本快照/编译时间统一在“版本信息”设置组，顶部身份区不再显示快照和编译时间；讨论/帮助等在独立组。日志复用presentation/update/ChangelogScreen中的原列表、版本标签和彩色圆点布局，经应用装配自动加载GitHub，ui/ChangelogScreen.kt已删除。
+
+快照为设置项展示名（键仍为version_snapshot），commit/dirty与编译时间均由Gradle自动生成。更新页与日志页使用AnimatedContent水平位移+淡入淡出，遵循animationsEnabled。

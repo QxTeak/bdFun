@@ -134,6 +134,7 @@
         <activity
             android:name=".CacheActivity"
             android:exported="false" />
+        <activity android:name=".UpdateActivity" android:exported="false" />
         <service
             android:name=".data.CacheService"
             android:exported="false"

@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.ui
 
 import android.content.res.Configuration
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -50,9 +51,12 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
         val categories = pane == SettingsPane.Categories || pane == SettingsPane.Single && session.selected == null
         val detail = session.navigation.detail?.takeIf { pane != SettingsPane.Categories }?.let { SettingsDestination.valueOf(it) }
         val title = if (detail != null) settingsDetailTitle(detail) else if (searching) "搜索设置" else if (categories) "设置" else session.selected?.name ?: "设置"
+        val dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
         val back = {
             if (pane == SettingsPane.Categories) {
                 if (searching) session.browser.closeSearch() else runtime.navigation.onBack()
+            } else if (detail == SettingsDestination.Update && dispatcher != null) {
+                dispatcher.onBackPressed()
             } else if (!session.browser.back()) runtime.navigation.onBack()
         }
         CompositionLocalProvider(LocalWindowInfo provides window, LocalConfiguration provides configuration,
@@ -65,6 +69,7 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
             val localRuntime = SettingsPageRuntime(runtime.settings, runtime.cdn, runtime.cdnState, embedded, runtime.scope,
                 runtime.onPickWallpaper, runtime.mineLayout, runtime.extensions)
             SettingsPaneScaffold(runtime, pane, title, back, detail != null,
+                fullWidth = session.selected?.layout == "about",
                 search = if (!session.wide && detail == null && !categories && !searching && session.selected != null) ({ session.browser.search(session.selected.route) }) else null,
             ) {
                 if (detail != null) SettingsDetailContent(detail, back)
@@ -77,9 +82,9 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
 
 @Composable
 private fun SettingsPaneScaffold(runtime: SettingsPageRuntime, pane: SettingsPane, title: String,
-    back: () -> Unit, detail: Boolean, search: (() -> Unit)?, content: @Composable () -> Unit) {
+    back: () -> Unit, detail: Boolean, fullWidth: Boolean, search: (() -> Unit)?, content: @Composable () -> Unit) {
     if (pane == SettingsPane.Single) {
-        TeakActivityScaffold(runtime.settings, back, options = ActivityPageOptions(title = title),
+        TeakActivityScaffold(runtime.settings, back, options = ActivityPageOptions(title = title, limitContentWidth = !fullWidth),
             slots = ActivityPageSlots(topBarActions = { if (search != null) SettingsCategorySearchButton(search) }), content = content)
     } else PageChromeScope {
         // 两栏共用主题，但外壳、滚动、弹层和玻璃采样各自持有，不能再套整页内容宽度限制。

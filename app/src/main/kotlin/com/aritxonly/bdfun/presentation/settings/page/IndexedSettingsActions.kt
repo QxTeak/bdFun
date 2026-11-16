@@ -15,6 +15,8 @@ internal fun IndexedActionComponent(entry: Setting, runtime: SettingsPageRuntime
         "developer_aritx" -> DeveloperRow(entry.title, R.drawable.dev_artix, "https://github.com/AritxOnly", runtime.navigation.onDeveloper)
         "developer_teak" -> DeveloperRow(entry.title, R.drawable.dev_teak, "https://github.com/QxTeak", runtime.navigation.onDeveloper)
         "version" -> TeakSettingsValueRow(entry.title, BuildConfig.VERSION_NAME)
+        "version_snapshot" -> TeakSettingsValueRow(entry.title, BuildConfig.SOURCE_REVISION)
+        "build_time" -> TeakSettingsValueRow(entry.title, BuildConfig.BUILD_TIME)
         "wallpaper_pick" -> TeakSettingsActionRow(entry.title,
             trailing = if (runtime.settings.splashWallpaper.isBlank()) "未设置" else "已设置",
             onClick = runtime.onPickWallpaper)
@@ -31,7 +33,6 @@ internal fun IndexedActionComponent(entry: Setting, runtime: SettingsPageRuntime
 private fun SettingsDestinationAction(entry: Setting, runtime: SettingsPageRuntime) {
     val destination = when (entry.prefName) {
         "discussion" -> SettingsDestination.Discussion
-        "changelog" -> SettingsDestination.Changelog
         "help" -> SettingsDestination.Help
         "onboarding" -> SettingsDestination.Onboarding
         "donation" -> SettingsDestination.Donation

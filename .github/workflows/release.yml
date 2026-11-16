@@ -3,16 +3,24 @@ name: Android 手动发布
 on:
   workflow_dispatch:
     inputs:
-      tag:
-        description: '要发布的已有版本标签，例如 vpreview-3.9.4'
+      version:
+        description: '版本号：preview-5.1 或 1.1.0（自动计算 versionCode）'
         required: true
         type: string
+      notes:
+        description: '更新日志（Markdown 列表；支持多行，优先于自动生成）'
+        required: false
+        type: string
+      generate_notes:
+        description: '使用 DeepSeek Agent 根据提交自动生成并自审日志'
+        default: false
+        type: boolean
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ inputs.tag }}
+  group: release-${{ inputs.version }}
   cancel-in-progress: false
 
 jobs:
@@ -24,21 +32,29 @@ jobs:
       - name: 检出项目代码
         uses: actions/checkout@v4
         with:
-          # 仅构建指定标签的代码，避免误将分支代码发布为该版本。
-          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
           persist-credentials: false
-      - name: 检查标签与应用版本是否一致
+      - name: 校验版本与标签
         env:
-          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_VERSION: ${{ inputs.version }}
         run: |
-          python3 - <<'PY'
-          import os, re
-          from pathlib import Path
-          source = Path('app/build.gradle.kts').read_text()
-          version = re.search(r'versionName\s*=\s*"([^"]+)"', source).group(1)
-          if os.environ['RELEASE_TAG'] != f'v{version}':
-              raise SystemExit(f'发布标签必须为 v{version}')
-          PY
+          python3 - <<'PYCODE'
+          import os, re, subprocess
+          v = os.environ['RELEASE_VERSION']
+          if not re.fullmatch(r'(?:preview-(?:0|[1-9][0-9]?)\.(?:0|[1-9][0-9]?)|(?:0|[1-9][0-9]{0,2})\.(?:0|[1-9][0-9]?)\.(?:0|[1-9][0-9]?))', v):
+              raise SystemExit('版本格式无效')
+          if subprocess.run(['git', 'rev-parse', '--verify', 'refs/tags/v' + v], capture_output=True).returncode == 0:
+              raise SystemExit('版本标签已存在，请使用新版本，避免覆盖已发布 APK')
+          PYCODE
+      - name: 测试发布日志工具
+        run: python3 tools/test-release-notes-agent.py
+      - name: 准备更新日志
+        env:
+          RELEASE_NOTES: ${{ inputs.notes }}
+          GENERATE_NOTES: ${{ inputs.generate_notes }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          DEEPSEEK_MODEL: ${{ vars.DEEPSEEK_MODEL }}
+        run: python3 tools/release-notes-agent.py
       - name: 配置 JDK 21
         uses: actions/setup-java@v4
         with:
@@ -73,25 +89,28 @@ jobs:
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.jks"
       - name: 构建签名发布版 APK
         env:
+          RELEASE_VERSION: ${{ inputs.version }}
           ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/release.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-        run: bash ./gradlew :app:assembleRelease --stacktrace
+        # 输入经环境变量传递，避免日志或版本内容成为 shell 代码。
+        run: bash ./gradlew :core:domain:test :infra:bili:testDebugUnitTest :app:testDebugUnitTest :app:assembleRelease "-PreleaseVersion=$RELEASE_VERSION" --stacktrace
       - name: 校验签名并准备发布附件
         env:
-          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_TAG: v${{ inputs.version }}
         run: |
           "$ANDROID_HOME/build-tools/37.0.0/apksigner" verify --verbose app/build/outputs/apk/release/app-release.apk
           mkdir -p release
           cp app/build/outputs/apk/release/app-release.apk "release/bdFun-${RELEASE_TAG}.apk"
+          cp release-notes.md release/release-notes.md
           cp app/build/outputs/mapping/release/mapping.txt release/mapping.txt
           cd release
           sha256sum -- *.apk > SHA256SUMS.txt
       - name: 上传发布版 APK
         uses: actions/upload-artifact@v7
         with:
-          path: release/bdFun-${{ inputs.tag }}.apk
+          path: release/bdFun-v${{ inputs.version }}.apk
           archive: false
           if-no-files-found: error
           retention-days: 30
@@ -109,12 +128,18 @@ jobs:
           archive: false
           if-no-files-found: error
           retention-days: 30
+      - name: 上传更新日志
+        uses: actions/upload-artifact@v7
+        with:
+          path: release/release-notes.md
+          archive: false
+          if-no-files-found: error
       - name: 清理签名密钥
         if: always()
         run: rm -f -- "$RUNNER_TEMP/release.jks"
 
   publish:
-    name: 发布预发布版本
+    name: 发布 GitHub Release
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 10
@@ -132,15 +157,15 @@ jobs:
         run: |
           cd release
           sha256sum --check SHA256SUMS.txt
-      - name: 创建预发布版本或更新已有版本附件
+      - name: 创建版本标签与 Release
         env:
+          RELEASE_SHA: ${{ github.sha }}
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_TAG: v${{ inputs.version }}
         run: |
-          if gh release view "$RELEASE_TAG" > /dev/null 2>&1; then
-            # 保留管理员手动设置的正式版或预发布状态。
-            gh release upload "$RELEASE_TAG" release/* --clobber
-          else
-            gh release create "$RELEASE_TAG" release/* --verify-tag --generate-notes --prerelease --title "bdFun $RELEASE_TAG"
-          fi
+          args=()
+          if [[ "$RELEASE_TAG" == vpreview-* ]]; then args+=(--prerelease); fi
+          gh release create "$RELEASE_TAG" release/*.apk release/SHA256SUMS.txt release/mapping.txt \
+            --target "$RELEASE_SHA" --notes-file release/release-notes.md \
+            --title "bdFun $RELEASE_TAG" "${args[@]}"

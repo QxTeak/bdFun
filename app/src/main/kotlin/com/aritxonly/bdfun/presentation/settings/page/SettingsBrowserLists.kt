@@ -120,7 +120,7 @@ internal fun settingsListPadding(): PaddingValues {
 internal fun SettingsIndexedGroup(group: SettingsGroup, session: SettingsBrowserSession, values: Map<String, SettingValue>,
     runtime: SettingsPageRuntime, controller: IndexedSettingsStateHolder, aboutProgress: Float? = null) {
     if (group.settings.all { it.type == "app_identity" }) {
-        group.settings.forEach { SettingsAboutAppHeader(it.title) }
+        group.settings.forEach { SettingsAboutAppHeader(it.title) { runtime.navigation.onAbout(SettingsDestination.Update) } }
         return
     }
     SettingsIndexGroupCard(group.title, aboutProgress) {
