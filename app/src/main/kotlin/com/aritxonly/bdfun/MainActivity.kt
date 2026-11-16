@@ -5,7 +5,6 @@ import com.aritxonly.bdfun.core.model.settings.AUTO_CDN_ID
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -14,6 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import com.aritxonly.bdfun.data.SettingsStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 class MainActivity : ComponentActivity() {
     private lateinit var settings: SettingsStore
@@ -32,15 +33,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         com.aritxonly.bdfun.data.LogCollector.init(applicationContext)
         enableEdgeToEdge()
-        // 采样上限：底栏玻璃每帧要把整屏录一次，绘制频率跟屏幕刷新率一致。
-        // 120Hz 屏上把整窗钉在 60Hz，录制次数直接减半、每帧预算翻倍；60Hz 设备上是 no-op。
-        // 不想要这个整窗限帧，删掉下面这 3 行即可。
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            window.attributes = window.attributes.apply { preferredRefreshRate = 60f }
-        }
         AppGraph.ensure(applicationContext)
         incomingLinks = AppGraph.incomingVideoLinks()
         settings = AppGraph.settings
+        // 默认保留玻璃录制的 60Hz 预算；0 表示由系统自行选择。
+        lifecycleScope.launch {
+            settings.state.map { settings.repository.appearance.feedRefreshRate }
+                .distinctUntilChanged().collect { rate ->
+                window.attributes = window.attributes.apply {
+                    preferredRefreshRate = rate.toFloat()
+                }
+            }
+        }
         // 自动 CDN 在冷启动先沿用上次结果，同时在后台重新测速；不阻塞首屏和播放。
         if (settings.cdnService == AUTO_CDN_ID) {
             lifecycleScope.launch(Dispatchers.IO) {

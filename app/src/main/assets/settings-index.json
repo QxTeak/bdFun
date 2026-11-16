@@ -81,6 +81,27 @@
             "inverted": true
           },
           {
+            "pref_name": "feed_refresh_rate",
+            "type": "dropdown",
+            "title": "信息流帧率",
+            "default": 60,
+            "subtitle": "主界面刷新率；自适应由系统决定",
+            "options": [
+              {
+                "title": "60",
+                "value": 60
+              },
+              {
+                "title": "120",
+                "value": 120
+              },
+              {
+                "title": "自适应",
+                "value": 0
+              }
+            ]
+          },
+          {
             "pref_name": "smart_refresh",
             "type": "switch",
             "title": "智能刷新率",

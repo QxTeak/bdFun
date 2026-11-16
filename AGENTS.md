@@ -647,3 +647,6 @@ UPD-01 页面无更新默认展示当前版本日志，历史日志由同一仓�
 图标选择依据 docs/icon-presets/issue-16.json。Miuix 扩展图标只用 MiuixIcons.Name 的默认 Regular，不显式指定其他字重；Basic 系列没有字重 API，沿用预设选中的 Basic 图形。Lucide / Extended 仅打包已选择的32项矢量，来源固定在 tools/icons/lucide-selected.json，经 generate_lucide.py 生成 TeakUI 共享 drawable 与 LucideIcons 资源索引。线框使用24视口/1.8描边、填充图形92%光学收边；页面通过 AppGlyph 显式传入原场景尺寸和颜色，不改变触摸区域。相同语义与图形共用资源；预设明确不同的半屏/全屏投屏、后台听音频等不强行合并。预设不是运行时动态配置，不读取 Downloads；图标改动仍需视频旋转/画中画/后台及登录页面手动回归。
 
 ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保持布局尺寸不变；不要通过加粗、改图或移除原底栏缩放来掩盖低分辨率缓存。原字符预设 currentId 保持稳定，implementation/legacyName 记录矢量实现；本地提交的源码位置在工作台标为本地，不指向不存在的远端提交。
+
+### 信息流帧率设置
+主界面默认请求 60Hz，可在外观设置选择 120 或自适应（0，交给系统）；MainActivity 观察设置状态应用窗口偏好，不改变播放器智能刷新率策略。

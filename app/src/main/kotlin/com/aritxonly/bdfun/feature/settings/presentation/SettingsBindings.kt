@@ -20,6 +20,7 @@ open class SettingsBindings internal constructor(
     override val general: com.aritxonly.bdfun.core.domain.GeneralSettings get() = this
     val state get() = controller.state
     private val projection = SettingsPresentationStateHolder(scope, state) { TeakMotion.enabled = controller.animationsEnabled }
+    override var feedRefreshRate: Int by projection.property("feedRefreshRateState", { controller.feedRefreshRate }, { controller.feedRefreshRate = it })
     override var dynamicColor: Boolean by projection.property("dynamicColorState", { controller.dynamicColor }, { controller.dynamicColor = it })
     override var previewNoticeAcked: Boolean by projection.property("previewAckState", { controller.previewNoticeAcked }, { controller.previewNoticeAcked = it })
     override var refractionEnabled: Boolean by projection.property("refractionState", { controller.refractionEnabled }, { controller.refractionEnabled = it })

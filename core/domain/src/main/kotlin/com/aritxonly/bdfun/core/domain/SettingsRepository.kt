@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.core.domain
 
 interface AppearanceSettings {
+    var feedRefreshRate: Int
     var dynamicColor: Boolean
     var refractionEnabled: Boolean
     var bottomBarRaise: Boolean
