@@ -18,6 +18,7 @@ internal fun CommentRowMessage(item: CommentItem) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
     val photo = LocalPhotoViewer.current
+    val view = androidx.compose.ui.platform.LocalView.current
     EmoteText(
         content = EmoteTextContent(
             text = item.message,
@@ -43,7 +44,14 @@ internal fun CommentRowMessage(item: CommentItem) {
     if (item.pictures.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))
         CommentPictures(item.pictures) { index, rect, radius, origins ->
-            photo.open(item.pictures, index, rect, radius, origins)
+            // 独立楼中楼窗口的坐标需换算到全屏预览窗口。
+            val screen = IntArray(2)
+            val window = IntArray(2)
+            view.getLocationOnScreen(screen)
+            view.getLocationInWindow(window)
+            val offset = androidx.compose.ui.geometry.Offset((screen[0] - window[0]).toFloat(), (screen[1] - window[1]).toFloat())
+            photo.open(item.pictures, index, rect.translate(offset), radius, origins.map { it?.translate(offset) })
+
         }
     }
 }

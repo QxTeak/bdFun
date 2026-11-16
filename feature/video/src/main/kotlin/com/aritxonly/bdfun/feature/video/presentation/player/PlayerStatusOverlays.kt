@@ -29,7 +29,7 @@ fun BoxScope.PlayerStatusOverlays(
     buffering: @Composable (Modifier) -> Unit,
 ) {
     val showBuffering by ui.showBuffering
-    // 首次进入不显示封面，直接全速起播；超过 1.5s 仍缓冲才显示小电视
+    // 超过 1.5s 仍缓冲才显示小电视；首帧前的封面由页面组装层显示。
 
     // 播放中加载：粉色矢量小电视 + 三点省略号 + 正在缓冲...
     if (showBuffering) {

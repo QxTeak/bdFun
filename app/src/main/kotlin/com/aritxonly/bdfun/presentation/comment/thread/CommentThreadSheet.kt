@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.runtime.*
+import com.aritxonly.bdfun.core.common.messageOr
 
 /** 展开窗口继续跟随播放器底边，挂载、退场与原 220ms 减速动画保持一致。 */
 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
@@ -34,7 +35,7 @@ internal fun CommentThreadSheet(
     CommentThreadEffects(runtime, input, viewport, allReplies, navigation)
     CommentThreadDialog(
         content = ThreadSheetContent(input.comment, allReplies, state.extra.size, input.loading, input.end,
-            input.sortHot, actions.sending),
+            input.sortHot, actions.sending, actions.sendError?.messageOr("发送失败，请重试")),
         layout = ThreadSheetLayout(progress, viewport.minTopPx, viewport.playerBottomDp, viewport.paneWidth, imeVisible, navBottom, flatList),
         transient = runtime.transient, listState = runtime.listState, playerCollapseConnection = connection,
         focusRequester = runtime.focusRequester,

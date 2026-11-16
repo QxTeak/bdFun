@@ -35,7 +35,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun SettingsCategorySearchButton(onSearch: () -> Unit) {
-    TeakGlassIconButton(onClick = onSearch) {
+    // 和页面左上角返回键同尺寸的圆形玻璃钮；默认尺寸会拉成椭圆。
+    TeakGlassIconButton(onClick = onSearch, size = 40.dp) {
         Icon(MiuixIcons.Search, "搜索当前分类", tint = MiuixTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))
     }
 }

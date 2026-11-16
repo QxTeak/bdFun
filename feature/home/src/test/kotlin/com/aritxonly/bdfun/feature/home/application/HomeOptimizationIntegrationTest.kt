@@ -98,4 +98,43 @@ class HomeOptimizationIntegrationTest {
         } finally { scope.cancel() }
     }
 
+    @Test fun modeSwitchRejectsLateFirstScreenCache() = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        try {
+            val optimization = optimizer(scope).apply { setEnabled(true) }
+            val gate = CompletableDeferred<Unit>()
+            val cache = object : HomeFeedCache {
+                override suspend fun read(): Outcome<List<VideoItem>> {
+                    gate.await()
+                    return Outcome.Success(listOf(video(99)))
+                }
+                override suspend fun write(items: List<VideoItem>) = Outcome.Success(Unit)
+            }
+            val state = HomeFeedStateHolder(Feed(), videos, optimization, cache)
+            val request = launch(start = CoroutineStart.UNDISPATCHED) { state.ensureLoaded() }
+            optimization.setEnabled(false); state.modeChanged()
+            gate.complete(Unit); request.join()
+            assertTrue(state.state.value.videos.isEmpty())
+            assertFalse(state.state.value.loading)
+        } finally { scope.cancel() }
+    }
+
+    @Test fun optimizedFeedRetainsCachedItemsWhenRequestTimesOut() = runBlocking {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        try {
+            val optimization = optimizer(scope).apply { setEnabled(true) }
+            val saved = listOf(video(99))
+            val cache = object : HomeFeedCache {
+                override suspend fun read() = Outcome.Success(saved)
+                override suspend fun write(items: List<VideoItem>) = Outcome.Success(Unit)
+            }
+            val feed = Feed().apply { load = { awaitCancellation() } }
+            val state = HomeFeedStateHolder(feed, videos, optimization, cache, requestTimeoutMs = 50)
+            state.ensureLoaded()
+            assertEquals(saved, state.state.value.videos)
+            assertNotNull(state.state.value.error)
+            assertFalse(state.state.value.loading)
+        } finally { scope.cancel() }
+    }
+
 }

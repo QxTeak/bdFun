@@ -66,8 +66,9 @@ fun createHomeFeedState(
     actions: com.aritxonly.bdfun.core.domain.RecommendationActionsRepository,
     scope: CoroutineScope,
     optimizer: com.aritxonly.bdfun.core.application.RecommendationOptimizer? = null,
+    cache: com.aritxonly.bdfun.core.domain.HomeFeedCache? = null,
 ): HomeFeedState {
-    val controller = HomeFeedStateHolder(feed, videos, optimizer)
+    val controller = HomeFeedStateHolder(feed, videos, optimizer, cache)
     val feedback = HomeActionsStateHolder(videos, actions, controller)
     return HomeFeedState(controller, feedback, scope, optimizer)
 }

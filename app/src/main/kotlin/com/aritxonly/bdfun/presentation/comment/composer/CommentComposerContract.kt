@@ -11,6 +11,5 @@ internal data class CommentComposerContent(
     val pendingPreview: Uri?,
     val replyName: String?,
     val focusRequester: FocusRequester,
-    val actionsAlpha: Float,
 )
 internal data class CommentComposerMaterial(val recipe: GlassMaterialRecipe, val backdrop: Backdrop?)

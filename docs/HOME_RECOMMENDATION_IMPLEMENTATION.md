@@ -62,3 +62,9 @@ v1 使用按 BV 聚合记录，而非完整原始事件日志；保存曝光/点
 合入 main 38da122：保留设置索引浏览器，将推荐开关/清除/错误提示接入三个 extension 槽，继续使用推荐独立存储；同时保留直播、番剧、按风格变化的首页顶栏高度与推荐曝光 interactive 守卫。设置文案读取索引条目，不恢复旧设置卡片列表。
 
 最终干净构建 :app:testDebugUnitTest、:feature:home:testDebugUnitTest、:app:assembleDebug、checkModuleGraph、:tools:kotlin-audit:checkKotlinSizes 通过，源码分层与 diff 检查通过。此次未重复执行 release 构建或完整 UI/播放人工验收；前述旧 APK 仍对应旧提交，不能代表本次合并产物。
+
+## 2026-11-16 首页弱网缓存冲突处理
+
+合入 main 964dd82，保留首页缓存和 12 秒请求超时，同时保留推荐优化参数与模式守卫。缓存按账号/来源/优化开关隔离文件；缓存读取返回也校验 ticket，拒收切换模式前的迟到结果。新增两个 JVM 回归：模式切换后的迟到缓存、开启优化时的缓存超时兜底。
+
+:app:testDebugUnitTest（461 项）、:feature:home:testDebugUnitTest（30 项）、:app:assembleDebug、checkModuleGraph、:tools:kotlin-audit:checkKotlinSizes 通过，源码分层检查通过。此次未重跑 release 或完整 UI 人工验收。

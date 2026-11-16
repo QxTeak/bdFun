@@ -148,4 +148,17 @@ class MineStateHolderTest {
         assertEquals("01:00", formatVideoPosition(60000))
         assertEquals("1:00:01", formatVideoPosition(3601000))
     }
+
+    @Test fun expiredCacheIsInitialStateAndFailedRefreshKeepsItsFields() = runBlocking {
+        val p = profile()
+        val cached = p.copy(name = "cached", face = "cached-face")
+        val cache = MineProfileStore { 400000L }
+        cache.put(p.mid, cached, 0)
+        val fake = Fake(p).apply { nav = failure; relation = failure; liked = failure }
+        val holder = MineStateHolder(p, fake, cache)
+        assertEquals(cached, holder.state.value.profile)
+        holder.load()
+        assertEquals(cached, holder.state.value.profile)
+        assertFalse(holder.state.value.loading)
+    }
 }

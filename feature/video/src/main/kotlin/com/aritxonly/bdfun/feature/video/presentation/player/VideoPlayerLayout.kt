@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.ui
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +43,12 @@ fun VideoPlayerLayout(
         ) { segment ->
             playback.seekTo(segment.endMs)
             sponsor.dismiss(segment)
+        }
+
+        // 新视频/分 P 等真实首帧，换 CDN 和清晰度仍展示上一帧。
+        val renderedMediaKey by ui.renderedMediaKey
+        if (renderedMediaKey != "${media.bvid}:${fullscreenInfo.currentCid}") {
+            ports.cover(media.cover, Modifier.fillMaxSize().background(Color.Black))
         }
 
         PlayerStatusOverlays(ui, fullscreen, ended, durationMs, ports.buffering)

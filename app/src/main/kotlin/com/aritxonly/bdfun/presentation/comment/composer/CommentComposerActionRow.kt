@@ -1,6 +1,5 @@
 package com.aritxonly.bdfun.ui
 
-import com.aritxonly.teak.common.interaction.blockTouches
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,7 +13,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
@@ -31,13 +29,10 @@ internal fun androidx.compose.foundation.layout.BoxScope.CommentComposerActionRo
     val uploading = content.snapshot.uploading
     val pendingPictures = content.snapshot.pendingPictures
     val pendingPreview = content.pendingPreview
-    val actionsAlpha = content.actionsAlpha
     Row(
         modifier = Modifier
             .align(Alignment.CenterEnd)
-            .padding(end = 6.dp)
-            .graphicsLayer { alpha = actionsAlpha }
-            .blockTouches(actionsAlpha < 0.99f),
+            .padding(end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (pendingPreview != null) {

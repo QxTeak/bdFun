@@ -104,21 +104,22 @@ internal fun BangumiBanner(
     items: List<BangumiBannerItem>,
     onOpen: (Long) -> Unit,
 ) {
-    val fan = remember(items) { items.distinctBy { it.seasonId }.take(BANGUMI_FAN_SLOT_COUNT) }
+    val fan = items.distinctBy { it.seasonId }.take(BANGUMI_FAN_SLOT_COUNT)
     if (fan.isEmpty()) {
         BangumiBannerPlaceholder()
         return
     }
-
+    // 简介是后补的：用 seasonId 作为焦点状态的 key，标题/简介更新时不重置轮播位置。
+    val fanIds = remember(fan) { fan.map { it.seasonId } }
     val count = fan.size
     // 只有刚好 6 张时左右两端才各有一张隐藏卡，能无缝环绕；不够时退化成静态扇形。
     val canCycle = count == BANGUMI_FAN_SLOT_COUNT
-    val focus = remember(fan) { Animatable(0f) }
+    val focus = remember(fanIds) { Animatable(0f) }
     val scope = rememberCoroutineScope()
     // 手动操作后暂停自动轮播；每次点卡/划动都重新计时 8 秒。
-    var pausedUntil by remember(fan) { mutableLongStateOf(0L) }
+    var pausedUntil by remember(fanIds) { mutableLongStateOf(0L) }
 
-    LaunchedEffect(fan, canCycle) {
+    LaunchedEffect(fanIds, canCycle) {
         if (!canCycle) return@LaunchedEffect
         while (isActive) {
             val remaining = pausedUntil - SystemClock.elapsedRealtime()

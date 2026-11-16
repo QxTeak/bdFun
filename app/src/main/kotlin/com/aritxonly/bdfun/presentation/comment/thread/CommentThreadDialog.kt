@@ -24,7 +24,7 @@ internal fun CommentThreadDialog(
         ConfigureCommentThreadWindow(layout.playerBottomDp, layout.minTopPx, layout.paneWidth)
         Box(modifier = Modifier.fillMaxSize()) {
             CommentThreadContent(render)
-            CommentThreadComposer(transient, layout.imeVisible, layout.navBottom, focusRequester, callbacks.onSend)
+            CommentThreadComposer(transient, layout.imeVisible, layout.navBottom, focusRequester, content.sending, content.sendError, callbacks.onSend)
         }
     }
 }

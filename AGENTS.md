@@ -619,3 +619,7 @@ settings-seperation.json独立描述一级卡片分组及入口route/icon/color�
 ### 2026-11-15 推荐优化与设置索引集成
 
 PR #52 的推荐开关、清除和错误提示由 SettingsScreenRoute 向 main 设置索引的 recommendation_toggle/clear/error 三个扩展槽显式注入，沿用推荐独立存储，不恢复旧设置卡片列表。首页入口同时保留 main 的直播/番剧分段、按风格变化的顶栏高度，以及推荐曝光所需的 interactive 守卫。
+
+### 2026-11-16 推荐优化与首页弱网缓存集成
+
+首页 StateHolder 同时接收 optimizer/cache/requestTimeoutMs，保留 main 的首屏缓存和请求超时；缓存读取完成也须核对账号/模式 ticket。装配层按账号、来源与优化模式隔离缓存文件，关闭优化不复用优化后的缓存顺序。

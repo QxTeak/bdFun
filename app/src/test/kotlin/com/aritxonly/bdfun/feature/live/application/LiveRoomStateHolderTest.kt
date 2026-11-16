@@ -61,7 +61,11 @@ class LiveRoomStateHolderTest {
     @Test fun missingHotAndInfoKeepMainFallbackAndRequestOrder() = runBlocking {
         Fixture().use { f ->
             f.holder.loadRoom()
-            assertEquals(listOf("hot", "info:42", "portrait", "qualities", "play:10000"), f.source.calls)
+            // 四个请求现在并行发起，只保证都请求过，不保证串行顺序。
+            assertEquals(
+                setOf("hot", "info:42", "portrait", "qualities", "play:10000"),
+                f.source.calls.toSet(),
+            )
             assertEquals(42L, f.holder.displayRoom.roomId)
             assertEquals("portrait", f.holder.displayRoom.cover)
             assertEquals("same-stream", f.holder.state.value.playback.url)
@@ -114,7 +118,9 @@ class LiveRoomStateHolderTest {
             val request = launch(Dispatchers.Unconfined) { f.holder.loadRoom() }
             f.holder.close(); f.holder.close()
             f.source.gate!!.complete(Unit); request.join()
-            assertEquals(listOf("info:9"), f.source.calls)
+            // 并行后关闭前四路请求都可能已经发出；关键是关闭后不再落地任何房间状态。
+            assertTrue(f.source.calls.contains("info:9"))
+            assertTrue(f.source.calls.size <= 4)
             assertNull(f.holder.state.value.content.room)
             assertEquals(1, f.playback.releases)
             assertEquals(1, f.connection.disconnects)

@@ -6,7 +6,7 @@ import com.aritxonly.bdfun.core.model.comment.CommentItem
 
 internal data class ThreadSheetContent(
     val comment: CommentItem, val allReplies: List<CommentItem>, val extraCount: Int,
-    val loading: Boolean, val end: Boolean, val sortHot: Boolean, val sending: Boolean,
+    val loading: Boolean, val end: Boolean, val sortHot: Boolean, val sending: Boolean, val sendError: String? = null,
 )
 internal data class ThreadSheetLayout(
     val progress: Float, val minTopPx: Float, val playerBottomDp: androidx.compose.ui.unit.Dp?,
