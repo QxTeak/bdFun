@@ -1,6 +1,8 @@
 package com.aritxonly.bdfun.ui
 
 import com.aritxonly.teak.common.modal.TeakActionSheet
+import com.aritxonly.teak.common.modal.AlertDialog
+import com.aritxonly.teak.common.modal.TextButton
 
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Delete
@@ -35,10 +37,22 @@ internal fun MessageSessionSheets(
             ActionSheetRow("消息设置", !busy) { navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("settings")); menu.showMore = false }
         }
     }
-    TeakActionSheet(menu.confirmRead, onDismiss = { if (!busy) menu.confirmRead = false }, title = "一键已读") {
-        Text("是否清除全部新消息提醒？", Modifier.padding(18.dp), color = colors.onBackgroundVariant)
-        ActionSheetRow("确认标为已读", !busy && !loading) { onReadAll() }
-    }
+    AlertDialog(
+        show = menu.confirmRead,
+        onDismissRequest = { if (!busy) menu.confirmRead = false },
+        miuixTitle = "一键已读",
+        miuixSummary = "是否清除全部新消息提醒？",
+        confirmButton = {
+            TextButton(onClick = onReadAll, enabled = !busy && !loading, miuixText = "确认标为已读") {
+                Text("确认标为已读")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = { menu.confirmRead = false }, enabled = !busy, miuixText = "取消") {
+                Text("取消")
+            }
+        },
+    )
     TeakActionSheet(menu.confirmClear, onDismiss = { if (!busy) menu.confirmClear = false }, title = "清空列表") {
         Text("清空后所有消息将被删除，无法恢复。", Modifier.padding(18.dp), color = colors.onBackgroundVariant)
         ActionSheetRow("确认清空", !busy && !loading, MiuixIcons.Delete) { onClearList() }

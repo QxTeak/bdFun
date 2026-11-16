@@ -44,10 +44,11 @@ private fun resolveMiuixButtonColors(
     if (style == MiuixDialogActionStyle.Default) return MiuixButtonDefaults.buttonColors(
         color = fallback.containerColor, contentColor = fallback.contentColor,
         disabledColor = fallback.disabledContainerColor, disabledContentColor = fallback.disabledContentColor)
+    // 弹窗跟随 Miuix 中性色板，避免 Material 默认色板为按钮带入紫色。
     return MiuixButtonDefaults.buttonColors(
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
-        disabledColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
-        contentColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSecondaryContainer,
+        color = MiuixTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
+        disabledColor = MiuixTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
+        contentColor = if (destructive) MaterialTheme.colorScheme.error else MiuixTheme.colorScheme.onSecondaryContainer,
         disabledContentColor = MiuixTheme.colorScheme.disabledOnSurface)
 }
 
@@ -57,9 +58,9 @@ private fun resolveMiuixTextButtonColors(
 ): MiuixTextButtonColors {
     if (style == MiuixDialogActionStyle.Default) return MiuixButtonDefaults.textButtonColors()
     return MiuixButtonDefaults.textButtonColors(
-        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
-        disabledColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
-        textColor = if (destructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSecondaryContainer,
+        color = MiuixTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
+        disabledColor = MiuixTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
+        textColor = if (destructive) MaterialTheme.colorScheme.error else MiuixTheme.colorScheme.onSecondaryContainer,
         disabledTextColor = MiuixTheme.colorScheme.disabledOnSurface)
 }
 
