@@ -23,6 +23,7 @@ fun BdFunApp(settings: SettingsStore) {
             blurEnabled = settings.blurEnabled,
             refractionEnabled = settings.refractionEnabled,
             fontScale = settings.fontScale,
+            hapticsEnabled = settings.vibrationEnabled,
         ) {
             CompositionLocalProvider(LocalTeakBackdrop provides shell.backdrops.main,
                 com.aritxonly.bdfun.ui.LocalRichTextDependencies provides AppGraph.richTextDependencies) {

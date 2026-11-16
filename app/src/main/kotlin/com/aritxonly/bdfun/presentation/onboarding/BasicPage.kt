@@ -39,6 +39,14 @@ internal fun BasicPage(settings: OnboardingBasicSettings, actions: OnboardingAct
     }
 }
 
+/** 界面风格下拉的显示顺序与持久化值映射；HyperOS 4 放最上面。 */
+private data class InterfaceStyleOption(val value: Int, val label: String)
+private val INTERFACE_STYLE_OPTIONS = listOf(
+    InterfaceStyleOption(2, "HyperOS 4"),
+    InterfaceStyleOption(0, "哔哩哔哩"),
+    InterfaceStyleOption(1, "经典"),
+)
+
 @Composable
 private fun OnboardingAppearanceCard(settings: OnboardingBasicSettings, actions: OnboardingActions) {
     TeakSettingsCard(title = "外观", modifier = Modifier.fillMaxWidth()) {
@@ -58,10 +66,13 @@ private fun OnboardingAppearanceCard(settings: OnboardingBasicSettings, actions:
         )
         TeakSettingsDropdownRow(
             title = "界面风格",
-            options = listOf("哔哩哔哩", "经典", "HyperOS 4"),
-            selected = settings.interfaceStyle.coerceIn(0, 2),
-            onSelected = {
-                actions.setInterfaceStyle(it)
+            // 默认先展示 HyperOS 4；选项顺序与存储值解耦，存储值仍是 0/1/2。
+            options = INTERFACE_STYLE_OPTIONS.map { it.label },
+            selected = INTERFACE_STYLE_OPTIONS
+                .indexOfFirst { it.value == settings.interfaceStyle }
+                .coerceAtLeast(0),
+            onSelected = { index ->
+                INTERFACE_STYLE_OPTIONS.getOrNull(index)?.let { actions.setInterfaceStyle(it.value) }
             },
         )
     }
@@ -82,7 +93,7 @@ private fun OnboardingLayoutCard(settings: OnboardingBasicSettings, actions: Onb
             onCheckedChange = { actions.setScrollTopEnabled(it) },
         )
         TeakSettingsSwitchRow(
-            title = "模糊效果",
+            title = "高级材质",
             description = "关闭后玻璃控件改为纯色，低端机更流畅",
             checked = settings.blurEnabled,
             onCheckedChange = { actions.setBlurEnabled(it) },

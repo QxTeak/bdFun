@@ -85,7 +85,7 @@ private class VideoPlayerGestureBindings(
             playback.setSpeed(boostSpeed)
             boosting = true
             // 触发加速的瞬间震一下，确认手势已生效
-            buzzDevice(context)
+            if (options.hapticsEnabled()) buzzDevice(context)
             // 面板/控件开着时直接收起，把画面让出来
             controlsVisible = false
             PlayerUiState.controlsVisible = false

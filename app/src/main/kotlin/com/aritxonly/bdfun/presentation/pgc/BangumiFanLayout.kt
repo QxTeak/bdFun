@@ -30,11 +30,12 @@ internal const val BANGUMI_FAN_FADE_END = 2.45f
  * focus 为整数时返回 -2..+3 的整数槽位；focus 连续变化时槽位平滑移动，
  * 越过边界 -2.5/+3.5 后环绕到另一端（此时卡片已经透明，看不到跳变）。
  */
-internal fun bangumiFanSlot(index: Int, focus: Float, count: Int): Float {
+internal fun bangumiFanSlot(index: Int, focus: Float, count: Int, radius: Float = 2f): Float {
     require(count > 0) { "fan count must be positive" }
-    val raw = (index - focus + 2.5f) % count
+    val center = radius + 0.5f
+    val raw = (index - focus + center) % count
     val wrapped = if (raw < 0f) raw + count else raw
-    return wrapped - 2.5f
+    return wrapped - center
 }
 
 /** 绕竖轴的倾斜角：左侧正、右侧负，让每张卡的内侧边朝屏幕里收。 */
@@ -44,10 +45,12 @@ internal fun bangumiFanRotation(slot: Float): Float = -slot * BANGUMI_FAN_ANGLE_
 internal fun bangumiFanScale(slot: Float): Float =
     (1f - abs(slot) * BANGUMI_FAN_SCALE_STEP).coerceAtLeast(0.5f)
 /** 槽位不透明度：可见区内保持 1，隐藏缓冲区里渐隐。 */
-internal fun bangumiFanAlpha(slot: Float): Float {
+internal fun bangumiFanAlpha(slot: Float, radius: Float = 2f): Float {
     val distance = abs(slot)
-    if (distance <= BANGUMI_FAN_FADE_START) return 1f
-    if (distance >= BANGUMI_FAN_FADE_END) return 0f
-    val t = (distance - BANGUMI_FAN_FADE_START) / (BANGUMI_FAN_FADE_END - BANGUMI_FAN_FADE_START)
+    val fadeStart = radius
+    val fadeEnd = radius + 0.45f
+    if (distance <= fadeStart) return 1f
+    if (distance >= fadeEnd) return 0f
+    val t = (distance - fadeStart) / (fadeEnd - fadeStart)
     return 1f - t * t * (3f - 2f * t)
 }

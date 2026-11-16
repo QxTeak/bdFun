@@ -1,8 +1,8 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Row
@@ -14,10 +14,14 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.core.model.video.SponsorSegment
@@ -56,91 +60,127 @@ fun BoxScope.PlayerAlwaysProgress(
 }
 
 @Composable
-fun BoxScope.PlayerHotDanmakuOverlay(ui: VideoPlayerUiStateHolder, fullscreen: Boolean, hotDanmakuEnabled: Boolean) {
+fun BoxScope.PlayerHotDanmakuOverlay(
+    ui: VideoPlayerUiStateHolder,
+    fullscreen: Boolean,
+    hotDanmakuEnabled: Boolean,
+    strokeDp: Float = 1.5f,
+    textScale: Float = 1f,
+) {
     val hotDanmaku by ui.hotDanmaku
     val fsAudioOnly by ui.fsAudioOnly
-    // 弹幕计数：按 BiliPai 的显示样式，纯白文字 + 黑色描影，居中等距排开，不用黑色胶囊。
-    // 播放控件打开时也保持显示：控件是压在弹幕之上的独立层，不应该让计数忽隐忽现。
-    if (hotDanmakuEnabled &&
-        hotDanmaku.isNotEmpty() && !fsAudioOnly
-    ) {
-        // 弹幕计数用和弹幕相同的黑色描边，不是投影阴影；数字保留斜体并加粗。
-        val outline = with(androidx.compose.ui.platform.LocalDensity.current) {
-            androidx.compose.ui.text.TextStyle(
-                drawStyle = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.6.dp.toPx()),
-            )
+    // 弹幕计数：和普通弹幕使用同一套原生绘制方式（同描边设置），
+    // 不再用两层 Compose Text 叠描边。播放控件打开时也保持显示。
+    if (hotDanmakuEnabled && hotDanmaku.isNotEmpty() && !fsAudioOnly) {
+        val density = LocalDensity.current
+        // 计数比普通弹幕大一号，文字和数字都倾斜；描边仍沿用弹幕设置的宽度。
+        val textSizePx = with(density) { (16.sp * textScale).toPx() }
+        val countSizePx = with(density) { (20.sp * textScale).toPx() }
+        val strokePx = with(density) { strokeDp.dp.toPx() }
+        val gapPx = with(density) { 24.dp.toPx() }
+        val canvasHeight = with(density) { ((countSizePx * 1.6f).coerceAtLeast(textSizePx * 1.3f)).toDp() }
+        // Paint / 字体测量对象只创建一次；Canvas 重绘时不再每帧 new Paint。
+        val textPaint = remember(textSizePx) {
+            android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.DITHER_FLAG).apply {
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.ITALIC)
+                textSize = textSizePx
+            }
         }
-        Row(
+        val countPaint = remember(countSizePx) {
+            android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.DITHER_FLAG).apply {
+                typeface = android.graphics.Typeface.create("sans-serif-medium", android.graphics.Typeface.BOLD_ITALIC)
+                textSize = countSizePx
+            }
+        }
+        val ellipsizePaint = remember(textSizePx) { android.text.TextPaint() }
+        val baselineOffset = remember(countSizePx) { -countPaint.fontMetrics.top }
+        Canvas(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .fillMaxWidth()
-                // 计数贴到画面最顶部（控件隐藏时这里本来就是空的），
-                // 下面的弹幕行会按 topGuard 让开这块区域。
                 .padding(top = if (fullscreen) 10.dp else 4.dp)
-                .padding(horizontal = 4.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically,
+                .padding(horizontal = 12.dp)
+                .height(canvasHeight),
         ) {
-            hotDanmaku.forEach { (text, count) ->
-                Row(
-                    modifier = Modifier.padding(1.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    HotDanmakuText(
-                        text = text,
-                        fontSize = 16.sp,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-                        outline = outline,
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    HotDanmakuText(
-                        text = "×$count",
-                        fontSize = 20.sp,
-                        fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
-                        italic = true,
-                        outline = outline,
-                    )
-                }
+            drawIntoCanvas { canvas ->
+                drawHotDanmaku(canvas.nativeCanvas, hotDanmaku, size.width, textPaint, countPaint,
+                    ellipsizePaint, baselineOffset, strokePx, gapPx)
             }
         }
     }
-
 }
 
-/** 描边黑字 + 白色填充两层叠放，和弹幕引擎的 stroke→fill 绘制顺序一致。 */
-@Composable
-private fun HotDanmakuText(
-    text: String,
-    fontSize: androidx.compose.ui.unit.TextUnit,
-    fontWeight: androidx.compose.ui.text.font.FontWeight,
-    outline: androidx.compose.ui.text.TextStyle,
-    italic: Boolean = false,
+/**
+ * 与弹幕引擎完全相同的绘制顺序：先按 [strokePx] 和 0xE6000000 描边，再填白色。
+ * 正文和数字都倾斜，数字更大并紧跟正文。
+ */
+private fun drawHotDanmaku(
+    canvas: android.graphics.Canvas,
+    items: List<Pair<String, Long>>,
+    availableWidth: Float,
+    textPaint: android.graphics.Paint,
+    countPaint: android.graphics.Paint,
+    ellipsizePaint: android.text.TextPaint,
+    baselineOffset: Float,
+    strokePx: Float,
+    gapPx: Float,
 ) {
-    val style = androidx.compose.ui.text.font.FontStyle.Italic.takeIf { italic }
-    Box {
-        Text(
-            text = text,
-            color = Color.Black,
-            fontSize = fontSize,
-            fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
-            fontWeight = fontWeight,
-            fontStyle = style,
-            maxLines = 1,
-            softWrap = false,
-            style = outline,
-        )
-        Text(
-            text = text,
-            color = Color.White,
-            fontSize = fontSize,
-            fontFamily = androidx.compose.ui.text.font.FontFamily.SansSerif,
-            fontWeight = fontWeight,
-            fontStyle = style,
-            maxLines = 1,
-            softWrap = false,
-        )
+    // 数字紧跟在正文后面，只留一点字距，不再按半屏宽度把两者分开。
+    val numberGapPx = countPaint.textSize * 0.08f
+    val maxItemWidth = ((availableWidth - gapPx) / 2f).coerceAtLeast(1f)
+    val rows = items.map { (text, count) ->
+        val countText = "×$count"
+        val countWidth = countPaint.measureText(countText)
+        val textLimit = (maxItemWidth - countWidth - numberGapPx).coerceAtLeast(1f)
+        ellipsizePaint.typeface = textPaint.typeface
+        ellipsizePaint.textSize = textPaint.textSize
+        val display = android.text.TextUtils.ellipsize(
+            text,
+            ellipsizePaint,
+            textLimit,
+            android.text.TextUtils.TruncateAt.END,
+        ).toString()
+        HotDanmakuRow(display, countText, textPaint.measureText(display), countWidth)
+    }
+    val totalWidth = rows.sumOf { (it.textWidth + it.countWidth).toDouble() }.toFloat() +
+        numberGapPx * rows.size +
+        gapPx * (rows.size - 1).coerceAtLeast(0)
+    var x = (availableWidth - totalWidth) / 2f
+    rows.forEachIndexed { index, row ->
+        drawHotDanmakuText(canvas, row.text, x, baselineOffset, textPaint, strokePx)
+        x += row.textWidth + numberGapPx
+        drawHotDanmakuText(canvas, row.count, x, baselineOffset, countPaint, strokePx)
+        x += row.countWidth
+        if (index != rows.lastIndex) x += gapPx
     }
 }
+
+private fun drawHotDanmakuText(
+    canvas: android.graphics.Canvas,
+    text: String,
+    x: Float,
+    baseline: Float,
+    paint: android.graphics.Paint,
+    strokePx: Float,
+) {
+    if (strokePx > 0f) {
+        paint.style = android.graphics.Paint.Style.STROKE
+        paint.color = 0xE6000000.toInt()
+        paint.strokeWidth = strokePx
+        canvas.drawText(text, x, baseline, paint)
+    }
+    paint.style = android.graphics.Paint.Style.FILL
+    paint.color = android.graphics.Color.WHITE
+    paint.strokeWidth = 0f
+    canvas.drawText(text, x, baseline, paint)
+}
+
+private data class HotDanmakuRow(
+    val text: String,
+    val count: String,
+    val textWidth: Float,
+    val countWidth: Float,
+)
 
 @Composable
 fun BoxScope.PlayerSponsorOverlay(

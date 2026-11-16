@@ -54,6 +54,7 @@ fun TeakTheme(
     blurEnabled: Boolean = true,
     refractionEnabled: Boolean = true,
     fontScale: Float = 1f,
+    hapticsEnabled: Boolean = true,
     content: @Composable () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -102,9 +103,13 @@ fun TeakTheme(
         )
     }
     // 文字字重完全交给系统默认：不写死 350 / Light，用户系统里调粗调细会跟着变。
+    val systemHaptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    val haptics = if (hapticsEnabled) systemHaptics else SilentHapticFeedback
     CompositionLocalProvider(
         LocalDensity provides scaledDensity,
         LocalTeakContentColors provides teakContentColors(dark),
+        LocalHapticsEnabled provides hapticsEnabled,
+        androidx.compose.ui.platform.LocalHapticFeedback provides haptics,
     ) {
         MiuixTheme(controller = controller) {
             MaterialTheme(colorScheme = materialColors) {

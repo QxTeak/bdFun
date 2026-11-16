@@ -16,4 +16,11 @@ class PlayerSurfaceSlots(
         List<DanmakuItem>, () -> Long, Boolean, Float, Modifier, Boolean, Boolean,
     ) -> Unit,
 )
-data class VideoPictureSettings(val progressBarMode: Int, val hotDanmakuEnabled: Boolean, val accentColor: Color)
+data class VideoPictureSettings(
+    val progressBarMode: Int,
+    val hotDanmakuEnabled: Boolean,
+    val accentColor: Color,
+    /** 弹幕计数沿用普通弹幕的描边宽度与字号缩放，保证观感一致。 */
+    val hotDanmakuStrokeDp: Float = 1.5f,
+    val hotDanmakuTextScale: Float = 1f,
+)

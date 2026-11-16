@@ -29,8 +29,12 @@ internal fun FeedGrid(
         val wide = maxWidth >= 736.dp
         val sidebarWidth = dynamicSidebarWidth(maxWidth.value).dp
         Row(Modifier.fillMaxSize()) {
-            if (wide) FeedAuthorSidebar(state, Modifier.width(sidebarWidth)
-                .padding(top = statusTop + FeedTopBarHeight, bottom = 100.dp))
+            if (wide) FeedAuthorSidebar(
+                state,
+                modifier = Modifier.width(sidebarWidth),
+                topPadding = statusTop + FeedTopBarHeight,
+                bottomPadding = 100.dp,
+            )
             LazyVerticalStaggeredGrid(
                 columns = if (wide) BoundedVideoStaggeredGridCells(FeedCardMinWidth.dp, FeedCardMaxWidth.dp)
                     else androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells.Fixed(1),
