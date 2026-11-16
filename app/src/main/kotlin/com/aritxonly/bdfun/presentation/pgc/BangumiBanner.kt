@@ -2,6 +2,7 @@ package com.aritxonly.bdfun.presentation.pgc
 
 import android.os.SystemClock
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.TweenSpec
 import androidx.compose.animation.core.tween
@@ -30,7 +31,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -136,7 +136,7 @@ internal fun BangumiBanner(
     BangumiFanStage(
         fan = fan,
         canCycle = canCycle,
-        focus = focus.value,
+        focus = focus,
         onSelect = { index ->
             val item = fan[index]
             val target = focus.targetValue
@@ -165,7 +165,7 @@ internal fun BangumiBanner(
 private fun BangumiFanStage(
     fan: List<BangumiBannerItem>,
     canCycle: Boolean,
-    focus: Float,
+    focus: Animatable<Float, AnimationVector1D>,
     onSelect: (Int) -> Unit,
     onSwipe: (Int) -> Unit,
 ) {
@@ -214,8 +214,10 @@ private fun BangumiFanStage(
             contentAlignment = Alignment.Center,
         ) {
             fan.forEachIndexed { index, item ->
+                // 布局/层级只看目标槽位；逐帧的旋转、位移、透明度在 graphicsLayer 里读焦点，
+                // 动画期间不再重组 6 张卡片，避免切换时整片掉帧。
                 val slot = if (canCycle) {
-                    bangumiFanSlot(index, focus, fan.size)
+                    bangumiFanSlot(index, focus.targetValue, fan.size)
                 } else {
                     index - (fan.size - 1) / 2f
                 }
@@ -223,6 +225,9 @@ private fun BangumiFanStage(
                     BangumiFanCard(
                         item = item,
                         slot = slot,
+                        focus = focus,
+                        index = index,
+                        count = fan.size,
                         cardWidth = cardWidth,
                         cardHeight = cardHeight,
                         spacingPx = spacingPx,
@@ -238,36 +243,39 @@ private fun BangumiFanStage(
 private fun BangumiFanCard(
     item: BangumiBannerItem,
     slot: Float,
+    focus: Animatable<Float, AnimationVector1D>,
+    index: Int,
+    count: Int,
     cardWidth: Dp,
     cardHeight: Dp,
     spacingPx: Float,
     onClick: () -> Unit,
 ) {
-    val alpha = bangumiFanAlpha(slot)
-    val scale = bangumiFanScale(slot)
     val distance = abs(slot)
     // 中间的卡只加文字用的底部渐变；两侧压一层暗色把注意力让给中间。
     val sideScrim = if (distance < 0.5f) 0f else (0.18f + distance * 0.06f).coerceAtMost(0.32f)
-    val labelAlpha = (1f - distance * 1.7f).coerceIn(0f, 1f)
+    // 只给目标在中心/相邻位置的卡组合标题，避免每张都白算文字；透明度仍由焦点驱动。
+    val showLabels = distance < 1.5f
 
     Box(
         Modifier
             .width(cardWidth)
             .height(cardHeight)
             .graphicsLayer {
-                translationX = slot * spacingPx
+                val liveSlot = bangumiFanSlot(index, focus.value, count)
+                translationX = liveSlot * spacingPx
                 // 绕竖轴向内收；相机拉远一点，近边不会被透视放大到把底边压弯。
-                rotationY = bangumiFanRotation(slot)
+                rotationY = bangumiFanRotation(liveSlot)
                 cameraDistance = CARD_CAMERA_DISTANCE
-                scaleX = scale
-                scaleY = scale
-                this.alpha = alpha
+                val liveScale = bangumiFanScale(liveSlot)
+                scaleX = liveScale
+                scaleY = liveScale
+                alpha = bangumiFanAlpha(liveSlot)
             }
             .zIndex(10f - distance)
-            .shadow(9.dp, CardShape, clip = false)
             .clip(CardShape)
             .background(MiuixTheme.colorScheme.surfaceContainer)
-            .clickable(enabled = alpha > 0.05f, onClick = onClick),
+            .clickable(onClick = onClick),
     ) {
         AsyncImage(
             model = rememberImageRequest(item.image),
@@ -278,26 +286,41 @@ private fun BangumiFanCard(
         if (sideScrim > 0f) {
             Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = sideScrim)))
         }
-        Box(
-            Modifier
-                .fillMaxSize()
-                .graphicsLayer { this.alpha = labelAlpha }
-                .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xCC000000)))),
-        )
-        BangumiFanCardLabels(item, labelAlpha, Modifier.align(Alignment.BottomStart))
+        if (showLabels) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        val liveSlot = bangumiFanSlot(index, focus.value, count)
+                        alpha = (1f - abs(liveSlot) * 1.7f).coerceIn(0f, 1f)
+                    }
+                    .background(Brush.verticalGradient(listOf(Color.Transparent, Color(0xCC000000)))),
+            )
+            BangumiFanCardLabels(
+                item = item,
+                focus = focus,
+                index = index,
+                count = count,
+                modifier = Modifier.align(Alignment.BottomStart),
+            )
+        }
     }
 }
 
 @Composable
 private fun BangumiFanCardLabels(
     item: BangumiBannerItem,
-    alpha: Float,
+    focus: Animatable<Float, AnimationVector1D>,
+    index: Int,
+    count: Int,
     modifier: Modifier = Modifier,
 ) {
-    if (alpha <= 0.01f) return
     Column(
         modifier
-            .graphicsLayer { this.alpha = alpha }
+            .graphicsLayer {
+                val liveSlot = bangumiFanSlot(index, focus.value, count)
+                alpha = (1f - abs(liveSlot) * 1.7f).coerceIn(0f, 1f)
+            }
             .padding(start = 13.dp, end = 13.dp, bottom = 11.dp),
     ) {
         Text(

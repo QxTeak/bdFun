@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.infra.bili
 
+import com.aritxonly.bdfun.core.common.biliImageThumbUrl
 import com.aritxonly.bdfun.core.model.pgc.BangumiCard
 import com.aritxonly.bdfun.infra.bili.mapper.mapPgcTimeline
 import kotlinx.coroutines.Dispatchers
@@ -95,7 +96,8 @@ private fun JSONObject.toBangumiCard(): BangumiCard? {
     return BangumiCard(
         seasonId = seasonId,
         title = optString("title").orEmpty(),
-        cover = biliImage(optString("cover").orEmpty()),
+        // 和榜单区同一档 480w，避免推荐/追番用原图造成滚动解码压力。
+        cover = biliImageThumbUrl(optString("cover").orEmpty(), 480),
         indexShow = optString("index_show").orEmpty().ifBlank {
             optJSONObject("new_ep")?.optString("index_show").orEmpty()
         },
