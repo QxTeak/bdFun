@@ -234,10 +234,14 @@ private fun CoinPayContent(
                     modifier = Modifier.align(Alignment.CenterStart).padding(start = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // 复用收藏夹 sheet 里的 Miuix 勾选样式，不再用 Material 的方块勾。
+                    // 复用收藏夹 sheet 里的 Miuix 勾选样式；整体缩到 90%，和 13sp 文案更齐。
                     Checkbox(
                         state = if (alsoLike) ToggleableState.On else ToggleableState.Off,
                         onClick = { if (!paying) alsoLike = !alsoLike },
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = 0.9f
+                            scaleY = 0.9f
+                        },
                         enabled = !paying,
                     )
                     Text(
