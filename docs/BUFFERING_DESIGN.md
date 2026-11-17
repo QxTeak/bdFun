@@ -61,3 +61,12 @@ JVM测试覆盖固定阶段、倍速、双水位、暂停、字节预算、冷�
 新增infra/playback的Robolectric测试直接实例化真实Media3 LoadControl，两种模式修复前均复现该异常；
 CI在签名之前执行这组测试。复用版本目录已有JUnit/Robolectric，只有测试依赖；
 纯策略测试无法覆盖Media3构造断言，Android stub返回默认值也不能替代真实运行时测试。
+
+### Home/锁屏保活与 PR81 整合
+
+整合PR81的WAKE_MODE_NETWORK与WAKE_LOCK权限。此前只有退出页面交给唱片的adopt路径启动播放前台服务；
+Home/锁屏保留Activity时未启动。现在VideoActivity.onPause在仍可见时按后台开关、活跃会话、playWhenReady启动服务，
+不能用isPlaying判定，否则正在缓冲的会话会丢失保活。onResume撤销非detached服务，clearState清理服务；
+后台唱片仍沿用原adopt和退出路径。网络锁随Media3实际播放状态持有/释放；不申请电池优化豁免、不永久持锁。
+这修复了已确认的生命周期缺口，不宣称已经证明用户后台断流的唯一原因。
+仍需真机Wi-Fi/蜂窝分别测Home与锁屏超过最大缓冲时长、暂停/恢复、画中画、返回原页及退出清理。

@@ -280,6 +280,7 @@ open class AndroidBackgroundPlayback(
         actions = null
         session.clear()
         sync()
+        stopKeepAlive()
         detail = null
         currentCid = 0L
         qualityId = 0

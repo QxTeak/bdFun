@@ -134,6 +134,7 @@ class VideoActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         openingAnotherPage = false
+        com.aritxonly.bdfun.ui.BackgroundPlayback.stopKeepAlive()
         if (!isInPictureInPictureMode) pipEntered = false
         // Split panes use the page theme under system bars; stacked/fullscreen video uses light icons.
         runCatching {
@@ -149,6 +150,13 @@ class VideoActivity : ComponentActivity() {
     }
 
     override fun onPause() {
+        // 在窗口仍可见的 onPause 启动，避免等 onStop 后触发后台启动限制。
+        val background = com.aritxonly.bdfun.ui.BackgroundPlayback
+        val playback = background.state.value
+        if (com.aritxonly.bdfun.core.domain.shouldKeepPlaybackAlive(
+                AppGraph.settings.backgroundPlay, playback.active, playback.playback.playWhenReady)) {
+            background.startKeepAlive(this)
+        }
         super.onPause()
         stopOrientationTracking()
     }
