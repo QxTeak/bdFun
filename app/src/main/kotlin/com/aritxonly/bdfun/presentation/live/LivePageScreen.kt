@@ -28,7 +28,6 @@ import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.presentation.live.LivePageStateHolder
 import com.aritxonly.bdfun.navigateToLiveRoom
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
-import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullSession
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullUi
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -50,7 +49,7 @@ internal fun LivePage(
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val gridState = state.gridState
     val pullUi = remember { DiscoverPullUi() }
-    val pull = rememberLivePullSession(state, pullUi, scope)
+    val pull = rememberLivePullSession(state, pullUi)
     LivePageEffects(state, pull, pullUi)
 
     LazyVerticalGrid(
@@ -86,56 +85,58 @@ internal fun LivePage(
 private fun rememberLivePullSession(
     state: LivePageStateHolder,
     ui: DiscoverPullUi,
-    scope: kotlinx.coroutines.CoroutineScope,
-): DiscoverPullSession {
+): com.aritxonly.bdfun.feature.home.presentation.PullRefreshSession {
     val density = LocalDensity.current
     val threshold = with(density) { 88.dp.toPx() }
     return remember(state) {
-        DiscoverPullSession(
-            density = density,
+        com.aritxonly.bdfun.feature.home.presentation.PullRefreshSession(
             thresholdPx = threshold,
             maxPullPx = with(density) { 260.dp.toPx() },
+            density = density,
             currentOffset = { ui.offset },
-            onPull = {
-                ui.offset = it
-                state.pullFraction = (it / threshold).coerceIn(0f, 1f)
+            onPull = { px, dp, fraction ->
+                ui.offset = px
+                state.pullOffsetDp = dp
+                state.pullFraction = fraction
             },
-            onPullDp = { state.pullOffsetDp = it },
-            // 这里传的是「网格自己能不能往回滚」，不是取反后的值：
-            // DiscoverPullSession 内部已经写了 !canScrollBackward()，
-            // 以前多取反一次，导致只要不在顶部、往回一拖就开始刷新。
+            // 这里传的是「网格自己能不能往回滚」，内部已经写了取反，不要再取反一次。
             canScrollBackward = { state.gridState.canScrollBackward },
             isRefreshing = { state.refreshing || state.loading },
             onRefresh = {
                 // 与推荐页一致：松手立即把指示器顶到阈值，再开始刷新。
                 state.pullFraction = 1f
-                scope.launch { state.refresh() }
+                state.refresh()
             },
+            onCanceled = { state.pullFraction = 0f },
         )
     }
 }
 
 @Composable
-private fun LivePageEffects(state: LivePageStateHolder, pull: DiscoverPullSession, ui: DiscoverPullUi) {
+private fun LivePageEffects(state: LivePageStateHolder, pull: com.aritxonly.bdfun.feature.home.presentation.PullRefreshSession, ui: DiscoverPullUi) {
     LaunchedEffect(state) { state.ensureLoaded() }
-    // 与推荐/番剧共用同一份「回顶 + 下拉 + 刷新」编排。
-    com.aritxonly.bdfun.feature.home.presentation.HomeSectionRefreshEffect(
+    // 与推荐/番剧/动态共用同一份「回顶 + 下拉 + 刷新」编排。
+    com.aritxonly.bdfun.feature.home.presentation.RefreshToTopEffect(
         request = state.refreshRequest,
-        gridState = state.gridState,
         pullThresholdPx = pull.thresholdPx,
         animatePull = { target, duration -> pull.animatePullTo(target, duration) },
         isBusy = { state.refreshing || state.loading },
         onPulling = { state.pullFraction = it },
+        isAtTop = {
+            state.gridState.firstVisibleItemIndex == 0 &&
+                state.gridState.firstVisibleItemScrollOffset == 0
+        },
+        scrollToTop = { state.gridState.animateScrollToItem(0) },
         refresh = { state.refresh() },
     )
     // 刷新结束：先收小电视，再让内容平滑回顶（与推荐页同一条时序）。
-    LaunchedEffect(state.refreshing) {
-        if (!state.refreshing && ui.offset > 0f) {
-            state.pullFraction = 0f
-            kotlinx.coroutines.delay(160)
-            pull.animatePullTo(0f, 260f)
-        }
-    }
+    // 刷新结束：先收小电视，再让内容平滑回顶（四个页面共用同一条收尾时序）。
+    com.aritxonly.bdfun.feature.home.presentation.PullRefreshSettleEffect(
+        refreshing = state.refreshing,
+        currentOffset = { ui.offset },
+        onSettledStart = { state.pullFraction = 0f },
+        animatePull = { target, duration -> pull.animatePullTo(target, duration) },
+    )
     // 滚到底部预取下一页：与推荐页同一套（drop(1) 忽略首次布局，按卡片数比较）
     LaunchedEffect(state) {
         snapshotFlow { state.gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1 }

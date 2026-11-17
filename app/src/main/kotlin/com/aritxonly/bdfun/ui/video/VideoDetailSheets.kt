@@ -8,11 +8,14 @@ internal fun VideoDetailSheets(
     interaction: com.aritxonly.bdfun.feature.video.application.VideoInteractionState,
     actions: VideoDetailViewActions,
 ) {
-    // 投币不再是底部 sheet：中间浮出两枚硬币卡，点卡片直接投币。
-    CoinChoicePopup(
+    // 投币用 PiliPlus 的整页投币界面（硬币箱 / 角色 / 余额 / 同时点赞）。
+    val session = LocalVideoPageState.current.dependencies.comments.session
+    CoinPayOverlay(
         visible = ui.coinSheet.value,
+        balance = session.value?.coins,
+        alreadyCoined = interaction.coined,
         onDismiss = { ui.coinSheet.value = false },
-        onPick = actions::doCoin,
+        onConfirm = { count, alsoLike -> actions.doCoin(count, alsoLike) },
     )
 
     com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderSheet(

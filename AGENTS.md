@@ -674,3 +674,9 @@ ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保�
 视频详情骨架按真实元信息结构重排（头像 + 昵称/粉丝 + 关注胶囊、两行标题、播放/弹幕/日期、AV 号/分P、两行简介、分类、五个等宽操作圆钮），扫光改为在每个灰条自己的坐标系里绘制（不再整条被扫白导致看起来像缺块）。
 
 投币两枚硬币卡的视觉改为照抄同源参考实现（BiliPai `CoinDialog.CoinChoice`：`0xFFC48A52` 卡底、`0xFFE7B781` 3dp 描边、四角螺钉、`币` 字硬币、白色 `N 硬币` 标签）；PiliPlus 上游 main 只有整页 `PayCoinsPage`，没有这套两枚卡浮层。
+
+### 2026-11-17 投币页与刷新手势收口
+
+投币改为照搬 PiliPlus 的整页 `PayCoinsPage`（`lib/pages/video/pay_coins/view.dart`）：硬币箱两档（选中 100/未选中 70dp，硬币 50/35dp）、左右箭头与横向滑动切换、角色图（1 枚 / 2 枚 / 余额不足）点击或上滑投币、硬币余额、同时点赞复选框、关闭按钮；投币时角色起手 → 硬币上抛淡出 → 提交，约 650ms。资源取自 PiliPlus `assets/images/paycoins/`（GPL-3.0，与 bdFun 一致），落在 `res/drawable-nodpi/teak_coin_*`。`VideoActionsRepository.coin` 增加 `alsoLike`（对应 `select_like`），成功后同步 liked/likeCount。上游的 `hasCopyright`（转载最多 1 币）与雷电帧 bdFun 接口没有对应字段，未接。
+
+下拉刷新（小电视）也收成一套：新增 `feature:home` 的 `PullRefreshSession`（8ms 手动缓动、0.6 阻尼、阈值/上限由调用方按 dp 传入、松手过阈值刷新否则回弹）与 `PullRefreshSettleEffect`（刷新结束：进度归零 → 160ms 收小电视 → 260ms 回弹）。推荐/直播/番剧/动态共用，删除了 `HomePullSession`、`DiscoverPullSession`、`FeedPullSession`、`FeedPullEffects` 四份重复实现；再次点击底栏当前页的回顶+下拉+刷新统一走 `RefreshToTopEffect`。

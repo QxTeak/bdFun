@@ -5,7 +5,8 @@ import com.aritxonly.bdfun.core.domain.VideoActionsRepository
 class BiliVideoActionsRepository(private val backend: BiliBackend) : VideoActionsRepository {
     override suspend fun like(aid: Long, enabled: Boolean) = biliOutcome { backend.likeVideo(aid, enabled); Unit }
     override suspend fun dislike(aid: Long, enabled: Boolean) = biliOutcome { backend.dislikeVideo(aid, enabled); Unit }
-    override suspend fun coin(aid: Long, count: Int) = biliOutcome { backend.coinVideo(aid, count, false); Unit }
+    override suspend fun coin(aid: Long, count: Int, alsoLike: Boolean) =
+        biliOutcome { backend.coinVideo(aid, count, alsoLike); Unit }
     override suspend fun follow(mid: Long, enabled: Boolean) = biliOutcome { backend.followUser(mid, enabled); Unit }
     override suspend fun watchLater(aid: Long) = biliOutcome { backend.addWatchLater(aid) }
     override suspend fun folders() = biliOutcome { backend.favoriteFolders() }
