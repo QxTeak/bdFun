@@ -80,6 +80,7 @@ object AppGraph {
     internal val bangumiPageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.bangumiPageState
 
     /** 登录态：MainActivity 与 LoginActivity 共享，登录成功直接写这里。 */
+    internal val mainTabRequests get() = checkNotNull(container) { "AppGraph 尚未初始化" }.mainTabRequests
     val session get() = checkNotNull(container) { "AppGraph 尚未初始化" }.session
     internal suspend fun refreshSession() = checkNotNull(container) { "AppGraph 尚未初始化" }.sessionController.refresh()
     internal fun logout() = checkNotNull(container) { "AppGraph 尚未初始化" }.sessionController.logout()

@@ -38,6 +38,8 @@ internal class AppContainer(
             { CacheService.start(app) }).also { it.initialize() }
     }
     val loginStatus: LoginStatus = LoginStatus { api.isLoggedIn }
+    /** 视频页「回到首页」需要跨 Activity 通知主壳切回推荐页。 */
+    val mainTabRequests = com.aritxonly.bdfun.MainTabRequestStateHolder()
     val videoLinkResolver: VideoLinkResolver = com.aritxonly.bdfun.infra.bili.BiliVideoLinkResolver()
     val liveReads by lazy {
         com.aritxonly.bdfun.feature.live.application.LiveReadAccess(

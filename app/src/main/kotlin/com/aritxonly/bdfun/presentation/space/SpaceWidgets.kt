@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -89,7 +91,7 @@ internal fun SpaceSubmissionCard(
     content: @Composable () -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val classic = TeakUiStyle.isClassic
     val isFirst = index == 0
     val shape = if (classic) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(
         topStart = if (isFirst) 16.dp else 0.dp,
@@ -101,8 +103,8 @@ internal fun SpaceSubmissionCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = if (classic) 0.dp else 12.dp,
-                end = if (classic) 0.dp else 12.dp,
+                start = TeakUiStyle.design.contentInset(12.dp),
+                end = TeakUiStyle.design.contentInset(12.dp),
                 // 第一条视频和圆角卡片上边的距离再增加 2dp。
                 top = if (classic) 0.dp else if (isFirst) 15.dp else 0.dp,
                 bottom = if (classic) 0.dp else if (isLast) 6.dp else 0.dp,

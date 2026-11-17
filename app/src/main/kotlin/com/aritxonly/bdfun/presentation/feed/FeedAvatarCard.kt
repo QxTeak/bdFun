@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -65,10 +67,10 @@ fun FeedAvatarCard(
             if (count > 0 && last >= count - 3 && state.authorsError == null) state.loadMoreAuthors()
         }
     }
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+
     Column(
         modifier.fillMaxWidth()
-            .clip(if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(18.dp))
+            .clip(TeakUiStyle.design.cardShape(ContinuousCornerShape(18.dp)))
             .background(colors.surfaceContainer),
     ) {
         val liveUsers = state.liveUsers

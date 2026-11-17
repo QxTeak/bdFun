@@ -31,6 +31,8 @@ internal data class LiveRoomActions(
 internal class LiveRoomUiStateHolder {
     var settingsOpen by mutableStateOf(false)
     var danmakuSettingsOpen by mutableStateOf(false)
+    /** 宽屏分屏里点全屏：不转屏，只把右侧栏收起。 */
+    var wideFullscreen by mutableStateOf(false)
 }
 internal class LiveFollowStateHolder(initial: Boolean) {
     var following by mutableStateOf(initial)

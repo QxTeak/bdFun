@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -44,8 +46,8 @@ internal fun MessageContactsScreen(initialGroup: Int, onBack: () -> Unit) {
             onRefresh = { scope.launch { controller.load() } }) {
         TrackTeakPageScroll(list)
         LazyColumn(state = list, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(
-            start = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 0.dp else 16.dp,
-            end = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 0.dp else 16.dp,
+            start = TeakUiStyle.design.contentInset(16.dp),
+            end = TeakUiStyle.design.contentInset(16.dp),
             top = 8.dp + rememberStatusBarTop(), bottom = 40.dp)) {
             item { TeakLargeTitle(title = title) }
             if (initialGroup != 2) item {

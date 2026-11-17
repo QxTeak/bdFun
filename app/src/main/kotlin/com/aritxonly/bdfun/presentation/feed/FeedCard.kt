@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -25,9 +27,9 @@ internal fun FeedCard(
 ) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val classic = TeakUiStyle.isClassic
     val shape: androidx.compose.ui.graphics.Shape =
-        if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(16.dp)
+        TeakUiStyle.design.cardShape(ContinuousCornerShape(16.dp))
     val oneTake = rememberOneTakeAnchor()
     val cardRadiusPx = if (classic) 0f else with(LocalDensity.current) { 16.dp.toPx() }
     val photo = LocalPhotoViewer.current

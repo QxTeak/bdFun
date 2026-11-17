@@ -34,8 +34,10 @@ object TeakUiStyle {
     var style by mutableStateOf(0)
 
     /** 0 = 官方，1 = 经典，2 = HyperOS 4（新底栏 + 搜索一镜到底）。 */
-    val isClassic: Boolean get() = style == 1
-    val isHyperOs4: Boolean get() = style == 2
+    val current: TeakStyle get() = TeakStyle.fromStoredValue(style)
+    val design: TeakDesign get() = current.design
+    val isClassic: Boolean get() = design == TeakDesign.Classic
+    val isHyperOs4: Boolean get() = current == TeakStyle.HyperOs4
 }
 
 /**

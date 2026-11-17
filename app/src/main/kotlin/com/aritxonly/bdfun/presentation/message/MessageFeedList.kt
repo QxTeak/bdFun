@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -50,11 +52,11 @@ internal fun MessageFeedList(
     val key = if (ui.tab == 1) 0 else ui.tab
     val allItems = itemsByTab[key].orEmpty()
     val pageItems = if (ui.tab == 1) allItems.filter { it.followed } else allItems
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val classic = TeakUiStyle.isClassic
     PullToRefreshBox(isRefreshing = loadingByTab[key] == true && pageItems.isNotEmpty(),
         onRefresh = { actions.load(ui.tab) }, modifier = Modifier.fillMaxSize()) {
     LazyColumn(state = listState, modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = if (classic) 0.dp else 16.dp, end = if (classic) 0.dp else 16.dp,
+        contentPadding = PaddingValues(start = TeakUiStyle.design.contentInset(16.dp), end = TeakUiStyle.design.contentInset(16.dp),
             top = 8.dp + rememberStatusBarTop(), bottom = 40.dp)) {
         item(key = "header") { TeakLargeTitle(title = title) }
         item(key = "tabs") {
@@ -78,7 +80,7 @@ internal fun MessageFeedList(
                     color = colors.onBackgroundVariant, fontSize = 13.sp,
                     modifier = Modifier.padding(start = 12.dp, top = 14.dp, bottom = 8.dp))
             }
-            Box(Modifier.padding(bottom = if (classic) 0.dp else 12.dp)) {
+            Box(Modifier.padding(bottom = TeakUiStyle.design.contentInset(12.dp))) {
                 MessageRowSurface(true, true) {
                     when (kind) {
                         MessageFeedKind.Reply -> ReplyRow(item, onClick = { actions.open(item) }, onMore = onMenu)

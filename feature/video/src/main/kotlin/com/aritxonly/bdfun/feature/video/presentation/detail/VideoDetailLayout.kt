@@ -63,6 +63,7 @@ fun VideoDetailLayout(
                 if (!playing) slots.togglePlayback()
             },
             onBack = slots.onBack,
+            onHome = slots.onHome,
         )
     }
 

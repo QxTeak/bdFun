@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun
 
+import com.aritxonly.teak.common.theme.TeakStyle
+
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -59,9 +61,9 @@ internal fun rememberMainBottomNavigationVisual(
     // 整组居中后的左留白。
     val groupLeft = ((windowWidthDp - tabBarWidth - discGap - discWidth) / 2)
         .coerceAtLeast(0.dp)
-    val discShift = if (settings.interfaceStyle == 2) {
+    val discShift = if (TeakStyle.fromStoredValue(settings.interfaceStyle).layout.hasBottomSearch) {
         0.dp
-    } else if (TeakUiStyle.isClassic) {
+    } else if (TeakUiStyle.current.layout.edgeNavigation) {
         // 经典样式底栏是整条贴边，只能整体左移，让出唱片 + 右边距 + 缝隙。
         discWidth + 16.dp + discGap
     } else {
