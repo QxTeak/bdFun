@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -10,11 +12,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.ui.EmojiPanel
 import com.aritxonly.teak.common.chrome.TeakChromeDefaults
+import com.aritxonly.teak.common.chrome.teakClassicBarGlass
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
 import com.aritxonly.teak.common.material.LocalTeakMaterialSpec
 import com.aritxonly.teak.common.material.TeakGlassRecipes
@@ -41,26 +45,37 @@ internal fun PrivateChatComposer(content: PrivateChatComposerContent, actions: P
     }
     val animatedBottom = if (imeDp > navDp) imeDp else navDp + raiseDp
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = animatedBottom.dp)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-    ) {
-        if (showEmoji) {
-            EmojiPanel(
-                onPick = onPickEmoji,
-                modifier = Modifier.padding(bottom = 6.dp),
-            )
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val barColor = colors.surfaceContainer
+    val dividerColor = colors.onBackground.copy(alpha = 0.12f)
+
+    Box(Modifier.fillMaxWidth()) {
+        if (classic) {
+            // 输入栏整条玻璃模糊 + 半透明底，保证输入框文字始终清晰。
+            Box(Modifier.matchParentSize().teakClassicBarGlass())
+            Box(Modifier.matchParentSize().background(barColor.copy(alpha = 0.62f)))
         }
-        PrivateChatComposerRow(content, actions, material)
-        if (uploading) {
-            Text(
-                text = "图片上传中…",
-                color = colors.onBackgroundVariant,
-                fontSize = 11.sp,
-                modifier = Modifier.padding(start = 16.dp, top = 5.dp),
-            )
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = animatedBottom.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+        ) {
+            if (showEmoji) {
+                EmojiPanel(
+                    onPick = onPickEmoji,
+                    modifier = Modifier.padding(bottom = 6.dp),
+                )
+            }
+            PrivateChatComposerRow(content, actions, material)
+            if (uploading) {
+                Text(
+                    text = "图片上传中…",
+                    color = colors.onBackgroundVariant,
+                    fontSize = 11.sp,
+                    modifier = Modifier.padding(start = 16.dp, top = 5.dp),
+                )
+            }
         }
     }
 }

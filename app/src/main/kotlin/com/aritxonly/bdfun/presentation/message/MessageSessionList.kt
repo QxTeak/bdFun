@@ -33,14 +33,15 @@ internal fun MessageSessionList(
     val navigation = LocalMessageNavigation.current
     val openRoute = messageRouteAction()
     val visibleSessions = snapshot.visibleSessions(ui.tabIndex == 1)
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
     PullToRefreshBox(isRefreshing = snapshot.loading && snapshot.sessions.isNotEmpty(), onRefresh = onRefresh, modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             state = listState,
             modifier = Modifier
                 .fillMaxSize(),
             contentPadding = PaddingValues(
-                start = 16.dp,
-                end = 16.dp,
+                start = if (classic) 0.dp else 16.dp,
+                end = if (classic) 0.dp else 16.dp,
                 top = 8.dp + rememberStatusBarTop(),
                 bottom = 40.dp,
             ),
@@ -59,7 +60,10 @@ internal fun MessageSessionList(
             } else {
                 itemsIndexed(visibleSessions, key = { _, session -> session.id }) { _, session ->
                     androidx.compose.foundation.layout.Box(Modifier.padding(bottom = 4.dp)
-                        .clip(com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(18.dp))
+                        .clip(
+                            if (classic) androidx.compose.ui.graphics.RectangleShape
+                            else com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(18.dp),
+                        )
                         .background(if (navigation?.selectedSessionId == session.id) com.aritxonly.bdfun.BrandPink.copy(alpha = .12f)
                             else androidx.compose.ui.graphics.Color.Transparent)) {
                         SessionRow(session, onClick = {

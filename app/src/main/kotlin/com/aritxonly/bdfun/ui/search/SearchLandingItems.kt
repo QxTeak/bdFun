@@ -28,12 +28,13 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchSuggestionItem
             SectionHeader(title = "搜索建议", action = null, onAction = null)
         }
         item(key = "suggest-list") {
+            val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(if (classic) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(18.dp))
                     .background(colors.surfaceContainer)
-                    .padding(horizontal = 14.dp, vertical = 4.dp),
+                    .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 4.dp),
             ) {
                 suggestions.forEach { word ->
                     Row(
@@ -72,13 +73,14 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHistoryItems(
             )
         }
         item(key = "history-grid") {
-            // 与热搜一致的圆角卡片，但去掉排名序号，改成双排词条。
+            // 与热搜一致的容器；经典样式去掉圆角、贴着屏幕边缘。
+            val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(if (classic) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(18.dp))
                     .background(colors.surfaceContainer)
-                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                    .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 8.dp),
             ) {
                 history.chunked(2).forEach { row ->
                     Row(
@@ -110,12 +112,13 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHotItems(
             SectionHeader(title = "热搜", action = null, onAction = null)
         }
         item(key = "hot-list") {
+            val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(18.dp))
+                    .clip(if (classic) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(18.dp))
                     .background(colors.surfaceContainer)
-                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                    .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 6.dp),
             ) {
                 hot.forEachIndexed { index, word ->
                     HotRow(

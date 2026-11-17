@@ -82,6 +82,32 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchVideoResultIte
 
 }
 
+internal fun androidx.compose.foundation.lazy.LazyListScope.searchVideoPageFooter(
+    content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
+    pageColors: top.yukonga.miuix.kmp.theme.Colors,
+) {
+    if (content.results.isEmpty()) return
+    if (content.loadingMore) {
+        item(key = "search-loading-more") {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("加载中…", color = pageColors.onBackgroundVariant, fontSize = 12.sp)
+            }
+        }
+    } else if (content.end) {
+        item(key = "search-end") {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("没有更多了", color = pageColors.onBackgroundVariant, fontSize = 12.sp)
+            }
+        }
+    }
+}
+
 internal fun androidx.compose.foundation.lazy.LazyListScope.searchUserResultItems(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
     pageColors: top.yukonga.miuix.kmp.theme.Colors, onOpenUser: (SearchUser) -> Unit,

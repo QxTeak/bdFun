@@ -118,6 +118,9 @@ object TeakOneTake {
             return
         }
         val m = resolveMethod()
+        // 非小米机型只能走公开的缩略图放大动画，系统不会替我们切圆角；
+        // 这里按设备真实圆角预先把截图裁好，放大到全屏时圆角正好等于屏幕圆角。
+        val deviceCornerPx = com.aritxonly.bdfun.ui.viewCornerRadiusPx(decor)
 
         // 截图必须走 PixelCopy：Compose 的界面用 view.draw() 画出来是空的
         captureByPixelCopy(activity, decor, anchor) { thumb ->
@@ -126,7 +129,10 @@ object TeakOneTake {
                 return@captureByPixelCopy
             }
             if (m == null) {
-                startPublic(activity, decor, anchor, thumb, launch, fallback)
+                startPublic(
+                    activity, decor, anchor,
+                    thumb.withDisplayCorners(deviceCornerPx, decor.width), launch, fallback,
+                )
             } else {
                 start(activity, m, decor, anchor, radiusPx, foregroundColor, thumb, launch) {
                     startPublic(activity, decor, anchor, thumb, launch, fallback)
@@ -264,6 +270,34 @@ object TeakOneTake {
         } catch (t: Throwable) {
             Log.w(TAG, "截图失败", t)
             null
+        }
+    }
+
+    /**
+     * 把截图裁成和设备屏幕一致的圆角。
+     *
+     * 系统放大动画会把这张位图按比例铺到全屏，所以这里按「全屏时圆角 = 设备圆角」
+     * 反算截图上的半径（设备半径 × 截图宽 / 屏宽），放大过程中圆角会跟着一起长，
+     * 落地时正好贴住屏幕圆角，而不是四角直角。
+     */
+    private fun Bitmap.withDisplayCorners(deviceRadiusPx: Int, screenWidthPx: Int): Bitmap {
+        if (deviceRadiusPx <= 0 || screenWidthPx <= 0 || width <= 0 || height <= 0) return this
+        val radius = deviceRadiusPx.toFloat() * width / screenWidthPx
+        if (radius < 0.5f) return this
+        return try {
+            val out = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+            val canvas = Canvas(out)
+            val path = android.graphics.Path()
+            path.addRoundRect(
+                android.graphics.RectF(0f, 0f, width.toFloat(), height.toFloat()),
+                radius, radius, android.graphics.Path.Direction.CW,
+            )
+            canvas.clipPath(path)
+            canvas.drawBitmap(this, 0f, 0f, null)
+            out
+        } catch (t: Throwable) {
+            Log.w(TAG, "圆角裁剪失败", t)
+            this
         }
     }
 

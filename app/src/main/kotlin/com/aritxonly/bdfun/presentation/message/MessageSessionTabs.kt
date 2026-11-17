@@ -12,7 +12,10 @@ import com.aritxonly.teak.common.navigation.TeakPagerTabs
 @Composable
 internal fun MessageSessionTabs(ui: MessageSessionsPresentationStateHolder) {
     Box(
-        modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 14.dp),
+        modifier = Modifier.fillMaxWidth().padding(
+            top = 8.dp, bottom = 14.dp,
+            start = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 16.dp else 0.dp,
+        ),
         contentAlignment = Alignment.CenterStart,
     ) {
         TeakPagerTabs(

@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import com.aritxonly.bdfun.data.SearchUser
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
 import com.aritxonly.bdfun.data.VideoItem
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun SearchOverlay(
@@ -27,6 +28,7 @@ internal fun SearchOverlay(
     val controller = remember { controllerFactory() }
     val content by controller.state.collectAsState()
     val ui = remember { SearchPresentationStateHolder(settings.searchHistory) }
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
     LaunchedEffect(Unit) { controller.loadHotKeywords(settings.showHotSearch) }
     LaunchedEffect(query, submitted) { controller.suggest(query, submitted) }
     LaunchedEffect(submitted, ui.appliedFilters) {
@@ -38,6 +40,7 @@ internal fun SearchOverlay(
     }
 
     SearchRevealFrame(submitted, reveal, modifier) {
-        SearchOverlayContent(settings, submitted, query, ui, content, onPickKeyword, onOpenVideo, onOpenUser)
+        SearchOverlayContent(settings, submitted, query, ui, content, onPickKeyword, onOpenVideo, onOpenUser,
+            onLoadMore = { scope.launch { controller.loadMore() } })
     }
 }

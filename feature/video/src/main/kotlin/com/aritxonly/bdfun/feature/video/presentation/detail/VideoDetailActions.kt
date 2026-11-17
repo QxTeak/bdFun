@@ -65,9 +65,9 @@ class VideoDetailViewActions(
     fun giveCoin() {
         if (detail != null && ensureLogin()) coinSheet = true
     }
-    fun doCoin(count: Int) {
+    fun doCoin(count: Int, alsoLike: Boolean = false) {
         coinSheet = false
-        performInteraction { interactionController.coin(count) }
+        performInteraction { interactionController.coin(count, alsoLike) }
     }
     fun toggleFavorite() {
         if (detail == null || !ensureLogin()) return

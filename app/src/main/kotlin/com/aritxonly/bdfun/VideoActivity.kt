@@ -177,11 +177,12 @@ class VideoActivity : ComponentActivity() {
     // Home/background is distinct from navigating out of the video page.
     override fun onUserLeaveHint() {
         super.onUserLeaveHint()
+        // 关闭「退出视频后继续播放」时滑到后台只应该停下，不应该再弹系统画中画：
+        // 画中画属于「继续播放」的一种形态，交给显式的返回键（exit_video_control）和全屏按钮决定。
         if (AppGraph.settings.stopOnVideoPageExit && !isFinishing && !openingAnotherPage &&
-            !isInPictureInPictureMode && com.aritxonly.bdfun.ui.BackgroundPlayback.playing) {
-            val entered = runCatching { enterPictureInPictureMode(android.app.PictureInPictureParams.Builder()
-                .setAspectRatio(android.util.Rational(16, 9)).build()) }.getOrDefault(false)
-            if (entered) pipEntered = true else VideoPageBus.pauseFor(this)
+            !isInPictureInPictureMode) {
+            com.aritxonly.bdfun.ui.BackgroundPlayback.cancelHandOff()
+            VideoPageBus.pauseFor(this)
         }
     }
 

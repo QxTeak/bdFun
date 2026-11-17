@@ -22,7 +22,10 @@ import com.aritxonly.bdfun.feature.sent.application.*
 internal fun SentHistoryFilters(state: SentHistoryState, onSelect: (Int) -> Unit) {
     val colors = MiuixTheme.colorScheme
     val filter = state.filter
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(start = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 16.dp else 0.dp),
+    ) {
         listOf("全部", "评论", "弹幕").forEachIndexed { index, label ->
             val active = filter == index
             Box(

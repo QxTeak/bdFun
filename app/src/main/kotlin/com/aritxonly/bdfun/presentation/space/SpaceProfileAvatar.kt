@@ -111,13 +111,17 @@ internal fun SpaceAvatarStats(
                 .weight(1f)
                 .offset(y = (-4).dp),
         ) {
-            // 粉丝 / 关注 / 获赞：和其他圆角卡片同款白色底。
+            // 粉丝 / 关注 / 获赞：和其他圆角卡片同款白色底；经典样式直接平铺在资料区里。
+            val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp)
-                    .clip(RoundedCornerShape(18.dp))
-                    .background(colors.surfaceContainer)
+                    .padding(start = if (classic) 12.dp else 16.dp)
+                    .then(
+                        if (classic) Modifier else Modifier
+                            .clip(RoundedCornerShape(18.dp))
+                            .background(colors.surfaceContainer),
+                    )
                     .padding(vertical = 8.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically,

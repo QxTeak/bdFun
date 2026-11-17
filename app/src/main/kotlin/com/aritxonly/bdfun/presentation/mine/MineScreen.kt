@@ -44,7 +44,10 @@ private fun MinePage(
     navigation: MineNavigation, dependencies: MineDependencies, layout: MineLayout,
     previews: MinePreviewUiState, retry: (MinePreviewKind) -> Unit, listState: androidx.compose.foundation.lazy.LazyListState,
 ) {
-    val shape = remember { ContinuousCornerShape(22.dp) }
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val shape = remember(classic) {
+        if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(22.dp)
+    }
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 600.dp
         val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
@@ -52,7 +55,7 @@ private fun MinePage(
         LazyColumn(Modifier.fillMaxSize(), state = listState,
             contentPadding = if (wide) PaddingValues(start = 22.dp, top = statusBarTop + 25.dp, end = 22.dp, bottom = 110.dp)
                 else PaddingValues(bottom = 110.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            verticalArrangement = Arrangement.spacedBy(if (classic) 8.dp else 16.dp)) {
             if (request.profile == null) {
                 item {
                     Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
@@ -104,14 +107,19 @@ private fun MinePageContent(
 
 @Composable
 private fun MineContentInset(content: @Composable () -> Unit) {
-    Box(Modifier.padding(horizontal = 14.dp)) { content() }
+    val inset = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 0.dp else 14.dp
+    Box(Modifier.padding(horizontal = inset)) { content() }
 }
 
 @Composable
 private fun MineShortcuts(navigation: MineNavigation) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("常用功能", Modifier.padding(horizontal = 7.dp), fontSize = 12.sp,
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    Column(verticalArrangement = Arrangement.spacedBy(if (classic) 6.dp else 12.dp)) {
+        Text("常用功能", Modifier.padding(horizontal = if (classic) 16.dp else 7.dp), fontSize = 12.sp,
             color = MiuixTheme.colorScheme.onBackgroundVariant)
-        MineQuickActions(ContinuousCornerShape(22.dp), navigation)
+        MineQuickActions(
+            if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(22.dp),
+            navigation,
+        )
     }
 }

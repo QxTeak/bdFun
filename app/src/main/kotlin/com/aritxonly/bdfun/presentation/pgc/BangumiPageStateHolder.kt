@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.presentation.pgc
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.aritxonly.bdfun.core.common.Outcome
@@ -34,6 +35,13 @@ internal class BangumiPageStateHolder(private val repository: PgcDiscoverReposit
         private set
     var pullFraction by mutableFloatStateOf(0f)
     var pullOffsetDp by mutableFloatStateOf(0f)
+    /** 外部刷新请求（再次点击底栏当前页）：页面据此先回顶、再拉刷新。 */
+    var refreshRequest by mutableIntStateOf(0)
+        private set
+
+    fun requestRefresh() {
+        refreshRequest++
+    }
     private var page = 1
     private var hasMore = true
     private var token = 0

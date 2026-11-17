@@ -20,7 +20,10 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun MessageInboxToolbar(snapshot: MessageSessionsUiState, menu: MessageSessionMenuStateHolder) {
     val context = LocalContext.current
     val navigate = messageRouteAction()
-    Row(Modifier.fillMaxWidth().padding(top = 18.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth()
+        .padding(top = 18.dp, start = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 16.dp else 0.dp,
+            end = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 8.dp else 0.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
         Text("私信", color = MiuixTheme.colorScheme.onBackgroundVariant, modifier = Modifier.weight(1f))
         snapshot.outside.forEach { item ->
             Text(item.title, color = MiuixTheme.colorScheme.primary, modifier = Modifier.clickable {

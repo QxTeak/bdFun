@@ -107,28 +107,22 @@ fun TeakTopGlassButton(
     val reveal = if (LocalProgressiveTopBarMaterialHosted.current) LocalTopBarButtonMaterialProgress.current else fallbackReveal
 
     Box(modifier = modifier.size(40.dp)) {
-        if (reveal > 0.01f) {
-            val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
-            if (classic) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .graphicsLayer { alpha = reveal }
-                        .clip(androidx.compose.foundation.shape.CircleShape)
-                        .background(
-                            top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainerHigh,
-                        )
-                        .clickable(interactionSource = null, indication = null, onClick = onClick),
-                )
-            } else {
-                TeakGlassIconButton(
-                    onClick = onClick,
-                    size = 40.dp,
-                    recipe = recipe,
-                    backdrop = LocalTeakBackdrop.current,
-                    materialAlpha = reveal,
-                ) {}
-            }
+        val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+        if (classic) {
+            // 经典顶栏动作只保留图标，不加圆底。
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable(interactionSource = null, indication = null, onClick = onClick),
+            )
+        } else if (reveal > 0.01f) {
+            TeakGlassIconButton(
+                onClick = onClick,
+                size = 40.dp,
+                recipe = recipe,
+                backdrop = LocalTeakBackdrop.current,
+                materialAlpha = reveal,
+            ) {}
         } else {
             Box(
                 modifier = Modifier

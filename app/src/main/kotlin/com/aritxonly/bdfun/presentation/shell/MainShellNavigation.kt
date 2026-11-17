@@ -29,9 +29,10 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
             // 再次点击当前页 → 刷新
             when (index) {
                 // 首页三段各有自己的刷新入口，别让直播/番剧去刷推荐。
+                // 直播/番剧和推荐页一致：先平滑回顶，再拉刷新。
                 0 -> when (ui.homeSection) {
-                    1 -> appScope.launch { AppGraph.livePageState.refresh() }
-                    2 -> appScope.launch { AppGraph.bangumiPageState.refresh() }
+                    1 -> AppGraph.livePageState.requestRefresh()
+                    2 -> AppGraph.bangumiPageState.requestRefresh()
                     else -> homeFeed.requestRefresh()
                 }
                 1 -> ui.dynamicRefreshTick++

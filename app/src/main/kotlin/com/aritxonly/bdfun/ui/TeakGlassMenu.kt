@@ -95,7 +95,7 @@ fun TeakGlassMenu(
                         show = visible,
                         onDismissRequest = onDismiss,
                         anchorBounds = anchor,
-                        backdrop = backdrop,
+                        backdrop = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) null else backdrop,
                         modifier = modifier,
                         sizing = GlassPopupSizing(
                             minWidth = minWidth,

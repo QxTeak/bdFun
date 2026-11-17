@@ -11,33 +11,30 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.unit.dp
+import com.aritxonly.teak.common.chrome.teakClassicBarGlass
 import com.aritxonly.teak.common.chrome.teakProgressiveBarBlur
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 
 @Composable
 internal fun androidx.compose.foundation.layout.BoxScope.HomeTopBarBackground(classic: Boolean) {
-    val classicSurface = MiuixTheme.colorScheme.surfaceContainer
-    val classicLine = MiuixTheme.colorScheme.onBackground.copy(alpha = 0.12f)
     Box(
         modifier = Modifier
             .matchParentSize()
             .then(
                 if (classic) {
-                    Modifier
-                        .background(classicSurface)
-                        .drawBehind {
-                            drawLine(
-                                color = classicLine,
-                                start = Offset(0f, size.height),
-                                end = Offset(size.width, size.height),
-                                strokeWidth = 1.dp.toPx(),
-                            )
-                        }
+                    // 经典顶栏常驻，整条走 Miuix 玻璃模糊；不再画分割线。
+                    Modifier.teakClassicBarGlass()
                 } else {
                     Modifier.teakProgressiveBarBlur()
                 },
             ),
     )
-
+    if (classic) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.62f)),
+        )
+    }
 }

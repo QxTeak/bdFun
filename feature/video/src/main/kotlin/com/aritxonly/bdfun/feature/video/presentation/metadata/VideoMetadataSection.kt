@@ -37,26 +37,27 @@ fun VideoMetadataSection(
     description: VideoDescriptionStateHolder, actions: VideoMetadataActions,
     appearance: VideoMetadataAppearance, slots: VideoMetadataSlots,
 ) {
+    // 加载中不再让内容从下方浮出：先给骨架（灰条 + 白色扫光），数据到了直接替换。
+    if (!content.metaReady) {
+        VideoMetadataSkeleton()
+        return
+    }
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)) {
-        StaggerLine(content.metaReady, 0) { VideoMetadataAuthor(content, interaction, actions, appearance, slots) }
+        VideoMetadataAuthor(content, interaction, actions, appearance, slots)
         Spacer(Modifier.height(10.dp))
-        StaggerLine(content.metaReady, 1) { VideoMetadataTitle(content) }
+        VideoMetadataTitle(content)
         Spacer(Modifier.height(4.dp))
-        StaggerLine(content.metaReady, 2) { VideoMetadataStatistics(content, slots) }
+        VideoMetadataStatistics(content, slots)
         val descText = content.detail?.desc?.takeIf { it.isNotBlank() }
         val descProgress = rememberManualProgress(
             if (description.expanded) 1f else 0f,
             durationMs = 420f,
         )
         Spacer(Modifier.height(4.dp))
-        StaggerLine(content.metaReady, 3) {
-            VideoMetadataIdentifier(content, description, descText, descProgress)
-        }
-        StaggerLine(content.metaReady, 4) {
-            VideoMetadataDescription(descText, descProgress, description, slots)
-        }
-        StaggerLine(content.metaReady, 5) { VideoMetadataCategory(content) }
+        VideoMetadataIdentifier(content, description, descText, descProgress)
+        VideoMetadataDescription(descText, descProgress, description, slots)
+        VideoMetadataCategory(content)
         Spacer(Modifier.height(14.dp))
-        StaggerLine(content.metaReady, 6) { VideoMetadataInteractions(interaction, actions, appearance, slots) }
+        VideoMetadataInteractions(interaction, actions, appearance, slots)
     }
 }

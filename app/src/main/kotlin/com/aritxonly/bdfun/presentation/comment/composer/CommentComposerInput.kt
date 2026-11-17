@@ -18,11 +18,18 @@ internal fun androidx.compose.foundation.layout.RowScope.CommentComposerInput(
 ) {
     val recipe = material.recipe
     val backdrop = material.backdrop
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
     TeakGlassSurface(
-        modifier = Modifier.weight(1f).heightIn(min = 46.dp, max = 160.dp).teakContentControlShadow(Capsule()),
+        modifier = Modifier.weight(1f).heightIn(min = 46.dp, max = 160.dp)
+            .then(if (classic) Modifier else Modifier.teakContentControlShadow(Capsule())),
         shape = Capsule(),
         recipe = recipe,
         backdrop = backdrop,
+        flatBackgroundColor = if (classic) {
+            top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainerHigh
+        } else {
+            null
+        },
         contentAlignment = Alignment.CenterStart,
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {

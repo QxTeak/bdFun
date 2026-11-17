@@ -20,8 +20,25 @@ import com.aritxonly.bdfun.core.model.video.VideoItem
 fun HomeScreen(state: HomeFeedState, onOpenVideo: (VideoItem) -> Unit, cardStyle: Int = 0, host: HomePresentationHost, interactive: Boolean = true) {
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val ui = remember { HomePresentationStateHolder(state.refreshRequest) }
-    val pull = HomePullSession(state, ui, density, with(density) { 88.dp.toPx() }, with(density) { 260.dp.toPx() })
+    val ui = remember { HomePresentationStateHolder() }
+    val pull = PullRefreshSession(
+        thresholdPx = with(density) { 88.dp.toPx() },
+        maxPullPx = with(density) { 260.dp.toPx() },
+        density = density,
+        currentOffset = { ui.pullOffset },
+        onPull = { px, dp, fraction ->
+            ui.pullOffset = px
+            state.pullOffsetDp = dp
+            state.pullFraction = fraction
+        },
+        canScrollBackward = { state.gridState.canScrollBackward },
+        isRefreshing = { state.refreshing || state.loading },
+        onRefresh = {
+            state.pullFraction = 1f
+            state.refresh()
+        },
+        onCanceled = { state.pullFraction = 0f },
+    )
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     HomeInstanceEffect(host)
     HomeFeedEffects(state, ui, pull)

@@ -19,19 +19,24 @@ fun VideoDetailEntry(
     // 只更新当前标识；真正退出时仍由 Activity 清理读取缓存。
     LaunchedEffect(selection.bvid) { ports.publishBvid(selection.bvid) }
     val playing by holders.ui.playing
-    val inlineLayout = rememberVideoInlineLayout(selection.bvid, playing, pager.currentPage,
-        presentation.paneLayout, presentation.immersiveStatusBar, presentation.statusBarTop, ports.collapse)
-    val metaReady by holders.ui.metaReady
-    // 保留页面作用域的唯一推荐入场进度，进出全屏不重建。
-    val relatedEnter = rememberStaggerProgress(metaReady && detail.related.isNotEmpty(), 9)
-    val scope = rememberCoroutineScope()
-    val actions = rememberVideoDetailActions(isLoggedIn, request, holders, scope, events.onBack, ports.actionHost)
     val qualities = detail.playInfo?.qualities.orEmpty()
     val quality = if (selection.autoQuality) {
         ports.automaticQuality.select(qualities)
     } else {
         qualities.firstOrNull { it.id == selection.quality } ?: qualities.firstOrNull()
     }
+    // 用当前清晰度的真实宽高比判断竖屏视频；读不到就按原来的 16:9 处理。
+    val videoAspectRatio = quality?.let { q ->
+        if (q.width > 0 && q.height > 0) q.width.toFloat() / q.height.toFloat() else null
+    }
+    val inlineLayout = rememberVideoInlineLayout(selection.bvid, playing, pager.currentPage,
+        presentation.paneLayout, presentation.immersiveStatusBar, presentation.statusBarTop, ports.collapse,
+        videoAspectRatio)
+    val metaReady by holders.ui.metaReady
+    // 保留页面作用域的唯一推荐入场进度，进出全屏不重建。
+    val relatedEnter = rememberStaggerProgress(metaReady && detail.related.isNotEmpty(), 9)
+    val scope = rememberCoroutineScope()
+    val actions = rememberVideoDetailActions(isLoggedIn, request, holders, scope, events.onBack, ports.actionHost)
     val content = VideoScreenContent(request.video, detail, selection, interaction, metadata, quality, isLoggedIn())
     BindVideoDetailEffects(request, content, holders, actions, pager, ports.load, ports.effects, presentation.autoRotate)
     ports.slots.layout(VideoDetailLayoutContent(request, presentation, events, pager, inlineLayout,

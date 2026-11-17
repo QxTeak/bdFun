@@ -10,6 +10,7 @@ internal fun SearchOverlayContent(
     settings: SettingsBindings, submitted: String?, query: String, ui: SearchPresentationStateHolder,
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
     onPickKeyword: (String) -> Unit, onOpenVideo: (VideoItem) -> Unit, onOpenUser: (SearchUser) -> Unit,
+    onLoadMore: () -> Unit = {},
 ) {
     val rememberKeyword: (String) -> Unit = { word ->
         settings.addSearchHistory(word)
@@ -31,6 +32,6 @@ internal fun SearchOverlayContent(
             },
         )
     } else {
-        SearchResults(content, ui, onOpenVideo, onOpenUser)
+        SearchResults(content, ui, onOpenVideo, onOpenUser, onLoadMore)
     }
 }

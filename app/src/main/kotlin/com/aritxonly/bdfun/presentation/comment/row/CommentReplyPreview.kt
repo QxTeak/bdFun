@@ -23,20 +23,10 @@ internal fun ReplyBlock(item: CommentItem, actions: CommentPreviewActions) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .then(
-                if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
-                    Modifier
-                } else {
-                    Modifier
-                        .clip(RoundedCornerShape(12.dp))
-                        // 与详情合集共用分组底色，避免透明叠色随父背景变化。
-                        .background(replyBackground)
-                },
-            )
-            .padding(
-                horizontal = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 2.dp else 10.dp,
-                vertical = 8.dp,
-            ),
+            .clip(RoundedCornerShape(12.dp))
+            // 与详情合集共用分组底色，避免透明叠色随父背景变化。
+            .background(replyBackground)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
     ) {
         preview.forEachIndexed { replyIndex, reply ->
             CommentPreviewRow(reply, actions)

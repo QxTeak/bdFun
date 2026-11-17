@@ -26,6 +26,26 @@ internal fun androidx.compose.foundation.layout.RowScope.HomeSearchSurface(searc
     val onSearch = actions.onSearch
     val recipe = material.recipe
     val backdrop = material.backdrop
+    // 经典样式：搜索框是平面浅灰胶囊，不叠玻璃高光/阴影。
+    if (classic) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .then(if (wide) Modifier.width(searchWidth) else Modifier.weight(1f))
+                .height(40.dp)
+                .background(MiuixTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.7f), Capsule())
+                .then(
+                    if (!searchActive) Modifier.clickable(
+                        interactionSource = searchInteraction,
+                        indication = null,
+                        onClick = onSearch,
+                    ) else Modifier,
+                ),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            HomeSearchContents(search, actions, material)
+        }
+        return
+    }
     TeakGlassSurface(
         modifier = Modifier
             .then(if (wide) Modifier.width(searchWidth) else Modifier.weight(1f))

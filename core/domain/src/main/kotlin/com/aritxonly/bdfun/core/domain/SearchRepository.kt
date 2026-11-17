@@ -7,6 +7,8 @@ import com.aritxonly.bdfun.core.model.video.VideoItem
 data class SearchRequest(
     val keyword: String, val order: String, val duration: Int,
     val pubtimeBegin: Long?, val pubtimeEnd: Long?,
+    /** 从 1 开始的页码；搜索页往下翻时逐页递增。 */
+    val page: Int = 1,
 )
 
 interface SearchRepository {

@@ -650,3 +650,37 @@ ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保�
 
 ### 信息流帧率设置
 主界面默认请求 60Hz，可在外观设置选择 120 或自适应（0，交给系统）；MainActivity 观察设置状态应用窗口偏好，不改变播放器智能刷新率策略。
+
+### 2026-11-16 经典布局全页面对齐检查点
+
+经典样式（interfaceStyle=1）改为常驻栏形态，全部改动以 `TeakUiStyle.isClassic` 为门槛，官方与 HyperOS 4 分支不变。顶栏不再做大标题/小标题切换：页面标题常驻显示在整条顶栏中央，内容里的大标题位置只保留 56dp 占位，由 `LocalTeakClassicChrome` 区分页面壳与引导页；顶栏、底栏、动态分段栏、设置搜索栏和输入栏都用 Miuix 的整条纹理模糊（`teakClassicBarGlass`，非渐进式），叠加半透明底色保证可读，关闭高级材质时退化为平面底色；所有栏不再画分割线，顶栏按钮（返回、搜索、设置等）只保留图标不画圆底，只有回到顶部按钮保留玻璃圆钮。首页恢复推荐/直播/番剧分段（搜索框下一行），收藏/关注/消息/已发送/动态/空间等列表改为无行分割线的通栏行；评论折叠回复恢复 12dp 圆角分组框，与其他布局复用同一段实现。未改内容卡片、播放器覆盖层和登录/引导页的独立卡片造型。
+
+### 2026-11-17 视频/搜索/圆角体验检查点
+
+视频页评论页签的顶部间距不再用「24dp + 沉浸 36dp」的固定补偿：按 tab 行底边 + 12dp 减去列表自身的状态栏内边距反算，竖屏收紧、横屏分栏仍为 52dp；`CommentSortRow` 新增 compactSpacing，只由竖屏主评论区传入。视频页 tab 的柔光玻璃改走 `rememberManualProgress(…, 300f)`，与收藏页返回键同一套固定时长补间，不再直接吃滚动进度。频道页（直播/番剧）再次点击底栏当前页改为 `requestRefresh()`：先与推荐页同款并行「回顶 + 下拉」，再刷新。
+
+搜索页筛选写回 `appliedFilters`（此前只写 `filters`，所以永远不触发重新搜索）；`SearchRequest` 增加 `page`，搜索结果按 20 条一页向下加载，`SearchStateHolder.loadMore()` 带 revision 守卫并在短页时置 end，列表底部显示加载中/没有更多。
+
+设备圆角统一走 Android 12+ 的 `RoundedCorner`（四角取最大，读不到退回 framework dimen）：设置页单栏转场用 `rememberNavSystemCornerRadius()` 作为 `NavDisplayEffects.cornerClipRadius`；非小米机型的缩略图放大转场把截图按「全屏圆角 = 设备圆角」反算裁圆，避免四角直角。
+
+半屏播放器按当前清晰度宽高比判断竖屏视频：竖屏改用 3:4 窗口并以窗口高度 60% 兜底（`resolveInlineVideoHeightDp`，带单测），横屏与分栏不变。进入视频的「内容依次上浮」改为骨架屏（灰条 + 白色扫光），加载完成直接替换。
+
+投币不再用底部 sheet：`CoinChoicePopup` 在页面中间浮出两枚橙色硬币卡（1/2 硬币），点卡片直接投币，点空白关闭。关闭「退出视频后继续播放」时滑到后台只暂停播放，不再自动进入系统画中画；画中画只由显式返回键（exit_video_control）和全屏按钮触发。
+
+### 2026-11-17 收口：刷新编排/骨架对齐/投币视觉
+
+首页三段（推荐/直播/番剧）的「再次点击底栏当前页 → 回顶 + 下拉 + 刷新」不再各写一份：统一为 `feature:home` 的 `HomeSectionRefreshEffect(request, gridState, pullThresholdPx, animatePull, isBusy, onPulling, refresh)`，三处只传自己的网格、补间与刷新动作；`HomePresentationStateHolder` 的 `handledRequest` 随旧实现删除。
+
+视频详情骨架按真实元信息结构重排（头像 + 昵称/粉丝 + 关注胶囊、两行标题、播放/弹幕/日期、AV 号/分P、两行简介、分类、五个等宽操作圆钮），扫光改为在每个灰条自己的坐标系里绘制（不再整条被扫白导致看起来像缺块）。
+
+投币两枚硬币卡的视觉改为照抄同源参考实现（BiliPai `CoinDialog.CoinChoice`：`0xFFC48A52` 卡底、`0xFFE7B781` 3dp 描边、四角螺钉、`币` 字硬币、白色 `N 硬币` 标签）；PiliPlus 上游 main 只有整页 `PayCoinsPage`，没有这套两枚卡浮层。
+
+### 2026-11-17 投币页与刷新手势收口
+
+投币改为照搬 PiliPlus 的整页 `PayCoinsPage`（`lib/pages/video/pay_coins/view.dart`）：硬币箱两档（选中 100/未选中 70dp，硬币 50/35dp）、左右箭头与横向滑动切换、角色图（1 枚 / 2 枚 / 余额不足）点击或上滑投币、硬币余额、同时点赞复选框、关闭按钮；投币时角色起手 → 硬币上抛淡出 → 提交，约 650ms。资源取自 PiliPlus `assets/images/paycoins/`（GPL-3.0，与 bdFun 一致），落在 `res/drawable-nodpi/teak_coin_*`。`VideoActionsRepository.coin` 增加 `alsoLike`（对应 `select_like`），成功后同步 liked/likeCount。上游的 `hasCopyright`（转载最多 1 币）与雷电帧 bdFun 接口没有对应字段，未接。
+
+下拉刷新（小电视）也收成一套：新增 `feature:home` 的 `PullRefreshSession`（8ms 手动缓动、0.6 阻尼、阈值/上限由调用方按 dp 传入、松手过阈值刷新否则回弹）与 `PullRefreshSettleEffect`（刷新结束：进度归零 → 160ms 收小电视 → 260ms 回弹）。推荐/直播/番剧/动态共用，删除了 `HomePullSession`、`DiscoverPullSession`、`FeedPullSession`、`FeedPullEffects` 四份重复实现；再次点击底栏当前页的回顶+下拉+刷新统一走 `RefreshToTopEffect`。
+
+### 2026-11-17 投币页与自由复制弹层细节
+
+投币页：整列内容改为屏幕居中（原来贴底），遮罩改为 50% 黑（`0x80000000`）；左右切换键和关闭键改用 Miuix 图标（`MiuixIcons.ChevronBackward/ChevronForward/Close`），删除对应的 PNG；「同时点赞」的勾改为复用收藏夹 sheet 的 Miuix `Checkbox`（`ToggleableState.On/Off`）。评论「自由复制」弹层改用与收藏夹同款的 `MiuixBottomSheet`（标题 + 关闭按钮 + 底部主按钮），内容仍是可选择文本。

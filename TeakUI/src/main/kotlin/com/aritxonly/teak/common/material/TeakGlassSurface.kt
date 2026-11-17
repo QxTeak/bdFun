@@ -65,6 +65,18 @@ fun TeakGlassSurface(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val advancedMaterial = LocalTeakMaterialSpec.current
+    // 经典样式不使用玻璃：所有玻璃表面退化为平面容器，保留调用方指定的形状。
+    if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+        Box(
+            modifier = modifier.clip(shape).background(
+                flatBackgroundColor ?: top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainer,
+            ),
+            contentAlignment = contentAlignment,
+        ) {
+            content()
+        }
+        return
+    }
     val isDark = MaterialTheme.colorScheme.onSurface.luminance() > 0.5f
     val resolvedRecipe = recipe ?: TeakGlassRecipes.floatingNavigation(
         advancedMaterial.fineTuning,
@@ -138,6 +150,18 @@ fun TeakGlassIconButton(
     neutralTintProgress: Float = 0f,
     content: @Composable () -> Unit,
 ) {
+    // 经典样式：顶栏按钮只保留图标，不再画圆底。
+    if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+        Box(
+            modifier = modifier
+                .size(size)
+                .clickable(enabled = enabled, role = Role.Button, onClick = onClick),
+            contentAlignment = Alignment.Center,
+        ) {
+            content()
+        }
+        return
+    }
     val interactionSource = remember { MutableInteractionSource() }
     val isDark = MaterialTheme.colorScheme.onSurface.luminance() > 0.5f
 

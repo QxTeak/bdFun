@@ -32,9 +32,9 @@ val HomeTopBarHeight: Dp = 64.dp
 val HomeTopBarTabsHeight: Dp = 40.dp
 val HomeTopBarHeightWithTabs: Dp = HomeTopBarHeight + HomeTopBarTabsHeight
 
-/** 各页统一的顶栏高度：官方风格多一行分段条，其余风格保持原高度。 */
+/** 各页统一的顶栏高度：官方与经典多一行分段条，其余风格保持原高度。 */
 fun homeTopBarHeight(interfaceStyle: Int): Dp =
-    if (interfaceStyle == 0) HomeTopBarHeightWithTabs else HomeTopBarHeight
+    if (interfaceStyle == 0 || interfaceStyle == 1) HomeTopBarHeightWithTabs else HomeTopBarHeight
 
 @Composable
 internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, actions: HomeTopBarActions,

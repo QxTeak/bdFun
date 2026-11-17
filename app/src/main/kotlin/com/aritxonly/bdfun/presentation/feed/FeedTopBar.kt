@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,7 +11,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.unit.dp
+import com.aritxonly.teak.common.chrome.teakClassicBarGlass
 import kotlinx.coroutines.launch
 
 @Composable
@@ -30,8 +33,21 @@ fun FeedTopBar(
         Box(
             modifier = Modifier
                 .matchParentSize()
-                .teakBarBlur(),
+                .then(
+                    if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+                        Modifier.teakClassicBarGlass()
+                    } else {
+                        Modifier.teakBarBlur()
+                    },
+                ),
         )
+        if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.62f)),
+            )
+        }
 
         Column(
             modifier = Modifier

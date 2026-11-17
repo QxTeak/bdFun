@@ -14,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
@@ -37,8 +38,14 @@ internal fun MinePreviewCard(kind: MinePreviewKind, section: MinePreviewSection,
         MinePreviewKind.Favorites -> "我的收藏"
         MinePreviewKind.WatchLater -> "稍后再看"
     }
-    Column(Modifier.fillMaxWidth().clip(ContinuousCornerShape(22.dp))
-        .background(MiuixTheme.colorScheme.surfaceContainer).padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val surfaceColor = MiuixTheme.colorScheme.surfaceContainer
+    val dividerColor = MiuixTheme.colorScheme.onBackground.copy(alpha = 0.12f)
+    Column(Modifier.fillMaxWidth().clip(
+        if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(22.dp),
+    )
+        .background(surfaceColor)
+        .padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(title, Modifier.weight(1f), fontSize = 15.sp, lineHeight = 18.sp, color = MiuixTheme.colorScheme.onBackground,
                 minLines = 1, maxLines = 1, overflow = TextOverflow.Ellipsis)
