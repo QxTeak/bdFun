@@ -92,6 +92,7 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
         ),
         tabs = tabs,
         tabsCollapseProgress = tabsCollapseProgress,
+        singleRowSearchTabs = com.aritxonly.bdfun.ui.officialHomeBarSingleRow(settings.interfaceStyle),
         modifier = Modifier,
     )
 }

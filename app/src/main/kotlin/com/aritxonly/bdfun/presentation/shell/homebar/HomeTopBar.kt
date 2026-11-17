@@ -36,13 +36,23 @@ val HomeTopBarTabsHeight: Dp = 40.dp
 val HomeTopBarHeightWithTabs: Dp = HomeTopBarHeight + HomeTopBarTabsHeight
 
 /** 各页统一的顶栏高度：官方与经典多一行分段条，其余风格保持原高度。 */
+@Composable
+internal fun officialHomeBarSingleRow(interfaceStyle: Int): Boolean {
+    val window = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize
+    return interfaceStyle == 0 && window.width > window.height
+}
+
+@Composable
 fun homeTopBarHeight(interfaceStyle: Int): Dp =
-    if (interfaceStyle == 0 || interfaceStyle == 1) HomeTopBarHeightWithTabs else HomeTopBarHeight
+    if ((interfaceStyle == 0 && !officialHomeBarSingleRow(interfaceStyle)) || interfaceStyle == 1) {
+        HomeTopBarHeightWithTabs
+    } else HomeTopBarHeight
 
 @Composable
 internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, actions: HomeTopBarActions,
     tabs: HomeTopBarTabs? = null,
     tabsCollapseProgress: Float = 0f,
+    singleRowSearchTabs: Boolean = false,
     modifier: Modifier = Modifier) {
     val windowSize = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize
     val density = androidx.compose.ui.platform.LocalDensity.current
@@ -61,7 +71,7 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
     }
     // 搜索展开时让出高度：结果页从顶栏下沿开始，不会被分段条盖住。
     val visibleTabs = tabs.takeUnless { search.active }
-    val tabsBelowSearch = visibleTabs?.belowSearch == true
+    val tabsBelowSearch = visibleTabs?.belowSearch == true && !singleRowSearchTabs
     val tabsHeight = HomeTopBarTabsHeight * (1f - tabsCollapseProgress.coerceIn(0f, 1f))
     val totalHeight = HomeTopBarHeight + if (tabsBelowSearch) tabsHeight else 0.dp
     Box(modifier = modifier.fillMaxWidth().height(totalHeight + statusBarTop)) {
@@ -72,7 +82,9 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
         Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
             val inline = visibleTabs
             val inlineTabs = inline != null && !tabsBelowSearch
-            if (wide && inlineTabs && inline != null) {
+            if (singleRowSearchTabs) {
+                HomeTopBarLandscapeRow(content, search, actions, visibleTabs, material)
+            } else if (wide && inlineTabs && inline != null) {
                 HomeTopBarWideTabsRow(content, search, actions, inline, material)
             } else {
                 HomeTopBarMainRow(content, search, actions, visibleTabs, material, wide, tabsBelowSearch)
@@ -184,5 +196,44 @@ private fun HomeTopBarTabsBelow(tabs: HomeTopBarTabs) {
             onSelect = tabs.onSelect,
             position = tabs.position,
         )
+    }
+}
+
+/** 横屏官方布局保留左侧搜索与右侧频道，各自使用受约束的空间。 */
+@Composable
+private fun HomeTopBarLandscapeRow(
+    content: HomeTopBarContent, search: HomeTopBarSearch, actions: HomeTopBarActions,
+    tabs: HomeTopBarTabs?, material: HomeTopBarMaterial,
+) {
+    Row(
+        Modifier.fillMaxWidth().height(HomeTopBarHeight)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HomeTopBarLeft(content, search, actions)
+        Spacer(Modifier.width(10.dp))
+        // 此处按剩余宽度分配，避免固定的宽屏搜索宽度挤出频道和消息按钮。
+        val flexibleMaterial = remember(material) {
+            HomeTopBarMaterial(false, material.searchWidth, material.recipe, material.backdrop,
+                material.searchInteraction, material.classic)
+        }
+        HomeSearchSurface(search, actions, flexibleMaterial)
+        if (tabs != null) {
+            Spacer(Modifier.width(12.dp))
+            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                TeakSegmentedBar(
+                    options = tabs.options,
+                    selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
+                    onSelect = tabs.onSelect,
+                    itemWidth = 64.dp,
+                    materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
+                    position = tabs.position,
+                    scrollable = true,
+                    maxVisibleItems = 3,
+                )
+            }
+        }
+        Spacer(Modifier.width(10.dp))
+        HomeTopBarRight(content, search, actions, material)
     }
 }
