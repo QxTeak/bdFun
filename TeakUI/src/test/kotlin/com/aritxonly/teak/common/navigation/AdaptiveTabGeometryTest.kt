@@ -5,6 +5,16 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AdaptiveTabGeometryTest {
+    @Test fun truncatedEdgeHintsMoveInwardWithoutMovingCenteredLabels() {
+        val g = AdaptiveTabGeometry(5, 180f, 180f / 3.6f)
+        assertTrue(g.edgeInset(0, 2f) > 0f)
+        assertTrue(g.edgeInset(4, 2f) < 0f)
+        assertEquals(0f, g.edgeInset(2, 2f), .001f)
+        assertEquals(0f, g.edgeInset(0, 0f), .001f)
+        assertEquals(0f, g.edgeInset(4, 4f), .001f)
+        assertTrue(kotlin.math.abs(g.edgeInset(4, 2f)) <= g.item * .16f)
+    }
+
     @Test fun limitsRoundDownAndStayPositive() {
         assertEquals(3, normalizedTabLimit(4))
         assertEquals(3, normalizedTabLimit(3))

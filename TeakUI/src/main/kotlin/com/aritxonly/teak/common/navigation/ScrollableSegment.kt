@@ -108,6 +108,7 @@ private fun ScrollableSegmentLabel(
     val density = LocalDensity.current
     val colors = MiuixTheme.colorScheme
     val classic = TeakUiStyle.isClassic
+    val direction = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -1f else 1f
     val blur = remember(density) {
         RenderEffect.createBlurEffect(1.5f * density.density, 1.5f * density.density, Shader.TileMode.DECAL)
             .asComposeRenderEffect()
@@ -120,12 +121,14 @@ private fun ScrollableSegmentLabel(
         val color = if (index != active) colors.onBackgroundVariant else if (classic) colors.primary else Color.White
         Text(text = label, fontSize = 13.sp, maxLines = 1, color = color,
             modifier = Modifier.graphicsLayer {
+                translationX = if (index == active) 0f else direction * geometry.edgeInset(index, current.value)
                 alpha = 1f - geometry.edgeFade(index, current.value)
             })
         // 清晰/模糊两层交叉淡入，不在越过阈值时突然切换 RenderEffect。
         Text(text = label, fontSize = 13.sp, maxLines = 1, color = color,
             modifier = Modifier.clearAndSetSemantics {}.graphicsLayer {
                 renderEffect = blur
+                translationX = if (index == active) 0f else direction * geometry.edgeInset(index, current.value)
                 alpha = geometry.edgeFade(index, current.value) * .45f
             })
     }
