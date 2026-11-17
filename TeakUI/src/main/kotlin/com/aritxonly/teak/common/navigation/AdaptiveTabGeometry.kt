@@ -4,6 +4,10 @@ internal fun normalizedTabLimit(value: Int): Int = value.coerceAtLeast(1).let {
     if (it % 2 == 0) it - 1 else it
 }
 
+/** 主选项合计占据视口 94%，外围提示不挤占主槽位。 */
+internal fun adaptiveTabItemWidth(viewport: Float, limit: Int, frameInset: Float = 0f): Float =
+    minOf(viewport, (viewport + frameInset * 2f) * .94f) / normalizedTabLimit(limit)
+
 /** 露字占用现有宽度，不添加首尾占位；边界自然贴合原胶囊。 */
 internal data class AdaptiveTabGeometry(val count: Int, val viewport: Float, val item: Float) {
     val maxScroll: Float get() = (count * item - viewport).coerceAtLeast(0f)
@@ -11,21 +15,21 @@ internal data class AdaptiveTabGeometry(val count: Int, val viewport: Float, val
         ((position.coerceIn(0f, (count - 1).coerceAtLeast(0).toFloat()) + .5f) * item - viewport / 2)
             .coerceIn(0f, maxScroll)
     fun indicator(position: Float): Float = position * item - scroll(position)
-    /** 中间提示向内收；端点减少另一端的露字量，不改变槽位或选中指示器。 */
+    /** 外围文字压近相邻主选项，首尾与中间使用相同规则。 */
     fun edgeInset(index: Int, position: Float): Float {
         val center = (index + .5f) * item - scroll(position)
         val sign = if (center < viewport / 2f) 1f else -1f
-        val endpoint = if (sign < 0f) (1f - position).coerceIn(0f, 1f)
-            else (position - (count - 2)).coerceIn(0f, 1f)
-        return sign * edgeFade(index, position) * item * (.22f - .30f * endpoint)
+        return sign * edgeFade(index, position) * item * .40f
     }
+
+    fun labelScale(index: Int, position: Float): Float = 1f - edgeFade(index, position) * .18f
 
     fun edgeFade(index: Int, position: Float): Float {
         val offset = scroll(position)
         val center = (index + .5f) * item - offset
         val distance = minOf(if (offset > .5f) center else Float.POSITIVE_INFINITY,
             if (offset < maxScroll - .5f) viewport - center else Float.POSITIVE_INFINITY)
-        return (1f - distance / (item * .6f)).coerceIn(0f, 1f)
+        return (1f - distance / (item * .5f)).coerceIn(0f, 1f)
     }
 }
 

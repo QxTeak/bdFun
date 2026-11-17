@@ -73,7 +73,8 @@ private fun ScrollableSegmentContent(
     BoxWithConstraints(Modifier.width(itemWidth * limit)) {
         val density = LocalDensity.current
         val widthPx = with(density) { maxWidth.toPx() }
-        val geometry = AdaptiveTabGeometry(options.size, widthPx, widthPx / (limit + .6f))
+        val frameInset = if (TeakUiStyle.isClassic) 0f else with(density) { 4.dp.toPx() }
+        val geometry = AdaptiveTabGeometry(options.size, widthPx, adaptiveTabItemWidth(widthPx, limit, frameInset))
         val scope = rememberCoroutineScope()
         val interactions = remember { MutableInteractionSource() }
         val pressed = interactions.collectIsPressedAsState()
@@ -137,6 +138,8 @@ private fun ScrollableSegmentLabel(
         Text(text = label, fontSize = 13.sp, maxLines = 1, color = color,
             modifier = Modifier.graphicsLayer {
                 translationX = if (index == active) 0f else direction * geometry.edgeInset(index, current.value)
+                scaleX = geometry.labelScale(index, current.value)
+                scaleY = scaleX
                 alpha = 1f - geometry.edgeFade(index, current.value)
             })
         // 清晰/模糊两层交叉淡入，不在越过阈值时突然切换 RenderEffect。
@@ -144,6 +147,8 @@ private fun ScrollableSegmentLabel(
         Box(Modifier.matchParentSize().clearAndSetSemantics {}.graphicsLayer {
             renderEffect = blur
             translationX = if (index == active) 0f else direction * geometry.edgeInset(index, current.value)
+            scaleX = geometry.labelScale(index, current.value)
+            scaleY = scaleX
             alpha = geometry.edgeFade(index, current.value) * .45f
         }, contentAlignment = Alignment.Center) {
             Text(text = label, fontSize = 13.sp, maxLines = 1, color = color)
