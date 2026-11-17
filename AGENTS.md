@@ -684,3 +684,7 @@ ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保�
 ### 2026-11-17 投币页与自由复制弹层细节
 
 投币页：整列内容改为屏幕居中（原来贴底），遮罩改为 50% 黑（`0x80000000`）；左右切换键和关闭键改用 Miuix 图标（`MiuixIcons.ChevronBackward/ChevronForward/Close`），删除对应的 PNG；「同时点赞」的勾改为复用收藏夹 sheet 的 Miuix `Checkbox`（`ToggleableState.On/Off`）。评论「自由复制」弹层改用与收藏夹同款的 `MiuixBottomSheet`（标题 + 关闭按钮 + 底部主按钮），内容仍是可选择文本。
+
+### 2026-11-17 风格配置收敛
+
+TeakStyle 提供 Official/Classic/HyperOs4 三元入口，持久化编号保持 0/1/2；Official 与 HyperOs4 共享 TeakDesign.Modern，排列由 TeakLayout 单独描述。新增卡片形状与内容留白优先通过 design 解析，底部搜索通过 layout 解析。此次仅扩展 TeakUI 的主题契约，不重构材质引擎，不移动动画或状态作用域。

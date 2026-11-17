@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import com.aritxonly.bdfun.feature.message.application.visibleSessions
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
@@ -33,15 +35,15 @@ internal fun MessageSessionList(
     val navigation = LocalMessageNavigation.current
     val openRoute = messageRouteAction()
     val visibleSessions = snapshot.visibleSessions(ui.tabIndex == 1)
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val classic = TeakUiStyle.isClassic
     PullToRefreshBox(isRefreshing = snapshot.loading && snapshot.sessions.isNotEmpty(), onRefresh = onRefresh, modifier = Modifier.fillMaxSize()) {
         LazyColumn(
             state = listState,
             modifier = Modifier
                 .fillMaxSize(),
             contentPadding = PaddingValues(
-                start = if (classic) 0.dp else 16.dp,
-                end = if (classic) 0.dp else 16.dp,
+                start = TeakUiStyle.design.contentInset(16.dp),
+                end = TeakUiStyle.design.contentInset(16.dp),
                 top = 8.dp + rememberStatusBarTop(),
                 bottom = 40.dp,
             ),

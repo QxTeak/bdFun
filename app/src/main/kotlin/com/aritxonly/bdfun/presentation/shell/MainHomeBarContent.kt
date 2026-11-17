@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun
 
+import com.aritxonly.teak.common.theme.TeakStyle
+
 import com.aritxonly.bdfun.navigateToMessages
 import com.aritxonly.bdfun.navigateToLogin
 import androidx.compose.runtime.Composable
@@ -29,7 +31,7 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
     // HyperOS 4：分段替换搜索框；哔哩哔哩（官方）与经典：搜索框保留，分段放在它下面一行。
     val tabs = when {
         bottomSearch -> null
-        settings.interfaceStyle == 2 -> HomeTopBarTabs(
+        TeakStyle.fromStoredValue(settings.interfaceStyle).layout.hasBottomSearch -> HomeTopBarTabs(
             selected = ui.homeSection,
             onSelect = { haptics.tap(); ui.homeSection = it },
         )

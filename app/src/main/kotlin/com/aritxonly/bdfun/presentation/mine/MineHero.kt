@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -21,9 +23,9 @@ internal fun MineHero(profile: UserProfile?, navigation: MineNavigation, wide: B
     val banner = remember(profile?.mid) { MineBannerStateHolder() }
     LaunchedEffect(banner, profile?.banner, profile?.bannerFallbacks) { banner.load(context, profile) }
     val height = if (wide) 208.dp else 250.dp
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val classic = TeakUiStyle.isClassic
     val shape: androidx.compose.ui.graphics.Shape =
-        if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(24.dp)
+        TeakUiStyle.design.cardShape(ContinuousCornerShape(24.dp))
     Box(Modifier.fillMaxWidth()) {
         BoxWithConstraints(Modifier.fillMaxWidth().then(
             if (wide && !classic) Modifier.clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) else Modifier,

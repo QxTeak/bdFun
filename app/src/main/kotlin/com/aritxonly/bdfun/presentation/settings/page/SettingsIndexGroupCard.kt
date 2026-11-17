@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
@@ -9,6 +11,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.teak.common.chrome.TeakContinuousCornerShape
 import com.aritxonly.teak.common.settings.TeakSettingsCard
+import com.aritxonly.teak.common.settings.teakSectionSurface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -20,19 +23,14 @@ internal fun SettingsIndexGroupCard(title: String, aboutProgress: Float?, conten
         return
     }
     val colors = MiuixTheme.colorScheme
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
-    Column(Modifier.padding(top = if (classic) 0.dp else 12.dp)) {
+    Column(Modifier.padding(top = TeakUiStyle.design.contentInset(12.dp))) {
         Text(title, color = colors.onBackgroundVariant, fontSize = 11.5.sp,
-            modifier = Modifier.padding(start = if (classic) 12.dp else 14.dp, top = if (classic) 12.dp else 0.dp, bottom = 5.dp))
+            modifier = Modifier.padding(start = TeakUiStyle.design.sectionTitleStart, top = TeakUiStyle.design.sectionTitleTop, bottom = 5.dp))
         Column(
             Modifier.fillMaxWidth()
-                .then(
-                    if (classic) {
-                        Modifier.background(colors.surfaceContainer.copy(alpha = .5f + aboutProgress.coerceIn(0f, 1f) * .5f))
-                    } else {
-                        Modifier.clip(TeakContinuousCornerShape(22.dp))
-                            .background(colors.surfaceContainer.copy(alpha = .5f + aboutProgress.coerceIn(0f, 1f) * .5f))
-                    },
+                .teakSectionSurface(
+                    TeakUiStyle.design, TeakContinuousCornerShape(22.dp),
+                    colors.surfaceContainer.copy(alpha = .5f + aboutProgress.coerceIn(0f, 1f) * .5f),
                 ),
             content = content,
         )

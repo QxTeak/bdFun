@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
@@ -33,7 +35,7 @@ internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Mod
     val list = rememberLazyListState()
     val chrome = LocalTeakPageScrollState.current
     // 卡片自身在非经典样式下带12dp顶距，补足到16dp，避免叠成28dp。
-    val cardGap = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 16.dp else 4.dp
+    val cardGap = if (TeakUiStyle.isClassic) 16.dp else 4.dp
     if (!session.navigation.searching) TrackTeakPageScroll(list, chrome)
     LazyColumn(modifier, state = list, contentPadding = settingsListPadding()) {
         item { TeakLargeTitle("设置", pageState = chrome) }
@@ -110,7 +112,7 @@ internal fun SettingsSearchResults(session: SettingsBrowserSession, hits: List<S
 
 @Composable
 internal fun settingsListPadding(): PaddingValues {
-    val horizontal = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 0.dp else TeakChromeDefaults.ContentHorizontalPadding
+    val horizontal = TeakUiStyle.design.contentInset(TeakChromeDefaults.ContentHorizontalPadding)
     return PaddingValues(start = horizontal, end = horizontal,
         top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + TeakChromeDefaults.ContentTopPadding,
         bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 100.dp)

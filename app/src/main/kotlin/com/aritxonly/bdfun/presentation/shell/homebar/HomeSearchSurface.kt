@@ -51,16 +51,6 @@ internal fun androidx.compose.foundation.layout.RowScope.HomeSearchSurface(searc
             .then(if (wide) Modifier.width(searchWidth) else Modifier.weight(1f))
             .height(40.dp)
             .then(
-                if (classic) {
-                    Modifier.background(
-                        MiuixTheme.colorScheme.surfaceContainerHigh,
-                        Capsule(),
-                    )
-                } else {
-                    Modifier
-                },
-            )
-            .then(
                 when {
                     !searchActive -> Modifier.clickable(
                         interactionSource = searchInteraction,
@@ -75,7 +65,7 @@ internal fun androidx.compose.foundation.layout.RowScope.HomeSearchSurface(searc
         materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
         flatBackgroundAlpha = com.aritxonly.teak.common.material.TeakGlassDefaults.flatBackgroundAlpha(),
         recipe = recipe,
-        backdrop = if (classic) null else backdrop,
+        backdrop = backdrop,
         contentAlignment = Alignment.CenterStart,
     ) {
         HomeSearchContents(search, actions, material)

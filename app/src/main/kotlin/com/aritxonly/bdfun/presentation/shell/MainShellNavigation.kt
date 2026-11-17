@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun
 
+import com.aritxonly.teak.common.theme.TeakStyle
+
 import com.aritxonly.bdfun.navigateToVideo
 import androidx.compose.runtime.Composable
 import com.aritxonly.teak.common.navigation.TeakFloatingTabItem
@@ -45,7 +47,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
         settings, dark, wideNavigation, ui.showSearch, tabItems, destinations[selected].key,
         onBarItem = onBarItem,
         onSearch = {
-            if (settings.interfaceStyle == 2) shell.bottom.open() else {
+            if (TeakStyle.fromStoredValue(settings.interfaceStyle).layout.hasBottomSearch) shell.bottom.open() else {
             appScope.launch { tabPagerState.scrollToPage(0) }
             searchChrome.reset()
             ui.showSearch = true

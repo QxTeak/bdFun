@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun
 
+import com.aritxonly.teak.common.theme.TeakStyle
+
 import com.aritxonly.teak.common.chrome.TeakChromeDefaults
 import com.aritxonly.teak.common.chrome.isWideFoldTopBar
 
@@ -30,7 +32,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainFloatingNavigation(
 
     val wideFold = isWideFoldTopBar()
     val bottomSpacing = if (wideFold) 0.dp else 4.dp
-    val hasSearch = settings.interfaceStyle == 2
+    val hasSearch = TeakStyle.fromStoredValue(settings.interfaceStyle).layout.hasBottomSearch
     val maximumDockWidth = minOf(
         TeakFloatingTabBarDefaults.MaximumWidth,
         TeakFloatingTabBarDefaults.MaximumItemWidth * tabItems.size,

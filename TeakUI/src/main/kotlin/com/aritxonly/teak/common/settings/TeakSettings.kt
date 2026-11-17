@@ -1,5 +1,7 @@
 package com.aritxonly.teak.common.settings
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -103,16 +105,8 @@ fun TeakSettingsPage(
     pageState: TeakPageScrollState = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current,
     subtitle: String? = null,
     contentPadding: PaddingValues = PaddingValues(
-        start = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
-            0.dp
-        } else {
-            TeakChromeDefaults.ContentHorizontalPadding
-        },
-        end = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
-            0.dp
-        } else {
-            TeakChromeDefaults.ContentHorizontalPadding
-        },
+        start = TeakUiStyle.design.contentInset(TeakChromeDefaults.ContentHorizontalPadding),
+        end = TeakUiStyle.design.contentInset(TeakChromeDefaults.ContentHorizontalPadding),
         top = TeakChromeDefaults.ContentTopPadding,
         bottom = TeakChromeDefaults.ContentBottomPadding,
     ),
@@ -170,14 +164,14 @@ fun TeakSettingsCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val classic = TeakUiStyle.isClassic
     Column(modifier = modifier.padding(top = if (classic) 8.dp else 12.dp)) {
         if (!title.isNullOrBlank()) {
             Text(
                 text = title,
                 modifier = Modifier.padding(
-                    start = if (classic) 12.dp else 14.dp,
-                    top = if (classic) 12.dp else 0.dp,
+                    start = TeakUiStyle.design.sectionTitleStart,
+                    top = TeakUiStyle.design.sectionTitleTop,
                     bottom = 5.dp,
                 ),
                 color = colors.onBackgroundVariant,
@@ -187,13 +181,7 @@ fun TeakSettingsCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .then(
-                    if (classic) {
-                        Modifier.background(colors.surfaceContainer)
-                    } else {
-                        Modifier.clip(CardShape).background(colors.surfaceContainer)
-                    },
-                ),
+                .teakSectionSurface(TeakUiStyle.design, CardShape, colors.surfaceContainer),
             content = content,
         )
     }
@@ -278,7 +266,7 @@ fun TeakSettingsDropdownRow(
 ) {
     if (options.isEmpty()) return
     // 经典样式使用 Miuix 的普通 Overlay 下拉，平面菜单不带玻璃和圆角浮层。
-    if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+    if (TeakUiStyle.isClassic) {
         top.yukonga.miuix.kmp.preference.OverlayDropdownPreference(
             items = options,
             selectedIndex = selected.coerceIn(0, options.lastIndex),
@@ -293,7 +281,7 @@ fun TeakSettingsDropdownRow(
     }
     // 设置页的二级菜单统一使用玻璃版；没有可采样背景时由组件自己退化为纯色。
     // 经典样式不采样玻璃，直接退化为纯色菜单。
-    val backdrop = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) null else LocalTeakBackdrop.current
+    val backdrop = if (TeakUiStyle.isClassic) null else LocalTeakBackdrop.current
     GlassDropdownPreference(
         onSelectedIndexChange = onSelected,
         items = options,
