@@ -171,7 +171,7 @@ fun TeakSettingsCard(
 ) {
     val colors = MiuixTheme.colorScheme
     val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
-    Column(modifier = modifier.padding(top = if (classic) 0.dp else 12.dp)) {
+    Column(modifier = modifier.padding(top = if (classic) 8.dp else 12.dp)) {
         if (!title.isNullOrBlank()) {
             Text(
                 text = title,
@@ -189,17 +189,7 @@ fun TeakSettingsCard(
                 .fillMaxWidth()
                 .then(
                     if (classic) {
-                        Modifier
-                            .background(colors.surfaceContainer)
-                            .drawBehind {
-                                val y = size.height - 1.dp.toPx() / 2f
-                                drawLine(
-                                    color = colors.onBackground.copy(alpha = 0.12f),
-                                    start = Offset(0f, y),
-                                    end = Offset(size.width, y),
-                                    strokeWidth = 1.dp.toPx(),
-                                )
-                            }
+                        Modifier.background(colors.surfaceContainer)
                     } else {
                         Modifier.clip(CardShape).background(colors.surfaceContainer)
                     },
@@ -287,8 +277,23 @@ fun TeakSettingsDropdownRow(
     closedValue: String? = null,
 ) {
     if (options.isEmpty()) return
+    // 经典样式使用 Miuix 的普通 Overlay 下拉，平面菜单不带玻璃和圆角浮层。
+    if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+        top.yukonga.miuix.kmp.preference.OverlayDropdownPreference(
+            items = options,
+            selectedIndex = selected.coerceIn(0, options.lastIndex),
+            title = title,
+            modifier = modifier,
+            summary = description.takeIf { it.isNotBlank() },
+            showValue = true,
+            renderInRootScaffold = true,
+            onSelectedIndexChange = onSelected,
+        )
+        return
+    }
     // 设置页的二级菜单统一使用玻璃版；没有可采样背景时由组件自己退化为纯色。
-    val backdrop = LocalTeakBackdrop.current
+    // 经典样式不采样玻璃，直接退化为纯色菜单。
+    val backdrop = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) null else LocalTeakBackdrop.current
     GlassDropdownPreference(
         onSelectedIndexChange = onSelected,
         items = options,

@@ -26,14 +26,14 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
     val searchChrome = shell.chrome.search
     val searchReveal = input.reveal
     val haptics = rememberTeakHaptics()
-    // HyperOS 4：分段替换搜索框；哔哩哔哩（官方）：搜索框保留，分段放在它下面一行。
+    // HyperOS 4：分段替换搜索框；哔哩哔哩（官方）与经典：搜索框保留，分段放在它下面一行。
     val tabs = when {
         bottomSearch -> null
         settings.interfaceStyle == 2 -> HomeTopBarTabs(
             selected = ui.homeSection,
             onSelect = { haptics.tap(); ui.homeSection = it },
         )
-        settings.interfaceStyle == 0 -> HomeTopBarTabs(
+        settings.interfaceStyle == 0 || settings.interfaceStyle == 1 -> HomeTopBarTabs(
             selected = ui.homeSection,
             belowSearch = true,
             onSelect = { haptics.tap(); ui.homeSection = it },

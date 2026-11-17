@@ -8,6 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -46,6 +47,11 @@ internal fun MessageResumeEffect(scope: kotlinx.coroutines.CoroutineScope, onRes
 
 @Composable
 internal fun MessageRowSurface(first: Boolean, last: Boolean, content: @Composable () -> Unit) {
+    if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+        // 经典：整行平铺，不再画行分割线。
+        Box(Modifier.fillMaxWidth().background(MiuixTheme.colorScheme.surfaceContainer)) { content() }
+        return
+    }
     val shape = remember(first, last) { MessageGroupShape(first, last) }
     Box(Modifier.fillMaxWidth().clip(shape).background(MiuixTheme.colorScheme.surfaceContainer)) { content() }
 }

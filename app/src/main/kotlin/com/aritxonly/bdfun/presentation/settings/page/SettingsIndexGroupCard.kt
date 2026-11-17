@@ -20,10 +20,21 @@ internal fun SettingsIndexGroupCard(title: String, aboutProgress: Float?, conten
         return
     }
     val colors = MiuixTheme.colorScheme
-    Column(Modifier.padding(top = 12.dp)) {
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    Column(Modifier.padding(top = if (classic) 0.dp else 12.dp)) {
         Text(title, color = colors.onBackgroundVariant, fontSize = 11.5.sp,
-            modifier = Modifier.padding(start = 14.dp, bottom = 5.dp))
-        Column(Modifier.fillMaxWidth().clip(TeakContinuousCornerShape(22.dp))
-            .background(colors.surfaceContainer.copy(alpha = .5f + aboutProgress.coerceIn(0f, 1f) * .5f)), content = content)
+            modifier = Modifier.padding(start = if (classic) 12.dp else 14.dp, top = if (classic) 12.dp else 0.dp, bottom = 5.dp))
+        Column(
+            Modifier.fillMaxWidth()
+                .then(
+                    if (classic) {
+                        Modifier.background(colors.surfaceContainer.copy(alpha = .5f + aboutProgress.coerceIn(0f, 1f) * .5f))
+                    } else {
+                        Modifier.clip(TeakContinuousCornerShape(22.dp))
+                            .background(colors.surfaceContainer.copy(alpha = .5f + aboutProgress.coerceIn(0f, 1f) * .5f))
+                    },
+                ),
+            content = content,
+        )
     }
 }

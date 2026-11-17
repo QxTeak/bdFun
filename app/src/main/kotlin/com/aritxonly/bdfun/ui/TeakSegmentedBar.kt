@@ -56,6 +56,41 @@ fun TeakSegmentedBar(
     )
     val indicatorAlpha = 0.92f
 
+    // 经典样式：不用玻璃胶囊，改成和视频页一致的「文字 + 下划线」Tab。
+    if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+        Box(modifier = modifier.height(40.dp)) {
+            Box(
+                modifier = Modifier
+                    .offset(x = itemWidth * animIndex + itemWidth * 0.34f, y = 30.dp)
+                    .width(itemWidth * 0.32f)
+                    .height(3.dp)
+                    .background(colors.primary, Capsule()),
+            )
+            Row {
+                options.forEachIndexed { index, label ->
+                    val active = index == selected
+                    Box(
+                        modifier = Modifier
+                            .width(itemWidth)
+                            .height(36.dp)
+                            .clickable(
+                                interactionSource = remember { MutableInteractionSource() },
+                                indication = null,
+                            ) { onSelect(index) },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = label,
+                            color = if (active) colors.primary else colors.onBackgroundVariant,
+                            fontSize = 13.sp,
+                        )
+                    }
+                }
+            }
+        }
+        return
+    }
+
     TeakGlassSurface(
         modifier = modifier.height(40.dp),
         shape = Capsule(),

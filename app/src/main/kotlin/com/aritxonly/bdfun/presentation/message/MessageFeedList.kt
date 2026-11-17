@@ -50,19 +50,38 @@ internal fun MessageFeedList(
     val key = if (ui.tab == 1) 0 else ui.tab
     val allItems = itemsByTab[key].orEmpty()
     val pageItems = if (ui.tab == 1) allItems.filter { it.followed } else allItems
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
     PullToRefreshBox(isRefreshing = loadingByTab[key] == true && pageItems.isNotEmpty(),
         onRefresh = { actions.load(ui.tab) }, modifier = Modifier.fillMaxSize()) {
     LazyColumn(state = listState, modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp + rememberStatusBarTop(), bottom = 40.dp)) {
+        contentPadding = PaddingValues(start = if (classic) 0.dp else 16.dp, end = if (classic) 0.dp else 16.dp,
+            top = 8.dp + rememberStatusBarTop(), bottom = 40.dp)) {
         item(key = "header") { TeakLargeTitle(title = title) }
         item(key = "tabs") {
-            Row(Modifier.fillMaxWidth().padding(top = 16.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
-                if (tabs.isNotEmpty()) TeakPagerTabs(
-                    options = tabs, selected = if (ui.tab == 2) 1 else 0,
-                    onSelect = { ui.tab = if (it == 1) 2 else 0 },
-                    itemWidth = 96.dp, backdrop = null, plain = false,
-                )
-                Spacer(Modifier.weight(1f))
+            Row(Modifier.fillMaxWidth().padding(
+                top = 16.dp, bottom = 10.dp,
+                start = if (classic) 16.dp else 0.dp,
+                end = if (classic) 4.dp else 0.dp,
+            ), verticalAlignment = Alignment.CenterVertically) {
+                if (tabs.isNotEmpty()) {
+                    // 经典样式的 Tab 会撑满可用宽度，这里必须先限宽，右侧的「设置/刷新」才不会被挤出去。
+                    if (classic) {
+                        androidx.compose.foundation.layout.Box(Modifier.weight(1f)) {
+                            TeakPagerTabs(
+                                options = tabs, selected = if (ui.tab == 2) 1 else 0,
+                                onSelect = { ui.tab = if (it == 1) 2 else 0 },
+                                itemWidth = 96.dp, backdrop = null, plain = false,
+                            )
+                        }
+                    } else {
+                        TeakPagerTabs(
+                            options = tabs, selected = if (ui.tab == 2) 1 else 0,
+                            onSelect = { ui.tab = if (it == 1) 2 else 0 },
+                            itemWidth = 96.dp, backdrop = null, plain = false,
+                        )
+                    }
+                }
+                if (!classic) Spacer(Modifier.weight(1f))
                 if (kind == MessageFeedKind.Reply || kind == MessageFeedKind.Like) {
                     Text("设置", color = colors.primary, fontSize = 13.sp, modifier = Modifier.clickable {
                         navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("settings",
@@ -82,7 +101,7 @@ internal fun MessageFeedList(
                     color = colors.onBackgroundVariant, fontSize = 13.sp,
                     modifier = Modifier.padding(start = 12.dp, top = 14.dp, bottom = 8.dp))
             }
-            Box(Modifier.padding(bottom = 12.dp)) {
+            Box(Modifier.padding(bottom = if (classic) 0.dp else 12.dp)) {
                 MessageRowSurface(true, true) {
                     when (kind) {
                         MessageFeedKind.Reply -> ReplyRow(item, onClick = { actions.open(item) }, onMore = onMenu)

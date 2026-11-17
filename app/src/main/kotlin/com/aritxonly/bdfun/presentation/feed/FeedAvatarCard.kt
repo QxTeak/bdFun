@@ -24,6 +24,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -64,7 +65,12 @@ fun FeedAvatarCard(
             if (count > 0 && last >= count - 3 && state.authorsError == null) state.loadMoreAuthors()
         }
     }
-    Column(modifier.fillMaxWidth().clip(ContinuousCornerShape(18.dp)).background(colors.surfaceContainer)) {
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    Column(
+        modifier.fillMaxWidth()
+            .clip(if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(18.dp))
+            .background(colors.surfaceContainer),
+    ) {
         val liveUsers = state.liveUsers
         val liveMids = liveUsers.map { it.mid }.toSet()
         LazyRow(

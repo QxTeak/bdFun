@@ -21,16 +21,20 @@ internal fun MineHero(profile: UserProfile?, navigation: MineNavigation, wide: B
     val banner = remember(profile?.mid) { MineBannerStateHolder() }
     LaunchedEffect(banner, profile?.banner, profile?.bannerFallbacks) { banner.load(context, profile) }
     val height = if (wide) 208.dp else 250.dp
-    val shape = ContinuousCornerShape(24.dp)
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val shape: androidx.compose.ui.graphics.Shape =
+        if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(24.dp)
     Box(Modifier.fillMaxWidth()) {
-        BoxWithConstraints(Modifier.fillMaxWidth().then(if (wide) Modifier.clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) else Modifier)) {
+        BoxWithConstraints(Modifier.fillMaxWidth().then(
+            if (wide && !classic) Modifier.clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)) else Modifier,
+        )) {
             SpaceBanner(banner.bitmap, aspect = maxWidth / height, alignmentY = profile?.bannerAlignmentY ?: 0f)
             Box(Modifier.fillMaxWidth().height(height).background(Brush.verticalGradient(
                 listOf(Color.Transparent, Color.Black.copy(alpha = 0.18f)))))
 
         }
         Box(Modifier.fillMaxWidth().padding(top = height - 30.dp)
-            .padding(horizontal = if (wide) 0.dp else 14.dp)) {
+            .padding(horizontal = if (wide || classic) 0.dp else 14.dp)) {
             if (profile != null) MineProfileCard(profile, shape, navigation)
             else MineGuest(shape, navigation.onLogin)
         }
