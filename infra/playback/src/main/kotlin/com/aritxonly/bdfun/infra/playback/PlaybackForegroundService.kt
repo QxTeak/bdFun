@@ -119,7 +119,7 @@ abstract class PlaybackForegroundService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    /** 拉取封面并裁成圆形，失败就保持上一张。 */
+    /** 前后台均提交完整原图，由系统媒体面板决定显示形状。 */
     private fun ensureArtwork(url: String) {
         if (url.isBlank() || url == artUrl) return
         artUrl = url
@@ -137,10 +137,9 @@ abstract class PlaybackForegroundService : Service() {
                 ?.drawable
                 ?.let { (it as? android.graphics.drawable.BitmapDrawable)?.bitmap }
             if (source == null) return@launch
-            val circular = mediaArtwork(source)
             withContext(Dispatchers.Main) {
                 if (artUrl == url) {
-                    artBitmap = circular
+                    artBitmap = source
                     val manager =
                         getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                     runCatching { manager.notify(NOTIFICATION_ID, buildNotification()) }
@@ -239,7 +238,7 @@ abstract class PlaybackForegroundService : Service() {
                     )
                     .apply {
                         if (art != null) {
-                            // 系统媒体控件显示圆形封面。
+                            // 与页面会话使用相同原图，避免两种封面输入交替。
                             putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, art)
                             putBitmap(MediaMetadataCompat.METADATA_KEY_ART, art)
                             putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, art)

@@ -160,7 +160,7 @@ class MediaPlaybackSession(
                 ?.drawable
                 ?.let { (it as? android.graphics.drawable.BitmapDrawable)?.bitmap }
             if (bitmap != null && !released) {
-                artwork = mediaArtwork(bitmap)
+                artwork = bitmap
                 updateMetadata()
                 notifyState(lastPlaying == true, lastPosition, lastDuration)
             }

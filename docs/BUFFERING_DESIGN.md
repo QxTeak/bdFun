@@ -93,6 +93,10 @@ Debug通过app注入PLAYBACK_TRACE，复用LogCollector和现有日志抓取页�
 ### 媒体封面一致性
 
 页面MediaPlaybackSession原先直接提交方形bitmap，后台服务自行裁圆；两套系统会话并存时可能显示不同形状。
-现两者共用infra/playback/mediaArtwork，保持后台既有圆形裁切坐标，并统一ALBUM_ART/ART/DISPLAY_ICON字段。
-裁切只在封面加载时执行，不随缓冲状态重新执行。Robolectric原生图形测试验证透明角、中心颜色和源图不变；
-Debug构建、infra播放测试和checkLayering通过。此处只消除封面输入差异，不宣称解决双会话所有权或后台卡顿。
+按用户最终要求，前后台均提交完整原图，不裁圆、不裁正方形，保持ALBUM_ART/ART/DISPLAY_ICON字段一致。
+删除临时圆形裁切函数及只验证圆形要求的像素测试，因为该展示要求已明确撤销。
+系统媒体面板仍可能自行圆角/裁切；此处不控制系统布局，不宣称解决双会话所有权或后台卡顿。
+
+用户反馈2730a2b诊断包暂未出现断续：相较675cd97，它修正后台BUFFERING状态及播放意图，
+服务周期读取控制器最新快照（不再依赖页面Compose投影），并增加debug诊断；没有更换缓冲算法。
+这些属于候选解释，未做受控Release/Debug对照或取得卡顿日志，不将体验变化归因于某单项修复。
