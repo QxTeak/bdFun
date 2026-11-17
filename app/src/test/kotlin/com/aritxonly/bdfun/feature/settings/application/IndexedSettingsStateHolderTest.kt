@@ -7,6 +7,24 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class IndexedSettingsStateHolderTest {
+    @Test fun adaptiveBufferSwitchWritesThePlaybackRepository() {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        try {
+            val prefs = MemorySettingsPreferences()
+            val repository = SettingsStateHolder.create(prefs, TestHistoryCodec, scope)
+            val setting = Setting("adaptive_buffering", "switch", "自适应缓冲", null, SettingValue.Flag(false))
+            val index = SettingsIndex(listOf(SettingsCategory("播放", "settings/player", null,
+                listOf(SettingsGroup("缓冲", listOf(setting))))))
+            val controller = IndexedSettingsStateHolder(index, repository, repository.state, scope)
+            assertEquals(SettingValue.Flag(false), controller.state.value.values["adaptive_buffering"])
+            assertEquals(SettingUpdate.Updated, controller.update("adaptive_buffering", SettingValue.Flag(true)))
+            assertTrue(repository.playback.adaptiveBuffering)
+            assertEquals(true, prefs.values["adaptive_buffering"])
+            assertEquals(SettingUpdate.Updated, controller.reset("adaptive_buffering"))
+            assertFalse(repository.playback.adaptiveBuffering)
+        } finally { scope.cancel() }
+    }
+
     @Test fun preservesOldValuesAndWritesThroughOriginalController() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         try {

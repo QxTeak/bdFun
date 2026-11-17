@@ -77,6 +77,9 @@ class JsonSettingsIndexCodecTest {
         val file = java.io.File("../../app/src/main/assets/settings-index.json")
         val result = codec.decode(file.readText())
         assertTrue(result.toString(), result is SettingsIndexImport.Success)
-        assertEquals(64, SettingsIndex((result as SettingsIndexImport.Success).categories).settings.size)
+        val index = SettingsIndex((result as SettingsIndexImport.Success).categories)
+        // 主线资产已有67项，新增缓冲开关后为68；旧64项断言已过期。
+        assertEquals(68, index.settings.size)
+        assertEquals("switch", index.settings.getValue("adaptive_buffering").type)
     }
 }

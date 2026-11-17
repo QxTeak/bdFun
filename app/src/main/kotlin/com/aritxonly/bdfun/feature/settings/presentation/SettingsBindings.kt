@@ -100,6 +100,7 @@ open class SettingsBindings internal constructor(
     override var bluetoothLatencyMs: Int by projection.property("btLatencyMsState", { controller.bluetoothLatencyMs }, { controller.bluetoothLatencyMs = it })
     override var sentHistoryEntry: Boolean by projection.property("sentHistoryEntryState", { controller.sentHistoryEntry }, { controller.sentHistoryEntry = it })
     override var fontScale: Float by projection.property("fontScaleState", { controller.fontScale }, { controller.fontScale = it })
+    override var adaptiveBuffering: Boolean by projection.property("adaptiveBufferingState", { controller.adaptiveBuffering }, { controller.adaptiveBuffering = it })
     override var decoderMode: Int by projection.property("decoderState", { controller.decoderMode }, { controller.decoderMode = it })
     override var codecPreference: String by projection.property("codecPreferenceState", { controller.codecPreference }, { controller.codecPreference = it })
     override var cdnService: String by projection.property("cdnServiceState", { controller.cdnService }, { controller.cdnService = it })

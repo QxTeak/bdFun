@@ -399,6 +399,13 @@ window.SETTINGS_CATALOG = [
             "default": true
           },
           {
+            "pref_name": "adaptive_buffering",
+            "type": "switch",
+            "title": "自适应缓冲",
+            "subtitle": "开启后在本机学习观看习惯；关闭使用分阶段固定规则。当前播放即可生效",
+            "default": false
+          },
+          {
             "pref_name": "decoder_mode",
             "type": "dropdown",
             "title": "硬解模式",

@@ -18,10 +18,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.CopyOnWriteArrayList
 
-/** 保留原解码、音频焦点和缓冲参数；所有传输命令只落到这一适配器。 */
-class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackController {
+/** 保留原解码、音频焦点；所有传输命令只落到这一适配器。 */
+class Media3PlaybackController(
+    context: Context,
+    decoderMode: Int,
+    private val buffering: com.aritxonly.bdfun.core.domain.buffering.BufferSession,
+    private val bufferOptions: () -> Pair<String, Boolean>,
+) : PlaybackController {
     private val appContext = context.applicationContext
-    val player: ExoPlayer = buildPlayer(appContext, decoderMode)
+    val player: ExoPlayer = buildPlayer(appContext, decoderMode, buffering)
     private val mutableState = MutableStateFlow(PlaybackSnapshot())
     override val state = mutableState.asStateFlow()
     private val listeners = CopyOnWriteArrayList<PlaybackController.Listener>()
@@ -44,6 +49,7 @@ class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackCon
             listeners.forEach { it.onPhaseChanged(mutableState.value.phase) }
         }
         override fun onPlayerError(error: PlaybackException) {
+            buffering.invalidate()
             val failure = PlaybackFailure(error.errorCodeName, error.message)
             mutableState.value = mutableState.value.copy(error = failure)
             if (!retryNetworkFailure(failure)) listeners.forEach { it.onError(failure) }
@@ -59,6 +65,10 @@ class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackCon
             Player.STATE_ENDED -> PlaybackPhase.Ended
             else -> PlaybackPhase.Idle
         }
+        val (owner, enabled) = bufferOptions()
+        buffering.configure(owner, enabled)
+        buffering.sample(android.os.SystemClock.elapsedRealtime(), player.isPlaying,
+            phase == PlaybackPhase.Buffering, phase == PlaybackPhase.Ended)
         mutableState.value = reducePlaybackSnapshot(mutableState.value,
             phase, player.isPlaying, player.playWhenReady, player.currentPosition,
             player.bufferedPosition, player.duration, player.playbackParameters.speed,
@@ -77,6 +87,7 @@ class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackCon
         }
         lastSource = source
         val continued = continuePlaybackSource(mediaKey, source, refresh())
+        buffering.begin(source.mediaKey ?: source.videoUrl)
         val http = DefaultHttpDataSource.Factory()
             .setConnectTimeoutMs(15_000).setReadTimeoutMs(30_000).setUserAgent(source.userAgent).setDefaultRequestProperties(source.headers)
         val data = DefaultDataSource.Factory(appContext, http)
@@ -124,6 +135,8 @@ class Media3PlaybackController(context: Context, decoderMode: Int) : PlaybackCon
             return
         }
         if (released) return
+        refresh()
+        buffering.finish()
         released = true
         sourceRevision++
         recoveryScope.cancel()

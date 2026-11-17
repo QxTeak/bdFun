@@ -650,3 +650,7 @@ ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保�
 
 ### 信息流帧率设置
 主界面默认请求 60Hz，可在外观设置选择 120 或自适应（0，交给系统）；MainActivity 观察设置状态应用窗口偏好，不改变播放器智能刷新率策略。
+
+### 2026-11-17 BUF-70 点播缓冲
+
+点播加载统一走 core/domain/buffering 的 VideoBufferProvider(CacheStrategy)，固定分阶段规则和本地生存统计策略共享安全水位/倍速/内存约束，Media3适配在infra/playback。设置adaptive_buffering默认关闭、当前播放即时生效；关闭不更新模型。账号聚合在infra/storage，游客不落盘；不得把卡顿/错误/自然结束作为主动退出或在后台交接时重建会话。详见docs/BUFFERING_DESIGN.md；直播/预览/离线下载不在本轮范围，真机收益与敏感路径验收仍须实测。
