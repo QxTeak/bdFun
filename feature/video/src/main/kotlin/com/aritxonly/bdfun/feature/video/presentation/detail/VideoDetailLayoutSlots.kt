@@ -11,7 +11,7 @@ class VideoDetailLayoutSlots(
     val player: @Composable BoxScope.(VideoPlayerViewport) -> Unit,
     val loading: @Composable (Modifier, Color) -> Unit,
     val togglePlayback: () -> Unit, val accentColor: Color, val playIcon: Int,
-    val onBack: () -> Unit,
+    val onBack: () -> Unit, val onHome: () -> Unit,
 )
 class VideoCollapseHost(
     val commentThreadVisible: () -> Boolean,

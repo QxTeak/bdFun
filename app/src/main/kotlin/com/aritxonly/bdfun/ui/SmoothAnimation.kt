@@ -101,6 +101,12 @@ fun rememberSpringFloat(
 /** 标准减速（ease-out-quint），无回弹，适合位移。 */
 val EaseOutQuint: Easing = CubicBezierEasing(0.22f, 1f, 0.36f, 1f)
 
+/**
+ * 柔和减速：起手比 quint 缓一点，收尾更绵长，适合大面积面板的掀开/落回。
+ * 仍然是先快后慢的非线性曲线，只是少了 quint 那种"猛地一冲"的观感。
+ */
+val EaseOutSoft: Easing = CubicBezierEasing(0.32f, 0.72f, 0f, 1f)
+
 /** 果冻：终点冲过头约 12%，再回收。 */
 val JellyEasing: Easing = CubicBezierEasing(0.34f, 1.56f, 0.64f, 1f)
 

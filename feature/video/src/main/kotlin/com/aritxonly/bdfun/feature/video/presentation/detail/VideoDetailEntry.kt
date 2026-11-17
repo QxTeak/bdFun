@@ -32,14 +32,11 @@ fun VideoDetailEntry(
     val inlineLayout = rememberVideoInlineLayout(selection.bvid, playing, pager.currentPage,
         presentation.paneLayout, presentation.immersiveStatusBar, presentation.statusBarTop, ports.collapse,
         videoAspectRatio)
-    val metaReady by holders.ui.metaReady
-    // 保留页面作用域的唯一推荐入场进度，进出全屏不重建。
-    val relatedEnter = rememberStaggerProgress(metaReady && detail.related.isNotEmpty(), 9)
     val scope = rememberCoroutineScope()
     val actions = rememberVideoDetailActions(isLoggedIn, request, holders, scope, events.onBack, ports.actionHost)
     val content = VideoScreenContent(request.video, detail, selection, interaction, metadata, quality, isLoggedIn())
     BindVideoDetailEffects(request, content, holders, actions, pager, ports.load, ports.effects, presentation.autoRotate)
     ports.slots.layout(VideoDetailLayoutContent(request, presentation, events, pager, inlineLayout,
-        holders, content, actions, relatedEnter, scope))
+        holders, content, actions, scope))
     ports.slots.sheets(holders.ui, interaction, actions)
 }

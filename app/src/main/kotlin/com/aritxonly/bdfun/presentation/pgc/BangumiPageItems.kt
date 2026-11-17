@@ -20,6 +20,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
+import com.aritxonly.teak.common.skeleton.TeakSkeletonVideoCard
+import com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -77,10 +79,11 @@ internal fun LazyGridScope.bangumiPageStateItems(
     scope: kotlinx.coroutines.CoroutineScope,
 ) {
     if (state.cards.isEmpty() && state.loading) {
-        item(key = "pgc-loading", span = { GridItemSpan(maxLineSpan) }) {
-            Box(Modifier.fillMaxWidth().padding(vertical = 60.dp), contentAlignment = Alignment.Center) {
-                TeakLoading(size = 40.dp)
-            }
+        items(count = 9, key = { "pgc-skeleton-$it" }) {
+            TeakSkeletonVideoCard(
+                progress = rememberTeakSkeletonSweep(),
+                coverAspectRatio = 3f / 4f,
+            )
         }
     }
     state.error?.let { message ->

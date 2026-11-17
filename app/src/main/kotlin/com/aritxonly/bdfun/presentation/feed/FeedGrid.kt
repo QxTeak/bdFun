@@ -62,6 +62,10 @@ internal fun FeedGrid(
                         modifier = Modifier.padding(bottom = if (classic) 0.dp else 2.dp),
                     )
                 }
+                // 动态首屏还在加载时先铺卡片骨架，避免空白页只挂一个小电视。
+                if (state.items.isEmpty() && state.loading) {
+                    dynamicFeedSkeletonItems()
+                }
                 dynamicFeedItems(state, actions, media)
                 dynamicFeedFooter(state, actions)
             }

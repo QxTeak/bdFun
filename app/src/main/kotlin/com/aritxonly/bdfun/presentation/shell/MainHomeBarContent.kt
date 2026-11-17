@@ -31,10 +31,12 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
         bottomSearch -> null
         settings.interfaceStyle == 2 -> HomeTopBarTabs(
             selected = ui.homeSection,
+            position = ui.homeSectionPosition,
             onSelect = { haptics.tap(); ui.homeSection = it },
         )
         settings.interfaceStyle == 0 || settings.interfaceStyle == 1 -> HomeTopBarTabs(
             selected = ui.homeSection,
+            position = ui.homeSectionPosition,
             belowSearch = true,
             onSelect = { haptics.tap(); ui.homeSection = it },
         )
