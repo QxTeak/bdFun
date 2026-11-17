@@ -666,3 +666,11 @@ ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保�
 半屏播放器按当前清晰度宽高比判断竖屏视频：竖屏改用 3:4 窗口并以窗口高度 60% 兜底（`resolveInlineVideoHeightDp`，带单测），横屏与分栏不变。进入视频的「内容依次上浮」改为骨架屏（灰条 + 白色扫光），加载完成直接替换。
 
 投币不再用底部 sheet：`CoinChoicePopup` 在页面中间浮出两枚橙色硬币卡（1/2 硬币），点卡片直接投币，点空白关闭。关闭「退出视频后继续播放」时滑到后台只暂停播放，不再自动进入系统画中画；画中画只由显式返回键（exit_video_control）和全屏按钮触发。
+
+### 2026-11-17 收口：刷新编排/骨架对齐/投币视觉
+
+首页三段（推荐/直播/番剧）的「再次点击底栏当前页 → 回顶 + 下拉 + 刷新」不再各写一份：统一为 `feature:home` 的 `HomeSectionRefreshEffect(request, gridState, pullThresholdPx, animatePull, isBusy, onPulling, refresh)`，三处只传自己的网格、补间与刷新动作；`HomePresentationStateHolder` 的 `handledRequest` 随旧实现删除。
+
+视频详情骨架按真实元信息结构重排（头像 + 昵称/粉丝 + 关注胶囊、两行标题、播放/弹幕/日期、AV 号/分P、两行简介、分类、五个等宽操作圆钮），扫光改为在每个灰条自己的坐标系里绘制（不再整条被扫白导致看起来像缺块）。
+
+投币两枚硬币卡的视觉改为照抄同源参考实现（BiliPai `CoinDialog.CoinChoice`：`0xFFC48A52` 卡底、`0xFFE7B781` 3dp 描边、四角螺钉、`币` 字硬币、白色 `N 硬币` 标签）；PiliPlus 上游 main 只有整页 `PayCoinsPage`，没有这套两枚卡浮层。

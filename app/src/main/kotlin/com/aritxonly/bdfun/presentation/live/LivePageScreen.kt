@@ -118,26 +118,16 @@ private fun rememberLivePullSession(
 @Composable
 private fun LivePageEffects(state: LivePageStateHolder, pull: DiscoverPullSession, ui: DiscoverPullUi) {
     LaunchedEffect(state) { state.ensureLoaded() }
-    // 外部请求刷新（再次点击底栏当前页）：与推荐页同一套「回顶 + 下拉」并行时序。
-    // 用「已处理到第几号请求」做幂等，页面被销毁重建时不会重放刷新。
-    var handledRefresh by remember { androidx.compose.runtime.mutableIntStateOf(state.refreshRequest) }
-    LaunchedEffect(state.refreshRequest) {
-        if (state.refreshRequest == handledRefresh) return@LaunchedEffect
-        handledRefresh = state.refreshRequest
-        if (state.refreshing || state.loading) return@LaunchedEffect
-        val atTop = state.gridState.firstVisibleItemIndex == 0 &&
-            state.gridState.firstVisibleItemScrollOffset == 0
-        if (atTop) {
-            pull.animatePullTo(pull.thresholdPx, 200f)
-        } else {
-            kotlinx.coroutines.coroutineScope {
-                launch { state.gridState.animateScrollToItem(0) }
-                launch { pull.animatePullTo(pull.thresholdPx, 260f) }
-            }
-        }
-        state.pullFraction = 1f
-        state.refresh()
-    }
+    // 与推荐/番剧共用同一份「回顶 + 下拉 + 刷新」编排。
+    com.aritxonly.bdfun.feature.home.presentation.HomeSectionRefreshEffect(
+        request = state.refreshRequest,
+        gridState = state.gridState,
+        pullThresholdPx = pull.thresholdPx,
+        animatePull = { target, duration -> pull.animatePullTo(target, duration) },
+        isBusy = { state.refreshing || state.loading },
+        onPulling = { state.pullFraction = it },
+        refresh = { state.refresh() },
+    )
     // 刷新结束：先收小电视，再让内容平滑回顶（与推荐页同一条时序）。
     LaunchedEffect(state.refreshing) {
         if (!state.refreshing && ui.offset > 0f) {

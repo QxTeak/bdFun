@@ -21,26 +21,16 @@ internal fun HomeFeedEffects(state: HomeFeedState, ui: HomePresentationStateHold
         }
     }
 
-    // 外部请求刷新（再次点击底栏当前页）。
-    // 用"已处理到第几号请求"做幂等：页面被销毁重建（如从视频页返回）时不会重放刷新。
-    LaunchedEffect(state.refreshRequest) {
-        if (state.refreshRequest == ui.handledRequest) return@LaunchedEffect
-        ui.handledRequest = state.refreshRequest
-        if (state.refreshing || state.loading) return@LaunchedEffect
-        val atTop = state.gridState.firstVisibleItemIndex == 0 &&
-            state.gridState.firstVisibleItemScrollOffset == 0
-        if (atTop) {
-            pull.animatePullTo(pull.thresholdPx, 200f)
-        } else {
-            // 回顶与下拉并行，衔接处不停顿
-            kotlinx.coroutines.coroutineScope {
-                launch { state.gridState.animateScrollToItem(0) }
-                launch { pull.animatePullTo(pull.thresholdPx, 260f) }
-            }
-        }
-        state.pullFraction = 1f
-        state.refresh()
-    }
+    // 外部请求刷新（再次点击底栏当前页）：三处首页分段共用同一份编排。
+    HomeSectionRefreshEffect(
+        request = state.refreshRequest,
+        gridState = state.gridState,
+        pullThresholdPx = pull.thresholdPx,
+        animatePull = { target, duration -> pull.animatePullTo(target, duration) },
+        isBusy = { state.refreshing || state.loading },
+        onPulling = { state.pullFraction = it },
+        refresh = { state.refresh() },
+    )
 
     // 滚到接近底部就预取下一页
     LaunchedEffect(state) {

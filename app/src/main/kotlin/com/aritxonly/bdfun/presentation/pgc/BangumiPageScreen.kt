@@ -175,26 +175,16 @@ private fun rememberBangumiPullSession(    state: BangumiPageStateHolder,
 @Composable
 private fun BangumiPageEffects(state: BangumiPageStateHolder, pull: DiscoverPullSession, ui: DiscoverPullUi) {
     LaunchedEffect(state) { state.ensureLoaded() }
-    // 外部请求刷新（再次点击底栏当前页）：与推荐页同一套「回顶 + 下拉」并行时序，
-    // 幂等键避免页面重建后重放。
-    var handledRefresh by remember { androidx.compose.runtime.mutableIntStateOf(state.refreshRequest) }
-    LaunchedEffect(state.refreshRequest) {
-        if (state.refreshRequest == handledRefresh) return@LaunchedEffect
-        handledRefresh = state.refreshRequest
-        if (state.refreshing || state.loading) return@LaunchedEffect
-        val atTop = state.gridState.firstVisibleItemIndex == 0 &&
-            state.gridState.firstVisibleItemScrollOffset == 0
-        if (atTop) {
-            pull.animatePullTo(pull.thresholdPx, 200f)
-        } else {
-            kotlinx.coroutines.coroutineScope {
-                launch { state.gridState.animateScrollToItem(0) }
-                launch { pull.animatePullTo(pull.thresholdPx, 260f) }
-            }
-        }
-        state.pullFraction = 1f
-        state.refresh()
-    }
+    // 与推荐/直播共用同一份「回顶 + 下拉 + 刷新」编排。
+    com.aritxonly.bdfun.feature.home.presentation.HomeSectionRefreshEffect(
+        request = state.refreshRequest,
+        gridState = state.gridState,
+        pullThresholdPx = pull.thresholdPx,
+        animatePull = { target, duration -> pull.animatePullTo(target, duration) },
+        isBusy = { state.refreshing || state.loading },
+        onPulling = { state.pullFraction = it },
+        refresh = { state.refresh() },
+    )
     LaunchedEffect(state.refreshing) {
         if (!state.refreshing && ui.offset > 0f) {
             state.pullFraction = 0f
