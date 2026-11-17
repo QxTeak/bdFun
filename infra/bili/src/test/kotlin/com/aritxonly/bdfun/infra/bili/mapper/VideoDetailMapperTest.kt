@@ -28,6 +28,8 @@ class VideoDetailMapperTest {
         assertTrue(video.episodes.isNotEmpty())
         assertTrue(video.episodes.all { it.bvid.isNotBlank() && it.cid > 0 })
         assertTrue(video.cover.endsWith("@1200w_675h_1c.webp"))
+        // 投币页用它判断转载视频最多只能投 1 币，必须保留接口原值。
+        assertEquals(3, video.copyright)
     }
 
     @Test fun secondRealVideoDoesNotInventCollection() {
@@ -61,6 +63,7 @@ class VideoDetailMapperTest {
         assertTrue(video.pages.isEmpty())
         assertTrue(video.episodes.isEmpty())
         assertFalse(video.isFollowed)
+        assertEquals(0, video.copyright)
     }
 
     @Test fun titleDecoderRemainsAnExplicitBoundary() {

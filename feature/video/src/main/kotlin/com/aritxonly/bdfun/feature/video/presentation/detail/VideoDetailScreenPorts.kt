@@ -32,6 +32,5 @@ class VideoDetailLayoutContent(
     val holders: VideoScreenStateHolders,
     val content: VideoScreenContent,
     val actions: VideoDetailViewActions,
-    val relatedEnter: Float,
     val scope: CoroutineScope,
 )

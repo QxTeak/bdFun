@@ -684,3 +684,13 @@ ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保�
 ### 2026-11-17 投币页与自由复制弹层细节
 
 投币页：整列内容改为屏幕居中（原来贴底），遮罩改为 50% 黑（`0x80000000`）；左右切换键和关闭键改用 Miuix 图标（`MiuixIcons.ChevronBackward/ChevronForward/Close`），删除对应的 PNG；「同时点赞」的勾改为复用收藏夹 sheet 的 Miuix `Checkbox`（`ToggleableState.On/Off`）。评论「自由复制」弹层改用与收藏夹同款的 `MiuixBottomSheet`（标题 + 关闭按钮 + 底部主按钮），内容仍是可选择文本。
+
+### 2026-11-17 宽屏直播/骨架屏/首页滑动检查点
+
+骨架屏的统一实现在 `TeakUI/.../skeleton/TeakSkeleton.kt`（`rememberTeakSkeletonSweep`、`Modifier.teakSkeleton`、`TeakSkeletonVideoCard/VideoRow`）；灰块颜色和扫光只在这里定义，页面只按真实布局摆位置。视频详情的元信息、分P、合集、相关推荐，以及首页/直播/番剧/搜索/评论/媒体库首屏都复用这一套；分P/合集/相关推荐与元信息一样改为骨架直接原位替换，不再做上浮淡入。`VideoMetadataSkeleton` 保留真实结构，但不再自带扫光实现。
+
+直播详情新增宽屏分屏（`presentation/live/WideLiveLayout.kt`）：只在 `smallestScreenWidthDp >= 600` 且横屏时启用，左侧播放器 + 右侧主播信息/弹幕/输入条，参照视频详情的 70/30 分栏；手机横屏仍是原来的全屏直播，竖屏布局不变。宽屏里点全屏只收起右侧栏（`wideFullscreen`），返回键先退回分屏，不触发转屏。
+
+首页左右滑动改由 `HomeSectionPager` 承担，在推荐/直播/番剧之间切换；底栏首页/动态/我的不再响应横滑，只由点击切换（仍用 `animateScrollToPage` 保留横向转场）。顶栏胶囊指示器读取 pager 的连续位置（`currentPage + currentPageOffsetFraction`），手指拖动时跟手移动，不再等落页才跳；`RegisterScrollTop`、三段各自的刷新入口和搜索/底栏玻璃都继续读同一个 `homeSection`，刷新与滚动状态未改。视频页收起态在返回键右侧新增回首页键，复用半屏播放器的 `InlineHomeGlyph`，通过 `MainTabRequestStateHolder` 通知主壳回到推荐页。
+
+投币页默认停在 2 币；`VideoDetail.copyright == 2`（转载）或已投过时退回 1 币，接口字段经 `VideoDetailDto/VideoDetailInfo` 透传并补 mapper 测试。两个硬币箱本身可点选，左右箭头、硬币箱点击和整页左右滑都能切换；遮罩由 50% 黑改为 60% 黑（`0x99000000`）。

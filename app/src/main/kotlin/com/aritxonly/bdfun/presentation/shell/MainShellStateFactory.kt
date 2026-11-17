@@ -50,6 +50,15 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     LaunchedEffect(Unit) {
         AppGraph.refreshSession()
     }
+    // 视频页收起态点「回首页」：主壳可能还在后面的栈里，这里消费一次跨页请求。
+    val mainTabRequests = AppGraph.mainTabRequests
+    LaunchedEffect(mainTabRequests.pendingHome) {
+        if (mainTabRequests.pendingHome) {
+            tabPagerState.scrollToPage(0)
+            ui.homeSection = 0
+            mainTabRequests.consumeHome()
+        }
+    }
     // 首页数据放在 App 层：进视频/搜索/设置再返回时不会重新拉取，滚动位置也保留。
     val homeFeed = AppGraph.homeFeedState
     val dynamicFeed = AppGraph.dynamicFeedState

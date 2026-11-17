@@ -10,7 +10,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.VideoScreenPager(
     request: VideoScreenRequest, presentation: VideoScreenPresentation,
     pager: androidx.compose.foundation.pager.PagerState, inlineLayout: VideoInlineLayout,
     pageUi: VideoDetailUiStateHolder, description: VideoDescriptionStateHolder,
-    content: VideoScreenContent, actions: VideoDetailViewActions, relatedEnter: Float,
+    content: VideoScreenContent, actions: VideoDetailViewActions,
 ) {
     val page = LocalVideoPageState.current
     val context = androidx.compose.ui.platform.LocalContext.current
@@ -25,7 +25,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.VideoScreenPager(
         onRelated = { page.pauseAll(); navigateToVideo(context, it, fromVideoPage = true) },
     )
     VideoDetailContentPager(request, presentation, pager, inlineLayout, pageUi, description,
-        content, renderActions, relatedEnter, VideoDetailPagerSlots(
+        content, renderActions, VideoDetailPagerSlots(
             metadata = {
                 val metadata = rememberVideoMetadataAssembly()
                 VideoMetadataVisuals(metadata.appearance, metadata.slots)

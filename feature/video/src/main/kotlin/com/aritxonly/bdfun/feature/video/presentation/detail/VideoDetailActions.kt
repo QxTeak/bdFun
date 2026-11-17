@@ -25,6 +25,7 @@ class VideoDetailViewActions(
     private val interactionController = controllers.interaction
     private val selectionController = controllers.selection
     private val detail get() = detailController.state.value.detail
+    val allowTwoCoins: Boolean get() = detail?.copyright != 2
     private val playInfo get() = detailController.state.value.playInfo
     private val currentCid get() = selectionController.state.value.cid
     private val qualityId get() = selectionController.state.value.quality
@@ -184,12 +185,22 @@ class VideoDetailViewActions(
 
     /** 退出播放器：开启后台播放时先交棒，再正常关闭页面，保留一镜到底退出动画。 */
     fun leaveVideo() {
+        handOffIfNeeded()
+        onBack()
+    }
+
+    /** 收起态的回首页键：同样先交棒，再由宿主把主界面拉回推荐页。 */
+    fun openHome() {
+        handOffIfNeeded()
+        host.openHome()
+    }
+
+    private fun handOffIfNeeded() {
         // 从相关推荐进来、返回是回到上一个视频页时，不交棒给后台：
         // 上一页会自己续播，交棒只会造成两路声音。
         if (settings.showDiscAfterVideo && !settings.stopOnVideoPageExit && !openedFromVideoPage) {
             host.requestHandOff()
         }
-        onBack()
     }
 
 }

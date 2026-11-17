@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -15,6 +16,8 @@ internal class MainShellUiStateHolder {
     // 放在 shell 而不是 feature:home，是因为顶栏（shell chrome）和页面内容（pager）分属两层，
     // 中间隔了一次组合，没有共同的父级可以提升状态。
     var homeSection by mutableIntStateOf(0)
+    /** 首页内部分页的连续位置（0.0 推荐，1.0 直播，2.0 番剧）；顶栏指示器跟手指走。 */
+    val homeSectionPosition = mutableFloatStateOf(0f)
 
     fun closeSearch() { showSearch = false; searchQuery = ""; searchSubmitted = null }
 }

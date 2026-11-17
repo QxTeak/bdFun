@@ -20,6 +20,7 @@ internal fun readVideoDetail(data: JSONObject): VideoDetailDto {
         stats = readVideoStats(data.optJSONObject("stat")),
         timing = VideoTimingDto(data.l("pubdate"), data.optInt("duration", 0), data.l("cid")),
         category = data.s("tname"), collection = readCollection(data),
+        copyright = data.optInt("copyright", 0),
         interaction = VideoInteractionDto(
             req?.optInt("like", 0) == 1,
             (req?.optInt("coin", 0) ?: 0) > 0,
@@ -60,6 +61,7 @@ internal fun mapVideoDetail(dto: VideoDetailDto, cleanHtml: (String) -> String):
             it.play, it.danmaku, it.publishedAt)
     },
         seasonTitle = dto.collection.title,
+        copyright = dto.copyright,
     ),
     interaction = VideoDetailInteraction(
         liked = dto.interaction.liked,
