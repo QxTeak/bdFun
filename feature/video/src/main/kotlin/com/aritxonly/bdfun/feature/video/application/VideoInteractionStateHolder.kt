@@ -147,10 +147,19 @@ class VideoInteractionStateHolder(private val repository: VideoActionsRepository
         ) } }
     }
 
-    suspend fun coin(count: Int): String? = perform { before, version ->
-        val result = repository.coin(before.detail!!.aid, count)
+    suspend fun coin(count: Int, alsoLike: Boolean = false): String? = perform { before, version ->
+        val result = repository.coin(before.detail!!.aid, count, alsoLike)
         if (result is Outcome.Success && version == revision) {
-            mutableState.update { it.copy(coined = true, coinCount = it.coinCount + count) }
+            mutableState.update {
+                // select_like=1 时服务端会顺带点赞，界面要跟上，否则看起来没生效。
+                val likeDelta = if (alsoLike && !it.liked) 1 else 0
+                it.copy(
+                    coined = true,
+                    coinCount = it.coinCount + count,
+                    liked = it.liked || alsoLike,
+                    likeCount = it.likeCount + likeDelta,
+                )
+            }
         }
         if (result is Outcome.Success) "投币成功" else "投币失败"
     }

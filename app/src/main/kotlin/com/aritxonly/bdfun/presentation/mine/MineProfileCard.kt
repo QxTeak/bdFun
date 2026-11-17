@@ -24,6 +24,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -39,6 +40,7 @@ import com.aritxonly.bdfun.feature.mine.application.*
 @Composable
 internal fun MineProfileCard(shown: UserProfile, cardShape: androidx.compose.ui.graphics.Shape, navigation: MineNavigation) {
     val colors = MiuixTheme.colorScheme
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
     Column(
         modifier = Modifier
             .fillMaxWidth()

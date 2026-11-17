@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,7 +23,12 @@ internal fun SettingsAboutContent(session: SettingsBrowserSession, values: Map<S
     val distance = with(LocalDensity.current) { 320.dp.toPx() }
     val progress by remember(scroll, distance) { derivedStateOf { (scroll.value / distance).coerceIn(0f, 1f) } }
     Box(modifier) {
-        SettingsAboutFloatingBackground(Modifier.matchParentSize(), { 1f - progress }, runtime.settings.animationsEnabled)
+        if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+            // 经典样式不铺动态光晕背景，保持平面底色。
+            Box(Modifier.matchParentSize().background(top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.background))
+        } else {
+            SettingsAboutFloatingBackground(Modifier.matchParentSize(), { 1f - progress }, runtime.settings.animationsEnabled)
+        }
         Column(Modifier.fillMaxSize().centeredListWidth().verticalScroll(scroll).padding(settingsListPadding())) {
             TeakLargeTitle(category.name)
             category.groups.forEach { group ->

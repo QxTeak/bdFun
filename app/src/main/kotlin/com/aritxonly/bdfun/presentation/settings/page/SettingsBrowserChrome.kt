@@ -6,8 +6,10 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -25,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.teak.common.chrome.teakClassicBarGlass
 import com.aritxonly.teak.common.material.TeakGlassIconButton
 import com.aritxonly.teak.common.material.TeakGlassSurface
 import top.yukonga.miuix.kmp.basic.Text
@@ -35,7 +38,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun SettingsCategorySearchButton(onSearch: () -> Unit) {
-    // 和页面左上角返回键同尺寸的圆形玻璃钮；默认尺寸会拉成椭圆。
+    // 和页面左上角返回键同尺寸的圆形钮；经典样式由 TeakGlassIconButton 自动退化为平面圆底。
     TeakGlassIconButton(onClick = onSearch, size = 40.dp) {
         Icon(MiuixIcons.Search, "搜索当前分类", tint = MiuixTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))
     }
@@ -44,6 +47,32 @@ internal fun SettingsCategorySearchButton(onSearch: () -> Unit) {
 @Composable
 internal fun BoxScope.SettingsSearchDock(session: SettingsBrowserSession) {
     val searching = session.navigation.searching
+    // 经典样式：底部搜索作为贴边栏，整条走 Miuix 玻璃模糊。
+    if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+        val colors = MiuixTheme.colorScheme
+        Box(Modifier.align(Alignment.BottomStart).fillMaxWidth().imePadding().navigationBarsPadding()) {
+            Box(Modifier.matchParentSize().teakClassicBarGlass())
+            Box(Modifier.matchParentSize().background(colors.surfaceContainer.copy(alpha = 0.62f)))
+            Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.weight(1f).heightIn(min = 44.dp)
+                    .then(if (!searching) Modifier.clickable(role = Role.Button) { session.browser.search() } else Modifier)
+                    .padding(horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Icon(MiuixIcons.Search, null, tint = colors.onSurface, modifier = Modifier.size(20.dp))
+                    if (searching) SettingsSearchInput(session)
+                    else Text("搜索设置", color = colors.onSurfaceVariantSummary)
+                }
+                AnimatedVisibility(searching, enter = fadeIn() + expandHorizontally(), exit = fadeOut() + shrinkHorizontally()) {
+                    Box(Modifier.size(40.dp).clickable(role = Role.Button, onClick = session.browser::closeSearch),
+                        contentAlignment = Alignment.Center) {
+                        Icon(MiuixIcons.Close, "关闭搜索", tint = colors.onSurface, modifier = Modifier.size(20.dp))
+                    }
+                }
+            }
+        }
+        return
+    }
     Row(Modifier.align(Alignment.BottomStart).fillMaxWidth()
         .imePadding().navigationBarsPadding().padding(horizontal = 16.dp, vertical = 8.dp).animateContentSize(),
         horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {

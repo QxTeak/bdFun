@@ -1,9 +1,6 @@
 package com.aritxonly.bdfun.ui
 
-import com.aritxonly.teak.common.modal.TeakActionSheet
-
 import androidx.compose.runtime.Composable
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun VideoDetailSheets(
@@ -11,18 +8,15 @@ internal fun VideoDetailSheets(
     interaction: com.aritxonly.bdfun.feature.video.application.VideoInteractionState,
     actions: VideoDetailViewActions,
 ) {
-    TeakActionSheet(
+    // 投币用 PiliPlus 的整页投币界面（硬币箱 / 角色 / 余额 / 同时点赞）。
+    val session = LocalVideoPageState.current.dependencies.comments.session
+    CoinPayOverlay(
         visible = ui.coinSheet.value,
+        balance = session.value?.coins,
+        alreadyCoined = interaction.coined,
         onDismiss = { ui.coinSheet.value = false },
-        title = "请选择投币数量",
-    ) {
-        SheetActionRow("投 1 枚硬币", MenuGlyphKind.Coin, MiuixTheme.colorScheme.onBackground) {
-            actions.doCoin(1)
-        }
-        SheetActionRow("投 2 枚硬币", MenuGlyphKind.Coin, MiuixTheme.colorScheme.onBackground) {
-            actions.doCoin(2)
-        }
-    }
+        onConfirm = { count, alsoLike -> actions.doCoin(count, alsoLike) },
+    )
 
     com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderSheet(
         show = ui.favSheet.value,

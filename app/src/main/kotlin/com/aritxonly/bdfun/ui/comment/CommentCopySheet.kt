@@ -1,115 +1,94 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.aritxonly.bdfun.core.model.comment.CommentItem
+import com.aritxonly.teak.common.modal.MiuixBottomSheet
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Close
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * 「自由复制」弹层：把整条评论原文放进可选择的容器里，
- * 用户能按住任意一段自由拖选，而不是只能整条复制。
+ * 「自由复制」弹层。
+ *
+ * 与收藏夹选择使用同一个 MiuixBottomSheet 外壳（同样的标题、关闭按钮、底部主按钮），
+ * 内容仍是可选择文本：用户能按住任意一段自由拖选，也可以点底部按钮整条复制。
+ * 关闭时保留最后一份内容，让 sheet 的退场动画完整播放。
  */
 @Composable
 internal fun CommentCopySheet(item: CommentItem?, onDismiss: () -> Unit) {
-    if (item == null) return
-    val colors = MiuixTheme.colorScheme
-    val context = androidx.compose.ui.platform.LocalContext.current
-    Dialog(
+    var displayed by remember { mutableStateOf<CommentItem?>(null) }
+    if (item != null) displayed = item
+    val content = displayed ?: return
+    val context = LocalContext.current
+    MiuixBottomSheet(
+        show = item != null,
+        title = "自由复制",
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false, dismissOnClickOutside = true),
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(horizontal = 20.dp, vertical = 80.dp),
-            contentAlignment = Alignment.Center,
+        startAction = {
+            IconButton(onClick = onDismiss) { Icon(MiuixIcons.Close, "关闭") }
+        },
+        bottomBar = {
+            Button(
+                onClick = {
+                    context.copyToClipboard("评论", content.message)
+                    context.showToast("已复制")
+                    onDismiss()
+                },
+                colors = ButtonDefaults.buttonColorsPrimary(),
+                cornerRadius = 20.dp,
+                modifier = Modifier.fillMaxWidth().navigationBarsPadding()
+                    .padding(horizontal = 20.dp, vertical = 12.dp),
+            ) {
+                Text("复制全部", color = MiuixTheme.colorScheme.onPrimary)
+            }
+        },
+    ) { padding ->
+        Column(
+            modifier = Modifier.fillMaxSize()
+                .padding(padding)
+                .padding(start = 20.dp, end = 20.dp, bottom = 12.dp),
         ) {
-            Column(
+            Text(
+                text = content.uname,
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                fontSize = 12.sp,
+            )
+            Spacer(Modifier.height(8.dp))
+            SelectionContainer(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(colors.surface)
-                    .padding(horizontal = 18.dp, vertical = 16.dp),
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState()),
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "自由复制",
-                        color = colors.onBackground,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Text(
-                        text = "完成",
-                        color = colors.primary,
-                        fontSize = 14.sp,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(10.dp))
-                            .clickable(interactionSource = null, indication = null, onClick = onDismiss)
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                    )
-                }
-                Spacer(Modifier.height(10.dp))
                 Text(
-                    text = item.uname,
-                    color = colors.onBackgroundVariant,
-                    fontSize = 12.sp,
+                    text = content.message,
+                    color = MiuixTheme.colorScheme.onSurfaceContainer,
+                    fontSize = 14.5.sp,
+                    lineHeight = 21.sp,
                 )
-                Spacer(Modifier.height(6.dp))
-                SelectionContainer(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 420.dp)
-                        .verticalScroll(rememberScrollState()),
-                ) {
-                    Text(
-                        text = item.message,
-                        color = colors.onBackground,
-                        fontSize = 14.5.sp,
-                        lineHeight = 21.sp,
-                    )
-                }
-                Spacer(Modifier.height(14.dp))
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(colors.primary)
-                        .clickable(interactionSource = null, indication = null) {
-                            context.copyToClipboard("评论", item.message)
-                            context.showToast("已复制")
-                            onDismiss()
-                        }
-                        .padding(vertical = 11.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text("复制全部", color = Color.White, fontSize = 14.sp)
-                }
             }
         }
     }

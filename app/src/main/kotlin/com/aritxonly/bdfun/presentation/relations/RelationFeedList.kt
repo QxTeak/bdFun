@@ -31,8 +31,9 @@ internal fun RelationFeedList(runtime: RelationScreenRuntime) {
     val frequent = order.frequent
     val currentMid = runtime.currentMid
     val onOpenSpace = runtime.onOpenSpace
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
     LazyColumn(state = listState, modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 12.dp, end = 12.dp,
+        contentPadding = PaddingValues(start = if (classic) 0.dp else 12.dp, end = if (classic) 0.dp else 12.dp,
             top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 8.dp,
             bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 24.dp),
     ) {
@@ -40,7 +41,8 @@ internal fun RelationFeedList(runtime: RelationScreenRuntime) {
         if (!fans) item("order") {
             TeakPagerTabs(options = listOf("最近关注", "最常访问"), selected = if (frequent) 1 else 0,
                 onSelect = { order.frequent = it == 1 }, itemWidth = 94.dp,
-                plain = true, backdrop = null, modifier = Modifier.padding(bottom = 12.dp))
+                plain = true, backdrop = null,
+                modifier = Modifier.padding(start = if (classic) 12.dp else 0.dp, bottom = 12.dp))
         }
         if (state.total > 0) item("total") {
             Text("共 ${state.total} 人", color = colors.onBackgroundVariant, fontSize = 13.sp,

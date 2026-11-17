@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.presentation.live
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.aritxonly.bdfun.core.common.AppError
@@ -42,6 +43,13 @@ internal class LivePageStateHolder(private val repository: LiveDiscoverRepositor
         private set
     var pullFraction by mutableFloatStateOf(0f)
     var pullOffsetDp by mutableFloatStateOf(0f)
+    /** 外部刷新请求（再次点击底栏当前页）：页面据此先回顶、再拉刷新，与推荐页同一时序。 */
+    var refreshRequest by mutableIntStateOf(0)
+        private set
+
+    fun requestRefresh() {
+        refreshRequest++
+    }
     private var selectedParent = 0L
     private var selectedSub = 0L
     private var page = 1

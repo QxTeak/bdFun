@@ -89,8 +89,9 @@ internal fun SpaceSubmissionCard(
     content: @Composable () -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
     val isFirst = index == 0
-    val shape = RoundedCornerShape(
+    val shape = if (classic) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(
         topStart = if (isFirst) 16.dp else 0.dp,
         topEnd = if (isFirst) 16.dp else 0.dp,
         bottomStart = if (isLast) 16.dp else 0.dp,
@@ -100,11 +101,11 @@ internal fun SpaceSubmissionCard(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = 12.dp,
-                end = 12.dp,
+                start = if (classic) 0.dp else 12.dp,
+                end = if (classic) 0.dp else 12.dp,
                 // 第一条视频和圆角卡片上边的距离再增加 2dp。
-                top = if (isFirst) 15.dp else 0.dp,
-                bottom = if (isLast) 6.dp else 0.dp,
+                top = if (classic) 0.dp else if (isFirst) 15.dp else 0.dp,
+                bottom = if (classic) 0.dp else if (isLast) 6.dp else 0.dp,
             )
             .clip(shape)
             .background(colors.surfaceContainer),

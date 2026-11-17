@@ -19,6 +19,7 @@ import top.yukonga.miuix.kmp.blur.layerBackdrop
 internal fun SearchResults(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState, ui: SearchPresentationStateHolder,
     onOpenVideo: (VideoItem) -> Unit, onOpenUser: (SearchUser) -> Unit,
+    onLoadMore: () -> Unit = {},
 ) {
     val tab = ui.tab
     val filterOpen = ui.filterOpen
@@ -26,7 +27,8 @@ internal fun SearchResults(
     val onTabChange: (Int) -> Unit = { ui.tab = it }
     val onFilterOpenChange: (Boolean) -> Unit = { ui.filterOpen = it }
     val onFiltersChange: (SearchFilterState) -> Unit = { ui.filters = it }
-    val onApplyFilters: (SearchFilterState) -> Unit = { ui.filters = it }
+    // 应用筛选要写回 appliedFilters：搜索 effect 只观察它，写 filters 不会触发重新搜索。
+    val onApplyFilters: (SearchFilterState) -> Unit = { ui.appliedFilters = it }
     val presentation = rememberSearchResultsPresentation(tab, onTabChange)
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -34,7 +36,7 @@ internal fun SearchResults(
                 .fillMaxSize()
                 .layerBackdrop(presentation.backdrop),
         ) {
-            SearchResultPager(presentation, content, onOpenVideo, onOpenUser)
+            SearchResultPager(presentation, content, onOpenVideo, onOpenUser, onLoadMore)
         }
 
         // Tab / 筛选按钮固定不动，只跟随页面本身的滚动，不再随列表上移。

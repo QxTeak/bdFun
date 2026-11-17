@@ -52,30 +52,28 @@ fun TeakGlassBackButton(
     val glyph = glyphColor ?: if (light) Color.White else teakGlassGlyphColor()
     // 固定速率淡入/淡出（300ms），与页面滚动速度无关。
     val fallbackReveal = rememberManualProgress(if (revealed) 1f else 0f, 300f)
-    val reveal = if (LocalProgressiveTopBarMaterialHosted.current) LocalTopBarButtonMaterialProgress.current else fallbackReveal
+    // 经典顶栏常驻，返回键也常驻平面圆底，不随滚动淡入。
+    val reveal = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 1f
+        else if (LocalProgressiveTopBarMaterialHosted.current) LocalTopBarButtonMaterialProgress.current else fallbackReveal
 
     Box(modifier = modifier.size(size)) {
-        if (reveal > 0.01f) {
-            val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
-            if (classic) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .graphicsLayer { alpha = reveal }
-                        .clip(CircleShape)
-                        .background(top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainerHigh)
-                        .clickable(interactionSource = null, indication = null, onClick = onClick),
-                )
-            } else {
-                TeakGlassIconButton(
-                    onClick = onClick,
-                    size = size,
-                    recipe = recipe,
-                    backdrop = LocalTeakBackdrop.current,
-                    materialAlpha = reveal,
-                    flatBackgroundAlpha = flatBackgroundAlpha,
-                ) {}
-            }
+        val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+        if (classic) {
+            // 经典顶栏：返回键只保留图标，不加任何圆底。
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .clickable(interactionSource = null, indication = null, onClick = onClick),
+            )
+        } else if (reveal > 0.01f) {
+            TeakGlassIconButton(
+                onClick = onClick,
+                size = size,
+                recipe = recipe,
+                backdrop = LocalTeakBackdrop.current,
+                materialAlpha = reveal,
+                flatBackgroundAlpha = flatBackgroundAlpha,
+            ) {}
         }
         // 统一使用 Miuix 的 ChevronBackward 图标，替代原来手画的折线。
         Icon(

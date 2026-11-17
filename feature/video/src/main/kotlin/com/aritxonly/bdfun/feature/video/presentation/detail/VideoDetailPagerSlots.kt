@@ -20,4 +20,6 @@ data class VideoCommentPane(
     val detail: VideoDetail, val root: Long, val target: Long,
     val topInset: Dp, val trackBackProgress: Boolean, val threadPlayerBottom: Dp,
     val threadPaneWidth: Dp?, val fullscreen: Boolean,
+    /** 竖屏主评论区：标题上下留白收紧；横屏分栏（threadPaneWidth != null）保持原样。 */
+    val compactHeaderSpacing: Boolean = false,
 )

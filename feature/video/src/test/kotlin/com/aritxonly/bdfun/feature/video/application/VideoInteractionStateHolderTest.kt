@@ -53,7 +53,7 @@ class VideoInteractionStateHolderTest {
         var removals = mutableListOf<Long>()
         override suspend fun like(aid: Long, enabled: Boolean): Outcome<Unit> { calls++; return likeAction() }
         override suspend fun dislike(aid: Long, enabled: Boolean) = likeAction()
-        override suspend fun coin(aid: Long, count: Int) = coinResult
+        override suspend fun coin(aid: Long, count: Int, alsoLike: Boolean) = coinResult
         override suspend fun follow(mid: Long, enabled: Boolean) = likeAction()
         override suspend fun watchLater(aid: Long): Outcome<Boolean> = Outcome.Success(false)
         override suspend fun folders() = foldersAction()
@@ -174,5 +174,18 @@ class VideoInteractionStateHolderTest {
 
     @Test fun declinedWatchLaterDoesNotReportSuccess() = runBlocking {
         assertEquals("添加稍后再看失败", holder().watchLater())
+    }
+
+    @Test fun coinWithAlsoLikeMarksLikedAndBumpsCountOnce() = runBlocking {
+        val fake = Fake()
+        val holder = holder(fake)
+        assertEquals("投币成功", holder.coin(count = 2, alsoLike = true))
+        assertTrue(holder.state.value.coined)
+        assertTrue(holder.state.value.liked)
+        assertEquals(5L, holder.state.value.coinCount)
+        assertEquals(11L, holder.state.value.likeCount)
+        // 已经点赞过时再投币不应重复加赞。
+        holder.coin(count = 1, alsoLike = true)
+        assertEquals(11L, holder.state.value.likeCount)
     }
 }

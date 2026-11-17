@@ -25,11 +25,15 @@ internal fun MessageShortcutGroup(unread: Map<String, Int>, events: MessageScree
     val colors = MiuixTheme.colorScheme
     val navigation = LocalMessageNavigation.current
     val context = LocalContext.current
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 18.dp)
-            .clip(com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(22.dp))
+            .padding(top = if (classic) 6.dp else 18.dp)
+            .clip(
+                if (classic) androidx.compose.ui.graphics.RectangleShape
+                else com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(22.dp),
+            )
             .background(colors.surfaceContainer)
             .padding(vertical = 10.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp),

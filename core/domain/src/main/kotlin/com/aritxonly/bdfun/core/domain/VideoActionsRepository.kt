@@ -6,7 +6,8 @@ import com.aritxonly.bdfun.core.model.library.FavoriteFolder
 interface VideoActionsRepository {
     suspend fun like(aid: Long, enabled: Boolean): Outcome<Unit>
     suspend fun dislike(aid: Long, enabled: Boolean): Outcome<Unit>
-    suspend fun coin(aid: Long, count: Int): Outcome<Unit>
+    /** 投币；[alsoLike] 对应 B 站 `select_like`，投币时同时点赞。 */
+    suspend fun coin(aid: Long, count: Int, alsoLike: Boolean = false): Outcome<Unit>
     suspend fun follow(mid: Long, enabled: Boolean): Outcome<Unit>
     suspend fun watchLater(aid: Long): Outcome<Boolean>
     suspend fun folders(): Outcome<List<FavoriteFolder>>

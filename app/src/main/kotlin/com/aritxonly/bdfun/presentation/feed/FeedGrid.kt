@@ -27,6 +27,7 @@ internal fun FeedGrid(
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 736.dp
+        val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
         val sidebarWidth = dynamicSidebarWidth(maxWidth.value).dp
         Row(Modifier.fillMaxSize()) {
             if (wide) FeedAuthorSidebar(
@@ -46,19 +47,19 @@ internal fun FeedGrid(
                     .offset { IntOffset(0, pull.pull.roundToInt()) }
                     .nestedScroll(connection),
                 contentPadding = PaddingValues(
-                    start = 8.dp,
+                    start = if (classic) 0.dp else 8.dp,
                     // 固定顶栏显示分类分段栏；头像卡片已经放进列表里，会跟着一起滚走
                     top = statusTop + FeedTopBarHeight + 8.dp,
-                    end = 8.dp,
+                    end = if (classic) 0.dp else 8.dp,
                     bottom = 100.dp,
                 ),
-                verticalItemSpacing = 10.dp,
+                verticalItemSpacing = if (classic) 8.dp else 10.dp,
                 horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             ) {
                 if (!wide) item(key = "avatar-card", span = StaggeredGridItemSpan.FullLine) {
                     FeedAvatarCard(
                         state = state,
-                        modifier = Modifier.padding(bottom = 2.dp),
+                        modifier = Modifier.padding(bottom = if (classic) 0.dp else 2.dp),
                     )
                 }
                 dynamicFeedItems(state, actions, media)

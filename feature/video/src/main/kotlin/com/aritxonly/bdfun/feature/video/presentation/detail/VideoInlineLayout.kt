@@ -26,20 +26,46 @@ data class VideoInlineLayout(
     val playerBlockHeight: androidx.compose.ui.unit.Dp,
 )
 
+/**
+ * 半屏播放器窗口的高度（dp）。
+ *
+ * 横屏视频/读不到宽高比时沿用 16:9；竖屏视频在 16:9 窗口里只能缩成中间一条，
+ * 改成 3:4 让画面明显变大，再用窗口高度 60% 兜底，避免把小屏视频顶成整页。
+ * 横屏分栏不经过这里（分栏直接铺满整列），所以横屏尺寸不受影响。
+ */
+fun resolveInlineVideoHeightDp(
+    widthDp: Float,
+    windowHeightDp: Float,
+    videoAspectRatio: Float?,
+): Float {
+    val portrait = videoAspectRatio != null && videoAspectRatio in 0.05f..0.999f
+    if (!portrait) return widthDp * 9f / 16f
+    val tallBlock = widthDp * 4f / 3f
+    val heightCap = windowHeightDp * 0.60f
+    return if (heightCap > 0f) minOf(tallBlock, heightCap) else tallBlock
+}
+
 @Composable
 fun rememberVideoInlineLayout(
     activeBvid: String, playing: Boolean, selectedTab: Int, paneLayout: VideoPaneLayout,
     immersiveStatusBar: Boolean, statusBarTop: androidx.compose.ui.unit.Dp, host: VideoCollapseHost,
+    /** 当前清晰度画面的宽高比（宽/高）；竖屏视频 < 1，用于把半屏播放器按更满的比例铺开。 */
+    videoAspectRatio: Float? = null,
 ): VideoInlineLayout {
     // ---- 播放器随浏览收起：完全照搬 BiliPai 的共享位移模型 ----
     // offsetPx 是唯一的状态，播放器高度、缩放、页面内边距都由它推导。
     val collapseDensity = LocalDensity.current
-    val screenWidthForPlayer = paneLayout.widthDp.dp
-    val videoAspectHeight = screenWidthForPlayer * 9f / 16f
+    // 竖屏视频改用更高的半屏窗口，横屏/读不到比例时保持原 16:9。
+    val videoAspectHeight = resolveInlineVideoHeightDp(
+        widthDp = paneLayout.widthDp,
+        windowHeightDp = paneLayout.heightDp,
+        videoAspectRatio = videoAspectRatio,
+    ).dp
     val collapseState = rememberInlinePlayerCollapseState(activeBvid)
     // 「上滑收起播放器」设置已删除，固定按原来的「关闭」模式运行。
     val collapseMode = com.aritxonly.bdfun.core.model.video.PlayerCollapseMode.OFF
-    // bdFun 的视频详情页固定 16:9 横屏画面；竖屏视频仍按横屏详情页处理。
+    // bdFun 的视频详情页原本固定 16:9 横屏画面；现在只在读出竖屏宽高比时换比例，
+    // 播放器收起策略仍按横屏详情页处理，避免顺手改动收起行为。
     val isVerticalVideo = false
     val pausedForInlineLayout = !playing
     val commentThreadVisible = host.commentThreadVisible()

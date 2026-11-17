@@ -48,7 +48,7 @@ private fun VideoScreenComments(pane: VideoCommentPane, scrollTop: Boolean) {
             layout = CommentScreenLayout(bare = true, flatList = true, topInset = pane.topInset,
                 trackBackProgress = pane.trackBackProgress, threadPlayerBottom = pane.threadPlayerBottom,
                 threadPaneWidth = pane.threadPaneWidth, playerFullscreen = pane.fullscreen,
-                scrollTop = scrollTop),
+                scrollTop = scrollTop, compactHeaderSpacing = pane.compactHeaderSpacing),
         )
     }
 }

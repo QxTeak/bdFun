@@ -25,12 +25,19 @@ internal fun MySentScreen(controller: SentHistoryStateHolder, onOpenVideo: (Vide
     val shown = state.shown
     val listState = rememberLazyListState()
     TrackTeakPageScroll(listState)
-    val cardShape = remember { ContinuousCornerShape(18.dp) }
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val cardShape = remember(classic) {
+        if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(18.dp)
+    }
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 40.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(
+            start = if (classic) 0.dp else 16.dp,
+            end = if (classic) 0.dp else 16.dp,
+            top = 8.dp, bottom = 40.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(if (classic) 0.dp else 8.dp),
     ) {
         item(key = "title") { SentHistoryHeader() }
         item(key = "filters") { SentHistoryFilters(state, controller::select) }

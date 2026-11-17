@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -16,14 +18,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
+import com.aritxonly.teak.common.chrome.teakClassicBarGlass
 import com.aritxonly.teak.common.chrome.teakGlassGlyphColor
 import com.aritxonly.teak.common.icons.AppGlyph
 import com.aritxonly.teak.common.icons.LucideIcons
 import com.aritxonly.teak.common.material.TeakGlassIconButton
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 当前列表页注册的「回到顶部」动作；没有注册时不显示按钮。 */
 
@@ -60,11 +65,27 @@ fun BoxScope.ScrollTopButton(settings: SettingsBindings, bottomObstruction: andr
         enter = fadeIn(tween(180)),
         exit = fadeOut(tween(140)),
     ) {
-        TeakGlassIconButton(
-            onClick = { action?.invoke() },
-            modifier = Modifier.size(40.dp),
-        ) {
-            AppGlyph(LucideIcons.ArrowUp, glyphColor, size = 18.dp)
+        Box(Modifier.size(40.dp)) {
+            if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+                // 经典样式顶栏按钮都只留图标；回到顶部是全站唯一的玻璃圆钮，这里补上底。
+                Box(
+                    Modifier.matchParentSize()
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .teakClassicBarGlass(),
+                )
+                Box(
+                    Modifier.matchParentSize()
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.55f)),
+                )
+            }
+            TeakGlassIconButton(
+                onClick = { action?.invoke() },
+                modifier = Modifier.size(40.dp),
+            ) {
+                // 图标统一走 AppGlyph（ICON-16 预设），不再手绘箭头。
+                AppGlyph(LucideIcons.ArrowUp, glyphColor, size = 18.dp)
+            }
         }
     }
 }

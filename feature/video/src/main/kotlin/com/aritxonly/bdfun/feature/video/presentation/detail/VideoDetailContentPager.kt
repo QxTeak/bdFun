@@ -86,21 +86,24 @@ private fun VideoScreenComments(
     val splitPanes = presentation.paneLayout.isSplit && !fullscreen && !presentation.pictureInPicture
     val statusBarTop = presentation.statusBarTop
     val playerBlockHeight = inlineLayout.playerBlockHeight
-    val immersiveStatusBar = presentation.immersiveStatusBar
     val initialCommentRoot = request.initialCommentRoot
     val initialCommentTarget = request.initialCommentTarget
     val d = detail
     if (d != null) {
         slots.comments(VideoCommentPane(
             detail = d, root = initialCommentRoot, target = initialCommentTarget,
-            // 分栏时列表自己会补状态栏；这里只需要 tab 行高度（52dp），
-            // 再留 4dp 给「共 N 条评论」，不能再重复加一次状态栏。
-            topInset = if (splitPanes) 52.dp else playerBlockHeight + 24.dp +
-                (if (immersiveStatusBar) 36.dp else 0.dp),
+            // 竖屏：评论列表自己会补一次状态栏，这里按「tab 行底边 + 12dp」反算，
+            // 不再用固定 24+36：既贴合 tab，也不会在高状态栏机型上离得太远。
+            // 横屏分栏：tab 行在详情栏顶部自带状态栏，只需要 52dp 行高。
+            topInset = if (splitPanes) 52.dp else {
+                val tabRowBottom = playerBlockHeight + 52.dp
+                (tabRowBottom + 12.dp - statusBarTop - 4.dp).coerceAtLeast(0.dp)
+            },
             trackBackProgress = pager.currentPage == 1,
             threadPlayerBottom = if (splitPanes) statusBarTop + 52.dp else playerBlockHeight,
             threadPaneWidth = if (splitPanes) paneWidth else null,
             fullscreen = fullscreen,
+            compactHeaderSpacing = !splitPanes,
         ))
     }
 }

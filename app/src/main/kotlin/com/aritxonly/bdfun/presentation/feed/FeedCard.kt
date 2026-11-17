@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -24,10 +25,13 @@ internal fun FeedCard(
 ) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
-    val shape = ContinuousCornerShape(16.dp)
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val shape: androidx.compose.ui.graphics.Shape =
+        if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(16.dp)
     val oneTake = rememberOneTakeAnchor()
-    val cardRadiusPx = with(LocalDensity.current) { 16.dp.toPx() }
+    val cardRadiusPx = if (classic) 0f else with(LocalDensity.current) { 16.dp.toPx() }
     val photo = LocalPhotoViewer.current
+    val dividerColor = colors.onBackground.copy(alpha = 0.12f)
     Column(
         modifier = modifier
             .then(oneTake.modifier)
@@ -41,7 +45,7 @@ internal fun FeedCard(
                     actions.onOpen()
                 }
             }
-            .padding(12.dp),
+            .padding(if (classic) 16.dp else 12.dp),
     ) {
         FeedCardAuthor(item, live = live)
         FeedCardText(item, presentation.expanded)

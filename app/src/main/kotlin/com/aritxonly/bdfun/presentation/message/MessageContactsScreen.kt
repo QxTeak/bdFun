@@ -44,7 +44,9 @@ internal fun MessageContactsScreen(initialGroup: Int, onBack: () -> Unit) {
             onRefresh = { scope.launch { controller.load() } }) {
         TrackTeakPageScroll(list)
         LazyColumn(state = list, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(
-            start = 16.dp, end = 16.dp, top = 8.dp + rememberStatusBarTop(), bottom = 40.dp)) {
+            start = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 0.dp else 16.dp,
+            end = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 0.dp else 16.dp,
+            top = 8.dp + rememberStatusBarTop(), bottom = 40.dp)) {
             item { TeakLargeTitle(title = title) }
             if (initialGroup != 2) item {
                 com.aritxonly.teak.common.navigation.TeakPagerTabs(
