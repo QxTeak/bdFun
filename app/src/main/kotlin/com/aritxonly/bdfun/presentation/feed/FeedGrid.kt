@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -27,7 +29,7 @@ internal fun FeedGrid(
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 736.dp
-        val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+
         val sidebarWidth = dynamicSidebarWidth(maxWidth.value).dp
         Row(Modifier.fillMaxSize()) {
             if (wide) FeedAuthorSidebar(
@@ -47,19 +49,19 @@ internal fun FeedGrid(
                     .offset { IntOffset(0, pull.pull.roundToInt()) }
                     .nestedScroll(connection),
                 contentPadding = PaddingValues(
-                    start = if (classic) 0.dp else 8.dp,
+                    start = TeakUiStyle.design.contentInset(8.dp),
                     // 固定顶栏显示分类分段栏；头像卡片已经放进列表里，会跟着一起滚走
                     top = statusTop + FeedTopBarHeight + 8.dp,
-                    end = if (classic) 0.dp else 8.dp,
+                    end = TeakUiStyle.design.contentInset(8.dp),
                     bottom = 100.dp,
                 ),
-                verticalItemSpacing = if (classic) 8.dp else 10.dp,
+                verticalItemSpacing = TeakUiStyle.design.itemSpacing(10.dp, 8.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
             ) {
                 if (!wide) item(key = "avatar-card", span = StaggeredGridItemSpan.FullLine) {
                     FeedAvatarCard(
                         state = state,
-                        modifier = Modifier.padding(bottom = if (classic) 0.dp else 2.dp),
+                        modifier = Modifier.padding(bottom = TeakUiStyle.design.contentInset(2.dp)),
                     )
                 }
                 // 动态首屏还在加载时先铺卡片骨架，避免空白页只挂一个小电视。

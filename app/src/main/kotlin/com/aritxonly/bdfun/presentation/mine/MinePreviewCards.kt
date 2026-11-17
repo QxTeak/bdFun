@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -38,11 +40,11 @@ internal fun MinePreviewCard(kind: MinePreviewKind, section: MinePreviewSection,
         MinePreviewKind.Favorites -> "我的收藏"
         MinePreviewKind.WatchLater -> "稍后再看"
     }
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+
     val surfaceColor = MiuixTheme.colorScheme.surfaceContainer
     val dividerColor = MiuixTheme.colorScheme.onBackground.copy(alpha = 0.12f)
     Column(Modifier.fillMaxWidth().clip(
-        if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(22.dp),
+        TeakUiStyle.design.cardShape(ContinuousCornerShape(22.dp)),
     )
         .background(surfaceColor)
         .padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {

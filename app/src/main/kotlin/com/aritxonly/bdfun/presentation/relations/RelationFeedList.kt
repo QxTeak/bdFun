@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -31,9 +33,9 @@ internal fun RelationFeedList(runtime: RelationScreenRuntime) {
     val frequent = order.frequent
     val currentMid = runtime.currentMid
     val onOpenSpace = runtime.onOpenSpace
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val classic = TeakUiStyle.isClassic
     LazyColumn(state = listState, modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = if (classic) 0.dp else 12.dp, end = if (classic) 0.dp else 12.dp,
+        contentPadding = PaddingValues(start = TeakUiStyle.design.contentInset(12.dp), end = TeakUiStyle.design.contentInset(12.dp),
             top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + 8.dp,
             bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 24.dp),
     ) {

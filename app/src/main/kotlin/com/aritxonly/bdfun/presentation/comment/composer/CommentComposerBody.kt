@@ -18,7 +18,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.teak.common.chrome.TeakChromeDefaults
-import com.aritxonly.teak.common.chrome.teakClassicBarGlass
+import com.aritxonly.teak.common.chrome.TeakComposerBackground
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -42,16 +42,9 @@ internal fun CommentComposerBody(
     // 跟随系统 IME inset（不做自定义动画）；未开导航条时按设置额外抬高。
     val animatedBottom = if (imeDp > navDp) imeDp else navDp + raiseDp
 
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
-    val barColor = colors.surfaceContainer
-    val dividerColor = colors.onBackground.copy(alpha = 0.12f)
 
     Box(modifier = modifier.fillMaxWidth()) {
-        if (classic) {
-            // 输入栏整条玻璃模糊 + 半透明底，保证输入框文字始终清晰。
-            Box(Modifier.matchParentSize().teakClassicBarGlass())
-            Box(Modifier.matchParentSize().background(barColor.copy(alpha = 0.62f)))
-        }
+        TeakComposerBackground()
         Column(
             modifier = Modifier
                 .fillMaxWidth()
