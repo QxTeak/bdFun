@@ -35,6 +35,7 @@ internal fun ResultsTabHeader(
     onApplyFilters: (SearchFilterState) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val wide = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600
     val anchor = remember { SearchFilterAnchorStateHolder() }
     Box(
         modifier = modifier.height(42.dp),
@@ -45,7 +46,8 @@ internal fun ResultsTabHeader(
             onSelect = onTabChange,
             itemWidth = 64.dp,
             position = position,
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier.align(if (wide) Alignment.CenterStart else Alignment.Center)
+                .padding(start = if (wide) 12.dp else 0.dp),
         )
         // 漏斗：真正采样 Tab 后面的内容，和设置页二级菜单一样是 Miuix 玻璃。
         Box(

@@ -18,8 +18,8 @@ import com.kyant.shapes.Capsule
 /** Badge is a sibling of the clipped button surface, overlapping its outer edge. */
 @Composable
 fun UnreadBadgeHost(count: Int, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    // Reserve the overflow within the host bounds, including during Crossfade offscreen rendering.
-    Box(modifier.padding(top = 4.dp, end = 6.dp)) {
+    // 角标只叠加绘制，不参与按钮尺寸，保证左右边距一致。
+    Box(modifier) {
         content()
         if (count > 0) Text(
             text = if (count > 99) "99+" else count.toString(),

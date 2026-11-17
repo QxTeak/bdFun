@@ -56,8 +56,7 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
     modifier: Modifier = Modifier) {
     val windowSize = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize
     val density = androidx.compose.ui.platform.LocalDensity.current
-    val wide = with(density) { windowSize.width.toDp() >= 600.dp } &&
-        com.aritxonly.teak.common.chrome.isWideFoldTopBar()
+    val wide = with(density) { windowSize.width.toDp() >= 600.dp }
     val searchWidth = with(density) { (windowSize.width.toDp() * 0.45f).coerceIn(280.dp, 480.dp) }
     val advancedMaterial = LocalTeakMaterialSpec.current
     val recipe = TeakGlassRecipes.floatingNavigation(advancedMaterial.fineTuning)
@@ -76,13 +75,12 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
     val totalHeight = HomeTopBarHeight + if (tabsBelowSearch) tabsHeight else 0.dp
     Box(modifier = modifier.fillMaxWidth().height(totalHeight + statusBarTop)) {
         HomeTopBarBackground(classic)
-        if (search.active) {
-            Box(modifier = Modifier.matchParentSize().blockTouches(true))
-        }
         Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
             val inline = visibleTabs
             val inlineTabs = inline != null && !tabsBelowSearch
-            if (singleRowSearchTabs) {
+            if (search.active) {
+                HomeTopBarSearchRow(content, search, actions, material)
+            } else if (singleRowSearchTabs) {
                 HomeTopBarLandscapeRow(content, search, actions, visibleTabs, material)
             } else if (wide && inlineTabs && inline != null) {
                 HomeTopBarWideTabsRow(content, search, actions, inline, material)
@@ -235,5 +233,18 @@ private fun HomeTopBarLandscapeRow(
         }
         Spacer(Modifier.width(10.dp))
         HomeTopBarRight(content, search, actions, material)
+    }
+}
+
+@Composable
+private fun HomeTopBarSearchRow(
+    content: HomeTopBarContent, search: HomeTopBarSearch,
+    actions: HomeTopBarActions, material: HomeTopBarMaterial,
+) {
+    Row(Modifier.fillMaxWidth().height(HomeTopBarHeight).padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        HomeTopBarLeft(content, search, actions)
+        Spacer(Modifier.width(10.dp))
+        HomeSearchSurface(search, actions, material)
     }
 }
