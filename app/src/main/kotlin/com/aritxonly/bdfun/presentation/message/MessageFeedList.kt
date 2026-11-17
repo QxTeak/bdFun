@@ -58,39 +58,16 @@ internal fun MessageFeedList(
             top = 8.dp + rememberStatusBarTop(), bottom = 40.dp)) {
         item(key = "header") { TeakLargeTitle(title = title) }
         item(key = "tabs") {
-            Row(Modifier.fillMaxWidth().padding(
-                top = 16.dp, bottom = 10.dp,
-                start = if (classic) 16.dp else 0.dp,
-                end = if (classic) 4.dp else 0.dp,
-            ), verticalAlignment = Alignment.CenterVertically) {
-                if (tabs.isNotEmpty()) {
-                    // 经典样式的 Tab 会撑满可用宽度，这里必须先限宽，右侧的「设置/刷新」才不会被挤出去。
-                    if (classic) {
-                        androidx.compose.foundation.layout.Box(Modifier.weight(1f)) {
-                            TeakPagerTabs(
-                                options = tabs, selected = if (ui.tab == 2) 1 else 0,
-                                onSelect = { ui.tab = if (it == 1) 2 else 0 },
-                                itemWidth = 96.dp, backdrop = null, plain = false,
-                            )
-                        }
-                    } else {
-                        TeakPagerTabs(
-                            options = tabs, selected = if (ui.tab == 2) 1 else 0,
-                            onSelect = { ui.tab = if (it == 1) 2 else 0 },
-                            itemWidth = 96.dp, backdrop = null, plain = false,
-                        )
-                    }
-                }
-                if (!classic) Spacer(Modifier.weight(1f))
-                if (kind == MessageFeedKind.Reply || kind == MessageFeedKind.Like) {
-                    Text("设置", color = colors.primary, fontSize = 13.sp, modifier = Modifier.clickable {
-                        navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("settings",
-                                type = if (kind == MessageFeedKind.Like) 19 else if (ui.tab == 2) 18 else 17))
-                    }.padding(12.dp))
-                }
-                Text("刷新", color = colors.primary, fontSize = 13.sp,
-                    modifier = Modifier.clickable(enabled = loadingByTab[key] != true && !busy) { actions.load(ui.tab) }.padding(12.dp))
-            }
+            MessageFeedTabsRow(
+                kind = kind, tabs = tabs, selectedTab = ui.tab, classic = classic,
+                onSelectTab = { ui.tab = if (it == 1) 2 else 0 },
+                onOpenSettings = {
+                    navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("settings",
+                        type = if (kind == MessageFeedKind.Like) 19 else if (ui.tab == 2) 18 else 17))
+                },
+                onRefresh = { actions.load(ui.tab) },
+                refreshEnabled = loadingByTab[key] != true && !busy,
+            )
         }
         itemsIndexed(pageItems, key = { _, item -> "message_${item.id}" }) { index, item ->
             val onMenu = { menu.selected = key to item; menu.confirmDelete = false; menu.confirmMute = false }
@@ -119,4 +96,41 @@ internal fun MessageFeedList(
         }
     }
 }
+}
+
+/** 「回复/赞/粉丝/系统」顶部的页签行；经典样式下要先限宽，右侧设置/刷新才不会被挤掉。 */
+@Composable
+private fun MessageFeedTabsRow(
+    kind: MessageFeedKind, tabs: List<String>, selectedTab: Int, classic: Boolean,
+    onSelectTab: (Int) -> Unit, onOpenSettings: () -> Unit, onRefresh: () -> Unit,
+    refreshEnabled: Boolean,
+) {
+    val colors = MiuixTheme.colorScheme
+    Row(Modifier.fillMaxWidth().padding(
+        top = 16.dp, bottom = 10.dp,
+        start = if (classic) 16.dp else 0.dp,
+        end = if (classic) 4.dp else 0.dp,
+    ), verticalAlignment = Alignment.CenterVertically) {
+        if (tabs.isNotEmpty()) {
+            val tabsContent: @Composable () -> Unit = {
+                TeakPagerTabs(
+                    options = tabs, selected = if (selectedTab == 2) 1 else 0,
+                    onSelect = onSelectTab,
+                    itemWidth = 96.dp, backdrop = null, plain = false,
+                )
+            }
+            if (classic) {
+                androidx.compose.foundation.layout.Box(Modifier.weight(1f)) { tabsContent() }
+            } else {
+                tabsContent()
+            }
+        }
+        if (!classic) Spacer(Modifier.weight(1f))
+        if (kind == MessageFeedKind.Reply || kind == MessageFeedKind.Like) {
+            Text("设置", color = colors.primary, fontSize = 13.sp,
+                modifier = Modifier.clickable(onClick = onOpenSettings).padding(12.dp))
+        }
+        Text("刷新", color = colors.primary, fontSize = 13.sp,
+            modifier = Modifier.clickable(enabled = refreshEnabled, onClick = onRefresh).padding(12.dp))
+    }
 }

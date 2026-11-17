@@ -33,7 +33,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  * 底栏同款玻璃分段控件（全部 / 视频）。
  *
  * 指示器不再是“整块瞬间变色”，而是和底栏一样用弹簧在选项之间滑动；
- * 粉色底做了半透明处理，能透出底下的玻璃模糊。
+ * 粉色底做了半透明处理，能透出底下的玻璃模糊。经典样式改成「文字 + 下划线」，
+ * 两条分支各自独立组合，避免单函数过长。
  */
 @Composable
 fun TeakSegmentedBar(
@@ -44,53 +45,70 @@ fun TeakSegmentedBar(
     itemWidth: Dp = 74.dp,
     materialAlpha: Float = 1f,
 ) {
-    val colors = MiuixTheme.colorScheme
-    val advancedMaterial = LocalTeakMaterialSpec.current
-    val recipe = TeakGlassRecipes.floatingNavigation(advancedMaterial.fineTuning)
-
     // 和底栏 / 视频页 tab 同一套手动弹簧，避免项目 frame clock 不推进的问题
-    val animIndex = rememberSpringFloat(
-        target = selected.toFloat(),
-        stiffness = 340f,
-        damping = 25f,
-    )
-    val indicatorAlpha = 0.92f
-
-    // 经典样式：不用玻璃胶囊，改成和视频页一致的「文字 + 下划线」Tab。
+    val animIndex = rememberSpringFloat(target = selected.toFloat(), stiffness = 340f, damping = 25f)
     if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
-        Box(modifier = modifier.height(40.dp)) {
-            Box(
-                modifier = Modifier
-                    .offset(x = itemWidth * animIndex + itemWidth * 0.34f, y = 30.dp)
-                    .width(itemWidth * 0.32f)
-                    .height(3.dp)
-                    .background(colors.primary, Capsule()),
-            )
-            Row {
-                options.forEachIndexed { index, label ->
-                    val active = index == selected
-                    Box(
-                        modifier = Modifier
-                            .width(itemWidth)
-                            .height(36.dp)
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                            ) { onSelect(index) },
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = label,
-                            color = if (active) colors.primary else colors.onBackgroundVariant,
-                            fontSize = 13.sp,
-                        )
-                    }
+        ClassicSegmentedBar(options, selected, onSelect, modifier, itemWidth, animIndex)
+    } else {
+        GlassSegmentedBar(options, selected, onSelect, modifier, itemWidth, materialAlpha, animIndex)
+    }
+}
+
+@Composable
+private fun ClassicSegmentedBar(
+    options: List<String>,
+    selected: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier,
+    itemWidth: Dp,
+    animIndex: Float,
+) {
+    val colors = MiuixTheme.colorScheme
+    Box(modifier = modifier.height(40.dp)) {
+        Box(
+            modifier = Modifier
+                .offset(x = itemWidth * animIndex + itemWidth * 0.34f, y = 30.dp)
+                .width(itemWidth * 0.32f)
+                .height(3.dp)
+                .background(colors.primary, Capsule()),
+        )
+        Row {
+            options.forEachIndexed { index, label ->
+                val active = index == selected
+                Box(
+                    modifier = Modifier
+                        .width(itemWidth)
+                        .height(36.dp)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                        ) { onSelect(index) },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = label,
+                        color = if (active) colors.primary else colors.onBackgroundVariant,
+                        fontSize = 13.sp,
+                    )
                 }
             }
         }
-        return
     }
+}
 
+@Composable
+private fun GlassSegmentedBar(
+    options: List<String>,
+    selected: Int,
+    onSelect: (Int) -> Unit,
+    modifier: Modifier,
+    itemWidth: Dp,
+    materialAlpha: Float,
+    animIndex: Float,
+) {
+    val colors = MiuixTheme.colorScheme
+    val advancedMaterial = LocalTeakMaterialSpec.current
+    val recipe = TeakGlassRecipes.floatingNavigation(advancedMaterial.fineTuning)
     TeakGlassSurface(
         modifier = modifier.height(40.dp),
         shape = Capsule(),
@@ -107,7 +125,7 @@ fun TeakSegmentedBar(
                     .width(itemWidth)
                     .height(32.dp)
                     .clip(Capsule())
-                    .background(colors.primary.copy(alpha = indicatorAlpha)),
+                    .background(colors.primary.copy(alpha = 0.92f)),
             )
             Row {
                 options.forEachIndexed { index, label ->
@@ -130,7 +148,7 @@ fun TeakSegmentedBar(
                             text = label,
                             color = textColor,
                             fontSize = 13.sp,
-                            fontWeight = if (active) FontWeight.Normal else FontWeight.Normal,
+                            fontWeight = FontWeight.Normal,
                         )
                     }
                 }
