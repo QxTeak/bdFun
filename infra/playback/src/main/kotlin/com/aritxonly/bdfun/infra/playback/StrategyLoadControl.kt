@@ -11,7 +11,8 @@ import com.aritxonly.bdfun.core.domain.buffering.VideoBufferProvider
 /** 只控制加载许可；Media3 保留音视频同步、数据请求与 allocator 生命周期。 */
 internal class StrategyLoadControl(private val session: BufferSession) : DefaultLoadControl(
     DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE),
-    1_000, 120_000, 1_000, 3_000, VideoBufferProvider.MAX_BUFFER_BYTES, false, 0, false,
+    // 即使覆盖加载决策，父类仍要求最小缓冲不小于卡顿恢复门槛。
+    3_000, 120_000, 1_000, 3_000, VideoBufferProvider.MAX_BUFFER_BYTES, false, 0, false,
 ) {
     override fun shouldContinueLoading(parameters: LoadControl.Parameters): Boolean = session.decide(
         BufferInput(parameters.bufferedDurationUs / 1_000, parameters.playbackSpeed,

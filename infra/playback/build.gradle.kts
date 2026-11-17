@@ -11,6 +11,8 @@ android {
 }
 kotlin { jvmToolchain(21) }
 dependencies {
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
     implementation(project(":core:application"))
     implementation(project(":core:domain"))
     implementation(project(":core:model"))

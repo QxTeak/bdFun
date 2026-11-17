@@ -52,3 +52,12 @@ JVM测试覆盖固定阶段、倍速、双水位、暂停、字节预算、冷�
 - check-layering、checkModuleGraph、Kotlin PSI尺寸审计、设置编排器测试及git diff --check通过。
 - 设置资产主线已有67项；原测试64项断言过期，新增本项后按68项校验，并显式校验开关类型。
 - adb devices无连接设备：未执行装机和实际播放回归，未测得流量/功耗收益。
+
+### 初始化闪退修复
+
+首版给DefaultLoadControl父类传minBufferMs=1000、rebuffer=3000，违反其构造约束，
+即使覆盖shouldContinueLoading也会在创建时抛IllegalArgumentException；两种模式均受影响。
+修复为minBufferMs=3000，实际两种策略仍由覆盖方法控制，不改变首次起播1000ms。
+新增infra/playback的Robolectric测试直接实例化真实Media3 LoadControl，两种模式修复前均复现该异常；
+CI在签名之前执行这组测试。复用版本目录已有JUnit/Robolectric，只有测试依赖；
+纯策略测试无法覆盖Media3构造断言，Android stub返回默认值也不能替代真实运行时测试。

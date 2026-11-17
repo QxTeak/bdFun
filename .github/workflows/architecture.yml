@@ -37,6 +37,8 @@ jobs:
         run: bash tools/check-module-graph-negative.sh --no-parallel --max-workers=2
       - name: Run core policies
         run: bash ./gradlew :core:domain:test :core:application:test --no-parallel --max-workers=2
+      - name: Run Media3 construction regression tests
+        run: bash ./gradlew :infra:playback:testDebugUnitTest --no-parallel --max-workers=2
       - name: Run video state regression tests
         run: >-
           bash ./gradlew :feature:video:testDebugUnitTest
