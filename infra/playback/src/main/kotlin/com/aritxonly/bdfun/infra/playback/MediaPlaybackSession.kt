@@ -160,7 +160,7 @@ class MediaPlaybackSession(
                 ?.drawable
                 ?.let { (it as? android.graphics.drawable.BitmapDrawable)?.bitmap }
             if (bitmap != null && !released) {
-                artwork = bitmap
+                artwork = mediaArtwork(bitmap)
                 updateMetadata()
                 notifyState(lastPlaying == true, lastPosition, lastDuration)
             }
@@ -175,6 +175,7 @@ class MediaPlaybackSession(
         artwork?.let {
             builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, it)
             builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, it)
+            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, it)
         }
         session.setMetadata(builder.build())
     }

@@ -10,10 +10,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapShader
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Shader
 import android.os.Build
 import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
@@ -141,7 +137,7 @@ abstract class PlaybackForegroundService : Service() {
                 ?.drawable
                 ?.let { (it as? android.graphics.drawable.BitmapDrawable)?.bitmap }
             if (source == null) return@launch
-            val circular = circularCrop(source)
+            val circular = mediaArtwork(source)
             withContext(Dispatchers.Main) {
                 if (artUrl == url) {
                     artBitmap = circular
@@ -151,17 +147,6 @@ abstract class PlaybackForegroundService : Service() {
                 }
             }
         }
-    }
-
-    private fun circularCrop(source: Bitmap): Bitmap {
-        val side = minOf(source.width, source.height).coerceAtLeast(1)
-        val output = Bitmap.createBitmap(side, side, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(output)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-        paint.shader = BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        val radius = side / 2f
-        canvas.drawCircle(radius, radius, radius, paint)
-        return output
     }
 
     private fun createChannel() {

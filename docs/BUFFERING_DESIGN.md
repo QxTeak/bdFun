@@ -89,3 +89,10 @@ Debug通过app注入PLAYBACK_TRACE，复用LogCollector和现有日志抓取页�
 不记录URL/账号/请求头；Release不注入、不写诊断、不改变日志开关。
 后台服务轮询读取控制器快照，使采样不依赖Compose页面是否刷新。
 复现后导出日志可区分网络无进展、策略停载、音频输出欠载；仍需用户设备证据。
+
+### 媒体封面一致性
+
+页面MediaPlaybackSession原先直接提交方形bitmap，后台服务自行裁圆；两套系统会话并存时可能显示不同形状。
+现两者共用infra/playback/mediaArtwork，保持后台既有圆形裁切坐标，并统一ALBUM_ART/ART/DISPLAY_ICON字段。
+裁切只在封面加载时执行，不随缓冲状态重新执行。Robolectric原生图形测试验证透明角、中心颜色和源图不变；
+Debug构建、infra播放测试和checkLayering通过。此处只消除封面输入差异，不宣称解决双会话所有权或后台卡顿。
