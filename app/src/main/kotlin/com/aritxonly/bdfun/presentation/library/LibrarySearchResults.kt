@@ -37,13 +37,10 @@ internal fun LibrarySearchResults(content: LibrarySearchContent, actions: Librar
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         if (loading && results.isEmpty()) {
-            item(key = "loading", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-                Box(
-                    modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    TeakLoading(size = 40.dp)
-                }
+            items(count = 6, key = { "library-search-skeleton-$it" }) {
+                com.aritxonly.teak.common.skeleton.TeakSkeletonVideoCard(
+                    progress = com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep(),
+                )
             }
         }
         items(items = results, key = { it.bvid }) { video ->

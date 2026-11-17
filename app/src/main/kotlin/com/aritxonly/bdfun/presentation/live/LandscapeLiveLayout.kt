@@ -10,7 +10,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 @Composable
-internal fun LiveRoomRender.LandscapeLiveLayout() {
+internal fun LiveRoomRender.LandscapeLiveLayout(
+    /** 宽屏分屏进入的全屏要退回分屏，而不是像手机横屏那样转回竖屏。 */
+    onToggleFullscreen: () -> Unit = this.onToggleFullscreen,
+) {
     Box(
         Modifier
             .fillMaxSize()
@@ -30,8 +33,15 @@ internal fun LiveRoomRender.LandscapeLiveLayout() {
             modifier = Modifier.fillMaxSize(),
         )
         LivePlayerChrome(
-            content = LiveChromeContent(true, isPlaying, danmakuEnabled, qualities.firstOrNull { it.first == currentQuality }?.second ?: "清晰度", room.title, settingsOpen),
-            actions = LiveChromeActions(onTogglePlay, onReload, onToggleDanmaku, onOpenSettings, onOpenDanmakuSettings, onToggleFullscreen, onToggleFullscreen),
+            content = LiveChromeContent(
+                true, isPlaying, danmakuEnabled,
+                qualities.firstOrNull { it.first == currentQuality }?.second ?: "清晰度",
+                room.title, settingsOpen,
+            ),
+            actions = LiveChromeActions(
+                onTogglePlay, onReload, onToggleDanmaku, onOpenSettings, onOpenDanmakuSettings,
+                onToggleFullscreen, onToggleFullscreen,
+            ),
         )
     }
 }

@@ -5,7 +5,7 @@ internal data class VideoDetailDto(
     val bvid: String, val aid: Long, val title: String, val cover: String,
     val description: String, val owner: VideoOwnerDto, val stats: VideoStatsDto,
     val timing: VideoTimingDto, val category: String, val collection: VideoCollectionDto,
-    val interaction: VideoInteractionDto,
+    val interaction: VideoInteractionDto, val copyright: Int = 0,
 )
 internal data class VideoOwnerDto(val name: String, val face: String, val mid: Long)
 internal data class VideoStatsDto(

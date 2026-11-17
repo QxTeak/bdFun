@@ -40,6 +40,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
                 1 -> ui.dynamicRefreshTick++
             }
         } else {
+            // 主 tab 不能左右滑，但点底栏切换仍保留横向滑动转场。
             appScope.launch { tabPagerState.animateScrollToPage(index) }
         }
     }

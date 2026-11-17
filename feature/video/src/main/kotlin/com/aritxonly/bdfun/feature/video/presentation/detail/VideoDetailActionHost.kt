@@ -11,4 +11,6 @@ interface VideoDetailActionHost {
     fun showToast(text: String)
     fun share(text: String)
     fun requestHandOff()
+    /** 收起态的回首页键：请求主壳回到推荐页并结束视频页。 */
+    fun openHome()
 }

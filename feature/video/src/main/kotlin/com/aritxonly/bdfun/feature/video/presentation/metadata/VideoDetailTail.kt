@@ -12,7 +12,7 @@ import com.aritxonly.bdfun.core.model.video.VideoPage
 
 fun androidx.compose.foundation.lazy.LazyListScope.videoDetailTail(
     detail: VideoDetail?, metaReady: Boolean, currentCid: Long, error: String?, related: List<VideoItem>,
-    relatedEnter: Float, textColor: Color,
+    textColor: Color,
     onPage: (VideoPage) -> Unit, onRelated: (VideoItem) -> Unit, slots: VideoDetailTailSlots,
 ) {
     videoDetailPages(detail, metaReady, currentCid, onPage)
@@ -28,5 +28,5 @@ fun androidx.compose.foundation.lazy.LazyListScope.videoDetailTail(
         }
     }
 
-    videoDetailRelated(related, relatedEnter, onRelated, slots)
+    videoDetailRelated(related, metaReady, onRelated, slots)
 }

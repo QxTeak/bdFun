@@ -59,7 +59,9 @@ private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellStat
                     shell.chrome.mineList,
                     // 三种界面风格都保留首页的推荐/直播/番剧分段。
                     homeSection = ui.homeSection,
-                    homeInteractive = !ui.showSearch)
+                    homeInteractive = !ui.showSearch,
+                    onHomeSectionChange = { ui.homeSection = it },
+                    onHomeSectionPositionChange = { ui.homeSectionPosition.floatValue = it })
 
             }
 

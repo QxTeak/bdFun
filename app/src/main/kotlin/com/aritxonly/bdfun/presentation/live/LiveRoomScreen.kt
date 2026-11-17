@@ -32,18 +32,22 @@ internal fun LiveRoomScreen(
     val room = content.room
     val context = LocalContext.current
     val view = LocalView.current
-    val landscape = LocalConfiguration.current.screenWidthDp >
-        LocalConfiguration.current.screenHeightDp
+    val configuration = LocalConfiguration.current
+    val landscape = configuration.screenWidthDp > configuration.screenHeightDp
+    // 平板/展开折叠屏才进左右分屏；手机横屏仍保持原来的全屏直播，竖屏布局不动。
+    val wideSplit = configuration.smallestScreenWidthDp >= 600 && landscape
+    val ui = remember { LiveRoomUiStateHolder() }
+    val wideFullscreen = ui.wideFullscreen
     val menuState = remember { TeakMorphMenuState() }
     val follow = remember(room.roomId) { LiveFollowStateHolder(room.following) }
-    val ui = remember { LiveRoomUiStateHolder() }
     val render = LiveRoomRender(content, actions, player, menuState, ui, follow)
 
-    // 全屏横屏时和视频播放器一样隐藏状态栏/导航栏；回竖屏恢复
-    LaunchedEffect(landscape) {
+    // 分屏时保留系统栏（和视频详情左右分栏一致）；只有真正全屏才隐藏。
+    val hideSystemBars = (landscape && !wideSplit) || (wideSplit && wideFullscreen)
+    LaunchedEffect(hideSystemBars) {
         val window = context.findLiveActivity()?.window ?: return@LaunchedEffect
         val controller = WindowCompat.getInsetsController(window, view)
-        if (landscape) {
+        if (hideSystemBars) {
             controller.systemBarsBehavior =
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             controller.hide(WindowInsetsCompat.Type.systemBars())
@@ -51,10 +55,19 @@ internal fun LiveRoomScreen(
             controller.show(WindowInsetsCompat.Type.systemBars())
         }
     }
+    // 分屏里的全屏不换方向，返回键先退回分屏。
+    androidx.activity.compose.BackHandler(enabled = wideSplit && wideFullscreen) {
+        ui.wideFullscreen = false
+    }
 
     Box(modifier = modifier.fillMaxSize().background(Color.Black)) {
-        if (landscape) render.LandscapeLiveLayout() else render.PortraitLiveLayout()
-        render.LiveRoomPanels(landscape)
+        when {
+            wideSplit && wideFullscreen -> render.LandscapeLiveLayout { ui.wideFullscreen = false }
+            wideSplit -> render.WideLiveLayout { ui.wideFullscreen = true }
+            landscape -> render.LandscapeLiveLayout()
+            else -> render.PortraitLiveLayout()
+        }
+        render.LiveRoomPanels(!wideSplit && landscape)
         render.LiveRoomMenu()
     }
 }

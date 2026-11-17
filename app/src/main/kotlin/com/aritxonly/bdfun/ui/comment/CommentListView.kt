@@ -103,6 +103,9 @@ internal fun CommentListView(
                 }
 
                 // 视频详情平铺评论，其余入口保留原分组样式。
+                if (loading && comments.isEmpty() && showLoading) {
+                    commentSkeletonItems()
+                }
                 itemsIndexed(comments, key = { _, item -> item.rpid }) { index, item ->
                     CommentListCard(index, comments.lastIndex, item, state, actions, layout.flatList)
                 }
@@ -110,14 +113,6 @@ internal fun CommentListView(
                 commentListFooter(state, showLoading, colors.onBackgroundVariant)
             }
 
-            if (loading && showLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize().offset(y = topInset / 2),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    TeakLoading(size = 48.dp)
-                }
-            }
         }
     }
 

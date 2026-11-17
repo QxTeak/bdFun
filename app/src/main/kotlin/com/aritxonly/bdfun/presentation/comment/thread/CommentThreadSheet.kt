@@ -25,9 +25,11 @@ internal fun CommentThreadSheet(
         if (input.visible) page.commentThreadVisible = true
         onDispose { page.commentThreadVisible = false }
     }
+    // 展开/关闭比原来慢 20%（220ms → 264ms），并换成更柔和的先快后慢曲线，
+    // 收起时不会一下子"抽"走。
     val progress = rememberSmoothFloat(
         target = if (input.visible && mount.mounted) 1f else 0f,
-        durationMs = 220f, easing = EaseOutQuint,
+        durationMs = 264f, easing = EaseOutSoft,
     )
     if (!input.visible && progress <= 0.005f) return
     val connection = rememberCommentThreadCollapseConnection(page)
