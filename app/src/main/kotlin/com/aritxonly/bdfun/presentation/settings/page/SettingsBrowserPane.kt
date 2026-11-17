@@ -72,7 +72,7 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
                 fullWidth = session.selected?.layout == "about",
                 search = if (!session.wide && detail == null && !categories && !searching && session.selected != null) ({ session.browser.search(session.selected.route) }) else null,
             ) {
-                if (detail != null) SettingsDetailContent(detail, back)
+                if (detail != null) SettingsDetailContent(detail, back, runtime.settings)
                 else SettingsPaneBody(local, values, localRuntime, controller, categories)
                 if (categories) SettingsLogoutDialog(session.browser, runtime.navigation.onLogout)
             }

@@ -35,7 +35,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
                 0 -> when (ui.homeSection) {
                     1 -> AppGraph.livePageState.requestRefresh()
                     2 -> AppGraph.bangumiPageState.requestRefresh()
-                    else -> homeFeed.requestRefresh()
+                    0 -> homeFeed.requestRefresh()
                 }
                 1 -> ui.dynamicRefreshTick++
             }

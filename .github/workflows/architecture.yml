@@ -31,6 +31,9 @@ jobs:
           yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-37.0' 'build-tools;37.0.0'
       - name: Prepare pinned Miuix source
         run: python3 tools/setup-miuix.py
+      - name: Prepare pinned Robolectric SDK
+        # 先走 Gradle 解析与缓存，测试 JVM 不再临时访问 repo1.maven.org。
+        run: bash ./gradlew :infra:playback:prepareRobolectricTestSdk :danmaku-engine:prepareRobolectricTestSdk --no-parallel --max-workers=2
       - name: Check architecture, lint and build test APKs
         run: bash ./gradlew checkLayering :app:lintDebug :app:assembleDebug :app:assembleRelease --no-parallel --max-workers=2
       - name: Verify forbidden production dependency is rejected

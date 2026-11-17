@@ -20,6 +20,8 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
     val context = androidx.compose.ui.platform.LocalContext.current
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val ui = shell.ui
+    val channels = com.aritxonly.bdfun.core.domain.HomeChannelPolicy.visible(settings.homeChannels)
+    val channelIndex = channels.indexOfFirst { it.ordinal == ui.homeSection }.coerceAtLeast(0)
     val input = shell.searchInput(bottomSearch)
     val session = shell.feeds.session
     val unreadMessageCount = shell.feeds.unreadMessageCount
@@ -32,15 +34,17 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
     val tabs = when {
         bottomSearch -> null
         TeakStyle.fromStoredValue(settings.interfaceStyle).layout.hasBottomSearch -> HomeTopBarTabs(
-            selected = ui.homeSection,
+            options = channels.map { it.title },
+            selected = channelIndex,
             position = ui.homeSectionPosition,
-            onSelect = { haptics.tap(); ui.homeSection = it },
+            onSelect = { haptics.tap(); ui.homeSection = channels[it].ordinal },
         )
         settings.interfaceStyle == 0 || settings.interfaceStyle == 1 -> HomeTopBarTabs(
-            selected = ui.homeSection,
+            options = channels.map { it.title },
+            selected = channelIndex,
             position = ui.homeSectionPosition,
             belowSearch = true,
-            onSelect = { haptics.tap(); ui.homeSection = it },
+            onSelect = { haptics.tap(); ui.homeSection = channels[it].ordinal },
         )
         else -> null
     }

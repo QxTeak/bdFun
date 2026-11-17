@@ -12,7 +12,7 @@ internal class MainShellUiStateHolder {
     var searchQuery by mutableStateOf("")
     var searchSubmitted by mutableStateOf<String?>(null)
     var dynamicRefreshTick by mutableIntStateOf(0)
-    // 首页顶部分段：0 推荐 / 1 直播 / 2 番剧。只在 HyperOS 4 风格下由顶栏切换。
+    // 首页顶部分段：0 推荐 / 1 直播 / 2 番剧 / 3 热门 / 4 影视。
     // 放在 shell 而不是 feature:home，是因为顶栏（shell chrome）和页面内容（pager）分属两层，
     // 中间隔了一次组合，没有共同的父级可以提升状态。
     var homeSection by mutableIntStateOf(0)
@@ -29,6 +29,7 @@ internal data class MainShellChrome(
     val home: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val live: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val bangumi: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    val placeholder: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val dynamic: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val search: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val mine: com.aritxonly.teak.common.chrome.TeakPageScrollState,

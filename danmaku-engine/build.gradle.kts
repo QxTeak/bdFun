@@ -32,3 +32,5 @@ dependencies {
     implementation("androidx.collection:collection:1.5.0")
     implementation(libs.coroutines.android)
 }
+
+apply(from = rootProject.file("gradle/robolectric-tests.gradle.kts"))

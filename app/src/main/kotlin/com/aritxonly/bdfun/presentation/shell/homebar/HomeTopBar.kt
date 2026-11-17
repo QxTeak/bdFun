@@ -92,6 +92,8 @@ private fun HomeTopBarWideTabsRow(
         }
         TeakSegmentedBar(
             options = tabs.options,
+            scrollable = androidx.compose.ui.platform.LocalConfiguration.current.smallestScreenWidthDp < 600,
+            maxVisibleItems = 3,
             selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
             itemWidth = 64.dp,
             materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
@@ -129,6 +131,8 @@ private fun HomeTopBarMainRow(
             ) {
                 TeakSegmentedBar(
                     options = tabs.options,
+                    scrollable = androidx.compose.ui.platform.LocalConfiguration.current.smallestScreenWidthDp < 600,
+                    maxVisibleItems = 3,
                     selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
                     itemWidth = 64.dp,
                     materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
@@ -160,6 +164,8 @@ private fun HomeTopBarTabsBelow(tabs: HomeTopBarTabs) {
     ) {
         TeakSegmentedBar(
             options = tabs.options,
+            scrollable = androidx.compose.ui.platform.LocalConfiguration.current.smallestScreenWidthDp < 600,
+            maxVisibleItems = 3,
             selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
             itemWidth = 64.dp,
             materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
