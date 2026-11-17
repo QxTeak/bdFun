@@ -680,3 +680,7 @@ ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保�
 投币改为照搬 PiliPlus 的整页 `PayCoinsPage`（`lib/pages/video/pay_coins/view.dart`）：硬币箱两档（选中 100/未选中 70dp，硬币 50/35dp）、左右箭头与横向滑动切换、角色图（1 枚 / 2 枚 / 余额不足）点击或上滑投币、硬币余额、同时点赞复选框、关闭按钮；投币时角色起手 → 硬币上抛淡出 → 提交，约 650ms。资源取自 PiliPlus `assets/images/paycoins/`（GPL-3.0，与 bdFun 一致），落在 `res/drawable-nodpi/teak_coin_*`。`VideoActionsRepository.coin` 增加 `alsoLike`（对应 `select_like`），成功后同步 liked/likeCount。上游的 `hasCopyright`（转载最多 1 币）与雷电帧 bdFun 接口没有对应字段，未接。
 
 下拉刷新（小电视）也收成一套：新增 `feature:home` 的 `PullRefreshSession`（8ms 手动缓动、0.6 阻尼、阈值/上限由调用方按 dp 传入、松手过阈值刷新否则回弹）与 `PullRefreshSettleEffect`（刷新结束：进度归零 → 160ms 收小电视 → 260ms 回弹）。推荐/直播/番剧/动态共用，删除了 `HomePullSession`、`DiscoverPullSession`、`FeedPullSession`、`FeedPullEffects` 四份重复实现；再次点击底栏当前页的回顶+下拉+刷新统一走 `RefreshToTopEffect`。
+
+### 2026-11-17 投币页与自由复制弹层细节
+
+投币页：整列内容改为屏幕居中（原来贴底），遮罩改为 50% 黑（`0x80000000`）；左右切换键和关闭键改用 Miuix 图标（`MiuixIcons.ChevronBackward/ChevronForward/Close`），删除对应的 PNG；「同时点赞」的勾改为复用收藏夹 sheet 的 Miuix `Checkbox`（`ToggleableState.On/Off`）。评论「自由复制」弹层改用与收藏夹同款的 `MiuixBottomSheet`（标题 + 关闭按钮 + 底部主按钮），内容仍是可选择文本。

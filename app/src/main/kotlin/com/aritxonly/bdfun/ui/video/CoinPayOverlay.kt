@@ -12,17 +12,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -42,6 +37,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -49,6 +45,12 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.window.DialogWindowProvider
 import com.aritxonly.bdfun.R
 import kotlinx.coroutines.delay
+import top.yukonga.miuix.kmp.basic.Checkbox
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.ChevronBackward
+import top.yukonga.miuix.kmp.icon.extended.ChevronForward
+import top.yukonga.miuix.kmp.icon.extended.Close
 
 /**
  * 投币页：整页浮层，布局与动效照搬 PiliPlus `lib/pages/video/pay_coins/view.dart`。
@@ -107,7 +109,6 @@ private fun CoinPayContent(
     var alsoLike by remember { mutableStateOf(false) }
     var paying by remember { mutableStateOf(false) }
     var progress by remember { mutableFloatStateOf(0f) }
-    val navBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val canPay = !paying && canPayCoins(selected, balance, alreadyCoined)
 
     // 提交前先播完整段动作，视觉上"硬币真的投出去了"再关页。
@@ -138,7 +139,7 @@ private fun CoinPayContent(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xF2000000))
+            .background(Color(0x80000000))
             .pointerInput(paying) {
                 if (paying) return@pointerInput
                 detectHorizontalDragGestures(
@@ -149,13 +150,13 @@ private fun CoinPayContent(
                     },
                 )
             },
-        contentAlignment = Alignment.BottomCenter,
+        contentAlignment = Alignment.Center,
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp + navBottom),
+            modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // 硬币箱：选中放大，两侧箭头切换；箭头在禁用态用灰版图片。
+            // 硬币箱：选中放大，两侧箭头切换。
             Box(modifier = Modifier.fillMaxWidth().height(110.dp)) {
                 Row(
                     modifier = Modifier.align(Alignment.Center),
@@ -166,14 +167,16 @@ private fun CoinPayContent(
                     CoinSlot(index = 1, selected = selected == 1, progress = progress, paying = paying)
                 }
                 CoinArrow(
-                    res = if (selected == 1) R.drawable.teak_coin_left else R.drawable.teak_coin_left_disable,
-                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 12.dp),
-                    onClick = { if (selected == 1) switchTo(0) },
+                    forward = false,
+                    enabled = selected == 1,
+                    modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp),
+                    onClick = { switchTo(0) },
                 )
                 CoinArrow(
-                    res = if (selected == 0) R.drawable.teak_coin_right else R.drawable.teak_coin_right_disable,
-                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = 12.dp),
-                    onClick = { if (selected == 0) switchTo(1) },
+                    forward = true,
+                    enabled = selected == 0,
+                    modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
+                    onClick = { switchTo(1) },
                 )
             }
             Spacer(Modifier.height(4.dp))
@@ -231,14 +234,11 @@ private fun CoinPayContent(
                     modifier = Modifier.align(Alignment.CenterStart).padding(start = 12.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
+                    // 复用收藏夹 sheet 里的 Miuix 勾选样式，不再用 Material 的方块勾。
                     Checkbox(
-                        checked = alsoLike,
-                        onCheckedChange = { if (!paying) alsoLike = it },
-                        colors = CheckboxDefaults.colors(
-                            checkedColor = Color(0xFFFB7299),
-                            uncheckedColor = Color.White.copy(alpha = 0.7f),
-                            checkmarkColor = Color.White,
-                        ),
+                        state = if (alsoLike) ToggleableState.On else ToggleableState.Off,
+                        onClick = { if (!paying) alsoLike = !alsoLike },
+                        enabled = !paying,
                     )
                     Text(
                         text = "同时点赞",
@@ -250,12 +250,13 @@ private fun CoinPayContent(
                         ) { if (!paying) alsoLike = !alsoLike },
                     )
                 }
-                Image(
-                    painter = painterResource(R.drawable.teak_coin_close),
+                Icon(
+                    imageVector = MiuixIcons.Close,
                     contentDescription = "关闭",
+                    tint = Color.White,
                     modifier = Modifier
                         .align(Alignment.Center)
-                        .size(30.dp)
+                        .size(28.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null,
@@ -296,19 +297,23 @@ private fun CoinSlot(index: Int, selected: Boolean, progress: Float, paying: Boo
 
 @Composable
 private fun CoinArrow(
-    res: Int,
+    forward: Boolean,
+    enabled: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
-    Image(
-        painter = painterResource(res),
-        contentDescription = null,
+    Icon(
+        imageVector = if (forward) MiuixIcons.ChevronForward else MiuixIcons.ChevronBackward,
+        contentDescription = if (forward) "下一档" else "上一档",
+        tint = Color.White.copy(alpha = if (enabled) 0.92f else 0.30f),
         modifier = modifier
-            .size(16.dp, 28.dp)
+            .size(28.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
-            ) { onClick() },
+                enabled = enabled,
+                onClick = onClick,
+            ),
     )
 }
 
