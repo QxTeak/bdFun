@@ -717,3 +717,6 @@ scrollable 默认 false，maxVisibleItems 默认 3；开启并超限时启用内
 首页频道使用 core/model/HomeChannel 稳定 key 与 HomeChannelPolicy 归一化；推荐不可禁用。
 设置三级页经 SettingsBindings/AppearanceSettingsStateHolder 写入既有 SettingsPreferences，
 首页 pager 下标只表示可见顺序，不能直接当频道身份；热门、影视目前为明确占位页。
+自适应分段动画用浮点位置直接驱动绘制层，不得恢复逐帧 LaunchedEffect + ScrollState
+同步。手势期间由组件预览位置，松手才提交频道；动画取消必须用代数守卫，旧 finally
+不得释放新手势的位置所有权。

@@ -3,45 +3,65 @@ package com.aritxonly.teak.common.navigation
 import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlin.math.abs
 
-internal class AdaptiveTabMotion(val scroll: ScrollState) {
-    var initialized = false
-    private var automatic by mutableStateOf(false)
-    private var indicator by mutableFloatStateOf(0f)
+/** 手势期间由控件拥有连续位置，页面追上后再交还，避免两套动画互相拉扯。 */
+internal class AdaptiveTabMotion {
+    private var owned by mutableStateOf(false)
+    private var localPosition by mutableFloatStateOf(0f)
+    private var animation: Job? = null
+    private var generation = 0
 
-    fun indicator(position: Float, geometry: AdaptiveTabGeometry): Float =
-        if (automatic) indicator else position * geometry.item - scroll.value
+    fun value(external: Float): Float = if (owned) localPosition else external
 
-    suspend fun move(position: Float, geometry: AdaptiveTabGeometry, animated: Boolean) {
-        val target = geometry.scroll(position)
-        val targetIndicator = geometry.indicator(position)
-        // 同一个时钟驱动两层；中间项之间切换时指示器起终点相同，不跟着文字晃动。
-        val fromIndicator = indicator
-        scroll.scroll {
-            val fromScroll = scroll.value.toFloat()
-            automatic = true
-            try {
-                if (animated) {
-                    animate(0f, 1f, animationSpec = tween(420, easing = CubicBezierEasing(.22f, 1f, .36f, 1f))) { progress, _ ->
-                        scrollBy(fromScroll + (target - fromScroll) * progress - scroll.value)
-                        indicator = fromIndicator + (targetIndicator - fromIndicator) * progress
-                    }
-                } else {
-                    scrollBy(target - scroll.value)
-                    indicator = targetIndicator
-                }
-            } finally {
-                automatic = false
-            }
-        }
+    fun begin(external: Float) {
+        val start = value(external)
+        generation++
+        animation?.cancel()
+        localPosition = start
+        owned = true
     }
 
-    fun recordManualPosition(position: Float, geometry: AdaptiveTabGeometry) {
-        if (!automatic) indicator = position * geometry.item - scroll.value
+    fun drag(delta: Float, item: Float, count: Int) {
+        localPosition = draggedTabPosition(localPosition, delta, item, count)
+    }
+
+    fun end(velocity: Float, item: Float, count: Int): Int {
+        return settledTabIndex(localPosition, velocity, item, count)
+    }
+
+    fun select(
+        target: Int, external: () -> Float, scope: CoroutineScope,
+        enabled: Boolean, onSelect: (Int) -> Unit,
+    ) {
+        val start = value(external())
+        val ticket = ++generation
+        animation?.cancel()
+        localPosition = start
+        owned = true
+        onSelect(target)
+        animation = scope.launch {
+            try {
+                if (enabled) animate(start, target.toFloat(), animationSpec = tween(280,
+                    easing = CubicBezierEasing(.22f, 1f, .36f, 1f))) { value, _ -> localPosition = value }
+                else localPosition = target.toFloat()
+                // 页面动画可以略慢；追上前保持吸附位置，不倒退一帧。
+                withTimeoutOrNull(1500) {
+                    snapshotFlow { external() }.first { abs(it - target) < .001f }
+                }
+            } finally {
+                if (generation == ticket) owned = false
+            }
+        }
     }
 }

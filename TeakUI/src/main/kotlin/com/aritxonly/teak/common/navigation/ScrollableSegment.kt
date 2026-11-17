@@ -3,9 +3,12 @@ package com.aritxonly.teak.common.navigation
 import android.graphics.RenderEffect
 import android.graphics.Shader
 import androidx.compose.foundation.background
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material3.Text
@@ -17,7 +20,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asComposeRenderEffect
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,7 +33,6 @@ import com.aritxonly.teak.common.theme.TeakUiStyle
 import com.kyant.shapes.Capsule
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.roundToInt
-import kotlinx.coroutines.launch
 
 @Composable
 internal fun ScrollableSegment(
@@ -62,36 +67,33 @@ private fun ScrollableSegmentContent(
         val density = LocalDensity.current
         val widthPx = with(density) { maxWidth.toPx() }
         val geometry = AdaptiveTabGeometry(options.size, widthPx, widthPx / (limit + .6f))
-        val scroll = rememberScrollState()
         val scope = rememberCoroutineScope()
-        val motion = remember(scroll) { AdaptiveTabMotion(scroll) }
-        val current = (position?.value ?: selected.toFloat()).coerceIn(0f, options.lastIndex.toFloat())
-        val active = current.roundToInt()
+        val motion = remember(options) { AdaptiveTabMotion() }
+        val fallback = animateFloatAsState(selected.toFloat(), tween(if (TeakMotion.enabled) 280 else 0))
+        val external by rememberUpdatedState(position ?: fallback)
+        val latestSelect by rememberUpdatedState(onSelect)
         val motionEnabled = TeakMotion.enabled
-        val latestPosition by rememberUpdatedState(current)
-        LaunchedEffect(current, geometry, motionEnabled) {
-            motion.move(current, geometry, motion.initialized && position == null && motionEnabled)
-            motion.initialized = true
+        val direction = if (LocalLayoutDirection.current == LayoutDirection.Rtl) -1f else 1f
+        val current = remember(motion, geometry) {
+            derivedStateOf { motion.value(external.value).coerceIn(0f, options.lastIndex.toFloat()) }
         }
-        LaunchedEffect(motion, geometry) {
-            snapshotFlow { scroll.value }.collect { motion.recordManualPosition(latestPosition, geometry) }
+        val active by remember(current) { derivedStateOf { current.value.roundToInt() } }
+        val select: (Int) -> Unit = { target ->
+            motion.select(target, { external.value }, scope, motionEnabled, latestSelect)
         }
-        val classic = TeakUiStyle.isClassic
-        val colors = MiuixTheme.colorScheme
-        val itemDp = with(density) { geometry.item.toDp() }
-        val x = with(density) { motion.indicator(current, geometry).toDp() }
-        Box(Modifier.offset(x + if (classic) itemDp * .34f else 0.dp, if (classic) 30.dp else 0.dp)
-            .width(if (classic) itemDp * .32f else itemDp)
-            .height(if (classic) 3.dp else 32.dp)
-            .background(colors.primary.copy(alpha = if (classic) 1f else .92f), Capsule()))
-        Row(Modifier.horizontalScroll(scroll).selectableGroup()) {
-            options.forEachIndexed { index, label ->
-                ScrollableSegmentLabel(label, index, active, geometry, scroll.value) { target ->
-                    // 拖动浏览后再点当前频道也要归中，不能只等 selected 改变。
-                    if (target.toFloat() == current) scope.launch {
-                        motion.move(current, geometry, motionEnabled)
-                    }
-                    onSelect(target)
+        val drag = rememberDraggableState { delta -> motion.drag(delta * direction, geometry.item, options.size) }
+        Box(Modifier.width(maxWidth).draggable(drag, Orientation.Horizontal,
+            onDragStarted = { motion.begin(external.value) },
+            onDragStopped = { velocity -> select(motion.end(velocity * direction, geometry.item, options.size)) },
+        )) {
+            ScrollableSegmentIndicator(current, geometry, direction)
+            val itemDp = with(density) { geometry.item.toDp() }
+            Row(Modifier.wrapContentWidth(Alignment.Start, unbounded = true)
+                .width(itemDp * options.size).graphicsLayer {
+                    translationX = -direction * geometry.scroll(current.value)
+                }.selectableGroup()) {
+                options.forEachIndexed { index, label ->
+                    ScrollableSegmentLabel(label, index, active, geometry, current, select)
                 }
             }
         }
@@ -101,18 +103,11 @@ private fun ScrollableSegmentContent(
 @Composable
 private fun ScrollableSegmentLabel(
     label: String, index: Int, active: Int, geometry: AdaptiveTabGeometry,
-    scroll: Int, onSelect: (Int) -> Unit,
+    current: State<Float>, onSelect: (Int) -> Unit,
 ) {
     val density = LocalDensity.current
     val colors = MiuixTheme.colorScheme
     val classic = TeakUiStyle.isClassic
-    val center = (index + .5f) * geometry.item - scroll
-    // 仅处理仍有内容可滚动的一侧，首项和末项在端点保持清晰。
-    val edgeDistance = minOf(
-        if (scroll > 0) center else Float.POSITIVE_INFINITY,
-        if (scroll < geometry.maxScroll - 1f) geometry.viewport - center else Float.POSITIVE_INFINITY,
-    )
-    val blurFraction = (1f - edgeDistance / (geometry.item * .6f)).coerceIn(0f, 1f)
     val blur = remember(density) {
         RenderEffect.createBlurEffect(1.5f * density.density, 1.5f * density.density, Shader.TileMode.DECAL)
             .asComposeRenderEffect()
@@ -122,13 +117,30 @@ private fun ScrollableSegmentLabel(
             .selectable(selected = index == active, role = Role.Tab, onClick = { onSelect(index) }),
         contentAlignment = Alignment.Center,
     ) {
-        Text(
-            text = label, fontSize = 13.sp, maxLines = 1,
-            color = if (index != active) colors.onBackgroundVariant else if (classic) colors.primary else Color.White,
+        val color = if (index != active) colors.onBackgroundVariant else if (classic) colors.primary else Color.White
+        Text(text = label, fontSize = 13.sp, maxLines = 1, color = color,
             modifier = Modifier.graphicsLayer {
-                renderEffect = if (blurFraction > .1f) blur else null
-                alpha = 1f - blurFraction * .55f
-            },
-        )
+                alpha = 1f - geometry.edgeFade(index, current.value)
+            })
+        // 清晰/模糊两层交叉淡入，不在越过阈值时突然切换 RenderEffect。
+        Text(text = label, fontSize = 13.sp, maxLines = 1, color = color,
+            modifier = Modifier.clearAndSetSemantics {}.graphicsLayer {
+                renderEffect = blur
+                alpha = geometry.edgeFade(index, current.value) * .45f
+            })
     }
+}
+
+@Composable
+private fun ScrollableSegmentIndicator(current: State<Float>, geometry: AdaptiveTabGeometry, direction: Float) {
+    val density = LocalDensity.current
+    val item = with(density) { geometry.item.toDp() }
+    val classic = TeakUiStyle.isClassic
+    val color = MiuixTheme.colorScheme.primary
+    Box(Modifier.width(if (classic) item * .32f else item)
+        .height(if (classic) 3.dp else 32.dp)
+        .graphicsLayer {
+            translationX = direction * (geometry.indicator(current.value) + if (classic) geometry.item * .34f else 0f)
+            translationY = if (classic) 30.dp.toPx() else 0f
+        }.background(color.copy(alpha = if (classic) 1f else .92f), Capsule()))
 }
