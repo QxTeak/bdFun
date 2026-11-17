@@ -12,7 +12,7 @@ import androidx.media3.exoplayer.mediacodec.MediaCodecUtil
  * 按硬解模式构建 ExoPlayer：
  * 0 自动 / 1 硬件解码（失败回退软解）/ 2 软件解码 / 3 硬件解码（禁止回退）。
  */
-internal fun buildPlayer(context: Context, decoderMode: Int, buffering: BufferSession): ExoPlayer {
+internal fun buildPlayer(context: Context, decoderMode: Int, buffering: BufferSession, diagnosticLog: ((String) -> Unit)?): ExoPlayer {
     val renderers = DefaultRenderersFactory(context)
         .setEnableDecoderFallback(decoderMode != 3)
         // 不要打开 AudioTrack playback params：部分机型在改倍速后音轨时间戳
@@ -22,7 +22,7 @@ internal fun buildPlayer(context: Context, decoderMode: Int, buffering: BufferSe
     if (decoderMode in 1..3) {
         renderers.setMediaCodecSelector(TeakCodecSelector(decoderMode))
     }
-    val loadControl = StrategyLoadControl(buffering)
+    val loadControl = StrategyLoadControl(buffering, diagnosticLog)
     return ExoPlayer.Builder(context, renderers)
         .setLoadControl(loadControl)
         // 前台服务不保证锁屏后 CPU/Wi-Fi 持续工作；由播放器随播放状态管理锁。

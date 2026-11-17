@@ -97,7 +97,8 @@ internal class AppContainer(
         com.aritxonly.bdfun.playback.AndroidVideoPlaybackPlatform(
             com.aritxonly.bdfun.infra.playback.Media3PlaybackController(context.applicationContext, decoderMode,
                 com.aritxonly.bdfun.core.domain.buffering.BufferSession(bufferHistory),
-                { (sessionController.identity.mid?.takeIf { it > 0 }?.toString().orEmpty()) to settings.adaptiveBuffering }), mediaControls)
+                { (sessionController.identity.mid?.takeIf { it > 0 }?.toString().orEmpty()) to settings.adaptiveBuffering },
+                if (BuildConfig.DEBUG) { message -> LogCollector.record("PLAYBACK_TRACE", message) } else null), mediaControls)
     val recommendationOptimizer = createRecommendationOptimizer(context, presentationScope) {
         val identity = sessionController.identity
         (identity.mid?.takeIf { it > 0 }?.toString().orEmpty()) to identity.revision

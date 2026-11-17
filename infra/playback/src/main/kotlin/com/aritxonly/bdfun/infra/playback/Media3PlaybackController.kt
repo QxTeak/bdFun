@@ -24,9 +24,11 @@ class Media3PlaybackController(
     decoderMode: Int,
     private val buffering: com.aritxonly.bdfun.core.domain.buffering.BufferSession,
     private val bufferOptions: () -> Pair<String, Boolean>,
+    diagnosticLog: ((String) -> Unit)? = null,
 ) : PlaybackController {
     private val appContext = context.applicationContext
-    val player: ExoPlayer = buildPlayer(appContext, decoderMode, buffering)
+    val player: ExoPlayer = buildPlayer(appContext, decoderMode, buffering, diagnosticLog)
+    private val diagnostics = diagnosticLog?.let { PlaybackDiagnostics(appContext, it) }
     private val mutableState = MutableStateFlow(PlaybackSnapshot())
     override val state = mutableState.asStateFlow()
     private val listeners = CopyOnWriteArrayList<PlaybackController.Listener>()
@@ -55,10 +57,14 @@ class Media3PlaybackController(
             if (!retryNetworkFailure(failure)) listeners.forEach { it.onError(failure) }
         }
     }
-    init { player.addListener(observer) }
+    init {
+        player.addListener(observer)
+        diagnostics?.let(player::addAnalyticsListener)
+    }
 
     override fun refresh(): PlaybackSnapshot {
         if (released) return mutableState.value
+        diagnostics?.sample(player)
         val phase = when (player.playbackState) {
             Player.STATE_BUFFERING -> PlaybackPhase.Buffering
             Player.STATE_READY -> PlaybackPhase.Ready

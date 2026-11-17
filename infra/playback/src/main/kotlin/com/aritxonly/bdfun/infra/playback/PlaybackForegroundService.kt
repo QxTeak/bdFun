@@ -61,11 +61,11 @@ abstract class PlaybackForegroundService : Service() {
         mediaSession = MediaSessionCompat(this, "BdFunBackgroundPlayback").apply {
             setCallback(object : MediaSessionCompat.Callback() {
                 override fun onPlay() {
-                    if (!playback.playing) playback.togglePlayPause()
+                    if (!playback.playbackSnapshot.playWhenReady) playback.togglePlayPause()
                 }
 
                 override fun onPause() {
-                    if (playback.playing) playback.togglePlayPause()
+                    if (playback.playbackSnapshot.playWhenReady) playback.togglePlayPause()
                 }
 
                 override fun onSkipToNext() {
@@ -191,7 +191,8 @@ abstract class PlaybackForegroundService : Service() {
         }
         val title = playback.title.ifBlank { "正在播放" }
         val artist = playback.author.ifBlank { "bdFun" }
-        val playing = playback.playing
+        val snapshot = playback.playbackSnapshot
+        val playing = snapshot.playWhenReady && snapshot.phase != com.aritxonly.bdfun.core.application.PlaybackPhase.Ended
         val art = artBitmap
         val action = { name: String, code: Int ->
             PendingIntent.getService(
@@ -202,7 +203,7 @@ abstract class PlaybackForegroundService : Service() {
             )
         }
 
-        updateNotificationSession(title, artist, playing, art)
+        updateNotificationSession(title, artist, snapshot, art)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_media_play)
@@ -241,7 +242,7 @@ abstract class PlaybackForegroundService : Service() {
             )
             .build()
     }
-    private fun updateNotificationSession(title: String, artist: String, playing: Boolean, art: Bitmap?) {
+    private fun updateNotificationSession(title: String, artist: String, snapshot: com.aritxonly.bdfun.core.application.PlaybackSnapshot, art: Bitmap?) {
         mediaSession?.let { session ->
             session.setMetadata(
                 MediaMetadataCompat.Builder()
@@ -273,13 +274,9 @@ abstract class PlaybackForegroundService : Service() {
                             PlaybackStateCompat.ACTION_STOP,
                     )
                     .setState(
-                        if (playing) {
-                            PlaybackStateCompat.STATE_PLAYING
-                        } else {
-                            PlaybackStateCompat.STATE_PAUSED
-                        },
-                        playback.positionMs,
-                        1f,
+                        mediaSessionPlaybackState(snapshot),
+                        snapshot.positionMs,
+                        snapshot.speed,
                     )
                     .build(),
             )

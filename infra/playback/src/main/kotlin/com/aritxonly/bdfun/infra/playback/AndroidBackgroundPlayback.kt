@@ -25,6 +25,7 @@ open class AndroidBackgroundPlayback(
     private val ports: BackgroundPlaybackPlatformPorts,
 ) : com.aritxonly.bdfun.core.application.BackgroundDiscPlayback, ForegroundPlaybackAttachment {
 
+    override val playbackSnapshot get() = session.controller?.refresh() ?: session.state.value.playback
     override val state get() = session.state
     // app的Compose投影覆写这两个接缝，保持原读取与同步更新时机。
     protected open val snapshot get() = session.state.value
@@ -177,7 +178,7 @@ open class AndroidBackgroundPlayback(
     override fun togglePlayPause() {
         val exo = detachedPlayer
         if (detached && exo != null) {
-            if (exo.refresh().playing) exo.pause() else exo.play()
+            if (exo.refresh().playWhenReady) exo.pause() else exo.play()
         } else {
             actions?.togglePlayPause()
         }

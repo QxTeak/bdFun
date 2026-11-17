@@ -70,3 +70,22 @@ Home/锁屏保留Activity时未启动。现在VideoActivity.onPause在仍可见�
 后台唱片仍沿用原adopt和退出路径。网络锁随Media3实际播放状态持有/释放；不申请电池优化豁免、不永久持锁。
 这修复了已确认的生命周期缺口，不宣称已经证明用户后台断流的唯一原因。
 仍需真机Wi-Fi/蜂窝分别测Home与锁屏超过最大缓冲时长、暂停/恢复、画中画、返回原页及退出清理。
+
+### Hyper-PiliPlus 对照与后台诊断
+
+参考本机干净快照AritxOnly/Hyper-PiliPlus@0d08dd25bdeaa9a55e5a0e333154b681fd8048fe：
+lib/utils/storage_pref.dart initBuffer配置16秒、4MiB前向上限，时间按倍速换算；
+lib/services/audio_handler.dart onUpdateState将buffering与paused区分；
+lib/plugin/pl_player/view/view.dart生命周期按后台开关暂停，普通锁屏并未自动切纯音频。
+该实现基于media-kit/mpv，不能直接复制参数或据静态代码认定某机型不卡顿的根因。
+
+bdFun后台通知原先只判断playing，缓冲时会报告PAUSED；现读取控制器最新快照，
+按phase/error/playWhenReady区分状态，保留实际倍速；缓冲期间媒体键暂停按播放意图操作。
+新增MediaSessionPlaybackState回归测试。此修复不代表后台断续根因已证明。
+
+Debug通过app注入PLAYBACK_TRACE，复用LogCollector和现有日志抓取页；
+5秒采样播放位置/缓冲/加载/播放意图/音频抑制/屏幕/Doze/省电状态，
+5秒采样加载决策与allocator占用、带宽事件，记录错误码和音频欠载事件。
+不记录URL/账号/请求头；Release不注入、不写诊断、不改变日志开关。
+后台服务轮询读取控制器快照，使采样不依赖Compose页面是否刷新。
+复现后导出日志可区分网络无进展、策略停载、音频输出欠载；仍需用户设备证据。

@@ -9,15 +9,26 @@ import com.aritxonly.bdfun.core.domain.buffering.BufferSession
 import com.aritxonly.bdfun.core.domain.buffering.VideoBufferProvider
 
 /** 只控制加载许可；Media3 保留音视频同步、数据请求与 allocator 生命周期。 */
-internal class StrategyLoadControl(private val session: BufferSession) : DefaultLoadControl(
+internal class StrategyLoadControl(private val session: BufferSession, private val diagnosticLog: ((String) -> Unit)? = null) : DefaultLoadControl(
     DefaultAllocator(true, C.DEFAULT_BUFFER_SEGMENT_SIZE),
     // 即使覆盖加载决策，父类仍要求最小缓冲不小于卡顿恢复门槛。
     3_000, 120_000, 1_000, 3_000, VideoBufferProvider.MAX_BUFFER_BYTES, false, 0, false,
 ) {
-    override fun shouldContinueLoading(parameters: LoadControl.Parameters): Boolean = session.decide(
-        BufferInput(parameters.bufferedDurationUs / 1_000, parameters.playbackSpeed,
-            allocator.totalBytesAllocated, parameters.playWhenReady),
-    ).shouldLoad
+    private var lastDiagnosticMs = 0L
+    override fun shouldContinueLoading(parameters: LoadControl.Parameters): Boolean {
+        val bytes = allocator.totalBytesAllocated
+        val decision = session.decide(BufferInput(parameters.bufferedDurationUs / 1_000,
+            parameters.playbackSpeed, bytes, parameters.playWhenReady))
+        if (diagnosticLog != null) {
+            val now = android.os.SystemClock.elapsedRealtime()
+            if (now - lastDiagnosticMs >= 5_000) {
+                lastDiagnosticMs = now
+                diagnosticLog.invoke("load allowed=${decision.shouldLoad} bufferedMs=${parameters.bufferedDurationUs / 1_000} " +
+                    "lowMs=${decision.lowWaterMediaMs} targetMs=${decision.targetMediaMs} allocatedBytes=$bytes")
+            }
+        }
+        return decision.shouldLoad
+    }
 
     override fun shouldStartPlayback(parameters: LoadControl.Parameters): Boolean {
         val speed = parameters.playbackSpeed.coerceAtLeast(0.1f)
