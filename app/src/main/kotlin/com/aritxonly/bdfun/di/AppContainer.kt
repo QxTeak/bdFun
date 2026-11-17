@@ -92,9 +92,15 @@ internal class AppContainer(
         api::danmaku,
         { detail -> api.cloudResumePositionMs(detail.aid, detail.cid, detail.duration) },
     )
+    private val bufferHistory by lazy {
+        com.aritxonly.bdfun.infra.storage.AndroidBufferHistoryStore(requireNotNull(context))
+    }
     fun createPlaybackController(context: Context, decoderMode: Int): com.aritxonly.bdfun.feature.video.presentation.VideoPlaybackPlatform =
         com.aritxonly.bdfun.playback.AndroidVideoPlaybackPlatform(
-            com.aritxonly.bdfun.infra.playback.Media3PlaybackController(context.applicationContext, decoderMode), mediaControls)
+            com.aritxonly.bdfun.infra.playback.Media3PlaybackController(context.applicationContext, decoderMode,
+                com.aritxonly.bdfun.core.domain.buffering.BufferSession(bufferHistory),
+                { (sessionController.identity.mid?.takeIf { it > 0 }?.toString().orEmpty()) to settings.adaptiveBuffering },
+                if (BuildConfig.DEBUG) { message -> LogCollector.record("PLAYBACK_TRACE", message) } else null), mediaControls)
     val recommendationOptimizer = createRecommendationOptimizer(context, presentationScope) {
         val identity = sessionController.identity
         (identity.mid?.takeIf { it > 0 }?.toString().orEmpty()) to identity.revision

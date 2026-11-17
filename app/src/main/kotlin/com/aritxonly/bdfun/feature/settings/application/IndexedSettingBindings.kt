@@ -69,6 +69,8 @@ private fun playbackBindings(repository: SettingsRepository) = mapOf(
         { repository.playback.progressBarMode = (it as SettingValue.Number).value }),
     "quality" to IndexedSettingBinding({ SettingValue.Number(repository.playback.qualityPreference) },
         { repository.playback.qualityPreference = (it as SettingValue.Number).value }),
+    "adaptive_buffering" to IndexedSettingBinding({ SettingValue.Flag(repository.playback.adaptiveBuffering) },
+        { repository.playback.adaptiveBuffering = (it as SettingValue.Flag).value }),
     "decoder_mode" to IndexedSettingBinding({ SettingValue.Number(repository.playback.decoderMode) },
         { repository.playback.decoderMode = (it as SettingValue.Number).value }),
     "codec_preference" to IndexedSettingBinding({ SettingValue.Text(repository.playback.codecPreference) },

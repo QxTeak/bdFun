@@ -24,6 +24,7 @@ class SettingsRoundTripTest(private val case: SettingCase<*>) {
             SettingCase("bottomBarRaise", false, true, { it.bottomBarRaise }, { s, v -> s.bottomBarRaise = v }),
             SettingCase("animationsEnabled", true, false, { it.animationsEnabled }, { s, v -> s.animationsEnabled = v }),
             SettingCase("danmakuEnabled", true, false, { it.danmakuEnabled }, { s, v -> s.danmakuEnabled = v }),
+            SettingCase("adaptiveBuffering", false, true, { it.adaptiveBuffering }, { s, v -> s.adaptiveBuffering = v }),
             SettingCase("qualityPreference", 0, 80, { it.qualityPreference }, { s, v -> s.qualityPreference = v }),
             SettingCase("lowPower", false, true, { it.lowPower }, { s, v -> s.lowPower = v }),
             SettingCase("darkMode", 0, 1, { it.darkMode }, { s, v -> s.darkMode = v }),

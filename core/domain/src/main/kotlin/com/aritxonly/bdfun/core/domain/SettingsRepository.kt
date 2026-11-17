@@ -27,6 +27,7 @@ interface AppearanceSettings {
 }
 
 interface PlaybackSettings {
+    var adaptiveBuffering: Boolean
     var qualityPreference: Int
     var lowPower: Boolean
     var autoRotate: Boolean

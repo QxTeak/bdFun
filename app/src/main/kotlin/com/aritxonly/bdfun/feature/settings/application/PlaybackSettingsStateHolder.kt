@@ -10,6 +10,15 @@ internal class PlaybackSettingsStateHolder(
     floats: FloatSettingsWriter,
     codec: SearchHistoryCodec,
 ) : SettingsGroupStateHolder(prefs, values, floats, codec), PlaybackSettings {
+    private val adaptiveBufferingState = stateCell("adaptiveBufferingState",
+        prefs.getBoolean("adaptive_buffering", com.aritxonly.bdfun.core.domain.buffering.DEFAULT_ADAPTIVE_BUFFERING))
+    override var adaptiveBuffering: Boolean
+        get() = adaptiveBufferingState.value
+        set(value) {
+            adaptiveBufferingState.value = value
+            prefs.edit().putBoolean("adaptive_buffering", value).apply()
+        }
+
     private val qualityState = stateCell("qualityState", prefs.getInt("quality", 0))
 
     private val lowPowerState = stateCell("lowPowerState", prefs.getBoolean("low_power", false))
