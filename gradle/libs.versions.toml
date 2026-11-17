@@ -31,6 +31,8 @@ androidx-lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmode
 androidx-lifecycle-common = { module = "androidx.lifecycle:lifecycle-common", version.ref = "lifecycle" }
 androidx-annotation-experimental = { module = "androidx.annotation:annotation-experimental", version.ref = "annotationExperimental" }
 robolectric = { module = "org.robolectric:robolectric", version = "4.17" }
+# Robolectric 4.17 对应 SDK 33 的预插桩运行时；升级 Robolectric 时同步核对。
+robolectric-android-sdk = { module = "org.robolectric:android-all-instrumented", version = "13-robolectric-9030017-i7" }
 kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 json-jvm = { module = "org.json:json", version = "20250517" }
 coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "coroutines" }
