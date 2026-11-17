@@ -690,3 +690,7 @@ BUF-70/PR81后台保活：同实例点播使用Media3 WAKE_MODE_NETWORK与WAKE_L
 ### 2026-11-17 投币页与自由复制弹层细节
 
 投币页：整列内容改为屏幕居中（原来贴底），遮罩改为 50% 黑（`0x80000000`）；左右切换键和关闭键改用 Miuix 图标（`MiuixIcons.ChevronBackward/ChevronForward/Close`），删除对应的 PNG；「同时点赞」的勾改为复用收藏夹 sheet 的 Miuix `Checkbox`（`ToggleableState.On/Off`）。评论「自由复制」弹层改用与收藏夹同款的 `MiuixBottomSheet`（标题 + 关闭按钮 + 底部主按钮），内容仍是可选择文本。
+
+### BUF-70 后台与退出页面偏好分离
+
+background_play（离开App或锁屏后继续播放）独立于show_disc_after_video/stopOnVideoPageExit（退出视频页后继续播放）。Home、锁屏、画中画不可见不代表页面finish，不得由stopOnVideoPageExit在onUserLeaveHint或历史pipEntered标记上暂停。后台关闭仍由生命周期ON_STOP暂停；真正返回/关闭视频页沿用退出偏好。两项都在设置索引展示，保持原存储值。

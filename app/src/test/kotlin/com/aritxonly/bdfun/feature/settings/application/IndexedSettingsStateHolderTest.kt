@@ -7,6 +7,26 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class IndexedSettingsStateHolderTest {
+    @Test fun backgroundAndPageExitPreferencesAreIndependent() {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        try {
+            val repository = SettingsStateHolder.create(MemorySettingsPreferences(), TestHistoryCodec, scope)
+            val settings = listOf("background_play", "show_disc_after_video").map {
+                Setting(it, "switch", it, null, SettingValue.Flag(true))
+            }
+            val index = SettingsIndex(listOf(SettingsCategory("播放", "settings/player", null,
+                listOf(SettingsGroup("后台", settings)))))
+            val controller = IndexedSettingsStateHolder(index, repository, repository.state, scope)
+            controller.update("show_disc_after_video", SettingValue.Flag(false))
+            assertTrue(repository.stopOnVideoPageExit)
+            assertTrue(repository.backgroundPlay)
+            controller.update("background_play", SettingValue.Flag(false))
+            controller.update("show_disc_after_video", SettingValue.Flag(true))
+            assertFalse(repository.stopOnVideoPageExit)
+            assertFalse(repository.backgroundPlay)
+        } finally { scope.cancel() }
+    }
+
     @Test fun adaptiveBufferSwitchWritesThePlaybackRepository() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         try {

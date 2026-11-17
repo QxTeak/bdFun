@@ -511,9 +511,17 @@
         "title": "后台播放",
         "settings": [
           {
+            "pref_name": "background_play",
+            "type": "switch",
+            "title": "离开 App 或锁屏后继续播放",
+            "subtitle": "视频页仍打开时，切换到其他 App、锁屏或隐藏画中画后继续听视频",
+            "default": true
+          },
+          {
             "pref_name": "show_disc_after_video",
             "type": "switch",
-            "title": "退出视频后继续播放",
+            "title": "退出视频页后继续播放",
+            "subtitle": "返回首页等方式离开视频页时，使用画中画或唱片继续播放；不影响锁屏和切换 App",
             "default": true
           },
           {

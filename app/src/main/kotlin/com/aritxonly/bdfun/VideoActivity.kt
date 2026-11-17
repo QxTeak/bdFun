@@ -26,10 +26,8 @@ class VideoActivity : ComponentActivity() {
 
     // ---- 自己监听传感器决定横竖屏 ----
     private var splitSystemBars = false
-    private var pipEntered = false
     private val windowState = com.aritxonly.bdfun.ui.VideoActivityWindowStateHolder()
     private var pipMode by windowState.pipMode
-    private var openingAnotherPage = false
 
     private fun syncVideoSystemBars(split: Boolean = splitSystemBars) {
         splitSystemBars = split
@@ -133,9 +131,7 @@ class VideoActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        openingAnotherPage = false
         com.aritxonly.bdfun.ui.BackgroundPlayback.stopKeepAlive()
-        if (!isInPictureInPictureMode) pipEntered = false
         // Split panes use the page theme under system bars; stacked/fullscreen video uses light icons.
         runCatching {
             syncVideoSystemBars()
@@ -182,33 +178,15 @@ class VideoActivity : ComponentActivity() {
         finish()
     }
 
-    // Home/background is distinct from navigating out of the video page.
-    override fun onUserLeaveHint() {
-        super.onUserLeaveHint()
-        // 关闭「退出视频后继续播放」时滑到后台只应该停下，不应该再弹系统画中画：
-        // 画中画属于「继续播放」的一种形态，交给显式的返回键（exit_video_control）和全屏按钮决定。
-        if (AppGraph.settings.stopOnVideoPageExit && !isFinishing && !openingAnotherPage &&
-            !isInPictureInPictureMode) {
-            com.aritxonly.bdfun.ui.BackgroundPlayback.cancelHandOff()
-            VideoPageBus.pauseFor(this)
-        }
-    }
-
-    override fun startActivityForResult(intent: android.content.Intent, requestCode: Int, options: Bundle?) {
-        openingAnotherPage = true
-        try { super.startActivityForResult(intent, requestCode, options) }
-        catch (error: Exception) { openingAnotherPage = false; throw error }
-    }
-
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         pipMode = isInPictureInPictureMode
-        if (isInPictureInPictureMode) pipEntered = true
     }
 
     override fun onStop() {
-        // Dismissing PiP stops the Activity without guaranteeing immediate destruction.
-        if (AppGraph.settings.stopOnVideoPageExit && (pipEntered || isFinishing) && !isChangingConfigurations) {
+        // 不可见不等于退出视频页；Home、锁屏与隐藏画中画由后台播放设置控制。
+        if (com.aritxonly.bdfun.core.domain.shouldPauseForVideoPageExit(
+                AppGraph.settings.stopOnVideoPageExit, isFinishing, isChangingConfigurations)) {
             com.aritxonly.bdfun.ui.BackgroundPlayback.cancelHandOff()
             VideoPageBus.pauseFor(this)
         }
