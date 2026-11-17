@@ -118,7 +118,7 @@ private fun HomeSectionPager(
     // 顶部胶囊点选：只改 shell 状态，这里统一负责动画过去。
     LaunchedEffect(homeSection) {
         val target = channels.indexOfFirst { it.ordinal == homeSection }.coerceAtLeast(0)
-        if (sectionPager.currentPage != target) {
+        if (sectionPager.currentPage != target || sectionPager.currentPageOffsetFraction != 0f) {
             programmatic = true
             try {
                 sectionPager.animateScrollToPage(target)

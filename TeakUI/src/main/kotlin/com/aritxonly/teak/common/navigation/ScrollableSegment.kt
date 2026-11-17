@@ -6,8 +6,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -68,6 +74,9 @@ private fun ScrollableSegmentContent(
         val widthPx = with(density) { maxWidth.toPx() }
         val geometry = AdaptiveTabGeometry(options.size, widthPx, widthPx / (limit + .6f))
         val scope = rememberCoroutineScope()
+        val interactions = remember { MutableInteractionSource() }
+        val pressed = interactions.collectIsPressedAsState()
+        val dragged = interactions.collectIsDraggedAsState()
         val motion = remember(options) { AdaptiveTabMotion() }
         val fallback = animateFloatAsState(selected.toFloat(), tween(if (TeakMotion.enabled) 280 else 0))
         val external by rememberUpdatedState(position ?: fallback)
@@ -83,17 +92,18 @@ private fun ScrollableSegmentContent(
         }
         val drag = rememberDraggableState { delta -> motion.drag(delta * direction, geometry.item, options.size) }
         Box(Modifier.width(maxWidth).draggable(drag, Orientation.Horizontal,
+            interactionSource = interactions,
             onDragStarted = { motion.begin(external.value) },
             onDragStopped = { velocity -> select(motion.end(velocity * direction, geometry.item, options.size)) },
         )) {
-            ScrollableSegmentIndicator(current, geometry, direction)
+            ScrollableSegmentIndicator(current, geometry, direction, motion, pressed.value || dragged.value)
             val itemDp = with(density) { geometry.item.toDp() }
             Row(Modifier.wrapContentWidth(Alignment.Start, unbounded = true)
                 .width(itemDp * options.size).graphicsLayer {
                     translationX = -direction * geometry.scroll(current.value)
                 }.selectableGroup()) {
                 options.forEachIndexed { index, label ->
-                    ScrollableSegmentLabel(label, index, active, geometry, current, select)
+                    ScrollableSegmentLabel(label, index, active, geometry, current, select, interactions)
                 }
             }
         }
@@ -103,7 +113,7 @@ private fun ScrollableSegmentContent(
 @Composable
 private fun ScrollableSegmentLabel(
     label: String, index: Int, active: Int, geometry: AdaptiveTabGeometry,
-    current: State<Float>, onSelect: (Int) -> Unit,
+    current: State<Float>, onSelect: (Int) -> Unit, interactions: MutableInteractionSource,
 ) {
     val density = LocalDensity.current
     val colors = MiuixTheme.colorScheme
@@ -115,10 +125,14 @@ private fun ScrollableSegmentLabel(
     }
     Box(
         Modifier.width(with(density) { geometry.item.toDp() }).height(if (classic) 36.dp else 32.dp)
-            .selectable(selected = index == active, role = Role.Tab, onClick = { onSelect(index) }),
+            .selectable(selected = index == active, interactionSource = interactions, indication = null,
+                role = Role.Tab, onClick = { onSelect(index) }),
         contentAlignment = Alignment.Center,
     ) {
-        val color = if (index != active) colors.onBackgroundVariant else if (classic) colors.primary else Color.White
+        val color by animateColorAsState(
+            if (index != active) colors.onBackgroundVariant else if (classic) colors.primary else Color.White,
+            tween(if (TeakMotion.enabled) 120 else 0),
+        )
         Text(text = label, fontSize = 13.sp, maxLines = 1, color = color,
             modifier = Modifier.graphicsLayer {
                 translationX = if (index == active) 0f else direction * geometry.edgeInset(index, current.value)
@@ -135,15 +149,30 @@ private fun ScrollableSegmentLabel(
 }
 
 @Composable
-private fun ScrollableSegmentIndicator(current: State<Float>, geometry: AdaptiveTabGeometry, direction: Float) {
+private fun ScrollableSegmentIndicator(
+    current: State<Float>, geometry: AdaptiveTabGeometry, direction: Float,
+    motion: AdaptiveTabMotion, pressed: Boolean,
+) {
     val density = LocalDensity.current
     val item = with(density) { geometry.item.toDp() }
     val classic = TeakUiStyle.isClassic
     val color = MiuixTheme.colorScheme.primary
+    val enabled = TeakMotion.enabled
+    val pressScale = animateFloatAsState(
+        if (pressed && enabled) FloatingTabMotionDefaults.PressedScale else 1f,
+        if (enabled) spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessMedium) else tween(0),
+    )
+    val stretch = animateFloatAsState(
+        if (enabled) floatingTabStretch(motion.velocity, 1f) else 0f,
+        if (enabled) spring(Spring.DampingRatioNoBouncy, Spring.StiffnessHigh) else tween(0),
+    )
     Box(Modifier.width(if (classic) item * .32f else item)
         .height(if (classic) 3.dp else 32.dp)
         .graphicsLayer {
             translationX = direction * (geometry.indicator(current.value) + if (classic) geometry.item * .34f else 0f)
             translationY = if (classic) 30.dp.toPx() else 0f
+            // 中间位置保持不动，只有胶囊形状随速度拉伸并回弹。
+            scaleX = pressScale.value * (1f + stretch.value)
+            scaleY = pressScale.value / (1f + stretch.value * .35f)
         }.background(color.copy(alpha = if (classic) 1f else .92f), Capsule()))
 }

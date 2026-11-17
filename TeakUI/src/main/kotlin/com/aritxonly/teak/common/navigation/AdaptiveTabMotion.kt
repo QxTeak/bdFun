@@ -1,8 +1,8 @@
 package com.aritxonly.teak.common.navigation
 
-import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +21,8 @@ internal class AdaptiveTabMotion {
     private var localPosition by mutableFloatStateOf(0f)
     private var animation: Job? = null
     private var generation = 0
+    var velocity by mutableFloatStateOf(0f)
+        private set
 
     fun value(external: Float): Float = if (owned) localPosition else external
 
@@ -29,6 +31,7 @@ internal class AdaptiveTabMotion {
         generation++
         animation?.cancel()
         localPosition = start
+        velocity = 0f
         owned = true
     }
 
@@ -37,6 +40,8 @@ internal class AdaptiveTabMotion {
     }
 
     fun end(velocity: Float, item: Float, count: Int): Int {
+        // 限制释放能量，快划仍只多推进一项，不能让弹簧冲过数个频道。
+        this.velocity = (-velocity / item.coerceAtLeast(1f)).coerceIn(-8f, 8f)
         return settledTabIndex(localPosition, velocity, item, count)
     }
 
@@ -45,6 +50,7 @@ internal class AdaptiveTabMotion {
         enabled: Boolean, onSelect: (Int) -> Unit,
     ) {
         val start = value(external())
+        val initialVelocity = velocity
         val ticket = ++generation
         animation?.cancel()
         localPosition = start
@@ -52,9 +58,13 @@ internal class AdaptiveTabMotion {
         onSelect(target)
         animation = scope.launch {
             try {
-                if (enabled) animate(start, target.toFloat(), animationSpec = tween(280,
-                    easing = CubicBezierEasing(.22f, 1f, .36f, 1f))) { value, _ -> localPosition = value }
-                else localPosition = target.toFloat()
+                if (enabled) animate(start, target.toFloat(), initialVelocity = initialVelocity,
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy,
+                        stiffness = Spring.StiffnessMediumLow, visibilityThreshold = .001f)) { value, speed ->
+                    localPosition = value
+                    velocity = speed
+                } else localPosition = target.toFloat()
+                velocity = 0f
                 // 页面动画可以略慢；追上前保持吸附位置，不倒退一帧。
                 withTimeoutOrNull(1500) {
                     snapshotFlow { external() }.first { abs(it - target) < .001f }
