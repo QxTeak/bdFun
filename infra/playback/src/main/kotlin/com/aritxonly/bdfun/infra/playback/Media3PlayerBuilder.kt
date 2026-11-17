@@ -29,6 +29,8 @@ internal fun buildPlayer(context: Context, decoderMode: Int): ExoPlayer {
         .build()
     return ExoPlayer.Builder(context, renderers)
         .setLoadControl(loadControl)
+        // 前台服务不保证锁屏后 CPU/Wi-Fi 持续工作；由播放器按播放状态持有并释放锁。
+        .setWakeMode(androidx.media3.common.C.WAKE_MODE_NETWORK)
         // 让 ExoPlayer 自己申请音频焦点：相关推荐新开播放器时，旧播放器会因失焦自动暂停，
         // 转场慢的机型也不会两路声音同时出。
         .setAudioAttributes(
