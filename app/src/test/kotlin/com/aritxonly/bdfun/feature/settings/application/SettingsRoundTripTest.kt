@@ -30,6 +30,7 @@ class SettingsRoundTripTest(private val case: SettingCase<*>) {
             SettingCase("darkMode", 0, 1, { it.darkMode }, { s, v -> s.darkMode = v }),
             SettingCase("colorStyle", 0, 1, { it.colorStyle }, { s, v -> s.colorStyle = v }),
             SettingCase("interfaceStyle", 2, 0, { it.interfaceStyle }, { s, v -> s.interfaceStyle = v }),
+            SettingCase("homeChannels", com.aritxonly.bdfun.core.domain.HomeChannelPolicy.defaults, setOf("recommend", "cinema"), { it.homeChannels }, { s, v -> s.homeChannels = v }),
             SettingCase("homeCardStyle", 0, 1, { it.homeCardStyle }, { s, v -> s.homeCardStyle = v }),
             SettingCase("shadowsEnabled", true, false, { it.shadowsEnabled }, { s, v -> s.shadowsEnabled = v }),
             SettingCase("scrollTopEnabled", true, false, { it.scrollTopEnabled }, { s, v -> s.scrollTopEnabled = v }),

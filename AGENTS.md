@@ -708,3 +708,12 @@ TeakStyle 提供 Official/Classic/HyperOs4 三元入口，持久化编号保持 
 首页左右滑动改由 `HomeSectionPager` 承担，在推荐/直播/番剧之间切换；底栏首页/动态/我的不再响应横滑，只由点击切换（仍用 `animateScrollToPage` 保留横向转场）。顶栏胶囊指示器读取 pager 的连续位置（`currentPage + currentPageOffsetFraction`），手指拖动时跟手移动，不再等落页才跳；`RegisterScrollTop`、三段各自的刷新入口和搜索/底栏玻璃都继续读同一个 `homeSection`，刷新与滚动状态未改。视频页收起态在返回键右侧新增回首页键，复用半屏播放器的 `InlineHomeGlyph`，通过 `MainTabRequestStateHolder` 通知主壳回到推荐页。
 
 投币页默认停在 2 币；`VideoDetail.copyright == 2`（转载）或已投过时退回 1 币，接口字段经 `VideoDetailDto/VideoDetailInfo` 透传并补 mapper 测试。两个硬币箱本身可点选，左右箭头、硬币箱点击和整页左右滑都能切换；遮罩由 50% 黑改为 60% 黑（`0x99000000`）。
+
+### 2026-11-17 自适应分段控件检查点
+
+首页分段基础控件位于 TeakUI 的 AdaptiveScrollableTabs；app TeakSegmentedBar 保留薄转发。
+scrollable 默认 false，maxVisibleItems 默认 3；开启并超限时启用内部露字和居中滚动，
+两端不得添加空占位，中间切换必须独立保持指示器位置。详见 TeakUI/docs/PAGE_CHROME_SPEC.md。
+首页频道使用 core/model/HomeChannel 稳定 key 与 HomeChannelPolicy 归一化；推荐不可禁用。
+设置三级页经 SettingsBindings/AppearanceSettingsStateHolder 写入既有 SettingsPreferences，
+首页 pager 下标只表示可见顺序，不能直接当频道身份；热门、影视目前为明确占位页。

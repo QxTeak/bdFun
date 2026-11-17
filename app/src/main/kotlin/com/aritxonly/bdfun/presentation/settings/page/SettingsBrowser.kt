@@ -45,7 +45,7 @@ internal fun rememberSettingsBrowser(): SettingsBrowserStateHolder {
             listOf(s.route.orEmpty(), s.searching.toString(), s.searchRoute.orEmpty(), s.query, s.detail.orEmpty(), s.confirmLogout.toString())
         }, restore = {
             SettingsBrowserStateHolder(SettingsBrowserState(it[0].ifEmpty { null }, it[1].toBoolean(),
-                it[2].ifEmpty { null }, it[3], detail = it.getOrNull(4)?.takeIf { name -> name in setOf("Help", "Changelog", "Credits", "Donation") },
+                it[2].ifEmpty { null }, it[3], detail = it.getOrNull(4)?.takeIf { name -> name in setOf("Help", "Changelog", "Credits", "Donation", "HomeChannels") },
                 confirmLogout = it.getOrNull(5)?.toBoolean() ?: false))
         })
     }

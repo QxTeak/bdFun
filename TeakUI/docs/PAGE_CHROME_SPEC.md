@@ -155,3 +155,24 @@ TeakActivityScaffold(
 只用一个列表/ScrollState记录位置；切换页面由原页面管理状态。窄屏没有可点击留白区域；容器不新增滚动偏移、不积分delta、不创建第二份列表状态。弹出宿主、backdrop、内容padding与标题几何保持原值。
 
 反向LazyColumn/Grid的宽屏留白拖动从layoutInfo.reverseLayout读取方向；固定顶栏页面使用BindTeakPageScrollState单独绑定，不增加折叠/材质观察。绑定随composition释放，旧页面释放不会清理后来绑定的另一个state。
+
+### AdaptiveScrollableTabs（2026-11-17）
+
+首页玻璃分段控件的可复用入口位于 `common/navigation/AdaptiveScrollableTabs.kt`，
+旧 app `TeakSegmentedBar` 仅作转发。沿用首页粉色指示器/白色选中文字及经典下划线，
+不改变原有材质。`scrollable=false`、`maxVisibleItems=3` 为默认值。
+
+- 开启滚动后，上限向下取正奇数（非正数按 1）；数量未超限仍使用原布局。
+- 超限时视口保持 `itemWidth × 上限`，露字占用内部空间，不增加首尾 padding。
+- 中间项切换时指示器固定，文字滚动；两端夹紧，无空占位。
+- 手势滚动只浏览选项，点击才派发 `onSelect`；`position` 保留与页面连续同步。
+- 模糊只用于仍有更多内容的一侧；关闭动效时直接定位。
+
+验证：纯 JVM 覆盖奇数上限、无首尾空白、连续中间位置与窄宽度。
+实机待验：7 项/上限 3 和 5，连续快点、打断动画拖动、边缘露字、经典/玻璃、
+深浅主题、横竖屏、页面 swipe 与 TalkBack。首页现有五个入口：推荐、直播、番剧、热门、影视；后两个为明确占位页。
+手机（最小屏宽 < 600dp）开启滚动，上限 3；平板保持平铺，手机横屏不切换成平板策略。
+
+任务 UI-ADAPTIVE-TABS：设置 → 首页、动态与搜索 → 首页频道提供三级配置页。
+默认显示全部五项；推荐固定开启，其余按稳定 key 写入原 settings 存储的 home_channels 集合。
+隐藏当前频道后回到推荐，隐藏前序频道不改变当前频道身份；显示数量 ≤ 3 自动恢复普通分段条。

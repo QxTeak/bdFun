@@ -9,6 +9,7 @@ interface AppearanceSettings {
     var darkMode: Int
     var colorStyle: Int
     var interfaceStyle: Int
+    var homeChannels: Set<String>
     var homeCardStyle: Int
     var shadowsEnabled: Boolean
     var scrollTopEnabled: Boolean
