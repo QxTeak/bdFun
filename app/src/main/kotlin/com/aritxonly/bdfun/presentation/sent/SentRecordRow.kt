@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -33,13 +34,14 @@ internal fun SentRecordRow(
 ) {
     val colors = MiuixTheme.colorScheme
     val isDanmaku = record.kind == "danmaku"
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(shape)
             .background(colors.surfaceContainer)
             .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+            .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(

@@ -129,9 +129,12 @@ fun TeakPagerTabs(
             if (underline) {
                 Box(
                     modifier = Modifier
-                        .offset(x = itemWidth * animIndex + itemWidth * 0.34f, y = 36.dp)
+                        .offset(
+                            x = itemWidth * animIndex + itemWidth * 0.34f,
+                            y = if (classic) 30.dp else 36.dp,
+                        )
                         .width(itemWidth * 0.32f)
-                        .height(2.dp)
+                        .height(if (classic) 3.dp else 2.dp)
                         .background(colors.primary, Capsule()),
                 )
             } else {
@@ -179,16 +182,7 @@ fun TeakPagerTabs(
         Box(
             modifier = modifier
                 .fillMaxWidth()
-                .height(TeakPagerTabDefaults.Height)
-                .drawBehind {
-                    val y = size.height - 1.dp.toPx() / 2f
-                    drawLine(
-                        color = colors.onBackgroundVariant.copy(alpha = 0.28f),
-                        start = androidx.compose.ui.geometry.Offset(0f, y),
-                        end = androidx.compose.ui.geometry.Offset(size.width, y),
-                        strokeWidth = 1.dp.toPx(),
-                    )
-                },
+                .height(TeakPagerTabDefaults.Height),
             contentAlignment = Alignment.CenterStart,
         ) {
             content()

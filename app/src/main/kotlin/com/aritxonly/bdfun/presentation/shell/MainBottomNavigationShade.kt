@@ -28,7 +28,8 @@ internal fun BoxScope.MainBottomNavigationShade(
     settings: SettingsBindings, wideNavigation: Boolean, barAlpha: Float,
 ) {
     val window = LocalWindowInfo.current.containerSize
-    if (window.height <= window.width || (!wideNavigation && TeakUiStyle.isClassic)) return
+    // 经典底栏是贴边不透明栏，不需要内容渐隐（窄屏与宽屏一致）。
+    if (window.height <= window.width || TeakUiStyle.isClassic) return
     val navigationBottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
     val bottomSpacing = if (isWideFoldTopBar()) 0.dp else 4.dp
     val lift = if (!wideNavigation && settings.bottomBarRaise) TeakChromeDefaults.RaisedBottomBarExtra else 0.dp

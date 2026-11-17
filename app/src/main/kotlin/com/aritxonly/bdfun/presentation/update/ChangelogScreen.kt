@@ -41,7 +41,10 @@ fun ChangelogScreen(onBack: () -> Unit) {
 @Composable
 internal fun ChangelogContent(releases: List<UpdateRelease>, loading: Boolean, error: String?, onRetry: () -> Unit) {
     val colors = MiuixTheme.colorScheme
-    val cardShape = remember { RoundedCornerShape(22.dp) }
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val cardShape = remember(classic) {
+        if (classic) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(22.dp)
+    }
     val listState = rememberLazyListState()
     TrackTeakPageScroll(listState)
 
@@ -50,8 +53,12 @@ internal fun ChangelogContent(releases: List<UpdateRelease>, loading: Boolean, e
         modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding(),
-        contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 40.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+        contentPadding = PaddingValues(
+            start = if (classic) 0.dp else 16.dp,
+            end = if (classic) 0.dp else 16.dp,
+            top = 8.dp, bottom = 40.dp,
+        ),
+        verticalArrangement = Arrangement.spacedBy(if (classic) 0.dp else 10.dp),
     ) {
         item(key = "header") {
             TeakLargeTitle(
@@ -73,7 +80,7 @@ internal fun ChangelogContent(releases: List<UpdateRelease>, loading: Boolean, e
                 Column(modifier = Modifier.fillMaxWidth().padding(top = 4.dp)) {
                     Text(
                         text = entry.version.name,
-                        modifier = Modifier.padding(start = 14.dp, bottom = 5.dp),
+                        modifier = Modifier.padding(start = if (classic) 16.dp else 14.dp, top = if (classic) 14.dp else 0.dp, bottom = 5.dp),
                         color = colors.onBackgroundVariant,
                         fontSize = 13.sp,
                     )

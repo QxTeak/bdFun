@@ -52,7 +52,9 @@ internal fun MessageToolsScreen(route: Route.MessageTools, onBack: () -> Unit) {
             onRefresh = { scope.launch { controller.load() } }) {
         TrackTeakPageScroll(list)
         LazyColumn(state = list, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(
-            start = 16.dp, end = 16.dp, top = 8.dp + rememberStatusBarTop(), bottom = 48.dp)) {
+            start = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 0.dp else 16.dp,
+            end = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 0.dp else 16.dp,
+            top = 8.dp + rememberStatusBarTop(), bottom = 48.dp)) {
             item { TeakLargeTitle(title = title) }
             if (tool is MessageTool.Likes) {
                 if (state.title.isNotBlank()) item {

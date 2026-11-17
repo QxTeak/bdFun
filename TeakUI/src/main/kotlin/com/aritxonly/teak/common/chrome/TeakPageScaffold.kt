@@ -15,16 +15,21 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -37,7 +42,14 @@ import top.yukonga.miuix.kmp.blur.ProgressiveBlur
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.progressiveTextureBlur
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
+import top.yukonga.miuix.kmp.blur.textureBlur
+import top.yukonga.miuix.kmp.glass.GlassDefaults
+import top.yukonga.miuix.kmp.glass.GlassShape
+import top.yukonga.miuix.kmp.glass.glassPanel
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+
+/** 只有页面级 chrome 才会把大标题换成顶栏占位，引导页等内容页不受影响。 */
+internal val LocalTeakClassicChrome = compositionLocalOf { false }
 
 /**
  * 页面 chrome 的统一尺寸 / 动画常量。
@@ -145,6 +157,33 @@ fun Modifier.teakProgressiveBarBlur(
 }
 
 /**
+ * 经典样式的顶栏底：用 Miuix 自带的玻璃材质整块模糊，不做渐变；
+ * 关闭高级材质时退化为平面底色，也不再画分割线。
+ */
+@Composable
+fun Modifier.teakClassicBarGlass(): Modifier {
+    val material = LocalTeakMaterialSpec.current
+    val backdrop = LocalTeakBackdrop.current
+    val colors = MiuixTheme.colorScheme
+    val tint = colors.surfaceContainer
+    val blurColors = BlurDefaults.blurColors(
+        blendColors = listOf(BlendColorEntry(color = tint.copy(alpha = 0.35f))),
+    )
+    return if (backdrop != null && material.enabled && material.blurEnabled) {
+        // Miuix 的整块纹理模糊：整个栏统一模糊，不做上下渐变。
+        textureBlur(
+            backdrop = backdrop,
+            shape = RectangleShape,
+            blurRadius = TeakChromeDefaults.BarBlurRadius,
+            noiseCoefficient = 0f,
+            colors = blurColors,
+        )
+    } else {
+        background(tint)
+    }
+}
+
+/**
  * 固定顶栏：渐变模糊背景 + 居中小标题。
  *
  * 小标题只在 [collapse] 超过 [TeakChromeDefaults.SmallTitleThreshold] 后出现，
@@ -177,13 +216,20 @@ fun TeakTopBar(
             .fillMaxWidth()
             .height(barHeight + statusBarTop),
     ) {
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .graphicsLayer { alpha = barBlurFraction.coerceIn(0f, 1f) }
-                .teakProgressiveBarBlur(),
-        )
-        if (shown > 0.01f) {
+        val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+        if (classic) {
+            // 经典：顶栏常驻，整条用 Miuix 玻璃模糊（关闭高级材质时自动退化为平面）。
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .teakClassicBarGlass(),
+            )
+            // 玻璃上再压一层半透明底色，保证标题和图标在内容滚过时仍然清晰。
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .background(MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.62f)),
+            )
             Text(
                 text = title,
                 color = MaterialTheme.colorScheme.onSurface,
@@ -192,13 +238,32 @@ fun TeakTopBar(
                 modifier = Modifier
                     .align(Alignment.Center)
                     .padding(top = statusBarTop)
-                    .offset(y = -TeakChromeDefaults.SmallTitleLift)
-                    .graphicsLayer {
-                        alpha = shown
-                        translationY = (1f - shown) * TeakChromeDefaults.SmallTitleRise.toPx()
-                    }
-                    .blur(TeakChromeDefaults.SmallTitleBlurRadius * (1f - shown)),
+                    .offset(y = -TeakChromeDefaults.SmallTitleLift),
             )
+        } else {
+            Box(
+                modifier = Modifier
+                    .matchParentSize()
+                    .graphicsLayer { alpha = barBlurFraction.coerceIn(0f, 1f) }
+                    .teakProgressiveBarBlur(),
+            )
+            if (shown > 0.01f) {
+                Text(
+                    text = title,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = TeakChromeDefaults.SmallTitleFontSize,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .padding(top = statusBarTop)
+                        .offset(y = -TeakChromeDefaults.SmallTitleLift)
+                        .graphicsLayer {
+                            alpha = shown
+                            translationY = (1f - shown) * TeakChromeDefaults.SmallTitleRise.toPx()
+                        }
+                        .blur(TeakChromeDefaults.SmallTitleBlurRadius * (1f - shown)),
+                )
+            }
         }
     }
 }
@@ -218,6 +283,11 @@ fun TeakLargeTitle(
     titleColor: Color = MiuixTheme.colorScheme.onBackground,
     subtitleColor: Color = MiuixTheme.colorScheme.onBackgroundVariant,
 ) {
+    // 经典页面不再在内容里画大标题，标题常驻顶栏；这里只保留顶栏占位，让内容从栏下开始。
+    if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic && LocalTeakClassicChrome.current) {
+        Spacer(Modifier.height(56.dp))
+        return
+    }
     if (isWideFoldTopBar()) { Spacer(Modifier.height(TeakChromeDefaults.TopOverlayHeight - 12.dp)); return }
     val colors = MiuixTheme.colorScheme
     val p = (pageState.collapse / TeakChromeDefaults.CollapseFadeFraction).coerceIn(0f, 1f)
@@ -289,7 +359,11 @@ fun TeakPageScaffold(
         drawContent()
     }
     com.aritxonly.teak.common.modal.RegisterAdvancedMaterialModalBackdrop(backdrop)
-    CompositionLocalProvider(LocalTeakBackdrop provides backdrop, LocalTeakPageScrollState provides pageState) {
+    CompositionLocalProvider(
+        LocalTeakBackdrop provides backdrop,
+        LocalTeakPageScrollState provides pageState,
+        LocalTeakClassicChrome provides com.aritxonly.teak.common.theme.TeakUiStyle.isClassic,
+    ) {
         Box(
             modifier = modifier
                 .fillMaxSize()
@@ -333,7 +407,11 @@ fun TeakPageScaffold(
                         )
                     } else {
                         TeakTopOverlay(
-                            revealed = backRevealed ?: pageState.backRevealed,
+                            revealed = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+                                true
+                            } else {
+                                backRevealed ?: pageState.backRevealed
+                            },
                             onBack = if (showBackButton) onBack else null,
                             light = backRevealed == false,
                             glyphColor = topBarGlyphColor,

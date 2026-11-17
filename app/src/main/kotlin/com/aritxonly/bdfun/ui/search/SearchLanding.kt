@@ -21,13 +21,19 @@ internal fun SearchLanding(
     onClearHistory: () -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
     val listState = rememberLazyListState()
     TrackTeakPageScroll(listState)
     TeakScrollContainer(listState, Modifier.fillMaxSize()) {
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(start = 16.dp, top = 14.dp, end = 16.dp, bottom = 32.dp),
+        contentPadding = PaddingValues(
+            start = if (classic) 0.dp else 16.dp,
+            top = 14.dp,
+            end = if (classic) 0.dp else 16.dp,
+            bottom = 32.dp,
+        ),
     ) {
         if (query.isNotBlank()) {
             searchSuggestionItems(suggestions, colors, onPickKeyword)

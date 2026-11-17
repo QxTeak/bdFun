@@ -5,6 +5,8 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -20,14 +22,17 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
+import com.aritxonly.teak.common.chrome.teakClassicBarGlass
 import com.aritxonly.teak.common.chrome.teakGlassGlyphColor
 import com.aritxonly.teak.common.material.TeakGlassIconButton
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 当前列表页注册的「回到顶部」动作；没有注册时不显示按钮。 */
 
@@ -64,36 +69,51 @@ fun BoxScope.ScrollTopButton(settings: SettingsBindings, bottomObstruction: andr
         enter = fadeIn(tween(180)),
         exit = fadeOut(tween(140)),
     ) {
-        TeakGlassIconButton(
-            onClick = { action?.invoke() },
-            modifier = Modifier.size(40.dp),
-        ) {
-            Canvas(modifier = Modifier.size(18.dp)) {
-                val w = size.width
-                val h = size.height
-                val stroke = 1.8.dp.toPx()
-                val color: Color = glyphColor
-                drawLine(
-                    color = color,
-                    start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.82f),
-                    end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.18f),
-                    strokeWidth = stroke,
-                    cap = StrokeCap.Round,
+        Box(Modifier.size(40.dp)) {
+            if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
+                // 回到顶部保留玻璃圆钮（经典顶栏其它按钮是纯图标）。
+                Box(
+                    Modifier.matchParentSize()
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .teakClassicBarGlass(),
                 )
-                drawLine(
-                    color = color,
-                    start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.18f),
-                    end = androidx.compose.ui.geometry.Offset(w * 0.22f, h * 0.46f),
-                    strokeWidth = stroke,
-                    cap = StrokeCap.Round,
+                Box(
+                    Modifier.matchParentSize()
+                        .clip(androidx.compose.foundation.shape.CircleShape)
+                        .background(MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.55f)),
                 )
-                drawLine(
-                    color = color,
-                    start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.18f),
-                    end = androidx.compose.ui.geometry.Offset(w * 0.78f, h * 0.46f),
-                    strokeWidth = stroke,
-                    cap = StrokeCap.Round,
-                )
+            }
+            TeakGlassIconButton(
+                onClick = { action?.invoke() },
+                modifier = Modifier.size(40.dp),
+            ) {
+                Canvas(modifier = Modifier.size(18.dp)) {
+                    val w = size.width
+                    val h = size.height
+                    val stroke = 1.8.dp.toPx()
+                    val color: Color = glyphColor
+                    drawLine(
+                        color = color,
+                        start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.82f),
+                        end = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.18f),
+                        strokeWidth = stroke,
+                        cap = StrokeCap.Round,
+                    )
+                    drawLine(
+                        color = color,
+                        start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.18f),
+                        end = androidx.compose.ui.geometry.Offset(w * 0.22f, h * 0.46f),
+                        strokeWidth = stroke,
+                        cap = StrokeCap.Round,
+                    )
+                    drawLine(
+                        color = color,
+                        start = androidx.compose.ui.geometry.Offset(w * 0.5f, h * 0.18f),
+                        end = androidx.compose.ui.geometry.Offset(w * 0.78f, h * 0.46f),
+                        strokeWidth = stroke,
+                        cap = StrokeCap.Round,
+                    )
+                }
             }
         }
     }

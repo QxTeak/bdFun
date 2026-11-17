@@ -22,12 +22,18 @@ internal fun PrivateChatComposerRow(
     val onToggleEmoji = actions.onToggleEmoji
     val recipe = material.recipe
     val backdrop = material.backdrop
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
     Row(verticalAlignment = Alignment.CenterVertically) {
         TeakGlassSurface(
             modifier = Modifier.weight(1f).height(46.dp),
             shape = Capsule(),
             recipe = recipe,
             backdrop = backdrop,
+            flatBackgroundColor = if (classic) {
+                top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainerHigh
+            } else {
+                null
+            },
             contentAlignment = Alignment.CenterStart,
         ) {
             PrivateChatComposerInput(content, actions)
