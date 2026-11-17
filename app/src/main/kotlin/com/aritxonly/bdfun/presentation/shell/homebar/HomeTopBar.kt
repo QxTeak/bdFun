@@ -15,9 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
@@ -39,6 +42,7 @@ fun homeTopBarHeight(interfaceStyle: Int): Dp =
 @Composable
 internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, actions: HomeTopBarActions,
     tabs: HomeTopBarTabs? = null,
+    tabsCollapseProgress: Float = 0f,
     modifier: Modifier = Modifier) {
     val windowSize = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize
     val density = androidx.compose.ui.platform.LocalDensity.current
@@ -56,22 +60,30 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
         HomeTopBarMaterial(wide, searchWidth, recipe, backdrop, searchInteraction, classic)
     }
     // 搜索展开时让出高度：结果页从顶栏下沿开始，不会被分段条盖住。
-    val tabsBelowSearch = tabs?.belowSearch == true && !search.active
-    val totalHeight = HomeTopBarHeight + if (tabsBelowSearch) HomeTopBarTabsHeight else 0.dp
+    val visibleTabs = tabs.takeUnless { search.active }
+    val tabsBelowSearch = visibleTabs?.belowSearch == true
+    val tabsHeight = HomeTopBarTabsHeight * (1f - tabsCollapseProgress.coerceIn(0f, 1f))
+    val totalHeight = HomeTopBarHeight + if (tabsBelowSearch) tabsHeight else 0.dp
     Box(modifier = modifier.fillMaxWidth().height(totalHeight + statusBarTop)) {
         HomeTopBarBackground(classic)
         if (search.active) {
             Box(modifier = Modifier.matchParentSize().blockTouches(true))
         }
         Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
-            val inline = tabs
+            val inline = visibleTabs
             val inlineTabs = inline != null && !tabsBelowSearch
             if (wide && inlineTabs && inline != null) {
                 HomeTopBarWideTabsRow(content, search, actions, inline, material)
             } else {
-                HomeTopBarMainRow(content, search, actions, tabs, material, wide, tabsBelowSearch)
+                HomeTopBarMainRow(content, search, actions, visibleTabs, material, wide, tabsBelowSearch)
             }
-            if (tabs != null && tabsBelowSearch) HomeTopBarTabsBelow(tabs)
+            if (visibleTabs != null && tabsBelowSearch) {
+                Box(Modifier.fillMaxWidth().height(tabsHeight).clipToBounds()) {
+                    Box(Modifier.wrapContentHeight(Alignment.Top, unbounded = true).graphicsLayer {
+                        translationY = (tabsHeight - HomeTopBarTabsHeight).toPx()
+                    }) { HomeTopBarTabsBelow(visibleTabs) }
+                }
+            }
         }
     }
 }

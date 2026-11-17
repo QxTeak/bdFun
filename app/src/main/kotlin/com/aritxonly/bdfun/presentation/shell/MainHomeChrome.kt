@@ -38,7 +38,12 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
         pageFloat = pageFloat,
         surface = activeChrome,
     ) {
-        MainHomeBarContent(settings, shell)
+        MainHomeBarContent(
+            settings, shell,
+            tabsCollapseProgress = if (settings.interfaceStyle == 0 && !ui.showSearch) {
+                activeChrome.materialProgress
+            } else 0f,
+        )
     }
 
     if (pageFloat < 0.99f && ui.homeSection < 3) {

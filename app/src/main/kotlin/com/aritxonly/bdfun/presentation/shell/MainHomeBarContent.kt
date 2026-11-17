@@ -16,7 +16,7 @@ import com.aritxonly.bdfun.ui.rememberTeakHaptics
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellState, bottomSearch: Boolean = false) {
+internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellState, bottomSearch: Boolean = false, tabsCollapseProgress: Float = 0f) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val ui = shell.ui
@@ -91,6 +91,7 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
         },
         ),
         tabs = tabs,
+        tabsCollapseProgress = tabsCollapseProgress,
         modifier = Modifier,
     )
 }
