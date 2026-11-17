@@ -21,6 +21,8 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import com.aritxonly.teak.common.skeleton.TeakSkeletonVideoCard
+import com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -121,10 +123,8 @@ internal fun LazyGridScope.livePageStateItems(
     loggedIn: Boolean,
 ) {
     if (state.cards.isEmpty() && state.loading) {
-        item(key = "live-loading", span = { GridItemSpan(maxLineSpan) }) {
-            Box(Modifier.fillMaxWidth().padding(vertical = 60.dp), contentAlignment = Alignment.Center) {
-                TeakLoading(size = 40.dp)
-            }
+        items(count = 6, key = { "live-skeleton-$it" }) {
+            TeakSkeletonVideoCard(progress = rememberTeakSkeletonSweep())
         }
     }
     state.error?.let { message ->

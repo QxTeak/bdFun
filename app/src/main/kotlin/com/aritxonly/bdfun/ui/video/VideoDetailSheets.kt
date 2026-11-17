@@ -14,6 +14,7 @@ internal fun VideoDetailSheets(
         visible = ui.coinSheet.value,
         balance = session.value?.coins,
         alreadyCoined = interaction.coined,
+        allowTwoCoins = actions.allowTwoCoins,
         onDismiss = { ui.coinSheet.value = false },
         onConfirm = { count, alsoLike -> actions.doCoin(count, alsoLike) },
     )

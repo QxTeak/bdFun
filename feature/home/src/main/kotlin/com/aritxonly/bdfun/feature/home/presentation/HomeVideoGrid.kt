@@ -44,6 +44,9 @@ internal fun HomeVideoGrid(
         horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
+        if (state.loading && state.videos.isEmpty()) {
+            homeFeedSkeletonItems()
+        }
         homeVideoItems(state, largeCards, ui, onOpenVideo, host)
         if (state.videos.isNotEmpty()) {
             item(key = "footer", span = { GridItemSpan(maxLineSpan) }) { HomeFeedFooter(state, scope) }

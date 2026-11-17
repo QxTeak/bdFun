@@ -44,7 +44,6 @@ internal fun LibraryModePage(content: LibraryModeContent, layout: LibraryModeLay
     LibraryModeEffects(gridState, layout, actions)
     Box(modifier = Modifier.fillMaxSize()) {
         LibraryGrid(content, layout, actions, gridState)
-        if (content.loading) TeakLoading(modifier = Modifier.align(Alignment.Center), color = MiuixTheme.colorScheme.primary, size = 48.dp)
     }
 }
 
@@ -60,6 +59,15 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
         horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         libraryGridHeader(content, layout, actions)
+        val emptyFirstLoad = content.loading && content.folderVideos.isEmpty() &&
+            content.historyEntries.isEmpty() && content.watchLaterEntries.isEmpty()
+        if (emptyFirstLoad) {
+            items(count = 6, key = { "library-skeleton-$it" }) {
+                com.aritxonly.teak.common.skeleton.TeakSkeletonVideoCard(
+                    progress = com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep(),
+                )
+            }
+        }
         if (layout.mode == 0) {
             itemsIndexed(items = content.folderVideos, key = { _, video -> video.bvid }) { index, video ->
                 LibraryFavoriteCard(video, index, content, layout, actions)

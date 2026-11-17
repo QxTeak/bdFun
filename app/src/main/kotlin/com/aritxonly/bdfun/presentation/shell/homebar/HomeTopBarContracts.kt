@@ -21,6 +21,8 @@ internal data class HomeTopBarTabs(
     val options: List<String> = listOf("推荐", "直播", "番剧"),
     val selected: Int = 0,
     val onSelect: (Int) -> Unit = {},
+    /** 页面 pager 的连续位置；手指拖动时指示器跟着走，而不是等整页切完。 */
+    val position: androidx.compose.runtime.State<Float>? = null,
     /** 哔哩哔哩（官方）风格：搜索框保持，分段条另起一行放在它下面。 */
     val belowSearch: Boolean = false,
 )

@@ -11,7 +11,7 @@ internal fun videoDetailScreenPorts(): VideoDetailScreenPorts {
         slots = VideoDetailScreenSlots(
             layout = { frame ->
                 VideoScreenLayout(frame.request, frame.presentation, frame.events, frame.pager, frame.inlineLayout,
-                    frame.holders, frame.content, frame.actions, frame.relatedEnter, frame.scope)
+                    frame.holders, frame.content, frame.actions, frame.scope)
             },
             sheets = { ui, interaction, actions -> VideoDetailSheets(ui, interaction, actions) },
         ))

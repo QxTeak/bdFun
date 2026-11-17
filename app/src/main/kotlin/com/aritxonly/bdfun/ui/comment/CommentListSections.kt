@@ -184,6 +184,54 @@ internal fun CommentListCard(
                     }
 }
 
+internal fun androidx.compose.foundation.lazy.LazyListScope.commentSkeletonItems() {
+    items(count = 5, key = { "comment-skeleton-$it" }) {
+        CommentSkeletonRow()
+    }
+}
+
+/** 评论首屏骨架：头像 + 昵称/时间 + 两行正文 + 底部操作行，尺寸贴近真实评论行。 */
+@androidx.compose.runtime.Composable
+private fun CommentSkeletonRow() {
+    val sweep = com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep()
+    androidx.compose.foundation.layout.Row(
+        modifier = androidx.compose.ui.Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 10.dp),
+        verticalAlignment = androidx.compose.ui.Alignment.Top,
+    ) {
+        com.aritxonly.teak.common.skeleton.TeakSkeletonBlock(
+            sweep,
+            androidx.compose.ui.Modifier.size(34.dp),
+            androidx.compose.foundation.shape.CircleShape,
+        )
+        androidx.compose.foundation.layout.Spacer(androidx.compose.ui.Modifier.width(10.dp))
+        androidx.compose.foundation.layout.Column(
+            modifier = androidx.compose.ui.Modifier.weight(1f),
+        ) {
+            com.aritxonly.teak.common.skeleton.TeakSkeletonBlock(
+                sweep,
+                androidx.compose.ui.Modifier.width(96.dp).height(12.dp),
+            )
+            androidx.compose.foundation.layout.Spacer(androidx.compose.ui.Modifier.height(9.dp))
+            com.aritxonly.teak.common.skeleton.TeakSkeletonBlock(
+                sweep,
+                androidx.compose.ui.Modifier.fillMaxWidth().height(13.dp),
+            )
+            androidx.compose.foundation.layout.Spacer(androidx.compose.ui.Modifier.height(6.dp))
+            com.aritxonly.teak.common.skeleton.TeakSkeletonBlock(
+                sweep,
+                androidx.compose.ui.Modifier.fillMaxWidth(0.82f).height(13.dp),
+            )
+            androidx.compose.foundation.layout.Spacer(androidx.compose.ui.Modifier.height(12.dp))
+            com.aritxonly.teak.common.skeleton.TeakSkeletonBlock(
+                sweep,
+                androidx.compose.ui.Modifier.width(140.dp).height(11.dp),
+            )
+        }
+    }
+}
+
 internal fun androidx.compose.foundation.lazy.LazyListScope.commentListFooter(
     state: CommentListViewState, showLoading: Boolean, textColor: androidx.compose.ui.graphics.Color,
 ) {

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -22,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlin.math.roundToInt
 import com.aritxonly.teak.common.material.TeakGlassRecipes
 import com.aritxonly.teak.common.material.TeakGlassSurface
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
@@ -44,13 +46,23 @@ fun TeakSegmentedBar(
     modifier: Modifier = Modifier,
     itemWidth: Dp = 74.dp,
     materialAlpha: Float = 1f,
+    /**
+     * 连续位置（0.0 = 第一项，1.5 = 正从第二项滑向第三项）。
+     * 传入后指示器和文字在布局阶段跟随手指/翻页，不再等页面切完才跳过去。
+     */
+    position: State<Float>? = null,
 ) {
-    // 和底栏 / 视频页 tab 同一套手动弹簧，避免项目 frame clock 不推进的问题
-    val animIndex = rememberSpringFloat(target = selected.toFloat(), stiffness = 340f, damping = 25f)
+    // 有连续位置时直接跟位置；没有时才用弹簧追 selected。
+    val springIndex = rememberSpringFloat(target = selected.toFloat(), stiffness = 340f, damping = 25f)
+    val animIndex = position?.value ?: springIndex
+    val activeIndex = position?.value
+        ?.roundToInt()
+        ?.coerceIn(0, options.lastIndex)
+        ?: selected
     if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
-        ClassicSegmentedBar(options, selected, onSelect, modifier, itemWidth, animIndex)
+        ClassicSegmentedBar(options, activeIndex, onSelect, modifier, itemWidth, animIndex)
     } else {
-        GlassSegmentedBar(options, selected, onSelect, modifier, itemWidth, materialAlpha, animIndex)
+        GlassSegmentedBar(options, activeIndex, onSelect, modifier, itemWidth, materialAlpha, animIndex)
     }
 }
 

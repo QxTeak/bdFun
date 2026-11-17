@@ -65,6 +65,8 @@ internal fun CoinPayOverlay(
     visible: Boolean,
     balance: Double?,
     alreadyCoined: Boolean,
+    /** 转载视频只允许投 1 币；其它情况默认停在 2 币。 */
+    allowTwoCoins: Boolean = true,
     onDismiss: () -> Unit,
     onConfirm: (count: Int, alsoLike: Boolean) -> Unit,
 ) {
@@ -86,7 +88,7 @@ internal fun CoinPayOverlay(
                 android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT),
             )
         }
-        CoinPayContent(balance, alreadyCoined, onDismiss, onConfirm)
+        CoinPayContent(balance, alreadyCoined, allowTwoCoins, onDismiss, onConfirm)
     }
 }
 
@@ -100,14 +102,18 @@ private fun canPayCoins(index: Int, balance: Double?, alreadyCoined: Boolean): B
 private fun CoinPayContent(
     balance: Double?,
     alreadyCoined: Boolean,
+    allowTwoCoins: Boolean,
     onDismiss: () -> Unit,
     onConfirm: (count: Int, alsoLike: Boolean) -> Unit,
 ) {
-    var selected by remember { mutableIntStateOf(0) }
+    // 默认停在 2 币；转载或已投过时才退到 1 币。
+    val defaultSelected = if (allowTwoCoins && !alreadyCoined) 1 else 0
+    var selected by remember(allowTwoCoins, alreadyCoined) { mutableIntStateOf(defaultSelected) }
     var alsoLike by remember { mutableStateOf(false) }
     var paying by remember { mutableStateOf(false) }
     var progress by remember { mutableFloatStateOf(0f) }
     val canPay = !paying && canPayCoins(selected, balance, alreadyCoined)
+    val maxIndex = if (allowTwoCoins) 1 else 0
 
     // 提交前先播完整段动作，视觉上“硬币真的投出去了”再关页。
     LaunchedEffect(paying) {
@@ -125,14 +131,19 @@ private fun CoinPayContent(
     }
 
     CoinPayLayout(
-        selected = selected,
-        balance = balance,
-        alreadyCoined = alreadyCoined,
-        canPay = canPay,
-        paying = paying,
-        progress = progress,
-        alsoLike = alsoLike,
-        onSwitch = { if (!paying) selected = it.coerceIn(0, 1) },
+        state = CoinPayViewState(
+            selected = selected,
+            balance = balance,
+            alreadyCoined = alreadyCoined,
+            canPaySelection = canPayCoins(selected, balance, alreadyCoined),
+            allowTwoCoins = allowTwoCoins,
+            maxIndex = maxIndex,
+            canPay = canPay,
+            paying = paying,
+            progress = progress,
+            alsoLike = alsoLike,
+        ),
+        onSwitch = { if (!paying) selected = it.coerceIn(0, maxIndex) },
         onPay = {
             if (canPay) {
                 progress = 0f
@@ -144,44 +155,56 @@ private fun CoinPayContent(
     )
 }
 
+/** 投币页一帧内的只读展示输入；分组后避免布局函数再挂十几个参数。 */
+private data class CoinPayViewState(
+    val selected: Int,
+    val balance: Double?,
+    val alreadyCoined: Boolean,
+    /** 当前选中数量是否还能投（转载/已投/余额不足时为 false）。 */
+    val canPaySelection: Boolean,
+    val allowTwoCoins: Boolean,
+    val maxIndex: Int,
+    val canPay: Boolean,
+    val paying: Boolean,
+    val progress: Float,
+    val alsoLike: Boolean,
+)
+
 @Composable
 private fun CoinPayLayout(
-    selected: Int,
-    balance: Double?,
-    alreadyCoined: Boolean,
-    canPay: Boolean,
-    paying: Boolean,
-    progress: Float,
-    alsoLike: Boolean,
+    state: CoinPayViewState,
     onSwitch: (Int) -> Unit,
     onPay: () -> Unit,
     onToggleLike: () -> Unit,
     onDismiss: () -> Unit,
 ) {
+    val selected = state.selected
+    val maxIndex = state.maxIndex
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0x80000000))
-            .pointerInput(paying) {
-                if (paying) return@pointerInput
+            // 黑色遮罩 60%，比原来的 50% 更能压住背景。
+            .background(Color(0x99000000))
+            .pointerInput(state.paying, maxIndex) {
+                if (state.paying) return@pointerInput
                 detectHorizontalDragGestures(
                     onHorizontalDrag = { change, amount ->
                         change.consume()
-                        if (amount < 0 && selected == 0) onSwitch(1)
-                        if (amount > 0 && selected == 1) onSwitch(0)
+                        if (amount < 0 && selected < maxIndex) onSwitch(selected + 1)
+                        if (amount > 0 && selected > 0) onSwitch(selected - 1)
                     },
                 )
             },
         contentAlignment = Alignment.Center,
     ) {
         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-            CoinBoxRow(selected, progress, paying, onSwitch)
+            CoinBoxRow(selected, state.progress, state.paying, state.allowTwoCoins, onSwitch)
             Spacer(Modifier.height(4.dp))
-            CoinCharacter(selected, balance, alreadyCoined, canPay, paying, progress, onPay)
+            CoinCharacter(selected, state.canPaySelection, state.canPay, state.paying, state.progress, onPay)
             Spacer(Modifier.height(8.dp))
-            CoinBalanceText(balance, alreadyCoined)
+            CoinBalanceText(state.balance, state.alreadyCoined)
             Spacer(Modifier.height(10.dp))
-            CoinBottomRow(alsoLike, paying, onToggleLike, onDismiss)
+            CoinBottomRow(state.alsoLike, state.paying, onToggleLike, onDismiss)
         }
     }
 }
@@ -191,6 +214,7 @@ private fun CoinBoxRow(
     selected: Int,
     progress: Float,
     paying: Boolean,
+    allowTwoCoins: Boolean,
     onSwitch: (Int) -> Unit,
 ) {
     Box(modifier = Modifier.fillMaxWidth().height(110.dp)) {
@@ -199,8 +223,11 @@ private fun CoinBoxRow(
             horizontalArrangement = Arrangement.spacedBy(20.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            CoinSlot(index = 0, selected = selected == 0, progress = progress, paying = paying)
-            CoinSlot(index = 1, selected = selected == 1, progress = progress, paying = paying)
+            // 两个硬币箱本身就是选择项：点左边 = 1 币，点右边 = 2 币。
+            CoinSlot(index = 0, selected = selected == 0, progress = progress, paying = paying,
+                onClick = { if (!paying) onSwitch(0) })
+            CoinSlot(index = 1, selected = selected == 1, progress = progress, paying = paying,
+                onClick = { if (!paying && allowTwoCoins) onSwitch(1) })
         }
         CoinArrow(
             forward = false,
@@ -210,7 +237,7 @@ private fun CoinBoxRow(
         )
         CoinArrow(
             forward = true,
-            enabled = selected == 0,
+            enabled = selected == 0 && allowTwoCoins,
             modifier = Modifier.align(Alignment.CenterEnd).padding(end = 16.dp),
             onClick = { onSwitch(1) },
         )
@@ -220,8 +247,7 @@ private fun CoinBoxRow(
 @Composable
 private fun CoinCharacter(
     selected: Int,
-    balance: Double?,
-    alreadyCoined: Boolean,
+    canPaySelection: Boolean,
     canPay: Boolean,
     paying: Boolean,
     progress: Float,
@@ -229,7 +255,7 @@ private fun CoinCharacter(
 ) {
     // 角色图：点一下或向上滑都能投币；不可投时换成“余额不足”图。
     val character = when {
-        !canPayCoins(selected, balance, alreadyCoined) -> R.drawable.teak_coin_not_enough
+        !canPaySelection -> R.drawable.teak_coin_not_enough
         selected == 0 -> R.drawable.teak_coin_mario
         else -> R.drawable.teak_coin_gun_sister
     }
@@ -325,56 +351,6 @@ private fun CoinBottomRow(
                 ) { onDismiss() },
         )
     }
-}
-
-@Composable
-private fun CoinSlot(index: Int, selected: Boolean, progress: Float, paying: Boolean) {
-    // 选中：箱 100dp / 币 50dp；未选中 70dp / 35dp（上游 factor 0..1 的线性插值）。
-    val boxSize = if (selected) 100.dp else 70.dp
-    val coinSize = if (selected) 50.dp else 35.dp
-    Box(modifier = Modifier.size(boxSize), contentAlignment = Alignment.Center) {
-        Image(
-            painter = painterResource(R.drawable.teak_coin_box),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-        )
-        // 两页都画硬币，只是未选中的小一号（上游 factor 0..1 的尺寸插值）。
-        Image(
-            painter = painterResource(if (index == 0) R.drawable.teak_coins_one else R.drawable.teak_coins_two),
-            contentDescription = null,
-            modifier = Modifier
-                .size(coinSize)
-                .graphicsLayer {
-                    if (!paying || !selected) return@graphicsLayer
-                    // 硬币上抛 2 倍高度，最后 1/3 淡出。
-                    val throwProgress = ((progress - 0.15f) / 0.5f).coerceIn(0f, 1f)
-                    translationY = -throwProgress * 2f * size.height
-                    alpha = (1f - ((progress - 0.65f) / 0.35f).coerceIn(0f, 1f))
-                },
-        )
-    }
-}
-
-@Composable
-private fun CoinArrow(
-    forward: Boolean,
-    enabled: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    Icon(
-        imageVector = if (forward) MiuixIcons.ChevronForward else MiuixIcons.ChevronBackward,
-        contentDescription = if (forward) "下一档" else "上一档",
-        tint = Color.White.copy(alpha = if (enabled) 0.92f else 0.30f),
-        modifier = modifier
-            .size(28.dp)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                enabled = enabled,
-                onClick = onClick,
-            ),
-    )
 }
 
 private fun formatCoinBalance(value: Double): String =

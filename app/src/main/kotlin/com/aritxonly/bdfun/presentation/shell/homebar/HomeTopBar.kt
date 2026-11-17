@@ -96,6 +96,7 @@ private fun HomeTopBarWideTabsRow(
             itemWidth = 64.dp,
             materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
             onSelect = tabs.onSelect,
+            position = tabs.position,
             modifier = Modifier.align(Alignment.Center),
         )
         Box(Modifier.align(Alignment.CenterEnd)) {
@@ -132,6 +133,7 @@ private fun HomeTopBarMainRow(
                     itemWidth = 64.dp,
                     materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
                     onSelect = tabs.onSelect,
+                    position = tabs.position,
                 )
             }
         } else if (wide) {
@@ -162,6 +164,7 @@ private fun HomeTopBarTabsBelow(tabs: HomeTopBarTabs) {
             itemWidth = 64.dp,
             materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
             onSelect = tabs.onSelect,
+            position = tabs.position,
         )
     }
 }
