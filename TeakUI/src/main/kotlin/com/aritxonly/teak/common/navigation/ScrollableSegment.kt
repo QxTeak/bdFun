@@ -52,7 +52,7 @@ internal fun ScrollableSegment(
         }
     }
     if (classic) {
-        Box(modifier.height(40.dp)) { content() }
+        Box(modifier.height(40.dp).clipToBounds()) { content() }
     } else {
         TeakGlassSurface(
             modifier = modifier.height(40.dp), shape = Capsule(), materialAlpha = materialAlpha,
@@ -69,7 +69,8 @@ private fun ScrollableSegmentContent(
     itemWidth: Dp, position: State<Float>?, maxVisibleItems: Int,
 ) {
     val limit = normalizedTabLimit(maxVisibleItems)
-    BoxWithConstraints(Modifier.width(itemWidth * limit).clipToBounds()) {
+    // 由外层胶囊统一裁切；内层裁切会在 4dp 内边距处提前截断提示字。
+    BoxWithConstraints(Modifier.width(itemWidth * limit)) {
         val density = LocalDensity.current
         val widthPx = with(density) { maxWidth.toPx() }
         val geometry = AdaptiveTabGeometry(options.size, widthPx, widthPx / (limit + .6f))
@@ -139,12 +140,14 @@ private fun ScrollableSegmentLabel(
                 alpha = 1f - geometry.edgeFade(index, current.value)
             })
         // 清晰/模糊两层交叉淡入，不在越过阈值时突然切换 RenderEffect。
-        Text(text = label, fontSize = 13.sp, maxLines = 1, color = color,
-            modifier = Modifier.clearAndSetSemantics {}.graphicsLayer {
-                renderEffect = blur
-                translationX = if (index == active) 0f else direction * geometry.edgeInset(index, current.value)
-                alpha = geometry.edgeFade(index, current.value) * .45f
-            })
+        // 模糊层覆盖整个槽位，给字形周围留出采样空间，避免在字形包围盒处硬截断。
+        Box(Modifier.matchParentSize().clearAndSetSemantics {}.graphicsLayer {
+            renderEffect = blur
+            translationX = if (index == active) 0f else direction * geometry.edgeInset(index, current.value)
+            alpha = geometry.edgeFade(index, current.value) * .45f
+        }, contentAlignment = Alignment.Center) {
+            Text(text = label, fontSize = 13.sp, maxLines = 1, color = color)
+        }
     }
 }
 

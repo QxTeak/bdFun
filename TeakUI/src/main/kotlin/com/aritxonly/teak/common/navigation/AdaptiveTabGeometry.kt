@@ -11,11 +11,13 @@ internal data class AdaptiveTabGeometry(val count: Int, val viewport: Float, val
         ((position.coerceIn(0f, (count - 1).coerceAtLeast(0).toFloat()) + .5f) * item - viewport / 2)
             .coerceIn(0f, maxScroll)
     fun indicator(position: Float): Float = position * item - scroll(position)
-    /** 仅将边缘提示文字向内推少许，不改变槽位、命中区或选中指示器。 */
+    /** 中间提示向内收；端点减少另一端的露字量，不改变槽位或选中指示器。 */
     fun edgeInset(index: Int, position: Float): Float {
         val center = (index + .5f) * item - scroll(position)
         val sign = if (center < viewport / 2f) 1f else -1f
-        return sign * edgeFade(index, position) * item * .16f
+        val endpoint = if (sign < 0f) (1f - position).coerceIn(0f, 1f)
+            else (position - (count - 2)).coerceIn(0f, 1f)
+        return sign * edgeFade(index, position) * item * (.22f - .30f * endpoint)
     }
 
     fun edgeFade(index: Int, position: Float): Float {

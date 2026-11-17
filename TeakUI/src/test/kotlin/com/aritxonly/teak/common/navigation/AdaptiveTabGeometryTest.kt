@@ -12,7 +12,22 @@ class AdaptiveTabGeometryTest {
         assertEquals(0f, g.edgeInset(2, 2f), .001f)
         assertEquals(0f, g.edgeInset(0, 0f), .001f)
         assertEquals(0f, g.edgeInset(4, 4f), .001f)
-        assertTrue(kotlin.math.abs(g.edgeInset(4, 2f)) <= g.item * .16f)
+        assertTrue(kotlin.math.abs(g.edgeInset(4, 2f)) <= g.item * .22f)
+    }
+
+    @Test fun endpointHintsExposeLessAndBlendContinuouslyIntoInwardHints() {
+        val g = AdaptiveTabGeometry(5, 180f, 50f)
+        // 最左时右侧提示往外少露一点，最右对称；中间仍往内收。
+        assertTrue(g.edgeInset(3, 0f) > 0f)
+        assertTrue(g.edgeInset(1, 4f) < 0f)
+        assertEquals(-11f, g.edgeInset(4, 2f), .001f)
+        assertEquals(11f, g.edgeInset(0, 2f), .001f)
+        var previous = g.edgeInset(3, 0f)
+        for (step in 1..100) {
+            val next = g.edgeInset(3, step / 100f)
+            assertTrue(kotlin.math.abs(next - previous) < .2f)
+            previous = next
+        }
     }
 
     @Test fun limitsRoundDownAndStayPositive() {
