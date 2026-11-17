@@ -11,7 +11,7 @@ class BiliSearchRepository(private val backend: BiliBackend) : SearchRepository 
     override suspend fun suggestions(query: String) = searchOutcome { backend.searchSuggest(query) }
     override suspend fun users(keyword: String) = searchOutcome { backend.searchUsers(keyword) }
     override suspend fun videos(request: SearchRequest) = searchOutcome {
-        backend.search(request.keyword, order = request.order, duration = request.duration,
+        backend.search(request.keyword, page = request.page, order = request.order, duration = request.duration,
             pubtimeBegin = request.pubtimeBegin, pubtimeEnd = request.pubtimeEnd)
     }
 }

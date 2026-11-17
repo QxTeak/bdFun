@@ -654,3 +654,15 @@ ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保�
 ### 2026-11-16 经典布局全页面对齐检查点
 
 经典样式（interfaceStyle=1）改为常驻栏形态，全部改动以 `TeakUiStyle.isClassic` 为门槛，官方与 HyperOS 4 分支不变。顶栏不再做大标题/小标题切换：页面标题常驻显示在整条顶栏中央，内容里的大标题位置只保留 56dp 占位，由 `LocalTeakClassicChrome` 区分页面壳与引导页；顶栏、底栏、动态分段栏、设置搜索栏和输入栏都用 Miuix 的整条纹理模糊（`teakClassicBarGlass`，非渐进式），叠加半透明底色保证可读，关闭高级材质时退化为平面底色；所有栏不再画分割线，顶栏按钮（返回、搜索、设置等）只保留图标不画圆底，只有回到顶部按钮保留玻璃圆钮。首页恢复推荐/直播/番剧分段（搜索框下一行），收藏/关注/消息/已发送/动态/空间等列表改为无行分割线的通栏行；评论折叠回复恢复 12dp 圆角分组框，与其他布局复用同一段实现。未改内容卡片、播放器覆盖层和登录/引导页的独立卡片造型。
+
+### 2026-11-17 视频/搜索/圆角体验检查点
+
+视频页评论页签的顶部间距不再用「24dp + 沉浸 36dp」的固定补偿：按 tab 行底边 + 12dp 减去列表自身的状态栏内边距反算，竖屏收紧、横屏分栏仍为 52dp；`CommentSortRow` 新增 compactSpacing，只由竖屏主评论区传入。视频页 tab 的柔光玻璃改走 `rememberManualProgress(…, 300f)`，与收藏页返回键同一套固定时长补间，不再直接吃滚动进度。频道页（直播/番剧）再次点击底栏当前页改为 `requestRefresh()`：先与推荐页同款并行「回顶 + 下拉」，再刷新。
+
+搜索页筛选写回 `appliedFilters`（此前只写 `filters`，所以永远不触发重新搜索）；`SearchRequest` 增加 `page`，搜索结果按 20 条一页向下加载，`SearchStateHolder.loadMore()` 带 revision 守卫并在短页时置 end，列表底部显示加载中/没有更多。
+
+设备圆角统一走 Android 12+ 的 `RoundedCorner`（四角取最大，读不到退回 framework dimen）：设置页单栏转场用 `rememberNavSystemCornerRadius()` 作为 `NavDisplayEffects.cornerClipRadius`；非小米机型的缩略图放大转场把截图按「全屏圆角 = 设备圆角」反算裁圆，避免四角直角。
+
+半屏播放器按当前清晰度宽高比判断竖屏视频：竖屏改用 3:4 窗口并以窗口高度 60% 兜底（`resolveInlineVideoHeightDp`，带单测），横屏与分栏不变。进入视频的「内容依次上浮」改为骨架屏（灰条 + 白色扫光），加载完成直接替换。
+
+投币不再用底部 sheet：`CoinChoicePopup` 在页面中间浮出两枚橙色硬币卡（1/2 硬币），点卡片直接投币，点空白关闭。关闭「退出视频后继续播放」时滑到后台只暂停播放，不再自动进入系统画中画；画中画只由显式返回键（exit_video_control）和全屏按钮触发。

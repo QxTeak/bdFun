@@ -46,6 +46,8 @@ internal data class CommentListViewLayout(
     val bottomPadding: androidx.compose.ui.unit.Dp, val showLoading: Boolean,
     val header: (androidx.compose.foundation.lazy.LazyListScope.() -> Unit)?,
     val flatList: Boolean = false,
+    /** 视频详情竖屏主评论区用更紧的标题上下留白。 */
+    val compactHeaderSpacing: Boolean = false,
 )
 internal class CommentListViewActions(
     val onSort: () -> Unit, val onLike: (CommentItem) -> Unit, val onDislike: (CommentItem) -> Unit,
@@ -96,7 +98,7 @@ internal fun CommentListView(
                     Box(Modifier.padding(horizontal = if (layout.flatList) {
                         if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 2.dp else 8.dp
                     } else 0.dp)) {
-                        CommentSortRow(total, sortHot, actions.onSort)
+                        CommentSortRow(total, sortHot, actions.onSort, layout.compactHeaderSpacing)
                     }
                 }
 

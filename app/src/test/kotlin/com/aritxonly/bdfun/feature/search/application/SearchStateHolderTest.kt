@@ -152,4 +152,45 @@ class SearchStateHolderTest {
         assertEquals(2_000_000_002L, source.requests.single().pubtimeEnd)
         assertTrue(times.isEmpty())
     }
+
+    @Test fun loadMoreAppendsTheNextPageAndStopsAtAShortPage() = runBlocking {
+        val source = Fake()
+        val firstPage = (1..SEARCH_PAGE_SIZE).map { video("a$it") }
+        val secondPage = (1..3).map { video("b$it") }
+        source.videos = { if (it.page == 1) Outcome.Success(firstPage) else Outcome.Success(secondPage) }
+        val holder = SearchStateHolder(source, wait = {})
+        holder.search("word", SearchFilterState())
+        assertFalse(holder.state.value.end)
+        holder.loadMore()
+        assertEquals(2, source.requests[1].page)
+        assertEquals(SEARCH_PAGE_SIZE + 3, holder.state.value.results.size)
+        assertTrue(holder.state.value.end)
+        assertFalse(holder.state.value.loadingMore)
+    }
+
+    @Test fun loadMoreDoesNothingBeforeASearchOrAfterTheEnd() = runBlocking {
+        val source = Fake(); source.videos = { Outcome.Success(emptyList()) }
+        val holder = SearchStateHolder(source, wait = {})
+        holder.loadMore()
+        assertTrue(source.requests.isEmpty())
+        holder.search("word", SearchFilterState())
+        assertTrue(holder.state.value.end)
+        holder.loadMore()
+        assertEquals(1, source.requests.size)
+    }
+
+    @Test fun aNewSearchResetsThePagingCursor() = runBlocking {
+        val source = Fake()
+        source.videos = { request ->
+            if (request.keyword == "old") Outcome.Success((1..SEARCH_PAGE_SIZE).map { video("o$it") })
+            else Outcome.Success(listOf(video("new")))
+        }
+        val holder = SearchStateHolder(source, wait = {})
+        holder.search("old", SearchFilterState())
+        holder.search("new", SearchFilterState())
+        holder.loadMore()
+        assertEquals(1, source.requests.last().page)
+        assertEquals("new", source.requests.last().keyword)
+        assertEquals(1, holder.state.value.results.size)
+    }
 }

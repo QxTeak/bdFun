@@ -12,8 +12,10 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -116,6 +118,26 @@ private fun rememberLivePullSession(
 @Composable
 private fun LivePageEffects(state: LivePageStateHolder, pull: DiscoverPullSession, ui: DiscoverPullUi) {
     LaunchedEffect(state) { state.ensureLoaded() }
+    // 外部请求刷新（再次点击底栏当前页）：与推荐页同一套「回顶 + 下拉」并行时序。
+    // 用「已处理到第几号请求」做幂等，页面被销毁重建时不会重放刷新。
+    var handledRefresh by remember { androidx.compose.runtime.mutableIntStateOf(state.refreshRequest) }
+    LaunchedEffect(state.refreshRequest) {
+        if (state.refreshRequest == handledRefresh) return@LaunchedEffect
+        handledRefresh = state.refreshRequest
+        if (state.refreshing || state.loading) return@LaunchedEffect
+        val atTop = state.gridState.firstVisibleItemIndex == 0 &&
+            state.gridState.firstVisibleItemScrollOffset == 0
+        if (atTop) {
+            pull.animatePullTo(pull.thresholdPx, 200f)
+        } else {
+            kotlinx.coroutines.coroutineScope {
+                launch { state.gridState.animateScrollToItem(0) }
+                launch { pull.animatePullTo(pull.thresholdPx, 260f) }
+            }
+        }
+        state.pullFraction = 1f
+        state.refresh()
+    }
     // 刷新结束：先收小电视，再让内容平滑回顶（与推荐页同一条时序）。
     LaunchedEffect(state.refreshing) {
         if (!state.refreshing && ui.offset > 0f) {

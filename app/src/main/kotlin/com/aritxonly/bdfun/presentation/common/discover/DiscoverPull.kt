@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.Velocity
  */
 internal class DiscoverPullSession(
     private val density: Density,
-    private val thresholdPx: Float,
+    val thresholdPx: Float,
     private val maxPullPx: Float,
     private val currentOffset: () -> Float,
     private val onPull: (Float) -> Unit,

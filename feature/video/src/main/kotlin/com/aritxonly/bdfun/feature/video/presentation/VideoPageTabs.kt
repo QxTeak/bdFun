@@ -28,7 +28,14 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
     val paneLayout = layout.paneLayout
     val splitPanes = layout.splitPanes
     val statusBarDp = layout.statusBarTop
-    val scrollProgress = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current.materialProgress
+    val pageScroll = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current
+    val scrollProgress = pageScroll.materialProgress
+    // 顶栏材质统一走「固定 300ms 补间」：和收藏页返回键同一套 rememberManualProgress，
+    // 不随滚动速度忽快忽慢；滚出顶部才起跑，回到顶部再同样速度淡出。
+    val materialReveal = com.aritxonly.teak.common.chrome.rememberManualProgress(
+        if (scrollProgress > 0f) 1f else 0f,
+        300f,
+    )
     val tabsModifier = Modifier
         .align(if (splitPanes) Alignment.TopEnd else Alignment.TopStart)
         .then(if (splitPanes) Modifier.width(paneLayout.detailsWidthDp.dp) else Modifier.fillMaxWidth())
@@ -56,7 +63,7 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
     androidx.compose.runtime.CompositionLocalProvider(
         com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress provides scrollProgress,
         com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted provides true,
-        com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress provides scrollProgress,
+        com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress provides materialReveal,
     ) {
         // 不做顶部渐进式模糊（横屏分栏也不要）：评论区顶部用 VideoPageBody 里的
         // 渐变遮罩，和底部保持对称；这里只负责 tab / 发弹幕控件的材质进度。

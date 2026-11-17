@@ -36,7 +36,7 @@ private fun CommentPageList(
         state = CommentListViewState(state.items, state.total, state.loading, state.loadingMore, state.end,
             state.error?.messageOr("评论加载失败"), state.query.sortHot, ui.highlightRpid, ui.disliked),
         layout = CommentListViewLayout(layout.bare, runtime.request.title, layout.topInset,
-            layout.bottomPadding, layout.showLoading, header, layout.flatList),
+            layout.bottomPadding, layout.showLoading, header, layout.flatList, layout.compactHeaderSpacing),
         actions = CommentListViewActions(
             onSort = { runtime.scope.launch { runtime.list.reset(state.query.copy(sortHot = !state.query.sortHot)) } },
             onLike = runtime::toggleLike,

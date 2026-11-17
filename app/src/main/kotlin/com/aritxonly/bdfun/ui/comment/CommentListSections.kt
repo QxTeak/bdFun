@@ -61,12 +61,23 @@ internal fun CommentListTitle(bare: Boolean, title: String, total: Int) {
 }
 
 @Composable
-internal fun CommentSortRow(total: Int, sortHot: Boolean, onSort: () -> Unit) {
+internal fun CommentSortRow(
+    total: Int,
+    sortHot: Boolean,
+    onSort: () -> Unit,
+    /** 视频详情竖屏主评论区：上下留白各收一点，避免「共 N 条评论」孤零零悬在中间。 */
+    compactSpacing: Boolean = false,
+) {
     val colors = MiuixTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 4.dp, end = 4.dp, top = 2.dp, bottom = 8.dp),
+            .padding(
+                start = 4.dp,
+                end = 4.dp,
+                top = if (compactSpacing) 0.dp else 2.dp,
+                bottom = if (compactSpacing) 4.dp else 8.dp,
+            ),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(

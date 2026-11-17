@@ -1,9 +1,6 @@
 package com.aritxonly.bdfun.ui
 
-import com.aritxonly.teak.common.modal.TeakActionSheet
-
 import androidx.compose.runtime.Composable
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun VideoDetailSheets(
@@ -11,18 +8,12 @@ internal fun VideoDetailSheets(
     interaction: com.aritxonly.bdfun.feature.video.application.VideoInteractionState,
     actions: VideoDetailViewActions,
 ) {
-    TeakActionSheet(
+    // 投币不再是底部 sheet：中间浮出两枚硬币卡，点卡片直接投币。
+    CoinChoicePopup(
         visible = ui.coinSheet.value,
         onDismiss = { ui.coinSheet.value = false },
-        title = "请选择投币数量",
-    ) {
-        SheetActionRow("投 1 枚硬币", MenuGlyphKind.Coin, MiuixTheme.colorScheme.onBackground) {
-            actions.doCoin(1)
-        }
-        SheetActionRow("投 2 枚硬币", MenuGlyphKind.Coin, MiuixTheme.colorScheme.onBackground) {
-            actions.doCoin(2)
-        }
-    }
+        onPick = actions::doCoin,
+    )
 
     com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderSheet(
         show = ui.favSheet.value,
