@@ -17,6 +17,59 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class SpaceStateHolderTest {
+    @Test fun searchIgnoresOldQueryResponse() = runBlocking {
+        val source = Fake().apply { videos = listOf(video(1)); videosGate = CompletableDeferred() }
+        val holder = SpaceToolsStateHolder(1, source) { true }
+        holder.query("old")
+        val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.search() }
+        holder.query("new")
+        source.videosGate!!.complete(Unit); job.join()
+        assertTrue(holder.state.value.videos.isEmpty())
+        assertFalse(holder.state.value.loading)
+        holder.search()
+        assertEquals(source.videos, holder.state.value.videos)
+    }
+
+    @Test fun searchCancellationReleasesLoadingAndOwnerChangeRejectsResult() = runBlocking {
+        val source = Fake().apply { videosGate = CompletableDeferred() }
+        var owner = true
+        val holder = SpaceToolsStateHolder(1, source) { owner }
+        holder.query("query")
+        val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.search() }
+        job.cancelAndJoin()
+        assertFalse(holder.state.value.loading)
+        owner = false
+        holder.block()
+        assertFalse(holder.state.value.blocked)
+    }
+
+    @Test fun dynamicSearchMatchesOriginalAndVideoTitleIgnoringCase() {
+        val item = dynamic("1").copy(text = "", video = video(1).copy(title = "Kotlin"))
+        val forwarded = dynamic("2").copy(text = "", attachments =
+            com.aritxonly.bdfun.core.model.feed.FeedAttachments(orig = item))
+        assertEquals(listOf(item, forwarded), filterSpaceDynamics(listOf(item, forwarded), " kotlin "))
+        assertTrue(filterSpaceDynamics(listOf(item), "missing").isEmpty())
+    }
+
+    @Test fun blockFailureCanRetryAndClosedSearchDoesNotPublish() = runBlocking {
+        val source = Fake().apply { blockResult = Outcome.Failure(AppError.Network("failed")) }
+        val holder = SpaceToolsStateHolder(1, source) { true }
+        holder.block()
+        assertFalse(holder.state.value.blocked)
+        assertFalse(holder.state.value.blockBusy)
+        assertEquals("failed", holder.state.value.message)
+        source.blockResult = Outcome.Success(true)
+        holder.block()
+        assertTrue(holder.state.value.blocked)
+        source.videosGate = CompletableDeferred()
+        source.videos = listOf(video(1))
+        holder.query("test")
+        val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.search() }
+        holder.close()
+        source.videosGate!!.complete(Unit); job.join()
+        assertTrue(holder.state.value.videos.isEmpty())
+    }
+
     private fun video(id: Long) = VideoItem("BV$id", id, "标题", "", "UP", "", 1, 0, 0, 1, 0)
     private fun dynamic(id: String) = FeedItem(
         id = id,
@@ -36,6 +89,9 @@ class SpaceStateHolderTest {
         ),
     )
     private class Fake : SpaceRepository {
+        override suspend fun searchVideos(mid: Long, keyword: String, page: Int) = videos(mid, page)
+        var blockResult: Outcome<Boolean> = Outcome.Success(true)
+        override suspend fun block(mid: Long) = blockResult
         var profile: Outcome<SpaceInfo> = Outcome.Success(SpaceInfo(UserProfile(1, "姓名", "", "", 1, 0.0, false, ""), emptyList()))
         var videos = emptyList<VideoItem>()
         var hook: suspend (String) -> Unit = {}

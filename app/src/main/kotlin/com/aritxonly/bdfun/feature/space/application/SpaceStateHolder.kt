@@ -13,6 +13,7 @@ internal class SpaceStateHolder(
     private val mid: Long, private val repository: SpaceRepository,
     private val currentOwner: () -> Boolean = { true },
 ) {
+    val tools = SpaceToolsStateHolder(mid, repository, currentOwner)
     private val mutable = MutableStateFlow(SpaceUiState())
     val state = mutable.asStateFlow()
     private var bootstrapping = false
@@ -23,6 +24,7 @@ internal class SpaceStateHolder(
     fun close() {
         if (closed) return
         closed = true
+        tools.close()
         mutable.update { it.copy(
             profile = it.profile.copy(loading = false, settled = true, followBusy = false,
                 followed = followBaseline ?: it.profile.followed),
