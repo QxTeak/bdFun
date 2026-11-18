@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.infra.bili
 
+import com.aritxonly.bdfun.core.domain.danmakuUserHash
+
 import android.content.Context
 import android.net.Uri
 import android.text.Html
@@ -200,7 +202,7 @@ internal suspend fun BiliApiContext.danmakuSegments(cid: Long, durationSec: Int)
             }
         }.awaitAll()
     }.filterNotNull()
-    return mapDanmakuSegments(parsed)
+    return mapDanmakuSegments(parsed, danmakuUserHash(mid))
 }
 
 internal suspend fun BiliApiContext.fetchDanmakuSegment(cid: Long, index: Int): ByteArray? {
@@ -231,7 +233,7 @@ internal suspend fun BiliApiContext.danmakuXml(cid: Long): List<DanmakuItem> = w
         response.body?.bytes() ?: return@withContext emptyList()
     }
     val xml = decodeDanmakuBytes(bytes)
-    parseDanmakuXml(xml)
+    parseDanmakuXml(xml, danmakuUserHash(mid))
 }
 
 /**
@@ -266,8 +268,10 @@ internal suspend fun BiliApiContext.sendDanmaku(
     mode: Int = 1,
     fontSize: Int = 25,
     color: Int = 0xFFFFFF,
-): Boolean = withContext(Dispatchers.IO) {
-    postRequest(
+    aid: Long = 0,
+    appearance: com.aritxonly.bdfun.core.domain.DanmakuSendAppearance = com.aritxonly.bdfun.core.domain.DanmakuSendAppearance(),
+): Long = withContext(Dispatchers.IO) {
+    val data = postRequest(
         "/x/v2/dm/post",
         mapOf(
             "type" to "1",
@@ -277,12 +281,16 @@ internal suspend fun BiliApiContext.sendDanmaku(
             "progress" to progressMs.coerceAtLeast(0L).toString(),
             "mode" to mode.toString(),
             "fontsize" to fontSize.toString(),
-            "color" to color.toString(),
+            "color" to (if (appearance.vipColor) 0xFFFFFF else color).toString(),
             "pool" to "0",
             "csrf" to csrf,
-        ),
+        ) + buildMap {
+            if (aid > 0) put("aid", aid.toString())
+            if (appearance.vipColor) put("colorful", "60001")
+            if (appearance.upIdentity) put("checkbox_type", "4")
+        },
     )
-    true
+    data.optString("dmid_str").toLongOrNull() ?: data.optLong("dmid")
 }
 
 internal suspend fun BiliApiContext.likeVideo(aid: Long, like: Boolean): Boolean = withContext(Dispatchers.IO) {

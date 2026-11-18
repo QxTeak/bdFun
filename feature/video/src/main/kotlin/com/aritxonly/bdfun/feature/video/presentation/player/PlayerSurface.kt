@@ -57,17 +57,14 @@ fun PlayerSurface(
         )
 
         if (danmakuVisible) {
-            // 只跟"有没有计数内容"有关，不看播放控件：控件层压在弹幕之上，
-            // 开关控件不应该让弹幕整体位移。
-            val counterVisible = picture.hotDanmakuEnabled && !ui.fsAudioOnly.value &&
-                ui.hotDanmaku.value.isNotEmpty()
+            val hot = if (picture.hotDanmakuEnabled && !ui.fsAudioOnly.value) ui.danmakuHit.hotPresentation.value
+                else HotDanmakuPresentation()
             slots.danmaku(danmaku, { frameMs - btLatencyMs }, playing,
-                if (boosting) boostSpeed else speed, Modifier.fillMaxSize(), fullscreen, counterVisible)
+                if (boosting) boostSpeed else speed, Modifier.fillMaxSize(), fullscreen, hot, ui.danmakuHit)
         }
 
         PlayerAlwaysProgress(ui, fullscreen, positionMs, durationMs, picture.progressBarMode, picture.accentColor)
-        PlayerHotDanmakuOverlay(ui, fullscreen, picture.hotDanmakuEnabled,
-            picture.hotDanmakuStrokeDp, picture.hotDanmakuTextScale)
+        PlayerHotDanmakuOverlay(ui, fullscreen, picture, danmakuVisible)
         if (sponsor != null) {
             PlayerSponsorOverlay(sponsor, fullscreen, picture.accentColor) { segment ->
                 onSkip(segment)

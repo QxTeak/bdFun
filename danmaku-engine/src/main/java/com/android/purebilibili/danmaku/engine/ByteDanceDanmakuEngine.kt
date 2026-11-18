@@ -322,12 +322,14 @@ internal class ByteDanceDanmakuEngine(
         } else {
             EngineTextData(item, visibility).apply {
                 text = item.text
+                trailingAction = item.trailingAction
+                trailingActionId = item.danmakuId
                 textSize = item.textSize ?: item.textSizeScale
                     .takeUnless { it == 1f }
                     ?.let { scale -> currentConfig.textSizePx * scale }
                 textColor = item.textColor
                 isVipGradualColor = item.isVipGradualColor
-                isUpOwner = upOwnerUserHash != null && item.userHash == upOwnerUserHash
+                isUpOwner = item.isUpOwner || (upOwnerUserHash != null && item.userHash == upOwnerUserHash)
                 typeface = item.typeface
                 textStrokeWidth = item.textStrokeWidth
                 textStrokeColor = item.textStrokeColor

@@ -13,7 +13,7 @@ import org.json.JSONArray
 
 import org.xmlpull.v1.XmlPullParser
 
-internal fun mapDanmakuSegments(parsed: List<ByteArray>): List<DanmakuItem> {
+internal fun mapDanmakuSegments(parsed: List<ByteArray>, ownHash: String = ""): List<DanmakuItem> {
     val result = ArrayList<DanmakuItem>(1024)
     for (bytes in parsed) {
         val elems = cancellableCatching {
@@ -21,8 +21,8 @@ internal fun mapDanmakuSegments(parsed: List<ByteArray>): List<DanmakuItem> {
         }.getOrDefault(emptyList())
         for (elem in elems) {
             val text = elem.content.trim()
-            if (text.isBlank() || text.length > 90) continue
-            if (elem.mode !in intArrayOf(1, 2, 3, 4, 5, 6, 7, 8)) continue
+            val maxLength = if (elem.mode == 7 || elem.mode == 9) 65_536 else 90
+            if (text.isBlank() || text.length > maxLength || elem.mode !in 1..9 || elem.mode == 8) continue
             result += DanmakuItem(
                 timeMs = elem.progress.toLong(),
                 mode = elem.mode,
@@ -32,13 +32,16 @@ internal fun mapDanmakuSegments(parsed: List<ByteArray>): List<DanmakuItem> {
                 id = elem.id,
                 likeCount = elem.like,
                 count = elem.count,
+                userHash = elem.midHash,
+                vipColor = elem.colorful == com.android.purebilibili.danmaku.parser.DanmakuProto.DmColorfulTypeVipGradualColor,
+                self = ownHash.isNotEmpty() && ownHash.equals(elem.midHash, ignoreCase = true),
             )
         }
     }
     return result.sortedBy { it.timeMs }
 }
 
-internal fun parseDanmakuXml(xml: String): List<DanmakuItem> {
+internal fun parseDanmakuXml(xml: String, ownHash: String = ""): List<DanmakuItem> {
     if (xml.isBlank()) return emptyList()
     val result = ArrayList<DanmakuItem>(512)
     cancellableCatching {
@@ -50,16 +53,19 @@ internal fun parseDanmakuXml(xml: String): List<DanmakuItem> {
                 val p = parser.getAttributeValue(null, "p").orEmpty()
                 val text = parser.nextText().orEmpty().trim()
                 val parts = p.split(',')
-                if (parts.size >= 4 && text.isNotBlank() && text.length <= 90) {
+                if (parts.size >= 4 && text.isNotBlank() && text.length <= if (modeForLength(parts)) 65_536 else 90) {
                     val seconds = parts[0].toFloatOrNull() ?: 0f
                     val mode = parts[1].toIntOrNull() ?: 1
-                    if (mode == 1 || mode == 4 || mode == 5 || mode == 7 || mode == 8) {
+                    if (mode == 1 || mode == 4 || mode == 5 || mode == 7 || mode == 9) {
                         result += DanmakuItem(
                             timeMs = (seconds * 1000).toLong(),
                             mode = mode,
                             color = parts[3].toIntOrNull() ?: 0xFFFFFF,
                             size = parts.getOrNull(2)?.toFloatOrNull() ?: 25f,
                             text = text,
+                            id = parts.getOrNull(7)?.toLongOrNull() ?: 0L,
+                            userHash = parts.getOrNull(6).orEmpty(),
+                            self = ownHash.isNotEmpty() && ownHash.equals(parts.getOrNull(6), ignoreCase = true),
                         )
                     }
                 }
@@ -69,3 +75,5 @@ internal fun parseDanmakuXml(xml: String): List<DanmakuItem> {
     }
     return result.sortedBy { it.timeMs }
 }
+
+private fun modeForLength(parts: List<String>): Boolean = parts.getOrNull(1) in setOf("7", "9")

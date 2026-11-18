@@ -4,7 +4,7 @@ import com.aritxonly.bdfun.core.common.formatCount
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,11 +19,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.teak.common.icons.AppGlyph
 import com.kyant.shapes.Capsule
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -73,19 +75,21 @@ internal fun VideoMetadataAuthor(content: VideoMetadataContent, interaction: com
             )
         }
         Spacer(Modifier.width(10.dp))
-        // 纯色关注按钮（不再加高光描边）
-        Box(
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(3.dp),
             modifier = Modifier
                 .clip(Capsule())
-                .background(appearance.accentColor)
+                .background(if (followed) colors.surfaceContainerHigh else appearance.accentColor)
                 .clickable(interactionSource = null, indication = null) {
                     actions.toggleFollow()
                 }
                 .padding(horizontal = 14.dp, vertical = 5.dp),
         ) {
+            if (!followed) AppGlyph(MiuixIcons.Add, Color.White, size = 12.dp)
             Text(
-                text = if (followed) "已关注" else "+ 关注",
-                color = Color.White,
+                text = if (followed) "已关注" else "关注",
+                color = if (followed) colors.onBackgroundVariant else Color.White,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Normal,
             )

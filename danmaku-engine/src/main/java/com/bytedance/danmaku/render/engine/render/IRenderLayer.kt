@@ -32,6 +32,9 @@ interface IRenderLayer {
 
     fun getLayerZIndex(): Int
 
+    /** 顶部预留只限制还未入轨的弹幕。 */
+    fun setReservedTop(heightPx: Float) {}
+
     /**
      * Calculate the width and height in this callback and rearrange your RenderLines (if has).
      */

@@ -32,7 +32,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.teak.common.icons.AppGlyph
 import com.kyant.shapes.Capsule
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Add
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
@@ -122,7 +126,7 @@ internal fun FullscreenHeaderActions(info: FullscreenPlayerInfo, actions: Fullsc
         Spacer(Modifier.width(12.dp))
         BadgeStatAction(
             accentColor = appearance.accentColor,
-            icon = appearance.icons.like,
+            icon = appearance.icons.like(info.liked),
             count = info.likeCount,
             active = info.liked,
             yOffset = (-10).dp,
@@ -178,6 +182,7 @@ internal fun FullscreenHeaderActions(info: FullscreenPlayerInfo, actions: Fullsc
 
 @Composable
 internal fun BoxScope.FullscreenAuthor(info: FullscreenPlayerInfo, actions: FullscreenActions, appearance: FullscreenAppearance, slots: FullscreenChromeSlots) {
+    val colors = MiuixTheme.colorScheme
     // 观看人数 + UP 头像 / 昵称
     Column(
         modifier = Modifier
@@ -204,7 +209,7 @@ internal fun BoxScope.FullscreenAuthor(info: FullscreenPlayerInfo, actions: Full
             modifier = Modifier
                 .height(26.dp)
                 .clip(Capsule())
-                .background(Color.Black.copy(alpha = 0.3f))
+                .background(if (info.followed) colors.surfaceContainerHigh else Color.Black.copy(alpha = 0.3f))
                 .clickable(interactionSource = null, indication = null) {
                     actions.onOpenSpace()
                 },
@@ -218,9 +223,13 @@ internal fun BoxScope.FullscreenAuthor(info: FullscreenPlayerInfo, actions: Full
                     .background(Color.White.copy(alpha = 0.12f)),
             )
             Spacer(Modifier.width(7.dp))
+            if (!info.followed) {
+                AppGlyph(MiuixIcons.Add, Color.White, size = 11.dp)
+                Spacer(Modifier.width(2.dp))
+            }
             Text(
-                text = if (info.followed) "已关注" else "+关注",
-                color = Color.White,
+                text = if (info.followed) "已关注" else "关注",
+                color = if (info.followed) colors.onBackgroundVariant else Color.White,
                 fontSize = 11.5.sp,
                 fontWeight = FontWeight.Normal,
                 maxLines = 1,

@@ -18,6 +18,7 @@ class VideoTransportActions(
 class VideoInteractionActions(
     val onLikeClick: () -> Unit, val onDislikeClick: () -> Unit, val onCommentClick: () -> Unit,
     val onShareClick: () -> Unit, val onOpenSpaceClick: () -> Unit,
+    val onCommandFollow: () -> Unit = {}, val onCommandCoin: () -> Unit = {}, val onCommandFavorite: () -> Unit = {},
     val onToggleFolder: (Long) -> Unit, val onRequestFavorites: () -> Unit, val onAddWatchLater: () -> Unit,
 )
 class VideoNavigationActions(

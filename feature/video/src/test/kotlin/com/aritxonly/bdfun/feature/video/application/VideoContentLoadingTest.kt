@@ -60,19 +60,60 @@ class VideoContentLoadingTest {
         var source: suspend (VideoStreamRequest) -> Outcome<PlayInfo> = { Outcome.Success(play(it.quality)) }
         var comments: suspend (Long) -> List<DanmakuItem> = { listOf(item) }
         val requests = mutableListOf<VideoStreamRequest>()
+        val danmakuRequests = mutableListOf<Pair<Long, Int>>()
+        val resumeRequests = mutableListOf<Pair<Long, Int>>()
         override suspend fun playInfo(request: VideoStreamRequest): Outcome<PlayInfo> {
             requests += request
             playGate?.await()
             return source(request)
         }
         override suspend fun danmaku(cid: Long, durationSec: Int): Outcome<List<DanmakuItem>> {
+            danmakuRequests += cid to durationSec
             commentsGate?.await()
             return Outcome.Success(comments(cid))
         }
-        override suspend fun resumePosition(detail: VideoDetail): Outcome<Long> = Outcome.Success(321L)
+        override suspend fun resumePosition(detail: VideoDetail): Outcome<Long> {
+            resumeRequests += detail.cid to detail.duration
+            return Outcome.Success(321L)
+        }
     }
     private suspend fun VideoDetailStateHolder.load(resume: Boolean = true, ready: (Long) -> Unit = {}) =
-        load("one", 80, "hevc", "base", resume, {}, ready)
+        load("one", 80, "hevc", "base", { resume }, {}, ready)
+
+    @Test fun historyCidSelectsTheSamePartForTheStreamDanmakuAndCloudProgress() = runBlocking {
+        val video = detail.copy(info = detail.info.copy(pages = listOf(
+            VideoPage(12L, 1, "第一段", 10),
+            VideoPage(13L, 2, "第二段", 55),
+        )))
+        val playback = Playback()
+        val holder = VideoDetailStateHolder(Videos(video), playback = playback)
+        var activeCid = 0L
+        assertTrue(holder.load("one", 80, "hevc", "base", { true }, { activeCid = it }, {}, requestedCid = 13L))
+        val stream = playback.requests.single()
+        assertEquals(13L, activeCid)
+        assertEquals(13L, stream.cid)
+        assertEquals(55, stream.durationSec)
+        assertEquals(listOf(13L to 55), playback.danmakuRequests)
+        assertEquals(listOf(13L to 55), playback.resumeRequests)
+        assertEquals(12L, holder.state.value.detail?.cid)
+    }
+
+    @Test fun staleHistoryCidUsesDefaultPartAndDoesNotReuseItsProgress() = runBlocking {
+        val playback = Playback()
+        val holder = VideoDetailStateHolder(Videos(detail), playback = playback)
+        val selection = VideoPlaybackSelectionStateHolder("one", 99L, 80, 33_000L)
+        assertTrue(holder.load(
+            "one", 80, "hevc", "base",
+            { selection.state.value.resumePositionMs <= 0L },
+            { selection.restoreCid(it, requestedCid = 99L) },
+            selection::offerCloudResume,
+            requestedCid = 99L,
+        ))
+        assertEquals(12L, selection.state.value.cid)
+        assertEquals(321L, selection.state.value.resumePositionMs)
+        assertEquals(listOf(12L to 10), playback.resumeRequests)
+        assertEquals(12L, playback.requests.single().cid)
+    }
 
     @Test fun playbackBecomesReadyBeforeSlowDanmaku() = runBlocking {
         val playback = Playback().apply { commentsGate = CompletableDeferred() }

@@ -8,16 +8,13 @@ import com.aritxonly.bdfun.R
  * 只暴露 drawable 契约，让播放器与输入框继续沿用原尺寸、按压和 tint。
  */
 internal object TeakIcon {
-    val Like = R.drawable.act_like
     val Dislike = R.drawable.act_dislike
-    val LikeOutline = R.drawable.act_like_outline
     val Coin = com.aritxonly.teak.common.icons.LucideIcons.CoinsFilled
     val Star = R.drawable.act_star
     val Share = R.drawable.act_share
 
     val CommentBubble = R.drawable.comment_bubble
-    val CommentLike = R.drawable.comment_like
-    val CommentLikeFilled = R.drawable.comment_like_filled
+    fun like(liked: Boolean): Int = if (liked) R.drawable.comment_like_filled else R.drawable.comment_like
     val CommentDislike = R.drawable.comment_dislike
     val CommentDislikeFilled = R.drawable.comment_dislike_filled
 
@@ -34,7 +31,6 @@ internal object TeakIcon {
     val PlayerDanmakuOff = R.drawable.fs_danmaku_off
     val PlayerDanmakuSettings = R.drawable.fs_danmaku_settings
     val PlayerNext = R.drawable.fs_next
-    val PlayerLike = R.drawable.fs_like
     val PlayerComment = R.drawable.fs_comment
     val PlayerStar = R.drawable.fs_star
     val PlayerShare = R.drawable.fs_share

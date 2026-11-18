@@ -65,7 +65,7 @@ internal fun FeedCardFooter(item: FeedItem, liked: Boolean, actions: FeedCardAct
             modifier = Modifier.weight(1f),
             icon = {
                 ResourceGlyph(
-                    res = if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,
+                    res = TeakIcon.like(liked),
                     tint = if (liked) BrandPink else colors.onBackgroundVariant,
                     size = 18.dp,
                 )

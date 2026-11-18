@@ -34,6 +34,7 @@ internal data class GestureCallbacks(
     val onDragEnd: () -> Unit,
     val ignoreDown: (Offset, Float) -> Boolean,
     val swipe: GestureSwipeCallbacks,
+    val captureDanmaku: (Offset) -> PlayerDanmakuPress? = { null },
 )
 
 internal data class GestureSwipeCallbacks(
@@ -65,7 +66,7 @@ private suspend fun androidx.compose.ui.input.pointer.AwaitPointerEventScope.det
     verticalGesturesEnabled: () -> Boolean,
     callbacks: () -> GestureCallbacks,
 ) {
-    if (callbacks().ignoreDown(down.position, size.height.toFloat())) {
+    if (down.isConsumed || callbacks().ignoreDown(down.position, size.height.toFloat())) {
         drainPlayerTouches()
         return
     }
@@ -93,6 +94,7 @@ private suspend fun androidx.compose.ui.input.pointer.AwaitPointerEventScope.det
     try {
         while (true) {
             val event = awaitPointerEvent()
+            if (event.changes.count { it.pressed } > 1) break
             val change = event.changes.firstOrNull { it.id == down.id } ?: break
             if (!change.pressed) {
                 gesture.released()
@@ -102,8 +104,8 @@ private suspend fun androidx.compose.ui.input.pointer.AwaitPointerEventScope.det
         }
     } finally {
         longPressJob.cancel()
+        gesture.finish(70.dp.toPx())
     }
-    gesture.finish(70.dp.toPx())
 }
 
 private suspend fun androidx.compose.ui.input.pointer.AwaitPointerEventScope.drainPlayerTouches() {

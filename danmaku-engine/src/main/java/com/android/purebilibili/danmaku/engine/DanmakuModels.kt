@@ -32,6 +32,7 @@ open class DanmakuItem {
     var pool: Int = 0
     var attr: Int = 0
     var likeCount: Long = 0L
+    var trailingAction: DanmakuTrailingAction? = null
     var isVipGradualColor: Boolean = false
     var duplicateCount: Int = 0
     var isSelf: Boolean = false
@@ -59,6 +60,7 @@ open class DanmakuItem {
         target.pool = pool
         target.attr = attr
         target.likeCount = likeCount
+        target.trailingAction = trailingAction
         target.isVipGradualColor = isVipGradualColor
         target.duplicateCount = duplicateCount
         target.isSelf = isSelf

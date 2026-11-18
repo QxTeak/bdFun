@@ -22,6 +22,7 @@ import android.graphics.Shader
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.TextUtils
+import com.android.purebilibili.danmaku.engine.DanmakuTrailingAction
 import com.bytedance.danmaku.render.engine.control.DanmakuConfig
 import com.bytedance.danmaku.render.engine.render.draw.DrawItem
 import com.bytedance.danmaku.render.engine.utils.DRAW_TYPE_TEXT
@@ -95,6 +96,7 @@ open class TextDrawItem: DrawItem<TextData>() {
             } else {
                 upBadgeAdvance = 0f
             }
+            if (data?.trailingAction != null) width += DanmakuTrailingAction.advance(height)
         } else {
             width = 0F
             height = 0F
@@ -125,6 +127,9 @@ open class TextDrawItem: DrawItem<TextData>() {
         }
         drawText(canvas, mTextPaint, config)
         drawUnderline(canvas, mTextPaint, mUnderlinePaint, config)
+        data?.let { item ->
+            item.trailingAction?.draw(canvas, item.trailingActionId, x + width, y + height / 2f, height)
+        }
     }
 
     private fun resolveUpBadgeAdvance(textHeight: Float): Float {
@@ -227,13 +232,13 @@ open class TextDrawItem: DrawItem<TextData>() {
                 underlinePaint.style = Paint.Style.STROKE
                 underlinePaint.color = config.underline.strokeColor
                 underlinePaint.strokeWidth = config.underline.strokeWidth
-                canvas.drawRect(x, underlineY, x + width, underlineY + config.underline.width, underlinePaint)
+                canvas.drawRect(x, underlineY, x + upBadgeAdvance + textWidth, underlineY + config.underline.width, underlinePaint)
             }
             // draw underline
             underlinePaint.style = Paint.Style.FILL
             underlinePaint.color = data?.textColor ?: config.underline.color
             underlinePaint.strokeWidth = 0f
-            canvas.drawRect(x, underlineY, x + width, underlineY + config.underline.width, underlinePaint)
+            canvas.drawRect(x, underlineY, x + upBadgeAdvance + textWidth, underlineY + config.underline.width, underlinePaint)
         }
     }
 

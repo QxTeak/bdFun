@@ -69,7 +69,7 @@ fun BindPlayerEngineEffects(
     BindPlayerMediaBridge(playback, media, presentation, actions, ui, ports.background, ports.settings.boostDefaultSpeed)
     BindPlayerControlVisibility(playback, presentation.fullscreen, playing, ui, ports.page)
     BindPlayerObserver(playback, media, actions, ui, ports.page, ports.progress, ports.exit, ports.diagnostics)
-    BindPlayerSource(playback, media, presentation, ui, ports.diagnostics, ports.settings.autoPlay)
+    BindPlayerSource(playback, media, presentation, ui, ports.diagnostics, ports.settings.autoPlay, ports.progress, ports.settings.resumePlayback)
     BindPlayerProgressTracking(playback, media.bvid, ui, tracking, ports.page, ports.progress, ports.settings.resumePlayback)
 }
 

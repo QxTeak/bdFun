@@ -25,6 +25,8 @@ internal class PlayerGestureSession(
     private val callbacks: () -> GestureCallbacks,
     private val now: () -> Long = System::currentTimeMillis,
 ) {
+    private var press = callbacks().captureDanmaku(initial)
+    private var handedOff = false
     private var dragged = false
     private var horizontal = false
     private var dragVertical = false
@@ -41,6 +43,8 @@ internal class PlayerGestureSession(
         longPressJob = scope.launch {
             delay(380)
             if (!dragged) {
+                press?.cancel()
+                press = null
                 longPressed = true
                 taps.atMs = 0
                 taps.pending?.cancel()
@@ -59,14 +63,22 @@ internal class PlayerGestureSession(
             taps.atMs = 0
             taps.pending?.cancel()
             taps.pending = null
+            press?.cancel()
+            press = null
             callbacks().onDoubleTap()
         } else {
             taps.atMs = time
             taps.pending?.cancel()
+            val captured = press
+            handedOff = true
+            var confirmed = false
             taps.pending = scope.launch {
                 delay(260)
-                if (taps.atMs != 0L) callbacks().onTap()
-            }
+                if (taps.atMs != 0L) {
+                    if (captured != null) { captured.confirm(); confirmed = true }
+                    else callbacks().onTap()
+                }
+            }.also { job -> job.invokeOnCompletion { if (!confirmed) captured?.cancel() } }
         }
     }
 
@@ -81,6 +93,8 @@ internal class PlayerGestureSession(
             return
         }
         if (!dragged && (abs(totalDy) > touchSlop() || abs(totalDx) > touchSlop())) {
+            press?.cancel()
+            press = null
             dragged = true
             horizontal = abs(totalDx) > abs(totalDy)
             dragVertical = !horizontal && verticalAllowed
@@ -102,6 +116,7 @@ internal class PlayerGestureSession(
     }
 
     fun finish(centerThreshold: Float) {
+        if (!handedOff) { press?.cancel(); press = null }
         if (dragged && (horizontal || dragVertical)) callbacks().onDragEnd()
         if (centerSwipe && abs(centerSwipeDy) > centerThreshold) callbacks().swipe.onCenterSwipe()
         if (longPressed) callbacks().onLongPressEnd()

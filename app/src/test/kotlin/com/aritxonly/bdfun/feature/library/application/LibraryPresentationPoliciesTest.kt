@@ -30,10 +30,11 @@ class LibraryPresentationPoliciesTest {
         h.chooseHistory(" "); assertFalse(h.state.value.committed); assertNull(h.submit())
     }
     @Test fun historyProjectionRetainsOriginalQueueDefaultsAndCounts() {
-        val history=HistoryItem(bvid="BV1",title="title",cover="cover",author="UP",viewedAt=456,progress=9,duration=100,play=42,danmaku=7,aid=123)
+        val history=HistoryItem(bvid="BV1",title="title",cover="cover",author="UP",viewedAt=456,progress=9,duration=100,play=42,danmaku=7,aid=123,cid=345)
         val video=history.toVideoItem()
         assertEquals("BV1",video.bvid); assertEquals(123L,video.aid); assertEquals("UP",video.ownerName)
         assertEquals("",video.ownerFace); assertEquals(0L,video.ownerMid)
         assertEquals(42L,video.play); assertEquals(7L,video.danmaku); assertEquals(100,video.duration); assertEquals(456L,video.pubdate)
+        assertEquals(345L, video.cid)
     }
 }

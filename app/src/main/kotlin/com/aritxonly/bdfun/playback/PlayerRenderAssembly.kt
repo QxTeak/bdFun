@@ -15,6 +15,7 @@ internal fun rememberPlayerRenderPorts(
     val context = LocalContext.current
     val page = LocalVideoPageState.current
     val settings = page.settings
+    val viewer = com.aritxonly.bdfun.AppGraph.session.value
     val fsActions = VideoFullscreenActionBindings(context, playback, presentation.fullscreenInfo, actions, ui, page).create()
     return PlayerRenderPorts(
         page = page,
@@ -27,7 +28,8 @@ internal fun rememberPlayerRenderPorts(
             settings.hotDanmakuEnabled,
             BrandPink,
             settings.danmakuStroke,
-            if (presentation.fullscreen) settings.danmakuScaleFullscreen else settings.danmakuScaleInline,
+            hotDanmakuTextScale = if (presentation.fullscreen) settings.danmakuScaleFullscreen else settings.danmakuScaleInline,
+            danmakuOpacity = settings.danmakuOpacity,
         ),
         surface = rememberPlayerSurfaceSlots(),
         buffering = { modifier -> TvBuffering(modifier = modifier, tvSize = 26.4.dp) },
@@ -37,7 +39,19 @@ internal fun rememberPlayerRenderPorts(
             val chrome = rememberFullscreenChromeAssembly()
             PlayerFullscreenVisuals(chrome.appearance, chrome.slots, settings.danmakuOn, settings.backgroundPlay)
         },
-        danmakuSender = { page.danmakuSender },
+        danmakuComposer = PlayerDanmakuComposePorts(
+            { page.styledDanmakuSender },
+            allowVipColor = viewer?.vip == true,
+            allowUpIdentity = viewer != null && viewer.mid > 0 && viewer.mid == page.danmakuOwnerMid,
+        ),
+        danmakuOverlays = { visible ->
+            if (visible && !settings.danmakuBlockAdvanced && !ui.fsAudioOnly.value) {
+                SpecialVideoDanmakuOverlay(media.danmaku, playback, ui, page.aid, presentation.fullscreenInfo.currentCid)
+                DanmakuCommandOverlay(playback, page.aid, presentation.fullscreenInfo.currentCid,
+                    actions.interaction, presentation.fullscreenInfo.liked)
+            }
+            DanmakuSelectionActions(playback, presentation.fullscreenInfo.currentCid)
+        },
         inlineMore = { PlayerInlineMore(playback, media, presentation, actions, fsActions, ui) },
     )
 }

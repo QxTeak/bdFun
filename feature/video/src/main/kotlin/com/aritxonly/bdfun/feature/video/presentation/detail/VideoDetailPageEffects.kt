@@ -19,15 +19,23 @@ fun RegisterVideoDanmakuSender(
     DisposableEffect(currentCid, detail?.aid) {
         val d = detail
         if (d != null) {
+            VideoPageBus.danmakuModeration = metadataController.danmakuModeration
+            VideoPageBus.danmakuReporter = { id, reason, content ->
+                metadataController.reportDanmaku(com.aritxonly.bdfun.core.domain.DanmakuReport(currentCid, id, reason, content))
+            }
+            VideoPageBus.danmakuVotes = metadataController.danmakuVotes
+            VideoPageBus.danmakuVoteLoader = { ids -> metadataController.loadDanmakuVotes(currentCid, ids) }
+            VideoPageBus.danmakuLiker = { id -> metadataController.likeDanmaku(currentCid, id) }
             VideoPageBus.aid = d.aid
             VideoPageBus.cid = currentCid
-            VideoPageBus.danmakuSender = { text, mode, fontSize, color ->
-                val ok = metadataController.sendDanmaku(
+            VideoPageBus.danmakuOwnerMid = d.ownerMid
+            val send: StyledDanmakuSender = { text, mode, fontSize, color, appearance ->
+                val id = metadataController.sendDanmaku(
                     com.aritxonly.bdfun.core.domain.DanmakuPost(
-                        currentCid, d.bvid, text, VideoPageBus.danmakuProgressMs, mode, fontSize, color,
+                        currentCid, d.bvid, text, VideoPageBus.danmakuProgressMs, mode, fontSize, color, d.aid, appearance,
                     ),
                 )
-                if (ok) {
+                if (id != null && VideoPageBus.cid == currentCid) {
                     ports.sentHistory().record(
                         kind = "danmaku",
                         text = text,
@@ -43,12 +51,19 @@ fun RegisterVideoDanmakuSender(
                         size = fontSize / 25f,
                         text = text,
                         self = true,
+                        id = id,
+                        vipColor = appearance.vipColor,
+                        upIdentity = appearance.upIdentity,
                     ))
                 }
-                ok
+                id != null
+            }
+            VideoPageBus.styledDanmakuSender = send
+            VideoPageBus.danmakuSender = { text, mode, size, color ->
+                send(text, mode, size, color, com.aritxonly.bdfun.core.domain.DanmakuSendAppearance())
             }
         }
-        onDispose { VideoPageBus.danmakuSender = null }
+        onDispose { VideoPageBus.danmakuOwnerMid = 0; VideoPageBus.styledDanmakuSender = null; VideoPageBus.danmakuModeration = null; VideoPageBus.danmakuSender = null; VideoPageBus.danmakuLiker = null; VideoPageBus.danmakuVotes = null; VideoPageBus.danmakuVoteLoader = null; VideoPageBus.danmakuReporter = null }
     }
 
 }

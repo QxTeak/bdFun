@@ -31,6 +31,16 @@ class LibraryResponseMapperTest {
         assertEquals(9L to 7L, mapLibraryVideoStats(JSONObject("""{"data":{"stat":{"view":9,"danmaku":7}}}""")))
     }
 
+    @Test fun historyKeepsWatchedCidFromTheNestedArchiveRecord() {
+        // 取自历史游标接口的 archive 响应示例，只保留续播相关字段。
+        val data = JSONObject("""{"list":[{"history":{"oid":883617049,"bvid":"BV1sK4y147ob",
+            "page":1,"cid":205017957,"business":"archive"},"progress":13,"duration":91}]}""")
+        val entry = mapHistoryPage(data).items.single()
+        assertEquals(205017957L, entry.cid)
+        assertEquals(13, entry.progress)
+        assertEquals(0L, mapHistoryPage(JSONObject().put("list", JSONArray().put(history()))).items.single().cid)
+    }
+
     @Test fun collectionIdsKeepNumericValuesAndObjectFallbackWithoutAddingStringSupport() {
         val ids = JSONArray("""[-1,0,7,7,"8",{"id":9},{"id":0,"media_id":10},{"id":-2}]""")
         assertEquals(setOf(-1L, 0L, 7L, 9L, 10L), mapFavoriteFolderIds(JSONObject().put("data", ids)))

@@ -57,6 +57,10 @@ class VideoDetailViewActions(
     }
 
     fun addWatchLater() = performInteraction { interactionController.watchLater() }
+    fun followFromDanmaku() {
+        if (!interactionController.state.value.followed) toggleFollow()
+    }
+
     fun toggleFollow() {
         val mid = detail?.ownerMid ?: video.ownerMid
         if (mid > 0) performInteraction { interactionController.toggleFollow(mid) }

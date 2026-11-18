@@ -11,6 +11,20 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class FullscreenDanmakuComposerStateTest {
+    @Test fun styledSendKeepsBothOptionsAndPlainColorClearsGradient() = runBlocking {
+        val ui = FullscreenDanmakuComposerStateHolder()
+        ui.edit("弹幕")
+        ui.toggleVipColor()
+        ui.toggleUpIdentity()
+        val sent = CompletableDeferred<com.aritxonly.bdfun.core.domain.DanmakuSendAppearance>()
+        ui.submitStyled({ _, _, _, _, appearance -> sent.complete(appearance); true }, this, {}, {})
+        assertTrue(sent.await().vipColor)
+        assertTrue(sent.await().upIdentity)
+        ui.setColor(0xFB7299)
+        assertFalse(ui.state.value.appearance.vipColor)
+        assertTrue(ui.state.value.appearance.upIdentity)
+    }
+
     @Test fun blankInputDoesNotDismissAndMissingSenderOnlyDismisses() = runBlocking {
         val ui = FullscreenDanmakuComposerStateHolder()
         var dismissed = 0

@@ -15,6 +15,7 @@ fun BindPlayerSource(
     media: VideoMediaInput,
     presentation: VideoPlayerPresentation,
     ui: VideoPlayerUiStateHolder, diagnostics: PlayerDiagnostics, autoPlay: () -> Boolean,
+    progress: com.aritxonly.bdfun.core.domain.PlaybackProgressRepository, resumePlayback: () -> Boolean,
 ) {
     val log = diagnostics.log
     val bvid = media.bvid
@@ -47,11 +48,20 @@ fun BindPlayerSource(
                 "usingOriginal=$usingOriginal usingFallback=$usingFallback " +
                 "video=${describeMediaUrl(url)} audio=${describeMediaUrl(audioUrl)}",
         )
+        val previousKey = ui.preparedMediaKey.value
+        if (resumePlayback() && previousKey != null && previousKey != mediaKey) {
+            val previous = previousKey.split(":")
+            val tick = playback.refresh()
+            progress.save(previous[0], previous.getOrNull(1)?.toLongOrNull() ?: 0L, tick.positionMs, tick.durationMs)
+        }
+        val localResume = if (resumePlayback() && previousKey != mediaKey && resumePositionMs <= 0L) {
+            progress.resumeFor(bvid, presentation.fullscreenInfo.currentCid)
+        } else 0L
         ui.preparedMediaKey.value = mediaKey
         playback.prepare(PlaybackSource(
             videoUrl = url, audioUrl = audioUrl, mediaKey = mediaKey,
             headers = mapOf("Referer" to "https://www.bilibili.com/video/$bvid/"), userAgent = playback.userAgent,
-            resumePositionMs = resumePositionMs, autoPlay = autoPlay(), speed = speed,
+            resumePositionMs = if (resumePositionMs > 0L) resumePositionMs else localResume, autoPlay = autoPlay(), speed = speed,
         ))
     }
 

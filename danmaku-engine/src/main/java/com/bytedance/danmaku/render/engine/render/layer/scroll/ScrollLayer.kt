@@ -52,7 +52,7 @@ class ScrollLayer : IRenderLayer, ITouchDelegate, ConfigChangeListener {
     private var mReservedTopPx = 0f
 
     /** 由宿主在「弹幕计数」出现/消失时更新；只影响后续新弹幕的行分配。 */
-    fun setReservedTop(heightPx: Float) {
+    override fun setReservedTop(heightPx: Float) {
         mReservedTopPx = heightPx.coerceAtLeast(0f)
     }
 

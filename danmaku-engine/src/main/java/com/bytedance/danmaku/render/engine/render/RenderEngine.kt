@@ -74,14 +74,9 @@ class RenderEngine(private val mController: DanmakuController) : ITouchDelegate 
         sortRenderLayers()
     }
 
-    /** 顶部让位只影响滚动层和顶部固定层的行分配，不触发重新布局。 */
+    /** 顶部让位只影响相关轨道的行分配，不触发重新布局。 */
     fun setReservedTop(heightPx: Float) {
-        mRenderLayers.forEach { layer ->
-            when (layer) {
-                is ScrollLayer -> layer.setReservedTop(heightPx)
-                is TopCenterLayer -> layer.setReservedTop(heightPx)
-            }
-        }
+        mRenderLayers.forEach { it.setReservedTop(heightPx) }
     }
 
     private fun sortRenderLayers() {

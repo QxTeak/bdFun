@@ -30,7 +30,7 @@ fun VideoPlayerEntry(
     val audioOnly by ui.fsAudioOnly
     val danmakuVisible = !audioOnly && ports.danmakuOn() && media.danmaku.isNotEmpty()
     val playing by observed.playing
-    BindPlayerHotDanmaku(playback, media.danmaku, danmakuVisible, ui)
+    BindPlayerHotDanmaku(playback, danmakuVisible, ui)
     BindPlayerDanmakuClock(playback, playing, danmakuVisible, ui)
     BindPlayerSystemBars(presentation.fullscreen, presentation.immersiveStatusBar, ui)
     BindPlayerHdrWindow(media.quality, presentation.fullscreen)

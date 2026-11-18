@@ -181,6 +181,7 @@ private class VideoPlayerGestureBindings(
 
     fun create(): GestureCallbacks = GestureCallbacks(
         onTap = onTap,
+        captureDanmaku = { ui.danmakuHit.at(it) },
         onDoubleTap = onDoubleTap,
         onLongPressStart = onLongPressStart,
         onLongPressEnd = onLongPressEnd,

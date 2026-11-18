@@ -64,9 +64,10 @@ class VideoDetailStateHolder(
         quality: Int,
         codec: String,
         cdn: String,
-        resume: Boolean,
-        onDetail: (VideoDetail) -> Unit,
+        resume: () -> Boolean,
+        onPartSelected: (Long) -> Unit,
         onReady: (Long) -> Unit,
+        requestedCid: Long = 0L,
     ) = coroutineScope {
         val request = ++revision
         val stream = ++streamRevision
@@ -81,11 +82,13 @@ class VideoDetailStateHolder(
             }
             val detail = (result as Outcome.Success).value
             restoreDetail(detail)
-            onDetail(detail)
-            val play = async { playback.playInfo(VideoStreamRequest(detail, quality, codecPreference = codec, cdnService = cdn)) }
-            val danmaku = async { playback.danmaku(detail.cid, detail.duration).valueOr(emptyList()) }
+            val part = detail.forPlaybackPart(requestedCid)
+            onPartSelected(part.cid)
+            val shouldResume = resume()
+            val play = async { playback.playInfo(VideoStreamRequest(part, quality, codecPreference = codec, cdnService = cdn)) }
+            val danmaku = async { playback.danmaku(part.cid, part.duration).valueOr(emptyList()) }
             val related = async { fetchRelated(bvid) }
-            val progress = async { if (resume) resumePosition(detail) else 0L }
+            val progress = async { if (shouldResume) resumePosition(part) else 0L }
             val source = play.await()
             val position = progress.await()
             if (request != revision) return@coroutineScope false
@@ -144,4 +147,12 @@ class VideoDetailStateHolder(
         is Outcome.Success -> value
         is Outcome.Failure -> fallback
     }
+}
+
+/** 只使用当前稿件里的分 P；详情本身仍保留接口给出的默认 CID。 */
+internal fun VideoDetail.forPlaybackPart(requestedCid: Long): VideoDetail {
+    val page = requestedCid.takeIf { it > 0L }?.let { wanted -> pages.firstOrNull { it.cid == wanted } }
+        ?: pages.firstOrNull { it.cid == cid }
+        ?: return this
+    return copy(info = info.copy(cid = page.cid, duration = page.duration.takeIf { it > 0 } ?: duration))
 }

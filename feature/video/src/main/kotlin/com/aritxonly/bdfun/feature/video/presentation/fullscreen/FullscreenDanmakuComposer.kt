@@ -55,7 +55,7 @@ fun FullscreenDanmakuInput(
     onDismiss: () -> Unit,
     items: List<DanmakuItem> = emptyList(),
     modifier: Modifier = Modifier,
-    sender: () -> (suspend (String, Int, Int, Int) -> Boolean)?,
+    composer: PlayerDanmakuComposePorts,
 ) {
 
     val ui = remember { FullscreenDanmakuComposerStateHolder() }
@@ -73,7 +73,7 @@ fun FullscreenDanmakuInput(
     }
 
     fun submit() {
-        ui.submit(sender(), scope, onDismiss) {
+        ui.submitStyled(composer.sender(), scope, onDismiss) {
             focusManager.clearFocus()
             keyboard?.hide()
             onDismiss()
@@ -90,7 +90,7 @@ fun FullscreenDanmakuInput(
     ) {
         ComposerInputRow(ui, focusRequester, ::submit)
         Spacer(Modifier.height(14.dp))
-        ComposerInputSettings(ui)
+        ComposerInputSettings(ui, composer)
     }
 }
 
@@ -189,11 +189,16 @@ private fun ComposerTextField(
 }
 
 @Composable
-private fun ComposerInputSettings(ui: FullscreenDanmakuComposerStateHolder) {
+private fun ComposerInputSettings(ui: FullscreenDanmakuComposerStateHolder, composer: PlayerDanmakuComposePorts) {
     val state by ui.state.collectAsState()
     val fontSize = state.fontSize
     val mode = state.mode
     val color = state.color
+    if (composer.allowVipColor || composer.allowUpIdentity) ComposerSettingRow(label = "身份与样式") {
+        if (composer.allowVipColor) ComposerChip("渐变色", state.appearance.vipColor, ui::toggleVipColor)
+        if (composer.allowVipColor && composer.allowUpIdentity) Spacer(Modifier.width(10.dp))
+        if (composer.allowUpIdentity) ComposerChip("UP 主标识", state.appearance.upIdentity, ui::toggleUpIdentity)
+    }
     ComposerSettingRow(label = "字体大小") {
         ComposerChip("默认", fontSize == 25) { ui.setFontSize(25) }
         Spacer(Modifier.width(10.dp))

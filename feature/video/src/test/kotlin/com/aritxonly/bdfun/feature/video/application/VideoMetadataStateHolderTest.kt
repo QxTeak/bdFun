@@ -11,6 +11,7 @@ class VideoMetadataStateHolderTest {
     private val track = SubtitleTrack("one", "中文", "url")
     private val cue = SubtitleCue(0, 1000, "字幕")
     private inner class Fake : VideoMetadataRepository {
+        val likeOperations = mutableListOf<Boolean>()
         var cuesGate: CompletableDeferred<Unit>? = null
         var online: suspend (Long) -> Outcome<Pair<Long, String>> = { Outcome.Success(it to "$it") }
         var send: suspend () -> Outcome<Unit> = { Outcome.Success(Unit) }
@@ -23,7 +24,88 @@ class VideoMetadataStateHolderTest {
             cuesGate?.await()
             return Outcome.Success(listOf(cue))
         }
-        override suspend fun sendDanmaku(post: DanmakuPost) = send()
+        override suspend fun reportDanmaku(report: DanmakuReport) = send()
+        var votes = emptyMap<Long, DanmakuVote>()
+        override suspend fun danmakuVotes(cid: Long, ids: List<Long>) = Outcome.Success(votes.filterKeys { it in ids })
+        override suspend fun likeDanmaku(cid: Long, id: Long, like: Boolean): Outcome<Boolean> {
+            likeOperations += like
+            return when (val result = send()) {
+                is Outcome.Success -> Outcome.Success(like)
+                is Outcome.Failure -> result
+            }
+        }
+        override suspend fun sendDanmaku(post: DanmakuPost): Outcome<Long> = when (val result = send()) {
+            is Outcome.Success -> Outcome.Success(10L)
+            is Outcome.Failure -> result
+        }
+        override suspend fun recallDanmaku(cid: Long, id: Long) = send()
+        override suspend fun specialDanmaku(aid: Long, cid: Long) =
+            Outcome.Success(SpecialDanmakuPlayback { emptyList() })
+        override suspend fun danmakuCommands(aid: Long, cid: Long) = Outcome.Success(emptyList<DanmakuCommand>())
+        override suspend fun submitDanmakuCommand(selection: DanmakuCommandSelection) = send()
+        override suspend fun danmakuRules() = Outcome.Success(emptyList<DanmakuCloudRule>())
+        override suspend fun addDanmakuRule(kind: DanmakuRuleKind, value: String) =
+            Outcome.Success(DanmakuCloudRule(1, kind, value))
+        override suspend fun syncDanmakuConfig(config: DanmakuCloudConfig) = send()
+        override suspend fun deleteDanmakuRule(id: Long) = send()
+    }
+
+    @Test fun recallAppliesOnlyToOwnIdentifiedDanmakuInTheSelectedPart() = runBlocking {
+        var calls = 0
+        val holder = VideoMetadataStateHolder(Fake().apply { send = { calls++; Outcome.Success(Unit) } })
+        val item = DanmakuItem(0, 1, 0, 25f, "弹幕", id = 18)
+        assertFalse(holder.danmakuModeration.recall(9, item))
+        assertFalse(holder.danmakuModeration.recall(9, item.copy(id = 0, self = true)))
+        assertTrue(holder.danmakuModeration.recall(9, item.copy(self = true)))
+        assertEquals(1, calls)
+        assertEquals(setOf(9L to 18L), holder.danmakuModeration.state.value.recalled)
+    }
+
+    @Test fun invalidReportNeverReachesRepository() = runBlocking {
+        var calls = 0
+        val fake = Fake().apply { send = { calls++; Outcome.Success(Unit) } }
+        val holder = VideoMetadataStateHolder(fake)
+        assertFalse(holder.reportDanmaku(DanmakuReport(1, 2, DanmakuReportReason.Other)))
+        assertEquals(0, calls)
+        assertTrue(holder.reportDanmaku(DanmakuReport(1, 2, DanmakuReportReason.Spam)))
+        assertEquals(1, calls)
+    }
+
+    @Test fun serverTotalAlreadyIncludesAccountLikeAndCanBeUnliked() = runBlocking {
+        val fake = Fake().apply { votes = mapOf(10L to DanmakuVote(37, true)) }
+        val holder = VideoMetadataStateHolder(fake)
+        holder.loadDanmakuVotes(1, listOf(10))
+        assertEquals(DanmakuVote(37, true), holder.danmakuVotes.value[1L to 10L])
+        fake.send = {
+            fake.votes = mapOf(10L to DanmakuVote(35, false))
+            Outcome.Success(Unit)
+        }
+        assertTrue(holder.likeDanmaku(1, 10))
+        assertEquals(listOf(false), fake.likeOperations)
+        assertEquals(DanmakuVote(35, false), holder.danmakuVotes.value[1L to 10L])
+    }
+
+    @Test fun likesTogglePerPartAndRejectInvalidIds() = runBlocking {
+        var calls = 0
+        val fake = Fake().apply { send = { calls++; Outcome.Success(Unit) } }
+        val holder = VideoMetadataStateHolder(fake)
+        assertFalse(holder.likeDanmaku(0, 1))
+        assertTrue(holder.likeDanmaku(1, 10))
+        assertTrue(holder.likeDanmaku(1, 10))
+        assertTrue(holder.likeDanmaku(2, 10))
+        assertEquals(3, calls)
+        assertEquals(setOf(2L to 10L), holder.danmakuVotes.value.filterValues { it.liked }.keys)
+        assertEquals(listOf(true, false, true), fake.likeOperations)
+    }
+
+    @Test fun cancelledLikeCanRetry() = runBlocking {
+        val gate = CompletableDeferred<Unit>()
+        val fake = Fake().apply { send = { gate.await(); Outcome.Success(Unit) } }
+        val holder = VideoMetadataStateHolder(fake)
+        val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.likeDanmaku(1, 10) }
+        job.cancelAndJoin()
+        gate.complete(Unit)
+        assertTrue(holder.likeDanmaku(1, 10))
     }
 
     @Test fun oldCuesCannotReappearAfterSubtitlesAreDisabled() = runBlocking {
