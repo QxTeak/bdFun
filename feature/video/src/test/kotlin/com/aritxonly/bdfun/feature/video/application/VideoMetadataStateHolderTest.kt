@@ -23,8 +23,19 @@ class VideoMetadataStateHolderTest {
             cuesGate?.await()
             return Outcome.Success(listOf(cue))
         }
+        override suspend fun reportDanmaku(report: DanmakuReport) = send()
         override suspend fun likeDanmaku(cid: Long, id: Long) = send()
         override suspend fun sendDanmaku(post: DanmakuPost) = send()
+    }
+
+    @Test fun invalidReportNeverReachesRepository() = runBlocking {
+        var calls = 0
+        val fake = Fake().apply { send = { calls++; Outcome.Success(Unit) } }
+        val holder = VideoMetadataStateHolder(fake)
+        assertFalse(holder.reportDanmaku(DanmakuReport(1, 2, DanmakuReportReason.Other)))
+        assertEquals(0, calls)
+        assertTrue(holder.reportDanmaku(DanmakuReport(1, 2, DanmakuReportReason.Spam)))
+        assertEquals(1, calls)
     }
 
     @Test fun likesDeduplicatePerPartAndRejectInvalidIds() = runBlocking {

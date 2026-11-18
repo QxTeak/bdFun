@@ -60,6 +60,9 @@ class VideoMetadataStateHolder(private val repository: VideoMetadataRepository) 
         if (version == subtitleRevision) mutableState.update { it.copy(subtitleCues = cues) }
     }
 
+    suspend fun reportDanmaku(report: DanmakuReport): Boolean =
+        report.valid && repository.reportDanmaku(report) is Outcome.Success
+
     private val likedDanmaku = mutableSetOf<Pair<Long, Long>>()
     private val pendingLikes = mutableSetOf<Pair<Long, Long>>()
 

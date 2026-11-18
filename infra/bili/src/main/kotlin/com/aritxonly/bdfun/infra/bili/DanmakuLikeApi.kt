@@ -15,3 +15,17 @@ internal suspend fun BiliApiContext.likeDanmaku(cid: Long, id: Long): Unit = wit
     ))
     Unit
 }
+
+internal suspend fun BiliApiContext.reportDanmaku(report: com.aritxonly.bdfun.core.domain.DanmakuReport): Unit = withContext(Dispatchers.IO) {
+    require(report.valid)
+    postRequest("/x/dm/report/add", mapOf(
+        "cid" to report.cid.toString(), "dmid" to report.id.toString(),
+        "reason" to report.reason.code.toString(), "content" to report.content,
+        "block" to "false", "originCid" to report.cid.toString(),
+        "polaris_app_id" to "100", "polaris_platform" to "5",
+        "spmid" to "333.788.0.0", "from_spmid" to "333.788.0.0",
+        "statistics" to "{\"appId\":100,\"platform\":5,\"abtest\":\"\",\"version\":\"\"}",
+        "csrf" to csrf,
+    ))
+    Unit
+}

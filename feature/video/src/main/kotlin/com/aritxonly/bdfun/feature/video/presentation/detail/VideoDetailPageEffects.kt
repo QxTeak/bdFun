@@ -19,6 +19,9 @@ fun RegisterVideoDanmakuSender(
     DisposableEffect(currentCid, detail?.aid) {
         val d = detail
         if (d != null) {
+            VideoPageBus.danmakuReporter = { id, reason, content ->
+                metadataController.reportDanmaku(com.aritxonly.bdfun.core.domain.DanmakuReport(currentCid, id, reason, content))
+            }
             VideoPageBus.danmakuLiker = { id -> metadataController.likeDanmaku(currentCid, id) }
             VideoPageBus.aid = d.aid
             VideoPageBus.cid = currentCid
@@ -49,7 +52,7 @@ fun RegisterVideoDanmakuSender(
                 ok
             }
         }
-        onDispose { VideoPageBus.danmakuSender = null; VideoPageBus.danmakuLiker = null }
+        onDispose { VideoPageBus.danmakuSender = null; VideoPageBus.danmakuLiker = null; VideoPageBus.danmakuReporter = null }
     }
 
 }
