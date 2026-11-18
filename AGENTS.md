@@ -744,7 +744,7 @@ scrollable 默认 false，maxVisibleItems 默认 3；开启并超限时启用内
 
 空降助手：存储键由布尔 `sponsor_skip` 改为三档整数 `sponsor_skip_mode`（0 关闭 / 1 提示 / 2 自动跳过，默认 1），设置索引用 dropdown 展示，`PlaybackSettings.sponsorSkipMode` 经 IndexedSettingBindings 接线。旧布尔值只在迁移时映射为 0/1，绝不自动打开 2；模式判定是 core/domain 的 `sponsorSkipAction(mode)`（未知值回落到提示），玩家侧 `rememberPlayerSponsor` 在提示模式返回 `prompt`、自动模式返回 `autoSkip`，`VideoPlayerLayout` 在进入片段时直接 `seekTo(endMs)`。自动跳过不写 dismissed，用户拖回片段会再次生效；提示模式仍按 uuid 记录已关闭。
 
-预测性返回：`miuix-nav` 的 `NavDisplay` 新增 `predictiveBackPreview: Boolean = true`（本地 `../miuix-src/miuix-45645854…/miuix-nav/.../NavDisplay.kt` 补丁）。开启时手势跟手；关闭时只消费手势事件，不驱动 `animatedTop`、不发布 gesture、不传手势速度，松手直接 pop，页面从静止位置走与正常返回完全相同的 `NavTransitions.MiuixDefault` + `NavDisplayEffects`。App 侧设置页只传 `predictiveBackPreview = runtime.settings.predictiveBackEnabled`，不要再写第二份转场；压暗和圆角由同一份 effects 提供。**升级 Miuix 快照时必须把该参数和对应的三处手势分支重新打回上游源码**，否则开关会变成无操作。
+预测性返回：`miuix-nav` 的 `NavDisplay` 新增 `predictiveBackPreview: Boolean = true`。为避免 CI 使用未打补丁的上游快照，完整替换文件放在 `tools/miuix-patches/NavDisplay.kt`，由 `tools/setup-miuix.py` 在下载/复制快照后覆盖；升级 Miuix COMMIT 时必须重新生成该文件。开启时手势跟手；关闭时只消费手势事件，不驱动 `animatedTop`、不发布 gesture、不传手势速度，松手直接 pop，页面从静止位置走与正常返回完全相同的 `NavTransitions.MiuixDefault` + `NavDisplayEffects`。App 侧设置页只传 `predictiveBackPreview = runtime.settings.predictiveBackEnabled`，不要再写第二份转场；压暗和圆角由同一份 effects 提供。
 
 ### 2026-11-18 独立唱片阴影 / 设置页避让 / 首页首行间距
 
