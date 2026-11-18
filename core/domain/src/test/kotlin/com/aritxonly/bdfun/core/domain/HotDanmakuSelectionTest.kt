@@ -8,6 +8,11 @@ class HotDanmakuSelectionTest {
     private fun item(id: Long, text: String, likes: Long, time: Long = 20_000L) =
         DanmakuItem(time, 1, 0xFFFFFF, 25f, text, id, likes, count = 999)
 
+    @Test fun interactiveSelectionKeepsOriginalIdentityAndLikeCount() {
+        val original = item(99, "same text", 20)
+        assertEquals(listOf(original), selectHotDanmakuItems(listOf(original), 20_000))
+    }
+
     @Test fun timeWindowIncludesBothEndsAndRejectsOutside() {
         val input = listOf(item(1, "left", 12, 5_000), item(2, "right", 11),
             item(3, "old", 99, 4_999), item(4, "future", 99, 20_001))

@@ -10,7 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameNanos
 import com.aritxonly.bdfun.core.application.PlaybackController
 import com.aritxonly.bdfun.core.model.video.DanmakuItem
-import com.aritxonly.bdfun.core.domain.selectHotDanmaku
+import com.aritxonly.bdfun.core.domain.selectHotDanmakuItems
 import kotlin.math.abs
 
 @Composable
@@ -32,7 +32,7 @@ fun BindPlayerHotDanmaku(
         }
         while (true) {
             val now = positionMs
-            hotDanmaku = selectHotDanmaku(danmaku, now)
+            hotDanmaku = selectHotDanmakuItems(danmaku, now)
             kotlinx.coroutines.delay(1_000L)
         }
     }

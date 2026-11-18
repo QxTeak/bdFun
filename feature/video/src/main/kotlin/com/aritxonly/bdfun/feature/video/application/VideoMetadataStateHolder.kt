@@ -63,17 +63,18 @@ class VideoMetadataStateHolder(private val repository: VideoMetadataRepository) 
     suspend fun reportDanmaku(report: DanmakuReport): Boolean =
         report.valid && repository.reportDanmaku(report) is Outcome.Success
 
-    private val likedDanmaku = mutableSetOf<Pair<Long, Long>>()
+    private val mutableLikes = MutableStateFlow<Set<Pair<Long, Long>>>(emptySet())
+    val danmakuLikes = mutableLikes.asStateFlow()
     private val pendingLikes = mutableSetOf<Pair<Long, Long>>()
 
     suspend fun likeDanmaku(cid: Long, id: Long): Boolean {
         if (cid <= 0 || id <= 0) return false
         val key = cid to id
-        if (key in likedDanmaku) return true
+        val like = key !in mutableLikes.value
         if (!pendingLikes.add(key)) return false
         try {
-            val success = repository.likeDanmaku(cid, id) is Outcome.Success
-            if (success) likedDanmaku.add(key)
+            val success = repository.likeDanmaku(cid, id, like) is Outcome.Success
+            if (success) mutableLikes.update { if (like) it + key else it - key }
             return success
         } finally {
             pendingLikes.remove(key)

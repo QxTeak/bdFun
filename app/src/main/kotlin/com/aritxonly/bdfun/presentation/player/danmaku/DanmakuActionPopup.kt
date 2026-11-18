@@ -15,7 +15,7 @@ internal class DanmakuActionPopup(private val anchor: View, private val release:
     private var reporting = false
     private var closed = false
 
-    fun show(text: String, x: Int, y: Int, like: () -> Unit,
+    fun show(text: String, x: Int, y: Int, likeLabel: String, like: () -> Unit,
         report: (DanmakuReportReason, String) -> Unit) {
         val context = anchor.context
         val padding = (12 * context.resources.displayMetrics.density).toInt()
@@ -25,7 +25,15 @@ internal class DanmakuActionPopup(private val anchor: View, private val release:
             background = GradientDrawable().apply { setColor(0xEE242424.toInt()); cornerRadius = padding.toFloat() }
             addView(TextView(context).apply { this.text = text; setTextColor(Color.WHITE); maxLines = 2 })
             addView(LinearLayout(context).apply {
-                addView(Button(context).apply { this.text = "点赞"; setOnClickListener { like(); close() } })
+                addView(Button(context).apply { this.text = likeLabel; setOnClickListener { like(); close() } })
+                addView(Button(context).apply {
+                    this.text = "复制"
+                    setOnClickListener {
+                        val clipboard = context.getSystemService(android.content.ClipboardManager::class.java)
+                        clipboard.setPrimaryClip(android.content.ClipData.newPlainText("弹幕", text))
+                        close()
+                    }
+                })
                 addView(Button(context).apply {
                     this.text = "举报"
                     setOnClickListener {

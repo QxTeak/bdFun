@@ -22,6 +22,7 @@ fun RegisterVideoDanmakuSender(
             VideoPageBus.danmakuReporter = { id, reason, content ->
                 metadataController.reportDanmaku(com.aritxonly.bdfun.core.domain.DanmakuReport(currentCid, id, reason, content))
             }
+            VideoPageBus.danmakuLikes = metadataController.danmakuLikes
             VideoPageBus.danmakuLiker = { id -> metadataController.likeDanmaku(currentCid, id) }
             VideoPageBus.aid = d.aid
             VideoPageBus.cid = currentCid
@@ -52,7 +53,7 @@ fun RegisterVideoDanmakuSender(
                 ok
             }
         }
-        onDispose { VideoPageBus.danmakuSender = null; VideoPageBus.danmakuLiker = null; VideoPageBus.danmakuReporter = null }
+        onDispose { VideoPageBus.danmakuSender = null; VideoPageBus.danmakuLiker = null; VideoPageBus.danmakuLikes = null; VideoPageBus.danmakuReporter = null }
     }
 
 }

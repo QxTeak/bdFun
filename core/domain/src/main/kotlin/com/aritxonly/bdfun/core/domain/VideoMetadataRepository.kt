@@ -16,6 +16,6 @@ interface VideoMetadataRepository {
     suspend fun subtitles(aid: Long, cid: Long): Outcome<List<SubtitleTrack>>
     suspend fun subtitleCues(url: String): Outcome<List<SubtitleCue>>
     suspend fun reportDanmaku(report: DanmakuReport): Outcome<Unit>
-    suspend fun likeDanmaku(cid: Long, id: Long): Outcome<Unit>
+    suspend fun likeDanmaku(cid: Long, id: Long, like: Boolean): Outcome<Unit>
     suspend fun sendDanmaku(post: DanmakuPost): Outcome<Unit>
 }

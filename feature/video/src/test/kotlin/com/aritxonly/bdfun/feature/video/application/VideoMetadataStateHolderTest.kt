@@ -11,6 +11,7 @@ class VideoMetadataStateHolderTest {
     private val track = SubtitleTrack("one", "中文", "url")
     private val cue = SubtitleCue(0, 1000, "字幕")
     private inner class Fake : VideoMetadataRepository {
+        val likeOperations = mutableListOf<Boolean>()
         var cuesGate: CompletableDeferred<Unit>? = null
         var online: suspend (Long) -> Outcome<Pair<Long, String>> = { Outcome.Success(it to "$it") }
         var send: suspend () -> Outcome<Unit> = { Outcome.Success(Unit) }
@@ -24,7 +25,10 @@ class VideoMetadataStateHolderTest {
             return Outcome.Success(listOf(cue))
         }
         override suspend fun reportDanmaku(report: DanmakuReport) = send()
-        override suspend fun likeDanmaku(cid: Long, id: Long) = send()
+        override suspend fun likeDanmaku(cid: Long, id: Long, like: Boolean): Outcome<Unit> {
+            likeOperations += like
+            return send()
+        }
         override suspend fun sendDanmaku(post: DanmakuPost) = send()
     }
 
@@ -38,7 +42,7 @@ class VideoMetadataStateHolderTest {
         assertEquals(1, calls)
     }
 
-    @Test fun likesDeduplicatePerPartAndRejectInvalidIds() = runBlocking {
+    @Test fun likesTogglePerPartAndRejectInvalidIds() = runBlocking {
         var calls = 0
         val fake = Fake().apply { send = { calls++; Outcome.Success(Unit) } }
         val holder = VideoMetadataStateHolder(fake)
@@ -46,7 +50,9 @@ class VideoMetadataStateHolderTest {
         assertTrue(holder.likeDanmaku(1, 10))
         assertTrue(holder.likeDanmaku(1, 10))
         assertTrue(holder.likeDanmaku(2, 10))
-        assertEquals(2, calls)
+        assertEquals(3, calls)
+        assertEquals(setOf(2L to 10L), holder.danmakuLikes.value)
+        assertEquals(listOf(true, false, true), fake.likeOperations)
     }
 
     @Test fun cancelledLikeCanRetry() = runBlocking {

@@ -9,6 +9,7 @@ interface VideoDetailDanmakuHost {
     var cid: Long
     val danmakuProgressMs: Long
     var danmakuReporter: (suspend (Long, com.aritxonly.bdfun.core.domain.DanmakuReportReason, String) -> Boolean)?
+    var danmakuLikes: kotlinx.coroutines.flow.StateFlow<Set<Pair<Long, Long>>>?
     var danmakuLiker: (suspend (Long) -> Boolean)?
     var danmakuSender: (suspend (String, Int, Int, Int) -> Boolean)?
 }
