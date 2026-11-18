@@ -20,12 +20,13 @@ internal class SpaceToolsStateHolder(
     private val mid: Long, private val repository: SpaceRepository,
     private val currentOwner: () -> Boolean,
 ) {
+    val dynamics = SpaceDynamicSearchStateHolder(mid, repository, currentOwner)
     private val mutable = MutableStateFlow(SpaceToolsState())
     val state = mutable.asStateFlow()
     private var revision = 0
     private var closed = false
     private val active get() = !closed && currentOwner()
-    fun close() { closed = true; revision++ }
+    fun close() { closed = true; revision++; dynamics.close() }
     fun query(value: String) {
         if (!active) return
         revision++

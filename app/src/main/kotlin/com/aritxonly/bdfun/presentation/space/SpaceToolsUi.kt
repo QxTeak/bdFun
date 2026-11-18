@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
-import com.aritxonly.bdfun.feature.space.application.filterSpaceDynamics
 import com.aritxonly.bdfun.ui.TeakGlassMenu
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.basic.Text
@@ -82,18 +81,7 @@ private fun SpaceSearchDialog(runtime: SpaceScreenRuntime, ui: SpaceToolsUiState
                     TextButton(onClick = { scope.launch { controller.search() } }, enabled = !ui.dynamic && !state.loading) { Text("搜索") }
                 }
                 if (ui.dynamic) {
-                    val feeds = filterSpaceDynamics(content.snapshot.dynamics.items, state.query)
-                    Text("仅搜索已加载动态（${content.snapshot.dynamics.items.size} 条）")
-                    LazyColumn(Modifier.weight(1f, fill = false)) {
-                        if (feeds.isEmpty()) item { Text("没有匹配的动态", Modifier.padding(16.dp)) }
-                        items(feeds, key = { it.id }) { feed ->
-                            Text(feed.text.ifBlank { feed.video?.title ?: feed.title.ifBlank { "查看动态" } },
-                                Modifier.fillMaxWidth().clickable { navigateToFeed(context, feed) }.padding(vertical = 12.dp), maxLines = 3)
-                        }
-                        item { TextButton(enabled = !content.snapshot.dynamics.loading && !content.snapshot.dynamics.end,
-                            onClick = { scope.launch { runtime.controller.loadMoreFeeds() } }) { Text("加载更多动态") } }
-                    }
-                    content.snapshot.dynamics.error?.let { Text(it) }
+                    SpaceDynamicSearchResults(runtime, state.query)
                 } else {
                     LazyColumn(Modifier.weight(1f, fill = false)) {
                         items(state.videos, key = { it.bvid }) { video ->

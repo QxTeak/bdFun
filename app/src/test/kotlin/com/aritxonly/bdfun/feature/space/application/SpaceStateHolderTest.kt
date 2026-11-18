@@ -70,6 +70,63 @@ class SpaceStateHolderTest {
         assertTrue(holder.state.value.videos.isEmpty())
     }
 
+    @Test fun fullDynamicSearchTraversesPagesDeduplicatesAndRetriesFailedPage() = runBlocking {
+        val source = Fake()
+        val requests = mutableListOf<String>()
+        var fail = true
+        val repo = object : SpaceRepository by source {
+            override suspend fun dynamics(mid: Long, offset: String): Outcome<FeedPage> {
+                requests += offset
+                return when {
+                    offset.isEmpty() -> Outcome.Success(FeedPage(listOf(dynamic("1")), "next", true))
+                    fail -> Outcome.Failure(AppError.Network("retry"))
+                    else -> Outcome.Success(FeedPage(listOf(dynamic("1"), dynamic("2")), "", false))
+                }
+            }
+        }
+        val holder = SpaceDynamicSearchStateHolder(1, repo) { true }
+        holder.loadAll()
+        assertFalse(holder.state.value.complete)
+        assertEquals("retry", holder.state.value.error)
+        fail = false; holder.loadAll()
+        assertEquals(listOf("", "next", "next"), requests)
+        assertEquals(listOf("1", "2"), holder.state.value.items.map { it.id })
+        assertTrue(holder.state.value.complete)
+        holder.loadAll()
+        assertEquals(3, requests.size)
+    }
+
+    @Test fun fullDynamicSearchCancellationResumesAndCloseRejectsLatePage() = runBlocking {
+        val source = Fake()
+        val gate = CompletableDeferred<Unit>()
+        val repo = object : SpaceRepository by source {
+            override suspend fun dynamics(mid: Long, offset: String): Outcome<FeedPage> {
+                gate.await()
+                return Outcome.Success(FeedPage(listOf(dynamic("1")), "", false))
+            }
+        }
+        val holder = SpaceDynamicSearchStateHolder(1, repo) { true }
+        val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.loadAll() }
+        job.cancelAndJoin()
+        assertFalse(holder.state.value.loading)
+        val next = launch(start = CoroutineStart.UNDISPATCHED) { holder.loadAll() }
+        holder.close(); gate.complete(Unit); next.join()
+        assertTrue(holder.state.value.items.isEmpty())
+        assertFalse(holder.state.value.complete)
+    }
+
+    @Test fun fullDynamicSearchRejectsBrokenCursorAndChangedAccount() = runBlocking {
+        val source = Fake().apply { dynamicResult = Outcome.Success(FeedPage(emptyList(), "", true)) }
+        var owner = true
+        val holder = SpaceDynamicSearchStateHolder(1, source) { owner }
+        holder.loadAll()
+        assertNotNull(holder.state.value.error)
+        assertFalse(holder.state.value.complete)
+        owner = false
+        holder.loadAll()
+        assertEquals(1, source.requests.size)
+    }
+
     private fun video(id: Long) = VideoItem("BV$id", id, "标题", "", "UP", "", 1, 0, 0, 1, 0)
     private fun dynamic(id: String) = FeedItem(
         id = id,
