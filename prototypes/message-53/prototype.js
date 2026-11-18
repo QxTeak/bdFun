@@ -94,7 +94,7 @@ function markAll() {
   menu('一键已读', [['确认标为已读', () => { unread.fill(0); render(); }]], '是否清除全部新消息提醒？');
 }
 function openInboxMenu() {
-  menu('消息', [['刷新消息', retry], ['消息设置', () => go('消息设置')]]);
+  showDropdown($('#inboxMore'), [['刷新消息', retry], ['消息设置', () => go('消息设置')]]);
 }
 function sessionMenu(id) {
   const pref = preferences[id];
@@ -124,6 +124,9 @@ function feedMenu(key, like, anchor) {
     if (mutedNotices.delete(key)) return render();
     menu('不再通知', [['确认不再通知', () => { mutedNotices.add(key); render(); }]], '仍可在列表中查看。');
   }]);
+  showDropdown(anchor, actions);
+}
+function showDropdown(anchor, actions) {
   const dropdown = $('#cardMenu');
   dropdown.replaceChildren();
   for (const [label, action] of actions) {
@@ -332,7 +335,7 @@ function render(resetScroll = false) {
   if ($('#cardMenu').matches(':popover-open')) $('#cardMenu').hidePopover();
   const destination = page();
   $('#device').className = ['device', $('#size').value, dark ? 'dark' : '',
-    destination === '消息中心' ? 'nav-empty' : 'open'].join(' ');
+    destination === '消息中心' ? 'nav-empty' : 'open', feeds.includes(destination) ? 'feed-page' : ''].join(' ');
   $('#case').value = destination;
   $('#count').textContent = '';
   $('#all').classList.toggle('active', !followedOnly);
@@ -343,7 +346,9 @@ function render(resetScroll = false) {
   $('#title').textContent = destination === '私信会话' ? people[profile] : destination === '通知设置子页' ? settingsTitle : destination;
   const gear = $('#gear');
   gear.hidden = !['私信会话', '回复与@', '收到喜欢'].includes(destination);
-  gear.onclick = destination === '私信会话' ? () => go('聊天设置') : () => openNoticeSettings();
+  gear.onclick = () => showDropdown(gear, [['设置',
+    destination === '私信会话' ? () => go('聊天设置') : () => openNoticeSettings(),
+  ]]);
   const content = views[destination]();
   $('#content').innerHTML = destination === '消息中心' ? content : withState(content);
   if (resetScroll) $('#content').scrollTop = destination === '私信会话' ? $('#content').scrollHeight : 0;

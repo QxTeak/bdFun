@@ -29,7 +29,11 @@ internal fun MessageSessionSheets(
     val context = androidx.compose.ui.platform.LocalContext.current
     val loading = snapshot.loading
     val busy = snapshot.busy
-    TeakActionSheet(menu.showMore, onDismiss = { menu.showMore = false }, title = "消息") {
+    TeakGlassMenu(
+        visible = menu.showMore,
+        onDismiss = { menu.showMore = false },
+        anchorInWindow = LocalPageChromeState.current.moreAnchor,
+    ) {
         ActionSheetRow("刷新消息", !loading && !busy) { menu.showMore = false; onRefresh() }
         // 保留服务端下发的快捷入口，联系人已在一级页顶栏。
         if (showContactsFallback) {

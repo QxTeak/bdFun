@@ -44,7 +44,7 @@ internal fun PrivateChatRoot(session: MessageSession, onBack: (() -> Unit)? = nu
         ),
         slots = ActivityPageSlots(
             topBarActions = {
-                com.aritxonly.bdfun.ui.MessageTopButton("设置") {
+                com.aritxonly.bdfun.ui.MessageSettingsMenu {
                     val route = com.aritxonly.bdfun.core.navigation.Route.MessageTools("chat", session.talkerId.toString())
                     navigation?.route?.invoke(route) ?: context.startActivity(com.aritxonly.bdfun.navigation.createRouteIntent(context, route))
                 }
