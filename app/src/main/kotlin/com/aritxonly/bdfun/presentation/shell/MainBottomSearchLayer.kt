@@ -24,7 +24,9 @@ internal fun MainBottomSearchLayer(settings: SettingsBindings, shell: MainShellS
                     LocalTeakBackdrop provides shell.backdrops.search,
                     LocalTopBarScrollProgress provides shell.chrome.search.materialProgress,
                 ) {
-                    ProgressiveTopBarMaterial { MainHomeBarContent(settings, shell, bottomSearch = true) }
+                    if (!(state.bottomSubmitted != null && com.aritxonly.bdfun.ui.useSingleRowSearchResults())) {
+                        ProgressiveTopBarMaterial { MainHomeBarContent(settings, shell, bottomSearch = true) }
+                    }
                 }
             }
         }

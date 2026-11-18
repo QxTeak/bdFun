@@ -16,7 +16,7 @@ import com.aritxonly.bdfun.ui.rememberTeakHaptics
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellState, bottomSearch: Boolean = false) {
+internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellState, bottomSearch: Boolean = false, tabsCollapseProgress: Float = 0f, resultActions: (@Composable () -> Unit)? = null) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val ui = shell.ui
@@ -24,11 +24,9 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
     val channelIndex = channels.indexOfFirst { it.ordinal == ui.homeSection }.coerceAtLeast(0)
     val input = shell.searchInput(bottomSearch)
     val session = shell.feeds.session
-    val unreadMessageCount = shell.feeds.unreadMessageCount
     val tabPagerState = shell.navigation.pager
     val appScope = shell.navigation.scope
     val searchChrome = shell.chrome.search
-    val searchReveal = input.reveal
     val haptics = rememberTeakHaptics()
     // HyperOS 4：分段替换搜索框；哔哩哔哩（官方）与经典：搜索框保留，分段放在它下面一行。
     val tabs = when {
@@ -51,12 +49,12 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
     HomeTopBar(
         content = HomeTopBarContent(
             profile = session,
-            unreadCount = unreadMessageCount,
+            unreadCount = shell.feeds.unreadMessageCount,
         ),
         search = HomeTopBarSearch(
             active = input.active,
             query = input.query,
-            reveal = searchReveal,
+            reveal = input.reveal,
             resultsVisible = input.active && input.submitted != null,
         ),
         actions = HomeTopBarActions(
@@ -91,6 +89,9 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
         },
         ),
         tabs = tabs,
+        resultActions = resultActions,
+        tabsCollapseProgress = tabsCollapseProgress,
+        singleRowSearchTabs = com.aritxonly.bdfun.ui.officialHomeBarSingleRow(settings.interfaceStyle),
         modifier = Modifier,
     )
 }

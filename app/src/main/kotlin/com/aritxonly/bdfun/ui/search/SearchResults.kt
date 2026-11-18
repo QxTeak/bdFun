@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import com.aritxonly.bdfun.core.domain.SearchFilterState
 import androidx.compose.runtime.Composable
@@ -20,6 +21,7 @@ internal fun SearchResults(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState, ui: SearchPresentationStateHolder,
     onOpenVideo: (VideoItem) -> Unit, onOpenUser: (SearchUser) -> Unit,
     onLoadMore: () -> Unit = {},
+    wideResultsBar: (@Composable (@Composable () -> Unit) -> Unit)? = null,
 ) {
     val tab = ui.tab
     val filterOpen = ui.filterOpen
@@ -41,7 +43,7 @@ internal fun SearchResults(
 
         // Tab / 筛选按钮固定不动，只跟随页面本身的滚动，不再随列表上移。
         CompositionLocalProvider(LocalTeakBackdrop provides presentation.backdrop) {
-            ResultsTabHeader(
+            val header: @Composable () -> Unit = { ResultsTabHeader(
                 tab = tab,
                 onTabChange = onTabChange,
                 position = presentation.position,
@@ -53,8 +55,14 @@ internal fun SearchResults(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
-                    .padding(top = HomeTopBarHeight + 6.dp),
-            )
+                    .then(if (wideResultsBar == null) Modifier.statusBarsPadding() else Modifier)
+                    .padding(top = if (wideResultsBar == null) HomeTopBarHeight + 6.dp else 0.dp),
+            ) }
+            if (wideResultsBar != null) {
+                com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial() {
+                    Box(Modifier.statusBarsPadding()) { wideResultsBar(header) }
+                }
+            } else header()
         }
     }
 }

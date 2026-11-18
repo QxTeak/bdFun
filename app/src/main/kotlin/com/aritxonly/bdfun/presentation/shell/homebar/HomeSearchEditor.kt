@@ -48,7 +48,7 @@ internal fun androidx.compose.foundation.layout.RowScope.HomeSearchEditor(search
         cursorBrush = SolidColor(BrandPink),
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(onSearch = { onSubmitSearch() }),
-        modifier = Modifier.weight(1f, fill = false).focusRequester(focusRequester),
+        modifier = Modifier.weight(1f).focusRequester(focusRequester),
         decorationBox = { innerTextField ->
             if (searchQuery.isEmpty()) {
                 Text(

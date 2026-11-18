@@ -15,9 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
@@ -33,17 +36,28 @@ val HomeTopBarTabsHeight: Dp = 40.dp
 val HomeTopBarHeightWithTabs: Dp = HomeTopBarHeight + HomeTopBarTabsHeight
 
 /** 各页统一的顶栏高度：官方与经典多一行分段条，其余风格保持原高度。 */
+@Composable
+internal fun officialHomeBarSingleRow(interfaceStyle: Int): Boolean {
+    val window = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize
+    return interfaceStyle == 0 && window.width > window.height
+}
+
+@Composable
 fun homeTopBarHeight(interfaceStyle: Int): Dp =
-    if (interfaceStyle == 0 || interfaceStyle == 1) HomeTopBarHeightWithTabs else HomeTopBarHeight
+    if ((interfaceStyle == 0 && !officialHomeBarSingleRow(interfaceStyle)) || interfaceStyle == 1) {
+        HomeTopBarHeightWithTabs
+    } else HomeTopBarHeight
 
 @Composable
 internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, actions: HomeTopBarActions,
     tabs: HomeTopBarTabs? = null,
+    tabsCollapseProgress: Float = 0f,
+    resultActions: (@Composable () -> Unit)? = null,
+    singleRowSearchTabs: Boolean = false,
     modifier: Modifier = Modifier) {
     val windowSize = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize
     val density = androidx.compose.ui.platform.LocalDensity.current
-    val wide = with(density) { windowSize.width.toDp() >= 600.dp } &&
-        com.aritxonly.teak.common.chrome.isWideFoldTopBar()
+    val wide = with(density) { windowSize.width.toDp() >= 600.dp }
     val searchWidth = with(density) { (windowSize.width.toDp() * 0.45f).coerceIn(280.dp, 480.dp) }
     val advancedMaterial = LocalTeakMaterialSpec.current
     val recipe = TeakGlassRecipes.floatingNavigation(advancedMaterial.fineTuning)
@@ -55,23 +69,36 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
     val material = remember(wide, searchWidth, recipe, backdrop, searchInteraction, classic) {
         HomeTopBarMaterial(wide, searchWidth, recipe, backdrop, searchInteraction, classic)
     }
+    if (resultActions != null) {
+        HomeTopBarSearchRow(content, search, actions, material, resultActions)
+        return
+    }
     // 搜索展开时让出高度：结果页从顶栏下沿开始，不会被分段条盖住。
-    val tabsBelowSearch = tabs?.belowSearch == true && !search.active
-    val totalHeight = HomeTopBarHeight + if (tabsBelowSearch) HomeTopBarTabsHeight else 0.dp
+    val visibleTabs = tabs.takeUnless { search.active }
+    val tabsBelowSearch = visibleTabs?.belowSearch == true && !singleRowSearchTabs
+    val tabsHeight = HomeTopBarTabsHeight * (1f - tabsCollapseProgress.coerceIn(0f, 1f))
+    val totalHeight = HomeTopBarHeight + if (tabsBelowSearch) tabsHeight else 0.dp
     Box(modifier = modifier.fillMaxWidth().height(totalHeight + statusBarTop)) {
         HomeTopBarBackground(classic)
-        if (search.active) {
-            Box(modifier = Modifier.matchParentSize().blockTouches(true))
-        }
         Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
-            val inline = tabs
+            val inline = visibleTabs
             val inlineTabs = inline != null && !tabsBelowSearch
-            if (wide && inlineTabs && inline != null) {
+            if (search.active) {
+                HomeTopBarSearchRow(content, search, actions, material)
+            } else if (singleRowSearchTabs) {
+                HomeTopBarLandscapeRow(content, search, actions, visibleTabs, material)
+            } else if (wide && inlineTabs && inline != null) {
                 HomeTopBarWideTabsRow(content, search, actions, inline, material)
             } else {
-                HomeTopBarMainRow(content, search, actions, tabs, material, wide, tabsBelowSearch)
+                HomeTopBarMainRow(content, search, actions, visibleTabs, material, wide, tabsBelowSearch)
             }
-            if (tabs != null && tabsBelowSearch) HomeTopBarTabsBelow(tabs)
+            if (visibleTabs != null && tabsBelowSearch) {
+                Box(Modifier.fillMaxWidth().height(tabsHeight).clipToBounds()) {
+                    Box(Modifier.wrapContentHeight(Alignment.Top, unbounded = true).graphicsLayer {
+                        translationY = (tabsHeight - HomeTopBarTabsHeight).toPx()
+                    }) { HomeTopBarTabsBelow(visibleTabs) }
+                }
+            }
         }
     }
 }
@@ -172,5 +199,62 @@ private fun HomeTopBarTabsBelow(tabs: HomeTopBarTabs) {
             onSelect = tabs.onSelect,
             position = tabs.position,
         )
+    }
+}
+
+/** 横屏官方布局保留左侧搜索与右侧频道，各自使用受约束的空间。 */
+@Composable
+private fun HomeTopBarLandscapeRow(
+    content: HomeTopBarContent, search: HomeTopBarSearch, actions: HomeTopBarActions,
+    tabs: HomeTopBarTabs?, material: HomeTopBarMaterial,
+) {
+    Row(
+        Modifier.fillMaxWidth().height(HomeTopBarHeight)
+            .padding(horizontal = 12.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        HomeTopBarLeft(content, search, actions)
+        Spacer(Modifier.width(10.dp))
+        // 此处按剩余宽度分配，避免固定的宽屏搜索宽度挤出频道和消息按钮。
+        val flexibleMaterial = remember(material) {
+            HomeTopBarMaterial(false, material.searchWidth, material.recipe, material.backdrop,
+                material.searchInteraction, material.classic)
+        }
+        HomeSearchSurface(search, actions, flexibleMaterial)
+        if (tabs != null) {
+            Spacer(Modifier.width(12.dp))
+            Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
+                TeakSegmentedBar(
+                    options = tabs.options,
+                    selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
+                    onSelect = tabs.onSelect,
+                    itemWidth = 64.dp,
+                    materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
+                    position = tabs.position,
+                    scrollable = true,
+                    maxVisibleItems = 3,
+                )
+            }
+        }
+        Spacer(Modifier.width(10.dp))
+        HomeTopBarRight(content, search, actions, material)
+    }
+}
+
+@Composable
+private fun HomeTopBarSearchRow(
+    content: HomeTopBarContent, search: HomeTopBarSearch,
+    actions: HomeTopBarActions, material: HomeTopBarMaterial,
+    resultActions: (@Composable () -> Unit)? = null,
+) {
+    Row(Modifier.fillMaxWidth().height(HomeTopBarHeight).padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically) {
+        HomeTopBarLeft(content, search, actions)
+        Spacer(Modifier.width(10.dp))
+        HomeSearchSurface(search, actions, material)
+        if (resultActions != null) {
+            Spacer(Modifier.width(12.dp))
+            Box(Modifier.weight(1f)) { resultActions() }
+        }
     }
 }

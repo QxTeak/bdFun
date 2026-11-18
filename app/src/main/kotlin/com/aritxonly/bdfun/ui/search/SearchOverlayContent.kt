@@ -11,6 +11,7 @@ internal fun SearchOverlayContent(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
     onPickKeyword: (String) -> Unit, onOpenVideo: (VideoItem) -> Unit, onOpenUser: (SearchUser) -> Unit,
     onLoadMore: () -> Unit = {},
+    wideResultsBar: (@Composable (@Composable () -> Unit) -> Unit)? = null,
 ) {
     val rememberKeyword: (String) -> Unit = { word ->
         settings.addSearchHistory(word)
@@ -32,6 +33,6 @@ internal fun SearchOverlayContent(
             },
         )
     } else {
-        SearchResults(content, ui, onOpenVideo, onOpenUser, onLoadMore)
+        SearchResults(content, ui, onOpenVideo, onOpenUser, onLoadMore, wideResultsBar)
     }
 }

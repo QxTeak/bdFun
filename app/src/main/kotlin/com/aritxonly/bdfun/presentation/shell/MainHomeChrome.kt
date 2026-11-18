@@ -32,13 +32,18 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
     val pullRefreshing = liveState?.refreshing ?: bangumiState?.refreshing ?: homeFeed.refreshing
     val pullOffsetDp = liveState?.pullOffsetDp ?: bangumiState?.pullOffsetDp ?: homeFeed.pullOffsetDp
 
-    MainTopBarChrome(
+    if (!(ui.showSearch && ui.searchSubmitted != null && com.aritxonly.bdfun.ui.useSingleRowSearchResults())) MainTopBarChrome(
         shell = shell,
         pageIndex = 0,
         pageFloat = pageFloat,
         surface = activeChrome,
     ) {
-        MainHomeBarContent(settings, shell)
+        MainHomeBarContent(
+            settings, shell,
+            tabsCollapseProgress = if (settings.interfaceStyle == 0 && !ui.showSearch) {
+                activeChrome.materialProgress
+            } else 0f,
+        )
     }
 
     if (pageFloat < 0.99f && ui.homeSection < 3) {
