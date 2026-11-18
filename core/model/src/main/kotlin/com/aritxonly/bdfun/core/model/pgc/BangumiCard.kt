@@ -11,6 +11,8 @@ data class BangumiCard(
     val followText: String = "",
     /** 需要大会员：封面右上角角标。 */
     val vip: Boolean = false,
+    /** 接口 badge 文案，例如「独家」；大会员角标走 [vip]，这里不再重复显示「大会员」。 */
+    val badge: String = "",
     /** 一句话简介（番剧详情 subtitle/evaluate），头图副标题用；列表卡片不显示。 */
     val subtitle: String = "",
 )

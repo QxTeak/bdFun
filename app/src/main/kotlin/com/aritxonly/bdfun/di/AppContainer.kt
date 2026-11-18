@@ -183,6 +183,9 @@ internal class AppContainer(
             indexIds = listOf(2, 5, 3, 7),
             seasonTypes = listOf(2, 5, 3, 7),
             mergedTitle = "热门影视榜",
+            mergeByIndex = true,
+            indexTitles = mapOf(2 to "电影榜", 5 to "电视剧榜", 3 to "纪录片榜", 7 to "综艺榜"),
+            maxTabsPerIndex = 4,
         )
     }
     /** 单榜全量页用：每次进页面建一个，退出即丢，不占进程缓存。 */

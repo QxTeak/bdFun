@@ -137,6 +137,7 @@ internal fun BangumiCardItem(item: BangumiCard, onClick: () -> Unit) {
                 )
             }
             if (item.vip) BangumiVipBadge()
+            else if (item.badge.isNotBlank()) BangumiTextBadge(item.badge)
         }
         Column(Modifier.padding(start = 6.dp, end = 6.dp, top = 6.dp, bottom = 6.dp)) {
             Text(
@@ -178,6 +179,21 @@ private fun androidx.compose.foundation.layout.BoxScope.BangumiVipBadge() {
             .padding(horizontal = 5.dp, vertical = 1.dp),
     ) {
         Text("大会员", color = Color.White, fontSize = 8.5.sp, lineHeight = 11.sp, maxLines = 1)
+    }
+}
+
+/** 接口 badge（如「独家」）：左上角深色胶囊，和右上角的大会员角标分开，避免重复。 */
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.BangumiTextBadge(text: String) {
+    Box(
+        modifier = Modifier
+            .align(Alignment.TopStart)
+            .padding(6.dp)
+            .clip(CircleShape)
+            .background(Color.Black.copy(alpha = 0.55f))
+            .padding(horizontal = 5.dp, vertical = 1.dp),
+    ) {
+        Text(text, color = Color.White, fontSize = 8.5.sp, lineHeight = 11.sp, maxLines = 1)
     }
 }
 

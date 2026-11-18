@@ -115,5 +115,6 @@ private fun JSONObject.toBangumiCard(): BangumiCard? {
             }
         },
         vip = badge.contains("会员"),
+        badge = badge.trim(),
     )
 }

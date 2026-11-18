@@ -44,6 +44,10 @@ internal class BangumiRankStateHolder(
     private val indexIds: List<Int> = listOf(1, 4),
     private val seasonTypes: List<Int> = listOf(1, 4),
     private val mergedTitle: String = "热门动画榜",
+    /** 影视榜按 index 合并成大类（电影/电视剧/纪录片/综艺），不再为每个细分榜单独起一节。 */
+    private val mergeByIndex: Boolean = false,
+    private val indexTitles: Map<Int, String> = emptyMap(),
+    private val maxTabsPerIndex: Int = Int.MAX_VALUE,
 ) {
 
     private val mutableState = MutableStateFlow(BangumiRankUiState())
@@ -169,6 +173,7 @@ internal class BangumiRankStateHolder(
     }
 
     private fun buildSections(tabLists: List<List<BangumiRankTab>>): List<BangumiRankSection> {
+        if (mergeByIndex) return buildMergedSections(tabLists)
         val result = ArrayList<BangumiRankSection>(tabLists.sumOf { it.size } + 1)
         val hotTabs = tabLists.mapNotNull { it.firstOrNull() }
         if (hotTabs.isNotEmpty()) {
@@ -187,6 +192,14 @@ internal class BangumiRankStateHolder(
         }
         return result
     }
+
+    /** 影视：一个 index 一节，只取前几个细分榜合并；四节分别对应电影/电视剧/纪录片/综艺。 */
+    private fun buildMergedSections(tabLists: List<List<BangumiRankTab>>): List<BangumiRankSection> =
+        indexIds.mapIndexedNotNull { index, id ->
+            val tabs = tabLists.getOrNull(index).orEmpty().take(maxTabsPerIndex)
+            if (tabs.isEmpty()) null
+            else BangumiRankSection(indexTitles[id] ?: tabs.first().title, tabs)
+        }
 
     private fun updateSection(index: Int, block: (BangumiRankSection) -> BangumiRankSection) {
         mutableState.update { current ->
