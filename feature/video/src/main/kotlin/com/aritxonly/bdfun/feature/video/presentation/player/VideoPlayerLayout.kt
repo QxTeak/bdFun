@@ -9,6 +9,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -33,6 +34,7 @@ fun VideoPlayerLayout(
     Box(
         modifier = modifier
             .background(Color.Black)
+            .onGloballyPositioned { ui.danmakuHit.coordinates = it }
             .then(playerInteractionModifier(playback, ui, fullscreen, ports.page, ports.gestures, onToggleFullscreen)),
     ) {
         PlayerSurface(

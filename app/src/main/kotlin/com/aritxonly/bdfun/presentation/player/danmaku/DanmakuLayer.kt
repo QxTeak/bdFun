@@ -23,34 +23,12 @@ private val HotDanmakuGuardHeight = 44.dp
 fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: Boolean,
     playbackSpeed: Float, modifier: Modifier = Modifier, fullscreen: Boolean = false,
     /** 顶部是否要让给「弹幕计数」；只在计数真的显示时为 true。 */
-    reserveTopForCounter: Boolean = false) {
+    reserveTopForCounter: Boolean = false, hit: PlayerDanmakuHit) {
     if (items.isEmpty()) return
     val context = LocalContext.current
     val renderView = remember { DanmakuRenderView(context).apply { setRendererTouchable(false) } }
     DisposableEffect(renderView) { onDispose { renderView.releaseRenderer() } }
-    val page = LocalVideoPageState.current
-    val scope = rememberCoroutineScope()
-    DisposableEffect(renderView, playing, page.cid) {
-        renderView.setRendererTouchable(!playing)
-        renderView.engine.setOnItemClickListener { item, _, _ ->
-            val id = item.danmakuId
-            val liker = page.danmakuLiker
-            val cid = page.cid
-            if (id > 0 && liker != null && !playing) {
-                android.widget.PopupMenu(context, renderView).apply {
-                    menu.add("点赞弹幕：${item.text}").setOnMenuItemClickListener {
-                        if (page.cid == cid) scope.launch {
-                            val ok = liker(id)
-                            android.widget.Toast.makeText(context, if (ok) "已点赞" else "点赞失败，请确认已登录", android.widget.Toast.LENGTH_SHORT).show()
-                        }
-                        true
-                    }
-                    show()
-                }
-            }
-        }
-        onDispose { renderView.engine.setOnItemClickListener(null) }
-    }
+    val clickCoordinates = BindDanmakuClick(renderView, hit)
     val ui = remember { DanmakuLayerPresentationStateHolder() }
     val options = currentDanmakuLayerOptions(fullscreen)
     val filtered = remember(items, options.filters) { filterDanmaku(items, options.filters) }
@@ -59,7 +37,7 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
     val masks = rememberDanmakuMasks(options.drawing.portraitGuard, ui.viewSize)
     val density = LocalDensity.current
     val reservedTopPx = if (reserveTopForCounter) with(density) { HotDanmakuGuardHeight.toPx() } else 0f
-    AndroidView(factory = { renderView }, modifier = modifier.onSizeChanged { ui.viewSize = it },
+    AndroidView(factory = { renderView }, modifier = modifier.then(clickCoordinates).onSizeChanged { ui.viewSize = it },
         update = { view -> view.alpha = options.drawing.opacity.coerceIn(0f, 1f) })
     BindDanmakuEngineEffects(renderView, window, masks, config, playing, positionMs, options.drawing.lowRefresh,
         reservedTopPx)

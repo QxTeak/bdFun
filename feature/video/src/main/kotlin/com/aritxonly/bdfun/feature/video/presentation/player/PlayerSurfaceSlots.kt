@@ -13,7 +13,7 @@ import com.aritxonly.bdfun.core.model.video.DanmakuItem
  */
 class PlayerSurfaceSlots(
     val danmaku: @Composable (
-        List<DanmakuItem>, () -> Long, Boolean, Float, Modifier, Boolean, Boolean,
+        List<DanmakuItem>, () -> Long, Boolean, Float, Modifier, Boolean, Boolean, PlayerDanmakuHit,
     ) -> Unit,
 )
 data class VideoPictureSettings(

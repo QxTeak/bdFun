@@ -62,7 +62,7 @@ fun PlayerSurface(
             val counterVisible = picture.hotDanmakuEnabled && !ui.fsAudioOnly.value &&
                 ui.hotDanmaku.value.isNotEmpty()
             slots.danmaku(danmaku, { frameMs - btLatencyMs }, playing,
-                if (boosting) boostSpeed else speed, Modifier.fillMaxSize(), fullscreen, counterVisible)
+                if (boosting) boostSpeed else speed, Modifier.fillMaxSize(), fullscreen, counterVisible, ui.danmakuHit)
         }
 
         PlayerAlwaysProgress(ui, fullscreen, positionMs, durationMs, picture.progressBarMode, picture.accentColor)

@@ -18,6 +18,34 @@ class PlayerGestureSessionTest {
         ),
     )
 
+    @Test fun danmakuSingleTapConfirmsInsteadOfTogglingControls() = runBlocking {
+        val log = mutableListOf<String>()
+        val taps = PlayerTapStateHolder()
+        val cb = callbacks(log).copy(captureDanmaku = {
+            PlayerDanmakuPress({ log += "danmaku" }, { log += "release" })
+        })
+        val gesture = PlayerGestureSession(Offset.Zero, { 200f }, { 10f }, false, false, true,
+            this, taps, { cb }, { 10000L })
+        val job = gesture.startLongPress()
+        gesture.released(); job.cancel(); gesture.finish(70f)
+        taps.pending!!.join()
+        assertEquals(listOf("danmaku"), log)
+    }
+
+    @Test fun dragReleasesDanmakuWithoutOpeningMenu() = runBlocking {
+        val log = mutableListOf<String>()
+        val cb = callbacks(log).copy(captureDanmaku = {
+            PlayerDanmakuPress({ log += "danmaku" }, { log += "release" })
+        })
+        val gesture = PlayerGestureSession(Offset.Zero, { 200f }, { 10f }, false, false, true,
+            this, PlayerTapStateHolder(), { cb })
+        val job = gesture.startLongPress()
+        gesture.move(Offset(20f, 0f)) {}
+        gesture.released(); job.cancel(); gesture.finish(70f)
+        assertEquals(1, log.count { it == "release" })
+        assertFalse(log.contains("danmaku"))
+    }
+
     @Test fun horizontalDragUsesCurrentCallbackAndLiveWidth() = runBlocking {
         val log = mutableListOf<String>()
         var width = 200f

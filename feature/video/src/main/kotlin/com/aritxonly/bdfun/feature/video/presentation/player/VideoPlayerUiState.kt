@@ -14,6 +14,7 @@ import kotlinx.coroutines.Job
 
 /** 原 remember(Unit) 的瞬时 UI/资源引用；状态对象与播放器组合同生命周期。 */
 class VideoPlayerUiStateHolder(initialSpeed: Float, initialAutoPlayNext: Boolean, initialFullscreen: Boolean) {
+    val danmakuHit = PlayerDanmakuHit()
     val resumeOnReturn = mutableStateOf(false)
     val loudnessEnhancer = mutableStateOf<PlaybackAudioEffect?>(null)
     val showBuffering = mutableStateOf(false)
