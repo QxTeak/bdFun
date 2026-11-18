@@ -91,4 +91,18 @@ class SettingsMigrationTest {
             assertEquals(1, restored.colorStyle)
         } finally { scope.cancel() }
     }
+    @Test fun legacySponsorSwitchMigratesToPromptOrOffButNeverAuto() {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        try {
+            val on = MemorySettingsPreferences(linkedMapOf("sponsor_skip" to true))
+            assertEquals(1, SettingsStateHolder.create(on, TestHistoryCodec, scope).sponsorSkipMode)
+            val off = MemorySettingsPreferences(linkedMapOf("sponsor_skip" to false))
+            assertEquals(0, SettingsStateHolder.create(off, TestHistoryCodec, scope).sponsorSkipMode)
+            val fresh = MemorySettingsPreferences()
+            val state = SettingsStateHolder.create(fresh, TestHistoryCodec, scope)
+            assertEquals(1, state.sponsorSkipMode)
+            state.sponsorSkipMode = 2
+            assertEquals(2, SettingsStateHolder.create(fresh, TestHistoryCodec, scope).sponsorSkipMode)
+        } finally { scope.cancel() }
+    }
 }

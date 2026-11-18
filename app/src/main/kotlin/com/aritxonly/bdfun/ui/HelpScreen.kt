@@ -33,7 +33,7 @@ fun HelpScreen() {
                 )
                 HelpQaRow(
                     question = "唱片如何使用？",
-                    answer = "左/右划动唱片进入下/上一集；上划唱片关闭；下划唱片暂停；长按唱片可倍速播放；单击唱片可回到原页面。",
+                    answer = "左/右划动唱片进入下/上一集；上划唱片关闭；下划唱片暂停；长按唱片暂停/继续；单击唱片可回到原页面。",
                 )
                 HelpFeedbackRow()
                 HelpQaRow(

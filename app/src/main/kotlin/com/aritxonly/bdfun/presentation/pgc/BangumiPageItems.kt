@@ -45,17 +45,18 @@ import com.aritxonly.bdfun.ui.rememberImageRequest
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** 第一项固定是「最近追番」：即使列表为空/还在加载也保留这一节，
+/** 第一项固定是「最近追番/最近追剧」：即使列表为空/还在加载也保留这一节，
  *  这样网格的第 0 项永远不变，进页面就锚在顶部，不会因为数据晚到被带到榜单上。 */
 internal fun LazyGridScope.bangumiFollowSection(
     state: BangumiPageStateHolder,
     context: android.content.Context,
     sidePadding: androidx.compose.ui.unit.Dp = 10.dp,
+    title: String = "最近追番",
 ) {
     item(key = "pgc-follow", span = { GridItemSpan(maxLineSpan) }) {
         val openScope = rememberCoroutineScope()
         Column {
-            BangumiSectionTitle("最近追番")
+            BangumiSectionTitle(title)
             if (state.following.isNotEmpty()) {
                 FullBleedRow(
                     sidePadding = sidePadding,

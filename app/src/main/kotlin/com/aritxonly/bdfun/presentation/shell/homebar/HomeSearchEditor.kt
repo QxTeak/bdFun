@@ -52,7 +52,7 @@ internal fun androidx.compose.foundation.layout.RowScope.HomeSearchEditor(search
         decorationBox = { innerTextField ->
             if (searchQuery.isEmpty()) {
                 Text(
-                    text = "搜索视频、UP 主",
+                    text = search.placeholder,
                     color = MiuixTheme.colorScheme.onBackgroundVariant,
                     style = ComposerTextStyle,
                     maxLines = 1,

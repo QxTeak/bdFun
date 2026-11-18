@@ -32,7 +32,8 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
                 0 -> when (ui.homeSection) {
                     1 -> shell.chrome.live
                     2 -> shell.chrome.bangumi
-                    3, 4 -> shell.chrome.placeholder
+                    4 -> shell.chrome.cinema
+                    3 -> shell.chrome.placeholder
                     else -> shell.chrome.home
                 }
                 1 -> shell.chrome.dynamic
@@ -51,6 +52,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
                     0 -> when (ui.homeSection) {
                         1 -> AppGraph.livePageState.requestRefresh()
                         2 -> AppGraph.bangumiPageState.requestRefresh()
+                        4 -> AppGraph.cinemaPageState.requestRefresh()
                         0 -> homeFeed.requestRefresh()
                     }
                     1 -> ui.dynamicRefreshTick++

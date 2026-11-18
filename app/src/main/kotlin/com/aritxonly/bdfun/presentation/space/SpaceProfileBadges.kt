@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,6 +19,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.bdfun.ui.AccountVipBadge
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -36,7 +36,6 @@ internal fun SpaceProfileBadges(
 internal fun SpaceProfileLevelVip(
     content: SpaceScreenContent, actions: SpaceScreenActions,
 ) {
-    val colors = MiuixTheme.colorScheme
     val profile = content.snapshot.profile.space?.profile
     Image(
         painter = painterResource(
@@ -52,32 +51,14 @@ internal fun SpaceProfileLevelVip(
         contentDescription = "LV${profile?.level ?: 0}",
         modifier = Modifier.size(width = 26.dp, height = 12.dp),
     )
-    // 大会员等级胶囊和「我的」页保持同一套样式：
-    // 有大会员用品牌粉底白字；没有大会员也显示灰色的「大会员」。
-    // 年度 / 十年 / 百年等文字来自接口 vip.label.text。
+    // 大会员等级胶囊与「我的」页共用 AccountVipBadge：有大会员用品牌粉底白字，
+    // 没有大会员也显示灰色的「大会员」；年度/十年/百年等文字来自接口 vip.label.text。
     Spacer(Modifier.width(5.dp))
     val isVip = profile?.vip == true
-    Box(
-        modifier = Modifier
-            .clip(CircleShape)
-            .background(
-                if (isVip) BrandPink
-                else colors.onBackground.copy(alpha = 0.10f),
-            )
-            .padding(horizontal = 5.dp, vertical = 1.dp),
-    ) {
-        Text(
-            text = if (isVip) {
-                profile?.vipLabel.orEmpty().ifBlank { "大会员" }
-            } else {
-                "大会员"
-            },
-            color = if (isVip) Color.White else colors.onBackgroundVariant,
-            fontSize = 8.5.sp,
-            lineHeight = 11.sp,
-            maxLines = 1,
-        )
-    }
+    AccountVipBadge(
+        text = if (isVip) profile?.vipLabel.orEmpty().ifBlank { "大会员" } else "大会员",
+        active = isVip,
+    )
 }
 
 @Composable

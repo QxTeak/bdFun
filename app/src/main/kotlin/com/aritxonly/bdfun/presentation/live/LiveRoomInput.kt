@@ -2,7 +2,6 @@ package com.aritxonly.bdfun.ui
 
 import android.content.Context
 import android.content.ContextWrapper
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -124,20 +123,6 @@ internal fun LiveInputBar(
 /* ------------------------------------------------------------------ */
 /* 小零件                                                              */
 /* ------------------------------------------------------------------ */
-
-
-@Composable
-internal fun LiveMenuRow(label: String, onClick: () -> Unit) {
-    val colors = androidx.compose.material3.MaterialTheme.colorScheme
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-    ) {
-        Text(text = label, color = colors.onBackground, fontSize = 14.sp)
-    }
-}
 
 
 internal tailrec fun Context.findLiveActivity(): android.app.Activity? = when (this) {

@@ -29,6 +29,7 @@ class WatchLaterActivity : ComponentActivity() {
                 onBack = { finish() },
                 options = ActivityPageOptions(
                     title = "稍后再看",
+                    limitContentWidth = false,
                 ),
                 slots = ActivityPageSlots(
                     topBarActions = { LibraryTopActions(menuState) },

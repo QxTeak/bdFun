@@ -95,6 +95,9 @@ internal class AppearanceSettingsStateHolder(
 
     private val animationsEnabledState = stateCell("animationsEnabledState", prefs.getBoolean("animations_enabled", true))
 
+    /** 预测性返回默认关闭：不跟手预览，返回仍保持原有离散提交。 */
+    private val predictiveBackEnabledState = stateCell("predictiveBackEnabledState", prefs.getBoolean("predictive_back", false))
+
     private val refractionState = stateCell("refractionState", prefs.getBoolean("refraction", true))
 
     /** 玻璃折射（边缘弯折 + 色散），关闭后只保留模糊。 */
@@ -125,6 +128,13 @@ internal class AppearanceSettingsStateHolder(
         set(value) {
             animationsEnabledState.value = value
             prefs.edit().putBoolean("animations_enabled", value).apply()
+        }
+
+    override var predictiveBackEnabled: Boolean
+        get() = predictiveBackEnabledState.value
+        set(value) {
+            predictiveBackEnabledState.value = value
+            prefs.edit().putBoolean("predictive_back", value).apply()
         }
 
     override var darkMode: Int

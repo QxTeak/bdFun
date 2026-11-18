@@ -2,6 +2,7 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.statusBars
@@ -51,34 +52,39 @@ internal fun LibraryModePage(content: LibraryModeContent, layout: LibraryModeLay
 private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, actions: LibraryModeActions,
     gridState: androidx.compose.foundation.lazy.grid.LazyGridState) {
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
-    LazyVerticalGrid(
-        state = gridState, columns = GridCells.Fixed(2),
-        contentPadding = PaddingValues(start = TeakChromeDefaults.ContentHorizontalPadding,
-            end = TeakChromeDefaults.ContentHorizontalPadding, top = statusBarTop + TeakChromeDefaults.ContentTopPadding,
-            bottom = if (content.batchMode) 92.dp else TeakChromeDefaults.ContentBottomPadding),
-        horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        libraryGridHeader(content, layout, actions)
-        val emptyFirstLoad = content.loading && content.folderVideos.isEmpty() &&
-            content.historyEntries.isEmpty() && content.watchLaterEntries.isEmpty()
-        if (emptyFirstLoad) {
-            items(count = 6, key = { "library-skeleton-$it" }) {
-                com.aritxonly.teak.common.skeleton.TeakSkeletonVideoCard(
-                    progress = com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep(),
-                )
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        // 宽屏参照首页：卡片宽度限制在 280..560dp，多出来的空间自动加列，不再把两列卡片拉长。
+        val wide = maxWidth >= 600.dp
+        LazyVerticalGrid(
+            state = gridState,
+            columns = if (wide) BoundedVideoGridCells(FeedCardMinWidth.dp, FeedCardMaxWidth.dp) else GridCells.Fixed(2),
+            contentPadding = PaddingValues(start = TeakChromeDefaults.ContentHorizontalPadding,
+                end = TeakChromeDefaults.ContentHorizontalPadding, top = statusBarTop + TeakChromeDefaults.ContentTopPadding,
+                bottom = if (content.batchMode) 92.dp else TeakChromeDefaults.ContentBottomPadding),
+            horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            libraryGridHeader(content, layout, actions)
+            val emptyFirstLoad = content.loading && content.folderVideos.isEmpty() &&
+                content.historyEntries.isEmpty() && content.watchLaterEntries.isEmpty()
+            if (emptyFirstLoad) {
+                items(count = 6, key = { "library-skeleton-$it" }) {
+                    com.aritxonly.teak.common.skeleton.TeakSkeletonVideoCard(
+                        progress = com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep(),
+                    )
+                }
             }
+            if (layout.mode == 0) {
+                itemsIndexed(items = content.folderVideos, key = { _, video -> video.bvid }) { index, video ->
+                    LibraryFavoriteCard(video, index, content, layout, actions)
+                }
+            } else {
+                val entries = if (layout.mode == 1) content.historyEntries else content.watchLaterEntries
+                itemsIndexed(items = entries, key = { _, entry -> entry.bvid }) { index, entry ->
+                    LibraryHistoryCard(entry, index, content, layout, actions)
+                }
+            }
+            libraryGridFooter(content, layout, actions)
         }
-        if (layout.mode == 0) {
-            itemsIndexed(items = content.folderVideos, key = { _, video -> video.bvid }) { index, video ->
-                LibraryFavoriteCard(video, index, content, layout, actions)
-            }
-        } else {
-            val entries = if (layout.mode == 1) content.historyEntries else content.watchLaterEntries
-            itemsIndexed(items = entries, key = { _, entry -> entry.bvid }) { index, entry ->
-                LibraryHistoryCard(entry, index, content, layout, actions)
-            }
-        }
-        libraryGridFooter(content, layout, actions)
     }
 }
 

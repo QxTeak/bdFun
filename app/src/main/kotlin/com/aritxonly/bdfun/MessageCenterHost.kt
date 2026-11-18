@@ -15,6 +15,7 @@ import com.aritxonly.bdfun.feature.message.application.*
 import com.aritxonly.bdfun.feature.message.application.MessageFeedKind
 import com.aritxonly.bdfun.infra.storage.RouteJsonCodec
 import com.aritxonly.bdfun.ui.*
+import com.aritxonly.teak.common.chrome.centeredListWidth
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.nav.core.NavDisplay
 import top.yukonga.miuix.kmp.nav.core.NavDisplayEffects
@@ -40,12 +41,15 @@ internal fun MessageCenterHost(onBack: () -> Unit) {
                 val width = maxWidth
                 val split = usesMessageSplitPane(width.value)
                 if (split) {
-                    Box(Modifier.width(340.dp).fillMaxHeight()) { master() }
+                    Box(Modifier.width(340.dp).fillMaxHeight().centeredListWidth(maxWidth = 680.dp)) {
+                        master()
+                    }
                     Box(Modifier.padding(start = 340.dp).width(1.dp).fillMaxHeight()
                         .background(MiuixTheme.colorScheme.onBackgroundVariant.copy(alpha = .1f)))
                 }
                 Box(Modifier.align(Alignment.CenterEnd)
-                    .width(if (split) width - 341.dp else width).fillMaxHeight()) {
+                    .width(if (split) width - 341.dp else width).fillMaxHeight()
+                    .centeredListWidth(maxWidth = 680.dp)) {
                     MessageCenterPages(entries, navigation, back, split, master)
                 }
             }
@@ -101,7 +105,11 @@ private fun MessageCenterPages(
             override val opaqueDepth = Float.MAX_VALUE
         }
     }
-    NavDisplay(stack, Modifier.fillMaxSize(), onBack = onBack, transition = transition, effects = effects) {
+    NavDisplay(
+        stack, Modifier.fillMaxSize(), onBack = onBack, transition = transition,
+        predictiveBackPreview = AppGraph.settings.predictiveBackEnabled,
+        effects = effects,
+    ) {
         entry<MessagePaneRoute>(contentKey = { it.page?.id ?: "message-inbox" }) { route ->
             val page = route.page
             if (page == null) {

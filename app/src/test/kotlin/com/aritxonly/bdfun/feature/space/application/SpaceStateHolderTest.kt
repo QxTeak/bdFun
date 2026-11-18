@@ -17,6 +17,116 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class SpaceStateHolderTest {
+    @Test fun searchIgnoresOldQueryResponse() = runBlocking {
+        val source = Fake().apply { videos = listOf(video(1)); videosGate = CompletableDeferred() }
+        val holder = SpaceToolsStateHolder(1, source) { true }
+        holder.query("old")
+        val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.search() }
+        holder.query("new")
+        source.videosGate!!.complete(Unit); job.join()
+        assertTrue(holder.state.value.videos.isEmpty())
+        assertFalse(holder.state.value.loading)
+        holder.search()
+        assertEquals(source.videos, holder.state.value.videos)
+    }
+
+    @Test fun searchCancellationReleasesLoadingAndOwnerChangeRejectsResult() = runBlocking {
+        val source = Fake().apply { videosGate = CompletableDeferred() }
+        var owner = true
+        val holder = SpaceToolsStateHolder(1, source) { owner }
+        holder.query("query")
+        val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.search() }
+        job.cancelAndJoin()
+        assertFalse(holder.state.value.loading)
+        owner = false
+        holder.block()
+        assertFalse(holder.state.value.blocked)
+    }
+
+    @Test fun dynamicSearchMatchesOriginalAndVideoTitleIgnoringCase() {
+        val item = dynamic("1").copy(text = "", video = video(1).copy(title = "Kotlin"))
+        val forwarded = dynamic("2").copy(text = "", attachments =
+            com.aritxonly.bdfun.core.model.feed.FeedAttachments(orig = item))
+        assertEquals(listOf(item, forwarded), filterSpaceDynamics(listOf(item, forwarded), " kotlin "))
+        assertTrue(filterSpaceDynamics(listOf(item), "missing").isEmpty())
+    }
+
+    @Test fun blockFailureCanRetryAndClosedSearchDoesNotPublish() = runBlocking {
+        val source = Fake().apply { blockResult = Outcome.Failure(AppError.Network("failed")) }
+        val holder = SpaceToolsStateHolder(1, source) { true }
+        holder.block()
+        assertFalse(holder.state.value.blocked)
+        assertFalse(holder.state.value.blockBusy)
+        assertEquals("failed", holder.state.value.message)
+        source.blockResult = Outcome.Success(true)
+        holder.block()
+        assertTrue(holder.state.value.blocked)
+        source.videosGate = CompletableDeferred()
+        source.videos = listOf(video(1))
+        holder.query("test")
+        val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.search() }
+        holder.close()
+        source.videosGate!!.complete(Unit); job.join()
+        assertTrue(holder.state.value.videos.isEmpty())
+    }
+
+    @Test fun fullDynamicSearchTraversesPagesDeduplicatesAndRetriesFailedPage() = runBlocking {
+        val source = Fake()
+        val requests = mutableListOf<String>()
+        var fail = true
+        val repo = object : SpaceRepository by source {
+            override suspend fun dynamics(mid: Long, offset: String): Outcome<FeedPage> {
+                requests += offset
+                return when {
+                    offset.isEmpty() -> Outcome.Success(FeedPage(listOf(dynamic("1")), "next", true))
+                    fail -> Outcome.Failure(AppError.Network("retry"))
+                    else -> Outcome.Success(FeedPage(listOf(dynamic("1"), dynamic("2")), "", false))
+                }
+            }
+        }
+        val holder = SpaceDynamicSearchStateHolder(1, repo) { true }
+        holder.loadAll()
+        assertFalse(holder.state.value.complete)
+        assertEquals("retry", holder.state.value.error)
+        fail = false; holder.loadAll()
+        assertEquals(listOf("", "next", "next"), requests)
+        assertEquals(listOf("1", "2"), holder.state.value.items.map { it.id })
+        assertTrue(holder.state.value.complete)
+        holder.loadAll()
+        assertEquals(3, requests.size)
+    }
+
+    @Test fun fullDynamicSearchCancellationResumesAndCloseRejectsLatePage() = runBlocking {
+        val source = Fake()
+        val gate = CompletableDeferred<Unit>()
+        val repo = object : SpaceRepository by source {
+            override suspend fun dynamics(mid: Long, offset: String): Outcome<FeedPage> {
+                gate.await()
+                return Outcome.Success(FeedPage(listOf(dynamic("1")), "", false))
+            }
+        }
+        val holder = SpaceDynamicSearchStateHolder(1, repo) { true }
+        val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.loadAll() }
+        job.cancelAndJoin()
+        assertFalse(holder.state.value.loading)
+        val next = launch(start = CoroutineStart.UNDISPATCHED) { holder.loadAll() }
+        holder.close(); gate.complete(Unit); next.join()
+        assertTrue(holder.state.value.items.isEmpty())
+        assertFalse(holder.state.value.complete)
+    }
+
+    @Test fun fullDynamicSearchRejectsBrokenCursorAndChangedAccount() = runBlocking {
+        val source = Fake().apply { dynamicResult = Outcome.Success(FeedPage(emptyList(), "", true)) }
+        var owner = true
+        val holder = SpaceDynamicSearchStateHolder(1, source) { owner }
+        holder.loadAll()
+        assertNotNull(holder.state.value.error)
+        assertFalse(holder.state.value.complete)
+        owner = false
+        holder.loadAll()
+        assertEquals(1, source.requests.size)
+    }
+
     private fun video(id: Long) = VideoItem("BV$id", id, "标题", "", "UP", "", 1, 0, 0, 1, 0)
     private fun dynamic(id: String) = FeedItem(
         id = id,
@@ -36,6 +146,9 @@ class SpaceStateHolderTest {
         ),
     )
     private class Fake : SpaceRepository {
+        override suspend fun searchVideos(mid: Long, keyword: String, page: Int) = videos(mid, page)
+        var blockResult: Outcome<Boolean> = Outcome.Success(true)
+        override suspend fun block(mid: Long) = blockResult
         var profile: Outcome<SpaceInfo> = Outcome.Success(SpaceInfo(UserProfile(1, "姓名", "", "", 1, 0.0, false, ""), emptyList()))
         var videos = emptyList<VideoItem>()
         var hook: suspend (String) -> Unit = {}

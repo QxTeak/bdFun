@@ -32,3 +32,11 @@ interface PgcDiscoverRepository {
     /** 单部番剧的一句话简介；头图先出标题/封面，再由它补齐副标题。 */
     suspend fun seasonIntro(seasonId: Long): Outcome<String>
 }
+
+/**
+ * 首页「影视」段的读取接口：与番剧页同构，但数据覆盖电影/电视剧/纪录片/综艺。
+ *
+ * 实现放在 infra:bili；聚合策略（推荐按 season_type 交错、时间表合并）
+ * 由实现决定，页面状态与番剧页共用同一套。
+ */
+interface CinemaDiscoverRepository : PgcDiscoverRepository

@@ -33,7 +33,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.teak.common.chrome.TeakChromeDefaults
-import com.aritxonly.teak.common.settings.TeakDropdownPanel
 import kotlinx.coroutines.launch
 import kotlin.math.max
 import top.yukonga.miuix.kmp.basic.Icon

@@ -7,6 +7,8 @@ interface AppearanceSettings {
     var tabClickRefresh: Boolean
     var bottomBarRaise: Boolean
     var animationsEnabled: Boolean
+    /** 预测性返回：手指返回手势过程中是否预览上一页；关闭时松手才提交。 */
+    var predictiveBackEnabled: Boolean
     var darkMode: Int
     var colorStyle: Int
     var interfaceStyle: Int
@@ -56,7 +58,8 @@ interface PlaybackSettings {
     var showFullscreenTime: Boolean
     var showFullscreenActions: Boolean
     var progressBarMode: Int
-    var sponsorSkipEnabled: Boolean
+    /** 空降助手：0 关闭 / 1 提示 / 2 自动跳过。 */
+    var sponsorSkipMode: Int
     var bluetoothLatencyMs: Int
     var decoderMode: Int
     var codecPreference: String

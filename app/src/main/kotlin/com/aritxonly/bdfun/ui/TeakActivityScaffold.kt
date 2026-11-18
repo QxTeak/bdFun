@@ -87,17 +87,22 @@ internal fun TeakActivityScaffold(
                     BackgroundPlayback.active
                 ) {
                     // 和首页完全同一份位置计算。
-                    val discPlacement = rememberDiscPlacement(settings)
+                    val discPlacement = rememberDiscPlacement(settings, stackedInSearch = false)
+                    val endPadding = discEndPadding ?: discPlacement.endPadding
+                    // 页面上有底部控件、唱片必须抬升时，若「回到顶部」也占了右侧，就把唱片镜像到左侧。
+                    val mirrorToStart = discLift > 0.dp && showScrollTop &&
+                        settings.scrollTopEnabled && settings.scrollTopSide == 1
                     BackgroundPlayDisc(
                         settings = settings, dependencies = com.aritxonly.bdfun.AppGraph.discDependencies,
                         modifier = Modifier
-                            .align(Alignment.BottomEnd)
+                            .align(if (mirrorToStart) Alignment.BottomStart else Alignment.BottomEnd)
                             .navigationBarsPadding()
-                            .padding(end = discEndPadding ?: discPlacement.endPadding)
+                            .padding(start = if (mirrorToStart) endPadding else 0.dp,
+                                end = if (mirrorToStart) 0.dp else endPadding)
                             .graphicsLayer {
                                 // 外壳自带 8dp 透明留白，下移后视觉底边和首页一致。
-                                translationY = discPlacement.bottomOffset.toPx() -
-                                    (if (com.aritxonly.teak.common.theme.TeakUiStyle.isHyperOs4) 0.dp else discLift).toPx()
+                                // HyperOS 4 的基线已与首页对齐，页面自己的抬升（如动态详情/设置搜索框）同样生效。
+                                translationY = discPlacement.bottomOffset.toPx() - discLift.toPx()
                             },
                         size = discPlacement.size,
                     ) { video ->

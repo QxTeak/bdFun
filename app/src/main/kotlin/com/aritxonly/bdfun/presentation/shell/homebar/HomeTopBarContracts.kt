@@ -10,7 +10,8 @@ import com.aritxonly.bdfun.core.model.user.UserProfile
 internal data class HomeTopBarContent(val profile: UserProfile?, val unreadCount: Int = 0)
 @androidx.compose.runtime.Immutable
 internal data class HomeTopBarSearch(val active: Boolean = false, val query: String = "",
-    val reveal: Float = 0f, val resultsVisible: Boolean = false)
+    val reveal: Float = 0f, val resultsVisible: Boolean = false,
+    val placeholder: String = "搜索视频、UP 主")
 
 /**
  * HyperOS 4 风格下顶栏中间的分段控件。

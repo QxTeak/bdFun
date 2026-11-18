@@ -17,12 +17,11 @@ internal fun SpaceCompactProfile(
     content: SpaceScreenContent, actions: SpaceScreenActions,
 ) {
     val colors = MiuixTheme.colorScheme
-    val profile = content.snapshot.profile.space?.profile
     val ui = content.ui
     val banner = content.banner
     val pagePosition = content.pagePosition
     Column(modifier = Modifier.fillMaxWidth()) {
-        SpaceBanner(bitmap = banner.bitmap, alignmentY = profile?.bannerAlignmentY ?: 0f)
+        SpaceBanner(bitmap = banner.bitmap)
         // 白色面板从头顶边开始，不做圆角矩形；头像用负 offset 盖到头上。
         Column(
             modifier = Modifier

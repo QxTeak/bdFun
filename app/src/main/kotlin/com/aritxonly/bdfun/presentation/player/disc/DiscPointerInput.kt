@@ -26,7 +26,7 @@ internal fun Modifier.discPointerInput(runtime: DiscRuntime): Modifier = pointer
         runtime.ui.dragTarget = Offset.Zero
         val generation = ++runtime.ui.pressGen
         val session = DiscPointerSession(down.position)
-        startDiscBoostTimer(runtime, session, generation)
+        startDiscLongPressTimer(runtime, session, generation)
         awaitDiscMovement(runtime, session, down.id)
         releaseDiscGesture(runtime, session.total)
     }
@@ -40,12 +40,13 @@ private suspend fun AwaitPointerEventScope.consumeDiscExitPointers() {
     } while (event.changes.any { it.pressed })
 }
 
-private fun startDiscBoostTimer(runtime: DiscRuntime, session: DiscPointerSession, generation: Int) {
+private fun startDiscLongPressTimer(runtime: DiscRuntime, session: DiscPointerSession, generation: Int) {
     runtime.scope.launch {
         delay(380)
         if (runtime.ui.pressGen == generation && !session.dragging && !runtime.ui.longPressActive) {
             runtime.ui.longPressActive = true
-            runtime.dependencies.playback.boostStart()
+            // 长按唱片切换暂停/继续；抬手不再额外触发动作。
+            runtime.dependencies.playback.togglePlayPause()
         }
     }
 }
@@ -76,13 +77,14 @@ private suspend fun AwaitPointerEventScope.awaitDiscMovement(runtime: DiscRuntim
 private fun releaseDiscGesture(runtime: DiscRuntime, total: Offset) {
     val ui = runtime.ui
     val playback = runtime.dependencies.playback
+    val longPressed = ui.longPressActive
     ui.pressed = false
+    ui.longPressActive = false
     ui.pressGen += 1
     runtime.dependencies.diagnostics.log("release total=(${total.x.toInt()},${total.y.toInt()}) " +
-        "longPress=${ui.longPressActive} exiting=${ui.exiting}")
-    when (discReleaseAction(total.x, total.y, total.getDistance(), ui.longPressActive,
+        "longPress=$longPressed exiting=${ui.exiting}")
+    when (discReleaseAction(total.x, total.y, total.getDistance(), longPressed,
         runtime.geometry.swipeThreshold, runtime.geometry.touchSlop)) {
-        DiscReleaseAction.EndBoost -> { ui.longPressActive = false; playback.boostEnd() }
         DiscReleaseAction.Next -> playback.next()
         DiscReleaseAction.Previous -> playback.previous()
         DiscReleaseAction.Exit -> {
