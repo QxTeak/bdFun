@@ -25,6 +25,7 @@ open class SettingsBindings internal constructor(
     override var previewNoticeAcked: Boolean by projection.property("previewAckState", { controller.previewNoticeAcked }, { controller.previewNoticeAcked = it })
     override var refractionEnabled: Boolean by projection.property("refractionState", { controller.refractionEnabled }, { controller.refractionEnabled = it })
     override var smartRefresh: Boolean by projection.property("smartRefreshState", { controller.smartRefresh }, { controller.smartRefresh = it })
+    override var tabClickRefresh: Boolean by projection.property("tabClickRefreshState", { controller.tabClickRefresh }, { controller.tabClickRefresh = it })
     override var bottomBarRaise: Boolean by projection.property("bottomBarRaiseState", { controller.bottomBarRaise }, { controller.bottomBarRaise = it })
     override var animationsEnabled: Boolean by projection.property("animationsEnabledState", { controller.animationsEnabled }, { controller.animationsEnabled = it })
     override var danmakuEnabled: Boolean by projection.property("danmakuState", { controller.danmakuEnabled }, { controller.danmakuEnabled = it })

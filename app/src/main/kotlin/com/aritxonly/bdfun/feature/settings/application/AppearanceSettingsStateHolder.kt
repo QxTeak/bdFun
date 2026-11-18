@@ -21,6 +21,15 @@ internal class AppearanceSettingsStateHolder(
 
     private val dynamicColorState = stateCell("dynamicColorState", prefs.getBoolean("dynamic_color", false))
 
+    private val tabClickRefreshState = stateCell("tabClickRefreshState",
+        prefs.getBoolean("tab_click_refresh", TabClickPolicy.DEFAULT_REFRESH))
+    override var tabClickRefresh: Boolean
+        get() = tabClickRefreshState.value
+        set(value) {
+            tabClickRefreshState.value = value
+            prefs.edit().putBoolean("tab_click_refresh", value).apply()
+        }
+
     private val bottomBarRaiseState = stateCell("bottomBarRaiseState", prefs.getBoolean("bottom_bar_raise", false))
 
     private val darkModeState = stateCell("darkModeState", prefs.getInt("dark_mode", 0))

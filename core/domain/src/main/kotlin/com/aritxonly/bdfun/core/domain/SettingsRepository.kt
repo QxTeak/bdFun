@@ -4,6 +4,7 @@ interface AppearanceSettings {
     var feedRefreshRate: Int
     var dynamicColor: Boolean
     var refractionEnabled: Boolean
+    var tabClickRefresh: Boolean
     var bottomBarRaise: Boolean
     var animationsEnabled: Boolean
     var darkMode: Int

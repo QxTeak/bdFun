@@ -27,17 +27,34 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
         val index = destinations
             .indexOfFirst { it.key == item.key }
             .coerceAtLeast(0)
-        if (index == selected) {
-            // 再次点击当前页 → 刷新
-            when (index) {
-                // 首页三段各有自己的刷新入口，别让直播/番剧去刷推荐。
-                // 直播/番剧和推荐页一致：先平滑回顶，再拉刷新。
+        if (index == tabPagerState.currentPage) {
+            val chrome = when (index) {
                 0 -> when (ui.homeSection) {
-                    1 -> AppGraph.livePageState.requestRefresh()
-                    2 -> AppGraph.bangumiPageState.requestRefresh()
-                    0 -> homeFeed.requestRefresh()
+                    1 -> shell.chrome.live
+                    2 -> shell.chrome.bangumi
+                    3, 4 -> shell.chrome.placeholder
+                    else -> shell.chrome.home
                 }
-                1 -> ui.dynamicRefreshTick++
+                1 -> shell.chrome.dynamic
+                else -> shell.chrome.mine
+            }
+            val scroll = chrome.scrollableState
+            val refresh = index in 0..1 && com.aritxonly.bdfun.core.domain.TabClickPolicy.shouldRefresh(
+                settings.tabClickRefresh, scroll != null && !scroll.canScrollBackward,
+            )
+            if (!refresh) {
+                appScope.launch { scrollMainPageToTop(scroll) }
+            } else {
+                when (index) {
+                    // 首页三段各有自己的刷新入口，别让直播/番剧去刷推荐。
+                    // 直播/番剧和推荐页一致：先平滑回顶，再拉刷新。
+                    0 -> when (ui.homeSection) {
+                        1 -> AppGraph.livePageState.requestRefresh()
+                        2 -> AppGraph.bangumiPageState.requestRefresh()
+                        0 -> homeFeed.requestRefresh()
+                    }
+                    1 -> ui.dynamicRefreshTick++
+                }
             }
         } else {
             // 主 tab 不能左右滑，但点底栏切换仍保留横向滑动转场。

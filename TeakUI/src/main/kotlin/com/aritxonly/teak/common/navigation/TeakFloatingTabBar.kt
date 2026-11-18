@@ -116,11 +116,13 @@ fun TeakFloatingTabBar(
 ) {
     if (items.isEmpty()) return
 
+    val currentOnItemSelected by androidx.compose.runtime.rememberUpdatedState(onItemSelected)
     val selectedIndex = items.indexOfFirst { it.key == selectedKey }.coerceAtLeast(0)
     val advancedMaterial = LocalTeakMaterialSpec.current
     val themedContentColor = MiuixTheme.colorScheme.onSurfaceContainer
     val isDark = themedContentColor.luminance() > 0.5f
     val contentColor = if (isDark) Color.White else Color.Black
+    val currentSelectedIndex by androidx.compose.runtime.rememberUpdatedState(selectedIndex)
     val motion = remember { FloatingTabMotionState(selectedIndex) }
     val panelReturnOffset = remember { Animatable(0f) }
     var directPanelDragOffset: Float? by remember { mutableStateOf(null) }
@@ -302,11 +304,11 @@ fun TeakFloatingTabBar(
                                         )
                                         motion.finishGesture(targetIndex)
                                         motionScope.launch { motion.settleTo(targetIndex) }
-                                        onItemSelected(items[targetIndex])
+                                        currentOnItemSelected(items[targetIndex])
                                     } else {
                                         motion.cancelGesture()
                                         if (cancelled) {
-                                            motionScope.launch { motion.settleTo(selectedIndex) }
+                                            motionScope.launch { motion.settleTo(currentSelectedIndex) }
                                         }
                                     }
                                     val releasedPanelOffset = directPanelDragOffset ?: 0f
