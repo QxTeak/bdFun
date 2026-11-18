@@ -5,7 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalResources
 import androidx.core.graphics.drawable.toBitmap
 import com.android.purebilibili.danmaku.engine.DanmakuTrailingAction
 import com.aritxonly.bdfun.core.domain.isHighLikeScrollingDanmaku
@@ -16,10 +17,13 @@ private const val VOTE_WINDOW_MS = 5_000L
 
 @Composable
 internal fun rememberScrollingDanmakuLike(hit: PlayerDanmakuHit, cid: Long): DanmakuTrailingAction {
-    val context = LocalContext.current
+    val resources = LocalResources.current
+    val configuration = LocalConfiguration.current
     val page = LocalVideoPageState.current
-    return remember(context, hit, page, cid) {
-        val icon = checkNotNull(context.getDrawable(TeakIcon.like(true))).toBitmap(64, 64)
+    val icon = remember(resources, configuration) {
+        resources.getDrawable(TeakIcon.like(true), null).toBitmap(64, 64)
+    }
+    return remember(icon, hit, page, cid) {
         DanmakuTrailingAction(
             icon, Color.WHITE, 0xFFFFC98D.toInt(),
             isActive = { id -> hit.votes.value[id]?.liked == true },
