@@ -10,23 +10,18 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.graphics.PathParser
 import com.android.purebilibili.danmaku.parser.bas.BasTarget
-import com.android.purebilibili.danmaku.parser.bas.text
-import com.android.purebilibili.danmaku.parser.bas.number
 import com.android.purebilibili.danmaku.parser.TimedDanmakuWindow
 import com.android.purebilibili.danmaku.parser.DanmakuParser
 import com.android.purebilibili.danmaku.parser.DanmakuProto
 import com.android.purebilibili.danmaku.parser.AdvancedDanmakuData
-import com.android.purebilibili.danmaku.parser.bas.BasDanmaku
-import com.android.purebilibili.danmaku.parser.bas.BasElementType
-import com.android.purebilibili.danmaku.parser.bas.BasMeasurer
-import com.android.purebilibili.danmaku.parser.bas.BasTimeline
 import com.aritxonly.bdfun.core.application.PlaybackController
 import com.aritxonly.bdfun.core.domain.DanmakuRuleMatcher
 import com.aritxonly.bdfun.core.model.video.DanmakuItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -38,12 +33,17 @@ internal fun SpecialVideoDanmakuOverlay(
     val state by controller.state.collectAsState()
     var remote by remember(aid, cid) { mutableStateOf(emptyList<DanmakuItem>()) }
     var program by remember(aid, cid) { mutableStateOf(SpecialDanmakuProgram()) }
-    LaunchedEffect(controller, aid, cid) { remote = controller.specialDanmaku(aid, cid) }
+    LaunchedEffect(controller, aid, cid, playback) {
+        val source = controller.specialDanmaku(aid, cid) ?: return@LaunchedEffect
+        playback.state.map { (it.positionMs / 2_000L) * 2_000L }.distinctUntilChanged().collect { start ->
+            remote = source.readWindow(start)
+        }
+    }
     LaunchedEffect(items, remote, state.rules, state.recalled) {
         program = withContext(Dispatchers.Default) {
             val rules = DanmakuRuleMatcher(state.rules.filter { it.kind == com.aritxonly.bdfun.core.domain.DanmakuRuleKind.Sender })
             val advanced = mutableListOf<AdvancedDanmakuData>()
-            val bas = mutableListOf<BasVideoScene>()
+            val bas = mutableListOf<BasScenePainter>()
             (items.asSequence().filter { it.mode == 7 || it.mode == 9 } + remote.asSequence())
                 .distinctBy { Triple(it.id, it.timeMs, it.text) }
                 .filterNot { rules.blocks(it) || (cid to it.id) in state.recalled }
@@ -57,10 +57,10 @@ internal fun SpecialVideoDanmakuOverlay(
                     }.getOrNull() ?: return@forEach
                     advanced += parsed.advancedList
                     parsed.basList.forEach { script ->
-                        runCatching { BasVideoScene(script) }.getOrNull()?.let { bas += it }
+                        runCatching { BasScenePainter(script) }.getOrNull()?.let { bas += it }
                     }
                 }
-            SpecialDanmakuProgram(advanced.sortedBy { it.startTimeMs }, bas.sortedBy { it.script.startTimeMs })
+            SpecialDanmakuProgram(advanced.sortedBy { it.startTimeMs }, bas.sortedBy { it.item.startTimeMs })
         }
     }
     val playbackState = playback.state.collectAsState()
@@ -80,24 +80,28 @@ internal fun SpecialVideoDanmakuOverlay(
         TimedDanmakuWindow(program.advanced, { it.startTimeMs }, { it.startTimeMs + it.durationMs })
     }
     val basWindow = remember(program) {
-        TimedDanmakuWindow(program.bas, { it.script.startTimeMs }, { it.script.startTimeMs + it.script.durationMs - 1 })
+        TimedDanmakuWindow(program.bas, { it.item.startTimeMs }, { it.item.startTimeMs + it.item.durationMs - 1 })
     }
     Canvas(Modifier.fillMaxSize().onGloballyPositioned { taps.coordinates = it }) {
-        taps.areas.clear()
         val now = if (playbackState.value.playing) ui.frameMs.value else playbackState.value.positionMs
+        taps.active = basWindow.update(now)
         val canvas = drawContext.canvas.nativeCanvas
         val clip = ui.danmakuHit.hotPresentation.value.heightPx.toFloat().coerceAtMost(size.height)
         canvas.save()
         canvas.clipRect(0f, clip, size.width, size.height)
         drawAdvancedDanmaku(canvas, advancedWindow.update(now), now, paint, size.width, size.height, opacity)
-        drawBasDanmaku(canvas, basWindow.update(now), now, paint, size.width, size.height, opacity, clip, taps)
+        taps.clipTop = clip
+        for (scene in taps.active) {
+            scene.update(now - scene.item.startTimeMs, size.width, size.height, opacity, 1f, 5)
+            scene.draw(canvas)
+        }
         canvas.restore()
     }
 }
 
 private data class SpecialDanmakuProgram(
     val advanced: List<AdvancedDanmakuData> = emptyList(),
-    val bas: List<BasVideoScene> = emptyList(),
+    val bas: List<BasScenePainter> = emptyList(),
 )
 
 private fun drawAdvancedDanmaku(canvas: AndroidCanvas, items: List<AdvancedDanmakuData>, now: Long,
@@ -119,71 +123,16 @@ private fun drawAdvancedDanmaku(canvas: AndroidCanvas, items: List<AdvancedDanma
     }
 }
 
-private class BasVideoScene(val script: BasDanmaku) {
-    val timeline = BasTimeline(script.program)
-    val paths = timeline.states.mapNotNull { node ->
-        if (node.element.type != BasElementType.PATH) return@mapNotNull null
-        val path = runCatching { PathParser.createPathFromPathData(node.element.attributes.text("d")) }.getOrNull()
-            ?: return@mapNotNull null
-        node to path
-    }.toMap()
-}
-
 private class BasVideoTargets {
     var coordinates: LayoutCoordinates? = null
-    val areas = mutableListOf<Pair<android.graphics.RectF, BasTarget>>()
+    var clipTop = 0f
+    var active: List<BasScenePainter> = emptyList()
     fun hit(point: androidx.compose.ui.geometry.Offset): BasTarget? {
-        val local = coordinates?.takeIf { it.isAttached }?.windowToLocal(point) ?: return null
-        return areas.lastOrNull { it.first.contains(local.x, local.y) }?.second
-    }
-}
-
-private fun drawBasDanmaku(canvas: AndroidCanvas, items: List<BasVideoScene>, now: Long,
-    paint: Paint, width: Float, height: Float, opacity: Float, clip: Float, taps: BasVideoTargets) {
-    for (scene in items) {
-        val script = scene.script
-        if (script.startTimeMs > now) break
-        val elapsed = now - script.startTimeMs
-        if (elapsed !in 0 until script.durationMs) continue
-        val timeline = scene.timeline
-        timeline.update(elapsed, width, height, BasMeasurer { state, _, _ ->
-            paint.textSize = state.fontSize.coerceIn(1f, 256f)
-            val path = scene.paths[state]
-            val bounds = path?.let { android.graphics.RectF().apply { it.computeBounds(this, true) } }
-            state.width = bounds?.right ?: paint.measureText(state.content)
-            state.height = bounds?.bottom ?: paint.textSize
-        })
-        for (node in timeline.states) {
-            if (!node.visible || node.alpha <= 0f) continue
-            val path = scene.paths[node]
-            if (path == null && node.content.isEmpty()) continue
-            var x = node.x
-            var y = node.y
-            var parent = timeline.states.getOrNull(node.parentIndex)
-            while (parent != null) {
-                x += parent.x
-                y += parent.y
-                parent = timeline.states.getOrNull(parent.parentIndex)
-            }
-            paint.textSize = node.fontSize.coerceIn(1f, 256f)
-            canvas.save()
-            canvas.translate(x, y)
-            canvas.rotate(node.rotateZ)
-            canvas.scale(node.scale, node.scale)
-            if (path == null) drawSpecialText(canvas, paint, node.content, node.color, node.alpha * opacity, true)
-            else {
-                paint.style = Paint.Style.FILL
-                val alpha = (node.alpha * opacity * 255).toInt().coerceIn(0, 255)
-                val color = node.element.attributes.number("fillColor", node.color.toDouble()).toInt()
-                paint.color = (alpha shl 24) or (color and 0xFFFFFF)
-                canvas.drawPath(path, paint)
-            }
-            canvas.restore()
-            node.element.target?.let {
-                val bounds = android.graphics.RectF(x, maxOf(y, clip), x + node.width * node.scale, y + node.height * node.scale)
-                if (!bounds.isEmpty) taps.areas += bounds to it
-            }
-        }
+        val layout = coordinates?.takeIf { it.isAttached } ?: return null
+        val local = layout.windowToLocal(point)
+        if (local.x < 0 || local.x >= layout.size.width || local.y !in clipTop..<layout.size.height.toFloat()) return null
+        for (i in active.indices.reversed()) active[i].hit(local.x, local.y)?.let { return it }
+        return null
     }
 }
 

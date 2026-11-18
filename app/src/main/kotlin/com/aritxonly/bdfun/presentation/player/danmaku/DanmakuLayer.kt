@@ -36,6 +36,10 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
     val options = currentDanmakuLayerOptions(fullscreen)
     val page = LocalVideoPageState.current
     val moderation = page.danmakuModeration?.state?.collectAsState()?.value ?: DanmakuModerationState()
+    val ownerHash = remember(page.danmakuOwnerMid) {
+        com.aritxonly.bdfun.core.domain.danmakuUserHash(page.danmakuOwnerMid).ifEmpty { null }
+    }
+    LaunchedEffect(renderView, ownerHash) { renderView.engine.upOwnerUserHash = ownerHash }
     val matcher = remember(moderation.rules) { DanmakuRuleMatcher(moderation.rules) }
     val filtered = remember(items, options.filters, matcher, moderation.recalled, page.cid) {
         filterDanmaku(items.filterNot { matcher.blocks(it) || (page.cid to it.id) in moderation.recalled }, options.filters)

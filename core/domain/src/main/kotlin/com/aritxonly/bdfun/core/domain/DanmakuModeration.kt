@@ -44,3 +44,7 @@ data class DanmakuCloudConfig(
         )
     }
 }
+
+/** 分段协议用 UID 的 CRC32 十六进制值标识发送者。 */
+fun danmakuUserHash(mid: Long): String = if (mid <= 0) "" else
+    java.util.zip.CRC32().apply { update(mid.toString().toByteArray(Charsets.UTF_8)) }.value.toString(16)

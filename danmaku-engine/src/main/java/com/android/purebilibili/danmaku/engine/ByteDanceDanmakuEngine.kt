@@ -327,7 +327,7 @@ internal class ByteDanceDanmakuEngine(
                     ?.let { scale -> currentConfig.textSizePx * scale }
                 textColor = item.textColor
                 isVipGradualColor = item.isVipGradualColor
-                isUpOwner = upOwnerUserHash != null && item.userHash == upOwnerUserHash
+                isUpOwner = item.isUpOwner || (upOwnerUserHash != null && item.userHash == upOwnerUserHash)
                 typeface = item.typeface
                 textStrokeWidth = item.textStrokeWidth
                 textStrokeColor = item.textStrokeColor

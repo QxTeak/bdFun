@@ -197,6 +197,8 @@ internal class VideoPagePresentationState(
     override var panelBackdrop by mutableStateOf<ImageBitmap?>(null)
     var commentSender: (suspend (String, String?) -> Boolean)? = null
     var inspectDanmaku by mutableStateOf<com.aritxonly.bdfun.core.model.video.DanmakuItem?>(null)
+    override var danmakuOwnerMid by mutableLongStateOf(0L)
+    override var styledDanmakuSender: StyledDanmakuSender? = null
     override var danmakuModeration: com.aritxonly.bdfun.feature.video.application.DanmakuModerationStateHolder? by mutableStateOf(null)
     override var danmakuReporter: (suspend (Long, com.aritxonly.bdfun.core.domain.DanmakuReportReason, String) -> Boolean)? = null
     override var danmakuVoteLoader: (suspend (List<Long>) -> Unit)? = null

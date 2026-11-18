@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.infra.bili
 
+import com.aritxonly.bdfun.core.domain.danmakuUserHash
+
 import android.content.Context
 import android.net.Uri
 import android.text.Html
@@ -267,6 +269,7 @@ internal suspend fun BiliApiContext.sendDanmaku(
     fontSize: Int = 25,
     color: Int = 0xFFFFFF,
     aid: Long = 0,
+    appearance: com.aritxonly.bdfun.core.domain.DanmakuSendAppearance = com.aritxonly.bdfun.core.domain.DanmakuSendAppearance(),
 ): Long = withContext(Dispatchers.IO) {
     val data = postRequest(
         "/x/v2/dm/post",
@@ -278,10 +281,14 @@ internal suspend fun BiliApiContext.sendDanmaku(
             "progress" to progressMs.coerceAtLeast(0L).toString(),
             "mode" to mode.toString(),
             "fontsize" to fontSize.toString(),
-            "color" to color.toString(),
+            "color" to (if (appearance.vipColor) 0xFFFFFF else color).toString(),
             "pool" to "0",
             "csrf" to csrf,
-        ) + if (aid > 0) mapOf("aid" to aid.toString()) else emptyMap(),
+        ) + buildMap {
+            if (aid > 0) put("aid", aid.toString())
+            if (appearance.vipColor) put("colorful", "60001")
+            if (appearance.upIdentity) put("checkbox_type", "4")
+        },
     )
     data.optString("dmid_str").toLongOrNull() ?: data.optLong("dmid")
 }

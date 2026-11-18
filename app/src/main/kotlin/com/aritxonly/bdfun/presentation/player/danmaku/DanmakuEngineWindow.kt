@@ -27,6 +27,8 @@ internal fun rememberDanmakuEngineWindow(filtered: List<BiliDanmakuItem>): Danma
                 textColor = 0xFF000000.toInt() or item.color
                 textSizeScale = item.size.coerceIn(0.75f, 1.25f)
                 isSelf = item.self
+                isVipGradualColor = item.vipColor
+                isUpOwner = item.upIdentity
                 userHash = item.userHash
                 mergedOriginalText = item.text
                 if (item.id > 0L) danmakuId = item.id

@@ -33,6 +33,7 @@ internal fun mapDanmakuSegments(parsed: List<ByteArray>, ownHash: String = ""): 
                 likeCount = elem.like,
                 count = elem.count,
                 userHash = elem.midHash,
+                vipColor = elem.colorful == com.android.purebilibili.danmaku.parser.DanmakuProto.DmColorfulTypeVipGradualColor,
                 self = ownHash.isNotEmpty() && ownHash.equals(elem.midHash, ignoreCase = true),
             )
         }

@@ -16,6 +16,14 @@ class PlayerFullscreenVisuals(
     val danmakuOn: Boolean, val backgroundPlay: Boolean,
 )
 
+typealias StyledDanmakuSender = suspend (String, Int, Int, Int, com.aritxonly.bdfun.core.domain.DanmakuSendAppearance) -> Boolean
+
+class PlayerDanmakuComposePorts(
+    val sender: () -> StyledDanmakuSender?,
+    val allowVipColor: Boolean,
+    val allowUpIdentity: Boolean,
+)
+
 /** app提供原平台动作/资源/共用弹幕适配；模块拥有原绘制与指针树。 */
 class PlayerRenderPorts(
     val page: PlayerPageHost,
@@ -27,7 +35,7 @@ class PlayerRenderPorts(
     val cover: @Composable (String, Modifier) -> Unit,
     val inlineAppearance: () -> InlinePlayerAppearance,
     val fullscreenVisuals: @Composable () -> PlayerFullscreenVisuals,
-    val danmakuSender: () -> (suspend (String, Int, Int, Int) -> Boolean)?,
+    val danmakuComposer: PlayerDanmakuComposePorts,
     val danmakuOverlays: @Composable androidx.compose.foundation.layout.BoxScope.(Boolean) -> Unit,
     val inlineMore: @Composable () -> Unit,
 )

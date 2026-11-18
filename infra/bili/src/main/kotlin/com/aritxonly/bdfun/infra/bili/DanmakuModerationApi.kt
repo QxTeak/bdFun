@@ -5,10 +5,6 @@ import com.aritxonly.bdfun.core.domain.DanmakuRuleKind
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
-import java.util.zip.CRC32
-
-internal fun danmakuUserHash(mid: Long): String = if (mid <= 0) "" else
-    CRC32().apply { update(mid.toString().toByteArray(Charsets.UTF_8)) }.value.toString(16)
 
 internal suspend fun BiliApiContext.recallDanmaku(cid: Long, id: Long): Unit = withContext(Dispatchers.IO) {
     postRequest("/x/dm/recall", mapOf(

@@ -16,7 +16,7 @@ class BiliVideoMetadataRepository(private val backend: BiliBackend) : VideoMetad
     override suspend fun subtitles(aid: Long, cid: Long) = biliOutcome { backend.subtitles(aid, cid) }
     override suspend fun subtitleCues(url: String) = biliOutcome { backend.subtitleCues(url) }
     override suspend fun sendDanmaku(post: DanmakuPost) = biliOutcome {
-        backend.api.sendDanmaku(post.cid, post.bvid, post.text, post.progressMs, post.mode, post.fontSize, post.color, post.aid)
+        backend.api.sendDanmaku(post.cid, post.bvid, post.text, post.progressMs, post.mode, post.fontSize, post.color, post.aid, post.appearance)
     }
     override suspend fun recallDanmaku(cid: Long, id: Long) = biliOutcome { backend.api.recallDanmaku(cid, id) }
     override suspend fun specialDanmaku(aid: Long, cid: Long) = biliOutcome { backend.api.specialDanmaku(aid, cid) }

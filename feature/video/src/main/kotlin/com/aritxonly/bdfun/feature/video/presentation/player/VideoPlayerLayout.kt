@@ -74,7 +74,7 @@ fun VideoPlayerLayout(
         PlayerInlineControls(playback, observed, presentation, actions, fsActions, ui, ports)
         PlayerInlineAudio(playback, observed, presentation, ui, ports)
 
-        PlayerDanmakuInputOverlay(fullscreen, danmaku, ui, ports.danmakuSender)
+        PlayerDanmakuInputOverlay(fullscreen, danmaku, ui, ports.danmakuComposer)
 
         ports.inlineMore()
         if (!presentation.pictureInPicture) ports.danmakuOverlays(this, danmakuVisible)

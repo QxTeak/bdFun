@@ -15,6 +15,13 @@ import com.aritxonly.bdfun.core.model.video.DanmakuCommand
 import com.aritxonly.bdfun.core.model.video.DanmakuCommandKind
 import com.aritxonly.bdfun.navigateToVideoByBvid
 import kotlinx.coroutines.launch
+import com.aritxonly.teak.common.icons.AppGlyph
+import com.aritxonly.teak.common.icons.LucideIcons
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.icon.extended.Link
+import top.yukonga.miuix.kmp.icon.extended.Add
+import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -87,18 +94,18 @@ private fun DanmakuCommandCard(
         Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(command.text, color = color, modifier = Modifier.weight(1f), maxLines = 2)
-                Button(onClick = onDismiss) { Text("关闭") }
+                IconButton(onClick = onDismiss) { AppGlyph(MiuixIcons.Close, color, size = 18.dp, contentDescription = "关闭") }
             }
             when (command.kind) {
                 DanmakuCommandKind.Notice -> Unit
-                DanmakuCommandKind.Link -> Button(onClick = onLink) { Text("打开视频") }
+                DanmakuCommandKind.Link -> IconButton(onClick = onLink) { AppGlyph(MiuixIcons.Link, color, size = 18.dp, contentDescription = "打开关联视频") }
                 DanmakuCommandKind.Follow -> Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (command.attentionType in 1..2) {
-                        Button(onClick = actions.onLikeClick) { Text("点赞") }
-                        Button(onClick = actions.onCommandCoin) { Text("投币") }
-                        Button(onClick = actions.onCommandFavorite) { Text("收藏") }
+                        IconButton(onClick = actions.onLikeClick) { AppGlyph(TeakIcon.LikeOutline, color, size = 18.dp, contentDescription = "点赞视频") }
+                        IconButton(onClick = actions.onCommandCoin) { AppGlyph(LucideIcons.CoinsFilled, color, size = 18.dp, contentDescription = "投币") }
+                        IconButton(onClick = actions.onCommandFavorite) { AppGlyph(LucideIcons.Star, color, size = 18.dp, contentDescription = "收藏") }
                     }
-                    if (command.attentionType != 1) Button(onClick = actions.onCommandFollow) { Text("关注") }
+                    if (command.attentionType != 1) IconButton(onClick = actions.onCommandFollow) { AppGlyph(MiuixIcons.Add, color, size = 18.dp, contentDescription = "关注 UP 主") }
                 }
                 DanmakuCommandKind.Grade, DanmakuCommandKind.Vote -> {
                     command.options.chunked(3).forEach { row ->

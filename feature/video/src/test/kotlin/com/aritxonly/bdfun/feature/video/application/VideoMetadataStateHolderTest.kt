@@ -39,7 +39,8 @@ class VideoMetadataStateHolderTest {
             is Outcome.Failure -> result
         }
         override suspend fun recallDanmaku(cid: Long, id: Long) = send()
-        override suspend fun specialDanmaku(aid: Long, cid: Long) = Outcome.Success(emptyList<DanmakuItem>())
+        override suspend fun specialDanmaku(aid: Long, cid: Long) =
+            Outcome.Success(SpecialDanmakuPlayback { emptyList() })
         override suspend fun danmakuCommands(aid: Long, cid: Long) = Outcome.Success(emptyList<DanmakuCommand>())
         override suspend fun submitDanmakuCommand(selection: DanmakuCommandSelection) = send()
         override suspend fun danmakuRules() = Outcome.Success(emptyList<DanmakuCloudRule>())

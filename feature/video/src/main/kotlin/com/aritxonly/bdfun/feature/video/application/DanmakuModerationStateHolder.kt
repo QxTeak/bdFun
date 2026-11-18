@@ -20,8 +20,8 @@ class DanmakuModerationStateHolder(private val repository: VideoMetadataReposito
     private val ruleWrites = Mutex()
     private val pendingCommandSelections = mutableSetOf<Triple<Long, Long, Long>>()
 
-    suspend fun specialDanmaku(aid: Long, cid: Long): List<DanmakuItem> =
-        (repository.specialDanmaku(aid, cid) as? Outcome.Success)?.value.orEmpty()
+    suspend fun specialDanmaku(aid: Long, cid: Long): SpecialDanmakuPlayback? =
+        (repository.specialDanmaku(aid, cid) as? Outcome.Success)?.value
 
     suspend fun commands(aid: Long, cid: Long): List<com.aritxonly.bdfun.core.model.video.DanmakuCommand> =
         (repository.danmakuCommands(aid, cid) as? Outcome.Success)?.value.orEmpty()

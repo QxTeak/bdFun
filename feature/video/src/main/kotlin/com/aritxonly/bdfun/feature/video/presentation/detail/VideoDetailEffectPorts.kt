@@ -13,6 +13,8 @@ interface VideoDetailDanmakuHost {
     var danmakuVoteLoader: (suspend (List<Long>) -> Unit)?
     var danmakuVotes: kotlinx.coroutines.flow.StateFlow<Map<Pair<Long, Long>, com.aritxonly.bdfun.core.domain.DanmakuVote>>?
     var danmakuLiker: (suspend (Long) -> Boolean)?
+    var danmakuOwnerMid: Long
+    var styledDanmakuSender: StyledDanmakuSender?
     var danmakuSender: (suspend (String, Int, Int, Int) -> Boolean)?
 }
 

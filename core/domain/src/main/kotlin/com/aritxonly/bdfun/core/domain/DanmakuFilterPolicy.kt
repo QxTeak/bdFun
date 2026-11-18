@@ -13,7 +13,7 @@ fun filterDanmaku(items: List<DanmakuItem>, options: DanmakuFilterOptions): List
             when {
                 blockScroll && (item.mode in 1..3 || item.mode == 6) -> false
                 blockFixed && (item.mode == 4 || item.mode == 5) -> false
-                blockColor && item.color != 0xFFFFFF -> false
+                blockColor && (item.color != 0xFFFFFF || item.vipColor) -> false
                 blockCount && item.count > 1 -> false
                 keywordFilter && keywords.any { key -> key.isNotBlank() && item.text.contains(key) } -> false
                 else -> true

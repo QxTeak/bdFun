@@ -15,4 +15,6 @@ data class DanmakuItem(
     /** 自己刚发送的弹幕：渲染时加圆角底。 */
     val self: Boolean = false,
     val userHash: String = "",
+    val vipColor: Boolean = false,
+    val upIdentity: Boolean = false,
 )

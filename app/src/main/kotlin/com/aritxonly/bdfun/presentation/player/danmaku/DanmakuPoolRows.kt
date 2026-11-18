@@ -52,7 +52,15 @@ internal fun DanmakuPoolRow(item: DanmakuItem, vote: DanmakuVote?, expanded: Boo
                 if (item.self && item.id > 0) add(PoolAction.Recall)
                 if (!item.self && item.userHash.isNotBlank()) add(PoolAction.Block)
             }
-            actions.forEach { option -> Button(onClick = { action(option) }) { Text(if (option == PoolAction.Like && vote?.liked == true) "取消点赞" else option.title) } }
+            actions.forEach { option ->
+                val liked = option == PoolAction.Like && vote?.liked == true
+                Button(onClick = { action(option) }) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        DanmakuManagementGlyph(option, if (liked) colors.primary else colors.onBackground, liked)
+                        Text(if (liked) "取消点赞" else option.title)
+                    }
+                }
+            }
         }
     }
 }

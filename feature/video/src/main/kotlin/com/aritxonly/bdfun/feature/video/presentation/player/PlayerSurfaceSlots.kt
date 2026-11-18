@@ -21,5 +21,6 @@ data class VideoPictureSettings(
     val accentColor: Color,
     /** 弹幕计数沿用普通弹幕的描边宽度与字号缩放，保证观感一致。 */
     val hotDanmakuStrokeDp: Float = 1.5f,
+    val danmakuLikeIcon: (Boolean) -> Int,
     val hotDanmakuTextScale: Float = 1f,
 )
