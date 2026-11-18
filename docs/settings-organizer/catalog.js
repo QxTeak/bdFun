@@ -113,8 +113,7 @@ window.SETTINGS_CATALOG = [
             "pref_name": "tab_click_refresh",
             "type": "switch",
             "title": "点击底栏回顶并刷新",
-            "default": false,
-            "subtitle": "首页、动态：开启后回顶并刷新；关闭后仅回顶，已在顶部时点击刷新"
+            "default": true
           },
           {
             "pref_name": "bottom_bar_raise",

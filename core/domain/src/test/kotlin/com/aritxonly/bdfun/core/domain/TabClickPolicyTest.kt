@@ -5,7 +5,7 @@ import org.junit.Test
 
 class TabClickPolicyTest {
     @Test fun returnOnlyRefreshesOnlyAtTop() {
-        assertFalse(TabClickPolicy.DEFAULT_REFRESH)
+        assertTrue(TabClickPolicy.DEFAULT_REFRESH)
         assertFalse(TabClickPolicy.shouldRefresh(false, false))
         assertTrue(TabClickPolicy.shouldRefresh(false, true))
     }

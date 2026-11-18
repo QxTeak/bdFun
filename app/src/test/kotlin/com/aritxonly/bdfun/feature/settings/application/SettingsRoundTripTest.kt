@@ -21,7 +21,7 @@ class SettingsRoundTripTest(private val case: SettingCase<*>) {
             SettingCase("previewNoticeAcked", false, true, { it.previewNoticeAcked }, { s, v -> s.previewNoticeAcked = v }),
             SettingCase("refractionEnabled", true, false, { it.refractionEnabled }, { s, v -> s.refractionEnabled = v }),
             SettingCase("smartRefresh", true, false, { it.smartRefresh }, { s, v -> s.smartRefresh = v }),
-            SettingCase("tabClickRefresh", false, true, { it.tabClickRefresh }, { s, v -> s.tabClickRefresh = v }),
+            SettingCase("tabClickRefresh", true, false, { it.tabClickRefresh }, { s, v -> s.tabClickRefresh = v }),
             SettingCase("bottomBarRaise", false, true, { it.bottomBarRaise }, { s, v -> s.bottomBarRaise = v }),
             SettingCase("animationsEnabled", true, false, { it.animationsEnabled }, { s, v -> s.animationsEnabled = v }),
             SettingCase("danmakuEnabled", true, false, { it.danmakuEnabled }, { s, v -> s.danmakuEnabled = v }),

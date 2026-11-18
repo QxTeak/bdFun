@@ -10,7 +10,7 @@ class TabClickSettingsTest {
         try {
             val prefs = MemorySettingsPreferences()
             val settings = SettingsStateHolder.create(prefs, TestHistoryCodec, scope)
-            assertFalse(settings.tabClickRefresh)
+            assertTrue(settings.tabClickRefresh)
             settings.tabClickRefresh = true
             assertEquals(true, prefs.values["tab_click_refresh"])
             val restored = SettingsStateHolder.create(prefs, TestHistoryCodec, scope)
