@@ -756,4 +756,9 @@ scrollable 默认 false，maxVisibleItems 默认 3；开启并超限时启用内
 
 头像点缀与大会员胶囊统一在 `ui/AccountBadges.kt`：`AccountVipBadge` 是个人空间与「我的」页共用的粉底白字/灰底胶囊（8.5sp、5×1dp 内边距），`BoxScope.AvatarAccent(outerSize)` 负责弧线+圆点并按外径等比缩放（canvas = outer−2dp、stroke = outer×0.03125、dot = outer×0.0833、dot 偏移 = 0.401/0.281 倍外径）。个人空间用 96dp，我的页用 76dp；不要再在任何页面单独复制弧线或大会员样式。
 
+### 2026-11-18 首页影视页
+
+官方客户端反编译与接口实测确认：影视不是单一番剧接口，而是电影/电视剧/纪录片/综艺聚合（`season_type` 2/5/3/7）。追剧列表 `/x/space/bangumi/follow/list` 用 `type=2`；推荐 `/pgc/season/index/result` 按四种 season_type 同页并行后 round-robin 交错去重；头图 `/pgc/web/timeline` 合并四种类型（影视时间线可能很稀疏，保留番剧页原有的榜单/推荐回退）；榜单 `/pgc/season/rank/tabs` + `/pgc/season/rank/v2/list` 使用 index_id 2/5/3/7，首节合并为「热门影视榜」。页面展示完全复用 `BangumiPage`（`CinemaPage` 只传独立 state/rankState 与「最近追剧」标题），禁止复制一套 UI。`MainHomeChrome`、`MainShellNavigation`、`MainShellStateFactory` 为影视频道绑定独立滚动进度、下拉指示器与回顶刷新，行为与番剧页一致；`MainShellStateFactory` 的滚动绑定拆到 `TrackMainShellPages` 以满足 80 行函数门槛。
+
+
 
