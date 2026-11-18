@@ -16,12 +16,12 @@ import kotlin.math.abs
 @Composable
 fun BindPlayerHotDanmaku(
     playback: PlaybackController,
-    danmaku: List<DanmakuItem>,
     danmakuVisible: Boolean,
     ui: VideoPlayerUiStateHolder,
 ) {
     val state = playback.state.collectAsState()
     val positionMs by remember(playback) { derivedStateOf { state.value.positionMs } }
+    val danmaku by ui.danmakuHit.filteredSnapshot
     var hotDanmaku by ui.hotDanmaku
     // 弹幕计数：完全照 BiliPai：用分段弹幕接口里的点赞数 like，
     // 只取最近 15 秒、点赞 ≥ 10 的弹幕，按点赞降序、id / 文字去重后显示前两条。
@@ -32,7 +32,7 @@ fun BindPlayerHotDanmaku(
         }
         while (true) {
             val now = positionMs
-            hotDanmaku = selectHotDanmakuItems(danmaku, now)
+            hotDanmaku = selectHotDanmakuItems(danmaku, now, Int.MAX_VALUE)
             kotlinx.coroutines.delay(1_000L)
         }
     }

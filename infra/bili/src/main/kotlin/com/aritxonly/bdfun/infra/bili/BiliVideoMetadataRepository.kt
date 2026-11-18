@@ -5,6 +5,7 @@ import com.aritxonly.bdfun.core.domain.VideoMetadataRepository
 
 class BiliVideoMetadataRepository(private val backend: BiliBackend) : VideoMetadataRepository {
     override suspend fun reportDanmaku(report: com.aritxonly.bdfun.core.domain.DanmakuReport) = biliOutcome { backend.api.reportDanmaku(report) }
+    override suspend fun danmakuVotes(cid: Long, ids: List<Long>) = biliOutcome { backend.api.danmakuVotes(cid, ids) }
     override suspend fun likeDanmaku(cid: Long, id: Long, like: Boolean) = biliOutcome {
         backend.api.likeDanmaku(cid, id, like)
     }

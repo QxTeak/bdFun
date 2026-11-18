@@ -25,9 +25,14 @@ class VideoMetadataStateHolderTest {
             return Outcome.Success(listOf(cue))
         }
         override suspend fun reportDanmaku(report: DanmakuReport) = send()
-        override suspend fun likeDanmaku(cid: Long, id: Long, like: Boolean): Outcome<Unit> {
+        var votes = emptyMap<Long, DanmakuVote>()
+        override suspend fun danmakuVotes(cid: Long, ids: List<Long>) = Outcome.Success(votes.filterKeys { it in ids })
+        override suspend fun likeDanmaku(cid: Long, id: Long, like: Boolean): Outcome<Boolean> {
             likeOperations += like
-            return send()
+            return when (val result = send()) {
+                is Outcome.Success -> Outcome.Success(like)
+                is Outcome.Failure -> result
+            }
         }
         override suspend fun sendDanmaku(post: DanmakuPost) = send()
     }
@@ -42,6 +47,20 @@ class VideoMetadataStateHolderTest {
         assertEquals(1, calls)
     }
 
+    @Test fun serverTotalAlreadyIncludesAccountLikeAndCanBeUnliked() = runBlocking {
+        val fake = Fake().apply { votes = mapOf(10L to DanmakuVote(37, true)) }
+        val holder = VideoMetadataStateHolder(fake)
+        holder.loadDanmakuVotes(1, listOf(10))
+        assertEquals(DanmakuVote(37, true), holder.danmakuVotes.value[1L to 10L])
+        fake.send = {
+            fake.votes = mapOf(10L to DanmakuVote(35, false))
+            Outcome.Success(Unit)
+        }
+        assertTrue(holder.likeDanmaku(1, 10))
+        assertEquals(listOf(false), fake.likeOperations)
+        assertEquals(DanmakuVote(35, false), holder.danmakuVotes.value[1L to 10L])
+    }
+
     @Test fun likesTogglePerPartAndRejectInvalidIds() = runBlocking {
         var calls = 0
         val fake = Fake().apply { send = { calls++; Outcome.Success(Unit) } }
@@ -51,7 +70,7 @@ class VideoMetadataStateHolderTest {
         assertTrue(holder.likeDanmaku(1, 10))
         assertTrue(holder.likeDanmaku(2, 10))
         assertEquals(3, calls)
-        assertEquals(setOf(2L to 10L), holder.danmakuLikes.value)
+        assertEquals(setOf(2L to 10L), holder.danmakuVotes.value.filterValues { it.liked }.keys)
         assertEquals(listOf(true, false, true), fake.likeOperations)
     }
 

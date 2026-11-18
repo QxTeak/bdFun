@@ -8,6 +8,12 @@ class HotDanmakuSelectionTest {
     private fun item(id: Long, text: String, likes: Long, time: Long = 20_000L) =
         DanmakuItem(time, 1, 0xFFFFFF, 25f, text, id, likes, count = 999)
 
+    @Test fun overlongEntriesNeverForceClippingAndSingleEntryCanUseFullWidth() {
+        assertEquals(listOf(1, 2), fittingHotDanmakuIndices(listOf(400f, 60f, 70f), 150f, 4f))
+        assertEquals(listOf(0), fittingHotDanmakuIndices(listOf(130f), 150f, 4f))
+        assertEquals(emptyList<Int>(), fittingHotDanmakuIndices(listOf(150f), 150f, 4f))
+    }
+
     @Test fun interactiveSelectionKeepsOriginalIdentityAndLikeCount() {
         val original = item(99, "same text", 20)
         assertEquals(listOf(original), selectHotDanmakuItems(listOf(original), 20_000))

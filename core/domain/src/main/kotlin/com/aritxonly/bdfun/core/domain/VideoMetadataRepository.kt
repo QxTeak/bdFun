@@ -8,6 +8,8 @@ data class DanmakuPost(
     val mode: Int, val fontSize: Int, val color: Int,
 )
 
+data class DanmakuVote(val likes: Long?, val liked: Boolean)
+
 interface VideoMetadataRepository {
     suspend fun relation(mid: Long): Outcome<Int?>
     suspend fun followers(mid: Long): Outcome<Long>
@@ -16,6 +18,7 @@ interface VideoMetadataRepository {
     suspend fun subtitles(aid: Long, cid: Long): Outcome<List<SubtitleTrack>>
     suspend fun subtitleCues(url: String): Outcome<List<SubtitleCue>>
     suspend fun reportDanmaku(report: DanmakuReport): Outcome<Unit>
-    suspend fun likeDanmaku(cid: Long, id: Long, like: Boolean): Outcome<Unit>
+    suspend fun danmakuVotes(cid: Long, ids: List<Long>): Outcome<Map<Long, DanmakuVote>>
+    suspend fun likeDanmaku(cid: Long, id: Long, like: Boolean): Outcome<Boolean>
     suspend fun sendDanmaku(post: DanmakuPost): Outcome<Unit>
 }

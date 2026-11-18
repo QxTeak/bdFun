@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 private class DanmakuClickLayout {
     var coordinates: LayoutCoordinates? = null
     var menu: DanmakuActionPopup? = null
+    var voteJob: kotlinx.coroutines.Job? = null
 }
 
 @Composable
@@ -22,12 +23,14 @@ internal fun BindDanmakuClick(view: DanmakuRenderView, hit: PlayerDanmakuHit): M
     val page = LocalVideoPageState.current
     val scope = rememberCoroutineScope()
     val layout = remember(view) { DanmakuClickLayout() }
-    LaunchedEffect(page.cid, page.danmakuLikes) {
-        hit.likes.value = emptySet()
-        page.danmakuLikes?.collect { likes -> hit.likes.value = likes.filter { it.first == page.cid }.map { it.second }.toSet() }
+    LaunchedEffect(page.cid, page.danmakuVotes) {
+        hit.votes.value = emptyMap()
+        page.danmakuVotes?.collect { votes -> hit.votes.value = votes.filterKeys { it.first == page.cid }.mapKeys { it.key.second } }
     }
     DisposableEffect(view, hit, page.cid) {
         val activeCid = page.cid
+        hit.loadVotes = { ids -> if (page.cid == activeCid) page.danmakuVoteLoader?.invoke(ids) }
+        hit.sendSame = { text -> page.cid == activeCid && page.danmakuSender?.invoke(text, 1, 25, 0xFFFFFF) == true }
         hit.like = { id ->
             if (page.cid == activeCid) scope.launch {
                 val ok = page.danmakuLiker?.invoke(id) == true
@@ -39,7 +42,7 @@ internal fun BindDanmakuClick(view: DanmakuRenderView, hit: PlayerDanmakuHit): M
         hit.capture = capture@{ window ->
             val coordinates = layout.coordinates?.takeIf { it.isAttached } ?: return@capture null
             val point = coordinates.windowToLocal(window)
-            if (point.x < 0 || point.y < 0 || point.x >= coordinates.size.width || point.y >= coordinates.size.height) return@capture null
+            if (point.x < 0 || point.y < hit.hotPresentation.value.heightPx || point.x >= coordinates.size.width || point.y >= coordinates.size.height) return@capture null
             layout.menu?.close()
             layout.menu = null
             val captured = view.engine.captureClick(point.x, point.y) ?: return@capture null
@@ -53,9 +56,13 @@ internal fun BindDanmakuClick(view: DanmakuRenderView, hit: PlayerDanmakuHit): M
                 val reporter = page.danmakuReporter
                 val point = layout.coordinates?.localToWindow(androidx.compose.ui.geometry.Offset(rect.centerX(), rect.bottom))
                 // 旧浮层必须在捕获新弹幕之前关闭，否则它的 dismiss 会释放新选择。
-                layout.menu = DanmakuActionPopup(view) { view.engine.clearClickSelection() }.apply {
+                layout.menu = DanmakuActionPopup(view) {
+                    layout.voteJob?.cancel()
+                    view.engine.clearClickSelection()
+                }.apply {
                     show(item.text.orEmpty(), point?.x?.toInt() ?: 0, point?.y?.toInt() ?: 0,
-                        likeLabel = if (id in hit.likes.value) "取消点赞" else "点赞",
+                        liked = hit.votes.value[id]?.liked == true,
+                        count = hit.votes.value[id]?.likes ?: item.likeCount,
                         like = {
                             if (page.cid == cid) scope.launch {
                                 val ok = liker(id)
@@ -69,13 +76,22 @@ internal fun BindDanmakuClick(view: DanmakuRenderView, hit: PlayerDanmakuHit): M
                                     if (ok) "举报已提交" else "举报失败，请稍后重试", Toast.LENGTH_SHORT).show()
                             }
                         })
+                    layout.voteJob = scope.launch {
+                        launch { hit.loadVotes?.invoke(listOf(id)) }
+                        hit.votes.collect { votes ->
+                            val vote = votes[id]
+                            showVote(vote?.liked == true, vote?.likes ?: item.likeCount)
+                        }
+                    }
                 }
             } else view.engine.clearClickSelection()
         }
         onDispose {
             hit.capture = null
             hit.like = null
-            hit.likes.value = emptySet()
+            hit.loadVotes = null
+            hit.sendSame = null
+            hit.votes.value = emptyMap()
             layout.menu?.close()
             view.engine.clearClickSelection()
             view.engine.setOnItemClickListener(null)

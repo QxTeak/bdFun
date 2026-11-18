@@ -66,7 +66,7 @@ private suspend fun androidx.compose.ui.input.pointer.AwaitPointerEventScope.det
     verticalGesturesEnabled: () -> Boolean,
     callbacks: () -> GestureCallbacks,
 ) {
-    if (callbacks().ignoreDown(down.position, size.height.toFloat())) {
+    if (down.isConsumed || callbacks().ignoreDown(down.position, size.height.toFloat())) {
         drainPlayerTouches()
         return
     }

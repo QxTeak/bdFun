@@ -6,6 +6,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -16,14 +19,10 @@ import com.aritxonly.bdfun.core.model.video.DanmakuItem as BiliDanmakuItem
 
 import com.aritxonly.bdfun.core.domain.filterDanmaku
 
-/** 弹幕计数占用的顶部高度：和计数的文字高度一致，只用来拦住新弹幕。 */
-private val HotDanmakuGuardHeight = 44.dp
-
 @Composable
 fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: Boolean,
     playbackSpeed: Float, modifier: Modifier = Modifier, fullscreen: Boolean = false,
-    /** 顶部是否要让给「弹幕计数」；只在计数真的显示时为 true。 */
-    reserveTopForCounter: Boolean = false, hit: PlayerDanmakuHit) {
+    hotPresentation: HotDanmakuPresentation, hit: PlayerDanmakuHit) {
     if (items.isEmpty()) return
     val context = LocalContext.current
     val renderView = remember { DanmakuRenderView(context).apply { setRendererTouchable(false) } }
@@ -32,12 +31,22 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
     val ui = remember { DanmakuLayerPresentationStateHolder() }
     val options = currentDanmakuLayerOptions(fullscreen)
     val filtered = remember(items, options.filters) { filterDanmaku(items, options.filters) }
+    LaunchedEffect(hit, filtered) { hit.filteredSnapshot.value = filtered }
+    DisposableEffect(hit) { onDispose { hit.filteredSnapshot.value = emptyList() } }
     val window = rememberDanmakuEngineWindow(filtered)
     val config = danmakuEngineConfig(options.drawing, ui.viewSize, playbackSpeed)
     val masks = rememberDanmakuMasks(options.drawing.portraitGuard, ui.viewSize)
-    val density = LocalDensity.current
-    val reservedTopPx = if (reserveTopForCounter) with(density) { HotDanmakuGuardHeight.toPx() } else 0f
-    AndroidView(factory = { renderView }, modifier = modifier.then(clickCoordinates).onSizeChanged { ui.viewSize = it },
+    val reservedTopPx = hotPresentation.heightPx.toFloat()
+    LaunchedEffect(renderView, hotPresentation.items, filtered) {
+        val ids = hotPresentation.items.mapTo(mutableSetOf()) { it.id }
+        val texts = hotPresentation.items.flatMapTo(mutableSetOf()) {
+            listOf(it.text, if (it.count > 1) "${it.text} x${it.count}" else it.text)
+        }
+        renderView.engine.setHiddenDanmaku(ids, texts)
+    }
+    AndroidView(factory = { renderView }, modifier = modifier.then(clickCoordinates)
+        .onSizeChanged { ui.viewSize = it }
+        .drawWithContent { clipRect(top = reservedTopPx.coerceAtMost(size.height)) { this@drawWithContent.drawContent() } },
         update = { view -> view.alpha = options.drawing.opacity.coerceIn(0f, 1f) })
     BindDanmakuEngineEffects(renderView, window, masks, config, playing, positionMs, options.drawing.lowRefresh,
         reservedTopPx)
