@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import top.yukonga.miuix.kmp.glass.GlassPopupItem
+
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
@@ -24,15 +26,19 @@ internal fun MessageFeedSheet(
     ) {
         // 点赞接口支持通知开关，回复和系统通知只有删除能力。
         if (kind == MessageFeedKind.Like && target != null) {
-            ActionSheetRow(if (target.second.noticeState == 0) "不再通知" else "接收通知", enabled) {
-                menu.showMenu = false
-                onMutate(false)
-            }
+            GlassPopupItem(
+                text = if (target.second.noticeState == 0) "不再通知" else "接收通知",
+                enabled = enabled,
+                onClick = {
+                    menu.showMenu = false
+                    onMutate(false)
+                },
+            )
         }
-        ActionSheetRow("删除", enabled) {
+        GlassPopupItem(text = "删除", enabled = enabled, onClick = {
             menu.showMenu = false
             menu.confirmDelete = true
-        }
+        })
     }
     AlertDialog(
         show = menu.confirmDelete && target != null,

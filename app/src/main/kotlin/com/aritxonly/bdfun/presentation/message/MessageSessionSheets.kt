@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import top.yukonga.miuix.kmp.glass.GlassPopupItem
+
 import com.aritxonly.teak.common.modal.TeakActionSheet
 import com.aritxonly.teak.common.modal.AlertDialog
 import com.aritxonly.teak.common.modal.TextButton
@@ -9,6 +11,8 @@ import top.yukonga.miuix.kmp.icon.extended.Delete
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import com.aritxonly.bdfun.core.domain.SessionAction
+import com.aritxonly.bdfun.core.navigation.Route
+import com.aritxonly.bdfun.feature.message.application.MessageSessionsUiState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,7 +20,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun MessageSessionSheets(
-    snapshot: com.aritxonly.bdfun.feature.message.application.MessageSessionsUiState,
+    snapshot: MessageSessionsUiState,
     menu: MessageSessionMenuStateHolder,
     showContactsFallback: Boolean,
     onRefresh: () -> Unit,
@@ -24,33 +28,10 @@ internal fun MessageSessionSheets(
     onClearList: () -> Unit,
     onMutate: (SessionAction) -> Unit,
 ) {
-    val navigate = messageRouteAction()
     val colors = MiuixTheme.colorScheme
-    val context = androidx.compose.ui.platform.LocalContext.current
     val loading = snapshot.loading
     val busy = snapshot.busy
-    TeakGlassMenu(
-        visible = menu.showMore,
-        onDismiss = { menu.showMore = false },
-        anchorInWindow = LocalPageChromeState.current.moreAnchor,
-    ) {
-        ActionSheetRow("刷新消息", !loading && !busy) { menu.showMore = false; onRefresh() }
-        // 保留服务端下发的快捷入口，联系人已在一级页顶栏。
-        if (showContactsFallback) {
-            ActionSheetRow("联系人", !loading && !busy) {
-                navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("contacts"))
-                menu.showMore = false
-            }
-        }
-        val entries = (snapshot.menu + snapshot.outside).distinctBy { Triple(it.type, it.title, it.url) }
-            .filterNot { it.type == 8 }
-        entries.forEach { item ->
-            ActionSheetRow(item.title, !loading && !busy) { messageMenuAction(context, item, menu, navigate) }
-        }
-        if (entries.none { it.type == 2 }) {
-            ActionSheetRow("消息设置", !busy) { navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("settings")); menu.showMore = false }
-        }
-    }
+    MessageInboxDropdown(snapshot, menu, showContactsFallback, onRefresh)
     AlertDialog(
         show = menu.confirmRead,
         onDismissRequest = { if (!busy) menu.confirmRead = false },
@@ -91,6 +72,52 @@ internal fun MessageSessionSheets(
                 }
                 if (target.talkerId > 0) ActionSheetRow("删除会话", enabled, MiuixIcons.Delete) { menu.confirmDelete = true }
             }
+        }
+    }
+}
+
+@Composable
+private fun MessageInboxDropdown(
+    snapshot: MessageSessionsUiState,
+    menu: MessageSessionMenuStateHolder,
+    showContactsFallback: Boolean,
+    onRefresh: () -> Unit,
+) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val navigate = messageRouteAction()
+    val loading = snapshot.loading
+    val busy = snapshot.busy
+    TeakGlassMenu(
+        visible = menu.showMore,
+        onDismiss = { menu.showMore = false },
+        anchorInWindow = LocalPageChromeState.current.moreAnchor,
+    ) {
+        GlassPopupItem(
+            text = "刷新消息",
+            enabled = !loading && !busy,
+            onClick = { menu.showMore = false; onRefresh() },
+        )
+        // 保留服务端下发的快捷入口，联系人已在一级页顶栏。
+        if (showContactsFallback) {
+            GlassPopupItem(text = "联系人", enabled = !loading && !busy, onClick = {
+                navigate(Route.MessageTools("contacts"))
+                menu.showMore = false
+            })
+        }
+        val entries = (snapshot.menu + snapshot.outside).distinctBy { Triple(it.type, it.title, it.url) }
+            .filterNot { it.type == 8 }
+        entries.forEach { item ->
+            GlassPopupItem(
+                text = item.title,
+                enabled = !loading && !busy,
+                onClick = { messageMenuAction(context, item, menu, navigate) },
+            )
+        }
+        if (entries.none { it.type == 2 }) {
+            GlassPopupItem(text = "消息设置", enabled = !busy, onClick = {
+                menu.showMore = false
+                navigate(Route.MessageTools("settings"))
+            })
         }
     }
 }

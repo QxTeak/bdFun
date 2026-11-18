@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import top.yukonga.miuix.kmp.glass.GlassPopupItem
+
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,9 +55,12 @@ internal fun MessageSettingsMenu(onSettings: () -> Unit) {
             .semantics { contentDescription = "更多设置" },
     ) { ThreeDotsGlyph() }
     TeakGlassMenu(visible = expanded, onDismiss = { expanded = false }, anchorInWindow = anchor) {
-        ActionSheetRow("设置") {
-            expanded = false
-            onSettings()
-        }
+        GlassPopupItem(
+            text = "设置",
+            onClick = {
+                expanded = false
+                onSettings()
+            },
+        )
     }
 }
