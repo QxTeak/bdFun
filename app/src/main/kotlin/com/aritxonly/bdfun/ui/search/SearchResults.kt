@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import com.aritxonly.bdfun.core.domain.SearchFilterState
 import androidx.compose.runtime.Composable
@@ -54,11 +55,12 @@ internal fun SearchResults(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
+                    .then(if (wideResultsBar == null) Modifier.statusBarsPadding() else Modifier)
                     .padding(top = if (wideResultsBar == null) HomeTopBarHeight + 6.dp else 0.dp),
             ) }
             if (wideResultsBar != null) {
-                com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial(includeStatusBar = false) {
-                    wideResultsBar(header)
+                com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial() {
+                    Box(Modifier.statusBarsPadding()) { wideResultsBar(header) }
                 }
             } else header()
         }

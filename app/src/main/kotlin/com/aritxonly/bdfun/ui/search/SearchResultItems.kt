@@ -1,7 +1,5 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -71,11 +69,7 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchVideoResu
                     onOpenVideo(video)
                 }
         }
-        if (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600) {
-            SearchResultGridCard(video, open, oneTake.modifier)
-        } else {
-            SearchResultRow(video, open, oneTake.modifier)
-        }
+        SearchResultRow(video, open, oneTake.modifier)
     }
     if (loadedOnce && !loading && results.isEmpty() && error == null) {
         item(key = "empty-videos", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
@@ -147,18 +141,10 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchUserResul
 /** 搜索结果首屏：和 SearchResultRow 同尺寸的骨架行。 */
 @androidx.compose.runtime.Composable
 private fun SearchVideoSkeletonRow() {
-    val sweep = rememberTeakSkeletonSweep()
-    if (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600) {
-        Column {
-            TeakSkeletonBlock(sweep, Modifier.fillMaxWidth().aspectRatio(16f / 9f))
-            Spacer(Modifier.height(8.dp))
-            TeakSkeletonBlock(sweep, Modifier.fillMaxWidth().height(40.dp))
-            Spacer(Modifier.height(4.dp))
-            TeakSkeletonBlock(sweep, Modifier.fillMaxWidth(0.6f).height(32.dp))
-        }
-    } else {
-        TeakSkeletonVideoRow(progress = sweep, modifier = Modifier.padding(vertical = 2.dp))
-    }
+    TeakSkeletonVideoRow(
+        progress = rememberTeakSkeletonSweep(),
+        modifier = Modifier.padding(vertical = 2.dp),
+    )
 }
 
 /** 用户结果首屏：头像 + 两行文字。 */

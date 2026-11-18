@@ -144,7 +144,7 @@ internal fun SearchResultRow(
 }
 
 @Composable
-internal fun SearchVideoCover(video: VideoItem, coverWidth: androidx.compose.ui.unit.Dp, coverHeight: androidx.compose.ui.unit.Dp) {
+private fun SearchVideoCover(video: VideoItem, coverWidth: androidx.compose.ui.unit.Dp, coverHeight: androidx.compose.ui.unit.Dp) {
     val colors = MiuixTheme.colorScheme
     Box(
         modifier = Modifier

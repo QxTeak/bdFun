@@ -10,6 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.data.SearchUser
@@ -42,18 +46,19 @@ internal fun SearchResultList(
     }
     TeakScrollContainer(listState, Modifier.fillMaxSize()) {
     LazyVerticalGrid(
-        columns = if (wide) GridCells.Adaptive(260.dp) else GridCells.Fixed(1),
+        columns = if (wide) BoundedVideoGridCells(280.dp, 420.dp) else GridCells.Fixed(1),
         state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
-            start = 16.dp,
-            end = 16.dp,
+            start = 12.dp,
+            end = 12.dp,
             // 顶栏 + Tab 栏 + 一点间距
-            top = HomeTopBarHeight + if (useSingleRowSearchResults()) 6.dp else 54.dp,
+            top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() +
+                HomeTopBarHeight + if (useSingleRowSearchResults()) 6.dp else 54.dp,
             bottom = 32.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
     ) {
         searchResultStatusItems(content, pageColors)
         if (page == 0) {
