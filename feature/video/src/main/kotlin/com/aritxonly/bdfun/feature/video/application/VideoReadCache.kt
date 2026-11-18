@@ -5,7 +5,10 @@ import com.aritxonly.bdfun.core.model.video.*
 data class VideoCacheEntry(
     val detail: VideoDetail, val playInfo: PlayInfo?,
     val danmaku: List<DanmakuItem>, val related: List<VideoItem>,
-)
+    val playbackCid: Long = detail.cid,
+) {
+    internal fun matchesPart(requestedCid: Long): Boolean = playbackCid == detail.forPlaybackPart(requestedCid).cid
+}
 data class VideoReadCacheOwner(val mid: Long?, val revision: Long)
 
 /** 进程持有有界缓存，页面只取得当前身份的句柄，不能重新选择身份写入。 */

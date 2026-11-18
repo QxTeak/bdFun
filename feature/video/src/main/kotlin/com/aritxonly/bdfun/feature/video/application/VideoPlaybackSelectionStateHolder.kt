@@ -25,8 +25,13 @@ class VideoPlaybackSelectionStateHolder(bvid: String, cid: Long, quality: Int, i
         mutableState.update { it.copy(bvid = bvid, cid = cid, resumePositionMs = 0L) }
     }
 
-    fun restoreCid(cid: Long) { mutableState.update { it.copy(cid = cid) } }
-    fun seek(positionMs: Long) { mutableState.update { it.copy(resumePositionMs = positionMs) } }
+    fun restoreCid(cid: Long, requestedCid: Long = 0L) {
+        mutableState.update {
+            // 历史分 P 已不存在时，不能把它的播放时间带到默认分 P。
+            val position = if (requestedCid <= 0L || requestedCid == cid) it.resumePositionMs else 0L
+            it.copy(cid = cid, resumePositionMs = position)
+        }
+    }
     fun offerCloudResume(positionMs: Long) {
         mutableState.update {
             if (it.resumePositionMs <= 0L && positionMs > 0L) it.copy(resumePositionMs = positionMs) else it
