@@ -15,7 +15,7 @@ internal fun rememberFullscreenChromeAssembly(): FullscreenChromeAssembly {
     val icons = remember {
         FullscreenIconAssets(TeakIcon.PlayerPlay, TeakIcon.PlayerNext, TeakIcon.PlayerDanmakuOn,
             TeakIcon.PlayerDanmakuOff, TeakIcon.PlayerDanmakuSettings,
-            TeakIcon.PlayerLike, TeakIcon.PlayerComment, TeakIcon.PlayerStar, TeakIcon.PlayerShare)
+            TeakIcon::like, TeakIcon.PlayerComment, TeakIcon.PlayerStar, TeakIcon.PlayerShare)
     }
     val slots = remember {
         FullscreenChromeSlots(

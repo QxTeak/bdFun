@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.Color
 /** 资源归组装壳所有；视频展示只使用传入ID，不反向引用app的R或全局主题。 */
 data class FullscreenIconAssets(
     val play: Int, val next: Int, val danmakuOn: Int, val danmakuOff: Int, val danmakuSettings: Int,
-    val like: Int, val comment: Int, val favorite: Int, val share: Int,
+    val like: (Boolean) -> Int, val comment: Int, val favorite: Int, val share: Int,
 )
 data class FullscreenAppearance(
     val accentColor: Color, val icons: FullscreenIconAssets,

@@ -25,7 +25,7 @@ internal fun VideoMetadataInteractions(interaction: com.aritxonly.bdfun.feature.
             label = "点赞",
             value = likedCount,
             kind = ActionKind.ThumbUp,
-            iconRes = appearance.icons.like,
+            iconRes = appearance.icons.like(liked),
             accentColor = appearance.accentColor,
             activity = slots.activity,
             active = liked,

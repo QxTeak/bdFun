@@ -37,7 +37,7 @@ internal fun FeedViewerActions(item: FeedItem, liked: Boolean, onLike: () -> Uni
             modifier = Modifier.weight(1f),
             icon = {
                 ResourceGlyph(
-                    if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,
+                    TeakIcon.like(liked),
                     if (liked) BrandPink else Color.White,
                     size = 20.dp,
                 )

@@ -87,7 +87,7 @@ private fun BindDanmakuSelection(layout: DanmakuClickLayout, view: DanmakuRender
             context.showToast(if (ok) "举报已提交" else "举报失败")
             ok
         }
-    } else DanmakuActionPopup(selection.position, vote?.liked == true, vote?.likes ?: item.likeCount, dismiss,
+    } else DanmakuActionPopup(selection.position, vote?.liked == true, vote?.likes ?: item.likeCount, item, dismiss,
         onLike = { hit.like?.invoke(item.id) },
         onCopy = {
             val clipboard = context.getSystemService(android.content.ClipboardManager::class.java)
@@ -95,7 +95,10 @@ private fun BindDanmakuSelection(layout: DanmakuClickLayout, view: DanmakuRender
             dismiss()
         },
         onReport = if (item.self) null else { { layout.reporting = true } },
-        onMore = { dismiss(); page.inspectDanmaku = item })
+        onMore = { action ->
+            dismiss()
+            page.pendingDanmakuAction = DanmakuActionRequest(cid, item, action)
+        })
 }
 
 private fun bindDanmakuVoteActions(page: VideoPagePresentationState, hit: PlayerDanmakuHit,

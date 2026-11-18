@@ -28,7 +28,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import top.yukonga.miuix.kmp.window.WindowDialog
 
 @Composable
-internal fun BoxScope.DanmakuCommandOverlay(playback: PlaybackController, aid: Long, cid: Long, actions: VideoInteractionActions) {
+internal fun BoxScope.DanmakuCommandOverlay(playback: PlaybackController, aid: Long, cid: Long, actions: VideoInteractionActions, videoLiked: Boolean) {
     val controller = LocalVideoPageState.current.danmakuModeration ?: return
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -50,7 +50,7 @@ internal fun BoxScope.DanmakuCommandOverlay(playback: PlaybackController, aid: L
             val position = if (x != null && y != null) Modifier.align(Alignment.TopStart).offset(x, y)
                 else Modifier.align(Alignment.BottomCenter).padding(bottom = 52.dp)
             DanmakuCommandCard(command, selections[command.id] ?: command.selected, pending != null,
-                position.width(cardWidth), actions, onLink = { link = command },
+                position.width(cardWidth), actions, videoLiked, onLink = { link = command },
                 onDismiss = { dismissed = dismissed + command.id }) { value ->
                 val request = DanmakuCommandSelection(aid, cid, command, value)
                 if (!request.valid || pending != null) return@DanmakuCommandCard
@@ -86,7 +86,7 @@ internal fun BoxScope.DanmakuCommandOverlay(playback: PlaybackController, aid: L
 
 @Composable
 private fun DanmakuCommandCard(
-    command: DanmakuCommand, selected: Int?, busy: Boolean, modifier: Modifier, actions: VideoInteractionActions,
+    command: DanmakuCommand, selected: Int?, busy: Boolean, modifier: Modifier, actions: VideoInteractionActions, videoLiked: Boolean,
     onLink: () -> Unit, onDismiss: () -> Unit, onSubmit: (Int) -> Unit,
 ) {
     val color = MiuixTheme.colorScheme.onBackground
@@ -101,7 +101,8 @@ private fun DanmakuCommandCard(
                 DanmakuCommandKind.Link -> IconButton(onClick = onLink) { AppGlyph(MiuixIcons.Link, color, size = 18.dp, contentDescription = "打开关联视频") }
                 DanmakuCommandKind.Follow -> Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                     if (command.attentionType in 1..2) {
-                        IconButton(onClick = actions.onLikeClick) { AppGlyph(TeakIcon.LikeOutline, color, size = 18.dp, contentDescription = "点赞视频") }
+                        IconButton(onClick = actions.onLikeClick) { AppGlyph(TeakIcon.like(videoLiked), if (videoLiked) MiuixTheme.colorScheme.primary else color,
+                            size = 18.dp, contentDescription = if (videoLiked) "取消点赞视频" else "点赞视频") }
                         IconButton(onClick = actions.onCommandCoin) { AppGlyph(LucideIcons.CoinsFilled, color, size = 18.dp, contentDescription = "投币") }
                         IconButton(onClick = actions.onCommandFavorite) { AppGlyph(LucideIcons.Star, color, size = 18.dp, contentDescription = "收藏") }
                     }

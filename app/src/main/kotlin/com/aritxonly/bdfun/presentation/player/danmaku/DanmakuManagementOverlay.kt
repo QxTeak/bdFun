@@ -42,12 +42,6 @@ internal fun BoxScope.DanmakuManagementOverlay(
     var followText by remember(cid) { mutableStateOf<String?>(null) }
     var report by remember(cid) { mutableStateOf<DanmakuItem?>(null) }
     LaunchedEffect(controller) { controller.loadRules() }
-    LaunchedEffect(page.inspectDanmaku) {
-        val item = page.inspectDanmaku ?: return@LaunchedEffect
-        selected = items.firstOrNull { it.id == item.id } ?: item
-        section = DanmakuManagementSection.Item
-        page.inspectDanmaku = null
-    }
     LaunchedEffect(selected?.id, cid) {
         selected?.id?.takeIf { it > 0 }?.let { page.danmakuVoteLoader?.invoke(listOf(it)) }
     }
@@ -77,6 +71,12 @@ internal fun BoxScope.DanmakuManagementOverlay(
         }
     }
 
+    LaunchedEffect(page.pendingDanmakuAction, cid) {
+        val request = page.pendingDanmakuAction ?: return@LaunchedEffect
+        page.pendingDanmakuAction = null
+        if (request.cid == cid) choose(items.firstOrNull { it.id == request.item.id } ?: request.item, request.action)
+    }
+
     MiuixBottomSheet(show = section != null, title = section?.title, onDismissRequest = { section = null; selected = null }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
             when (section) {
@@ -87,9 +87,6 @@ internal fun BoxScope.DanmakuManagementOverlay(
                 DanmakuManagementSection.Pool -> DanmakuPoolList(items, cid, state.recalled, selected, votes,
                     openRules = { selected = null; section = DanmakuManagementSection.Rules },
                     onSelect = { selected = if (selected == it) null else it }, onAction = ::choose)
-                DanmakuManagementSection.Item -> selected?.let { item ->
-                    DanmakuPoolRow(item, votes[cid to item.id], true, {}, action = { choose(item, it) })
-                }
                 null -> Unit
             }
         }
@@ -97,7 +94,6 @@ internal fun BoxScope.DanmakuManagementOverlay(
     DanmakuModerationConfirmation(confirmation, onDismiss = { confirmation = null }) { item, action ->
         val ok = if (action == PoolAction.Recall) controller.recall(cid, item)
             else controller.addRule(DanmakuRuleKind.Sender, item.userHash)
-        if (ok && section == DanmakuManagementSection.Item) section = null
         context.showToast(if (ok) "操作成功" else "操作失败")
     }
     DanmakuManagementDialogs(followText, report, onDismissFollow = { followText = null },
@@ -105,7 +101,9 @@ internal fun BoxScope.DanmakuManagementOverlay(
 
 }
 
-private enum class DanmakuManagementSection(val title: String) { Pool("弹幕池"), Rules("云端屏蔽规则"), Item("弹幕操作") }
+private enum class DanmakuManagementSection(val title: String) { Pool("弹幕池"), Rules("云端屏蔽规则") }
+internal data class DanmakuActionRequest(val cid: Long, val item: DanmakuItem, val action: PoolAction)
+
 internal enum class PoolAction(val title: String) {
     Seek("跳到弹幕"), Timestamp("跳到链接"), Copy("复制"), Like("点赞"), FollowSend("发送同款"), Report("举报"), Recall("撤回"), Block("屏蔽作者"),
 }

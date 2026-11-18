@@ -16,7 +16,7 @@ import top.yukonga.miuix.kmp.icon.extended.Undo
 @Composable
 internal fun DanmakuManagementGlyph(action: PoolAction, tint: Color, liked: Boolean) {
     when (action) {
-        PoolAction.Like -> AppGlyph(if (liked) TeakIcon.Like else TeakIcon.LikeOutline, tint, size = 16.dp)
+        PoolAction.Like -> AppGlyph(TeakIcon.like(liked), tint, size = 16.dp)
         PoolAction.FollowSend -> AppGlyph(LucideIcons.SendHorizontalFilled, tint, size = 16.dp)
         else -> {
             val icon = when (action) {

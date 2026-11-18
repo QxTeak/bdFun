@@ -122,7 +122,7 @@ internal fun FullscreenHeaderActions(info: FullscreenPlayerInfo, actions: Fullsc
         Spacer(Modifier.width(12.dp))
         BadgeStatAction(
             accentColor = appearance.accentColor,
-            icon = appearance.icons.like,
+            icon = appearance.icons.like(info.liked),
             count = info.likeCount,
             active = info.liked,
             yOffset = (-10).dp,

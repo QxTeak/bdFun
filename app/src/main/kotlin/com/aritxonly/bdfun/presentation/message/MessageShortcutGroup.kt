@@ -49,7 +49,7 @@ internal fun MessageShortcutGroup(unread: Map<String, Int>, events: MessageScree
             modifier = Modifier.weight(1f),
             onClick = events.onOpenLikes,
             unread = unread["like"] ?: 0,
-        ) { ResourceGlyph(res = TeakIcon.Like, tint = MessagePink, size = ShortcutGlyphSize) }
+        ) { ResourceGlyph(res = TeakIcon.like(true), tint = MessagePink, size = ShortcutGlyphSize) }
         MessageShortcut(label = "系统通知", modifier = Modifier.weight(1f),
             unread = unread["sys_msg"] ?: 0,
             onClick = { navigation?.feed?.invoke(MessageFeedKind.System, 0) ?: navigateToMessageFeed(context, "system") }) {

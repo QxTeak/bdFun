@@ -32,7 +32,7 @@ internal fun CommentPreviewLike(liked: Boolean, likeCount: Int, onLike: () -> Un
         Spacer(Modifier.width(2.dp))
         Image(
             painter = com.aritxonly.teak.common.icons.rememberAntialiasedIconPainter(androidx.compose.ui.res.painterResource(
-                if (liked) TeakIcon.CommentLikeFilled else TeakIcon.CommentLike,
+                TeakIcon.like(liked),
             )),
             contentDescription = "点赞",
             colorFilter = androidx.compose.ui.graphics.ColorFilter.tint(

@@ -13,7 +13,9 @@ spec.loader.exec_module(generator)
 class NativeVectorsTest(unittest.TestCase):
     def test_all_original_resources_are_vectors_and_match_fixed_paths(self):
         icons = json.loads((ROOT / 'tools/icons/bili-vectors.json').read_text())['icons']
-        self.assertEqual(len(icons), 21)
+        names = {icon['name'] for icon in icons}
+        self.assertTrue({'comment_like', 'comment_like_filled'} <= names)
+        self.assertTrue({'act_like', 'act_like_outline', 'fs_like'}.isdisjoint(names))
         for icon in icons:
             with self.subTest(icon=icon['name']):
                 xml = generator.render(icon)

@@ -29,7 +29,7 @@ internal fun rememberPlayerRenderPorts(
             settings.hotDanmakuEnabled,
             BrandPink,
             settings.danmakuStroke,
-            danmakuLikeIcon = { if (it) TeakIcon.Like else TeakIcon.LikeOutline },
+            danmakuLikeIcon = TeakIcon::like,
             hotDanmakuTextScale = if (presentation.fullscreen) settings.danmakuScaleFullscreen else settings.danmakuScaleInline,
         ),
         surface = rememberPlayerSurfaceSlots(),
@@ -48,7 +48,8 @@ internal fun rememberPlayerRenderPorts(
         danmakuOverlays = { visible ->
             if (visible && !settings.danmakuBlockAdvanced && !ui.fsAudioOnly.value) {
                 SpecialVideoDanmakuOverlay(media.danmaku, playback, ui, page.aid, presentation.fullscreenInfo.currentCid)
-                DanmakuCommandOverlay(playback, page.aid, presentation.fullscreenInfo.currentCid, actions.interaction)
+                DanmakuCommandOverlay(playback, page.aid, presentation.fullscreenInfo.currentCid,
+                    actions.interaction, presentation.fullscreenInfo.liked)
             }
             val controlsVisible by ui.controlsVisible
             DanmakuManagementOverlay(media.danmaku, playback, presentation.fullscreenInfo.currentCid, controlsVisible)
