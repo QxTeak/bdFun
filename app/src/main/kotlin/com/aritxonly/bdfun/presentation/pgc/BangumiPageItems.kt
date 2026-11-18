@@ -136,8 +136,10 @@ internal fun BangumiCardItem(item: BangumiCard, onClick: () -> Unit) {
                     modifier = Modifier.align(Alignment.BottomStart).padding(start = 6.dp, bottom = 5.dp),
                 )
             }
-            if (item.vip) BangumiVipBadge()
-            else if (item.badge.isNotBlank()) BangumiTextBadge(item.badge)
+            // 角标统一在右上；接口给了其它角标时优先显示它，顶掉大会员。
+            val textBadge = item.badge.takeIf { it.isNotBlank() && !it.contains("会员") }
+            if (textBadge != null) BangumiTextBadge(textBadge)
+            else if (item.vip) BangumiVipBadge()
         }
         Column(Modifier.padding(start = 6.dp, end = 6.dp, top = 6.dp, bottom = 6.dp)) {
             Text(
@@ -187,7 +189,7 @@ private fun androidx.compose.foundation.layout.BoxScope.BangumiVipBadge() {
 private fun androidx.compose.foundation.layout.BoxScope.BangumiTextBadge(text: String) {
     Box(
         modifier = Modifier
-            .align(Alignment.TopStart)
+            .align(Alignment.TopEnd)
             .padding(6.dp)
             .clip(CircleShape)
             .background(bangumiBadgeColor(text))
