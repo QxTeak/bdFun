@@ -168,7 +168,11 @@ private fun HomeSectionContent(
             state = AppGraph.bangumiPageState,
             topBarHeight = topBarHeight,
         )
-        3, 4 -> HomeSectionPlaceholder(HomeSectionTitles[section], topBarHeight)
+        3 -> HomeSectionPlaceholder(HomeSectionTitles[section], topBarHeight)
+        4 -> com.aritxonly.bdfun.presentation.pgc.CinemaPage(
+            state = AppGraph.cinemaPageState,
+            topBarHeight = topBarHeight,
+        )
         else -> HomeScreenRoute(
             state = homeFeed,
             onOpenVideo = { navigateToVideo(context, it) },

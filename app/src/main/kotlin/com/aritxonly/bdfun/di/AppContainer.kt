@@ -172,6 +172,19 @@ internal class AppContainer(
         com.aritxonly.bdfun.feature.pgc.application.BangumiRankStateHolder(
             com.aritxonly.bdfun.infra.bili.BiliPgcRankRepository(api))
     }
+    // 首页「影视」段：界面与番剧页完全同构，只是数据换成电影/电视剧/纪录片/综艺。
+    val cinemaPageState by lazy {
+        com.aritxonly.bdfun.presentation.pgc.BangumiPageStateHolder(
+            com.aritxonly.bdfun.infra.bili.BiliCinemaDiscoverRepository(api))
+    }
+    val cinemaRankState by lazy {
+        com.aritxonly.bdfun.feature.pgc.application.BangumiRankStateHolder(
+            com.aritxonly.bdfun.infra.bili.BiliPgcRankRepository(api),
+            indexIds = listOf(2, 5, 3, 7),
+            seasonTypes = listOf(2, 5, 3, 7),
+            mergedTitle = "热门影视榜",
+        )
+    }
     /** 单榜全量页用：每次进页面建一个，退出即丢，不占进程缓存。 */
     fun bangumiRankBoardState(rankId: Long, oid: String, title: String) =
         com.aritxonly.bdfun.feature.pgc.application.BangumiRankBoardStateHolder(
