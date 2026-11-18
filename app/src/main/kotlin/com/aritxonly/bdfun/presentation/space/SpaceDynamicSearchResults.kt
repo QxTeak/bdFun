@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.feature.space.application.filterSpaceDynamics
 import top.yukonga.miuix.kmp.basic.Text
 
@@ -26,16 +27,27 @@ internal fun ColumnScope.SpaceDynamicSearchResults(runtime: SpaceScreenRuntime, 
     LaunchedEffect(controller, ui.retry) { controller.loadAll() }
     val feeds = remember(state.items, query) { filterSpaceDynamics(state.items, query) }
     Text(if (state.complete) "全部动态加载完成（${state.items.size} 条）"
-        else "${if (state.error != null) "加载中断" else "正在加载全部动态"}：已加载 ${state.pages} 页 / ${state.items.size} 条（结果尚不完整）")
+        else "${if (state.error != null) "加载中断" else "正在加载全部动态"}：已加载 ${state.pages} 页 / ${state.items.size} 条（结果尚不完整）",
+        color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.onBackgroundVariant, fontSize = 12.sp,
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp))
     state.error?.let { Text(it) }
     if (state.error != null) TextButton(onClick = { ui.retry++ }) { Text("重试剩余动态") }
-    LazyColumn(Modifier.weight(1f, fill = false)) {
+    LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)) {
         if (feeds.isEmpty()) item {
             Text(if (state.complete) "没有匹配的动态" else "暂未找到匹配动态", Modifier.padding(16.dp))
         }
         items(feeds, key = { it.id }) { feed ->
-            Text(feed.text.ifBlank { feed.video?.title ?: feed.title.ifBlank { "查看动态" } },
-                Modifier.fillMaxWidth().clickable { navigateToFeed(context, feed) }.padding(vertical = 12.dp), maxLines = 3)
+            com.aritxonly.bdfun.ui.FeedCard(
+                item = feed,
+                actions = com.aritxonly.bdfun.ui.FeedCardActions(
+                    onOpen = { navigateToFeed(context, feed) },
+                    onOpenVideo = { navigateToVideo(context, it) },
+                    onLike = { navigateToFeed(context, feed) },
+                    onComment = { navigateToFeed(context, feed) },
+                    onRepost = { navigateToFeed(context, feed) }),
+                presentation = com.aritxonly.bdfun.ui.FeedCardPresentation(liked = feed.liked),
+            )
         }
     }
 }
