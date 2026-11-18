@@ -6,6 +6,8 @@ import com.aritxonly.bdfun.core.model.feed.FeedPage
 import com.aritxonly.bdfun.core.model.video.VideoItem
 
 interface SpaceRepository {
+    suspend fun searchVideos(mid: Long, keyword: String, page: Int): Outcome<List<VideoItem>>
+    suspend fun block(mid: Long): Outcome<Boolean>
     suspend fun profile(mid: Long): Outcome<SpaceInfo>
     suspend fun seasons(mid: Long): Outcome<List<SpaceSeason>>
     suspend fun dynamics(mid: Long, offset: String): Outcome<FeedPage>

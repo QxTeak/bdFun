@@ -25,4 +25,5 @@ internal fun SpaceScreen(
     val actions = SpaceScreenActions(context, scrollActions::selectTab, contentActions::loadCollection,
         contentActions::loadArticles, contentActions::follow, scrollActions::applyPageDrag)
     SpaceScreenBody(content, scroll.layout, actions)
+    SpaceToolsUi(runtime, chrome)
 }
