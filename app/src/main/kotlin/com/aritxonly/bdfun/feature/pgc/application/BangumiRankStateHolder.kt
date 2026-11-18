@@ -39,11 +39,21 @@ internal data class BangumiRankUiState(
  * 目录是若干 index（番剧 1 / 国创 4；影视 2/5/3/7），首屏只取前 3 个榜，
  * 其余等滚到再取，避免一次打十几个请求。单榜失败只影响那一节，不整页报错。
  */
+/** 影视榜的一节：从某个 index 的榜单里挑一条，换成更直观的大类标题。 */
+internal data class BangumiRankSectionSpec(
+    val title: String,
+    val indexId: Int,
+    /** null 表示取该 index 的第一条榜；否则取标题包含该文案的榜。 */
+    val tabTitlePart: String? = null,
+)
+
 internal class BangumiRankStateHolder(
     private val repository: PgcRankRepository,
     private val indexIds: List<Int> = listOf(1, 4),
     private val seasonTypes: List<Int> = listOf(1, 4),
     private val mergedTitle: String = "热门动画榜",
+    /** 影视：按策划好的大类挑榜，避免细分榜过多或过少；番剧保持原有逐榜展开。 */
+    private val sectionSpecs: List<BangumiRankSectionSpec> = emptyList(),
 ) {
 
     private val mutableState = MutableStateFlow(BangumiRankUiState())
@@ -169,6 +179,7 @@ internal class BangumiRankStateHolder(
     }
 
     private fun buildSections(tabLists: List<List<BangumiRankTab>>): List<BangumiRankSection> {
+        if (sectionSpecs.isNotEmpty()) return buildSpecifiedSections(tabLists)
         val result = ArrayList<BangumiRankSection>(tabLists.sumOf { it.size } + 1)
         val hotTabs = tabLists.mapNotNull { it.firstOrNull() }
         if (hotTabs.isNotEmpty()) {
@@ -187,6 +198,16 @@ internal class BangumiRankStateHolder(
         }
         return result
     }
+
+    /** 影视：按策划列表从各 index 挑榜；找不到就跳过，不整页失败。 */
+    private fun buildSpecifiedSections(tabLists: List<List<BangumiRankTab>>): List<BangumiRankSection> =
+        sectionSpecs.mapNotNull { spec ->
+            val listIndex = indexIds.indexOf(spec.indexId)
+            val tabs = tabLists.getOrNull(listIndex).orEmpty()
+            val tab = spec.tabTitlePart?.let { part -> tabs.firstOrNull { it.title.contains(part) } }
+                ?: tabs.firstOrNull()
+            tab?.let { BangumiRankSection(spec.title, listOf(it)) }
+        }
 
     private fun updateSection(index: Int, block: (BangumiRankSection) -> BangumiRankSection) {
         mutableState.update { current ->

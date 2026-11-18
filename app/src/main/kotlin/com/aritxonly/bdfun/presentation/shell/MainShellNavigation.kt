@@ -31,9 +31,9 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
             val chrome = when (index) {
                 0 -> when (ui.homeSection) {
                     1 -> shell.chrome.live
-                    2 -> shell.chrome.bangumi
+                    2 -> shell.chrome.placeholder
+                    3 -> shell.chrome.bangumi
                     4 -> shell.chrome.cinema
-                    3 -> shell.chrome.placeholder
                     else -> shell.chrome.home
                 }
                 1 -> shell.chrome.dynamic
@@ -51,7 +51,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
                     // 直播/番剧和推荐页一致：先平滑回顶，再拉刷新。
                     0 -> when (ui.homeSection) {
                         1 -> AppGraph.livePageState.requestRefresh()
-                        2 -> AppGraph.bangumiPageState.requestRefresh()
+                        3 -> AppGraph.bangumiPageState.requestRefresh()
                         4 -> AppGraph.cinemaPageState.requestRefresh()
                         0 -> homeFeed.requestRefresh()
                     }

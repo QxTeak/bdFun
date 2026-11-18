@@ -136,7 +136,10 @@ internal fun BangumiCardItem(item: BangumiCard, onClick: () -> Unit) {
                     modifier = Modifier.align(Alignment.BottomStart).padding(start = 6.dp, bottom = 5.dp),
                 )
             }
-            if (item.vip) BangumiVipBadge()
+            // 角标统一在右上；接口给了其它角标时优先显示它，顶掉大会员。
+            val textBadge = item.badge.takeIf { it.isNotBlank() && !it.contains("会员") }
+            if (textBadge != null) BangumiTextBadge(textBadge)
+            else if (item.vip) BangumiVipBadge()
         }
         Column(Modifier.padding(start = 6.dp, end = 6.dp, top = 6.dp, bottom = 6.dp)) {
             Text(
@@ -179,6 +182,31 @@ private fun androidx.compose.foundation.layout.BoxScope.BangumiVipBadge() {
     ) {
         Text("大会员", color = Color.White, fontSize = 8.5.sp, lineHeight = 11.sp, maxLines = 1)
     }
+}
+
+/** 接口 badge（如「独家」）：与大会员角标同一套胶囊，只按文案换底色，避免两套样式。 */
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.BangumiTextBadge(text: String) {
+    Box(
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(6.dp)
+            .clip(CircleShape)
+            .background(bangumiBadgeColor(text))
+            .padding(horizontal = 5.dp, vertical = 1.dp),
+    ) {
+        Text(text, color = Color.White, fontSize = 8.5.sp, lineHeight = 11.sp, maxLines = 1)
+    }
+}
+
+/** 标签色按文案匹配：独家橙、限时免费红、新作蓝、超前紫，其余用青绿，避免灰色。 */
+private fun bangumiBadgeColor(text: String): Color = when {
+    text.contains("独家") -> Color(0xFFE65100)
+    text.contains("限免") || text.contains("免费") -> Color(0xFFC62828)
+    text.contains("新作") -> Color(0xFF1565C0)
+    text.contains("超前") -> Color(0xFF6A1B9A)
+    text.contains("会员") -> BrandPink
+    else -> Color(0xFF00897B)
 }
 
 /** 解析首集后进视频详情页（复用它的播放/评论/交互），失败才退回网页。 */

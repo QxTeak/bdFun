@@ -19,17 +19,17 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
 ) {
     val ui = shell.ui
     val homeFeed = shell.feeds.home
-    // 推荐 / 直播 / 番剧 / 影视 四段各自一份滚动进度，但顶栏和搜索过渡是同一份实现。
+    // 推荐 / 直播 / 热门 / 番剧 / 影视 各自一份滚动进度，但顶栏和搜索过渡是同一份实现。
     val activeChrome = when (ui.homeSection) {
         1 -> shell.chrome.live
-        2 -> shell.chrome.bangumi
+        2 -> shell.chrome.placeholder
+        3 -> shell.chrome.bangumi
         4 -> shell.chrome.cinema
-        3 -> shell.chrome.placeholder
         else -> shell.chrome.home
     }
-    // 下拉刷新指示器：四段各一份状态，都画在 App 层同一个位置。
+    // 下拉刷新指示器：各段各一份状态，都画在 App 层同一个位置。
     val liveState = if (ui.homeSection == 1) AppGraph.livePageState else null
-    val bangumiState = if (ui.homeSection == 2) AppGraph.bangumiPageState else null
+    val bangumiState = if (ui.homeSection == 3) AppGraph.bangumiPageState else null
     val cinemaState = if (ui.homeSection == 4) AppGraph.cinemaPageState else null
     val pullRefreshing = liveState?.refreshing ?: bangumiState?.refreshing ?: cinemaState?.refreshing ?: homeFeed.refreshing
     val pullOffsetDp = liveState?.pullOffsetDp ?: bangumiState?.pullOffsetDp ?: cinemaState?.pullOffsetDp ?: homeFeed.pullOffsetDp
@@ -48,7 +48,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
         )
     }
 
-    if (pageFloat < 0.99f && (ui.homeSection < 3 || ui.homeSection == 4)) {
+    if (pageFloat < 0.99f && ui.homeSection != 2) {
         // 下拉刷新指示器：独立覆盖层，挂在 App 层，探出顶栏也不会被裁掉。
         // 透明度直接由下拉位移决定：位移 58dp 开始淡入、84dp 全显；
         // 卡片在位移 <46dp 时才会撞到小电视，因此永远追不上。
