@@ -45,6 +45,21 @@ class VideoReadCacheTest {
             ),
         ), null, emptyList(), emptyList())
 
+    @Test fun cachedStreamMustMatchTheRequestedPart() {
+        val defaultEntry = entry("one")
+        val detail = defaultEntry.detail
+        val laterCid = detail.cid + 1
+        val multiPart = detail.copy(info = detail.info.copy(
+            pages = listOf(VideoPage(laterCid, 2, "第二段", 20)),
+        ))
+        val defaultPart = defaultEntry.copy(detail = multiPart)
+        val laterPart = defaultPart.copy(playbackCid = laterCid)
+        assertFalse(defaultPart.matchesPart(laterCid))
+        assertTrue(laterPart.matchesPart(laterCid))
+        assertFalse(laterPart.matchesPart(0L))
+        assertTrue(defaultPart.matchesPart(laterCid + 1))
+    }
+
     @Test fun detailAndRelatedAreSharedBySameAccountPages() {
         val first = cache.scope(); val next = cache.scope()
         first.putRelated("a", listOf(video("related"))); first.putVideo("a", entry("a"))

@@ -1,12 +1,12 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import com.aritxonly.bdfun.core.model.video.VideoDetail
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import kotlinx.coroutines.delay
 import com.aritxonly.bdfun.feature.video.application.VideoCacheEntry
+import com.aritxonly.bdfun.feature.video.application.forPlaybackPart
 
 @Composable
 fun LoadInitialVideo(
@@ -29,15 +29,11 @@ fun LoadInitialVideo(
                     "audio=${offlinePlay.audioUrl != null}",
             )
             detailController.restore(ports.downloads().detail(offline), offlinePlay, emptyList(), emptyList())
-            selectionController.restoreCid(offline.cid)
+            selectionController.restoreCid(offline.cid, video.cid)
             return@LaunchedEffect
         }
-        // 从「我的评论与弹幕」等入口进来时，先定位到记录的时间点
-        if (settings.resumePlayback && video.startPositionMs > 0L) {
-            selectionController.seek(video.startPositionMs)
-        }
         // 从相关推荐点进去再返回：直接用缓存，不再重新请求
-        val cached = readCache.video(video.bvid)
+        val cached = readCache.video(video.bvid)?.takeIf { it.matchesPart(video.cid) }
         if (cached != null) {
             ports.log(
                 "VIDEO",
@@ -47,16 +43,18 @@ fun LoadInitialVideo(
             )
             detailController.restore(cached.detail, cached.playInfo, cached.danmaku,
                 cached.related.ifEmpty { readCache.related(video.bvid).orEmpty() })
-            selectionController.restoreCid(cached.detail.cid)
+            val part = cached.detail.forPlaybackPart(video.cid)
+            selectionController.restoreCid(part.cid, video.cid)
             if (settings.resumePlayback && selectionController.state.value.resumePositionMs <= 0L) {
-                selectionController.offerCloudResume(detailController.resumePosition(cached.detail))
+                selectionController.offerCloudResume(detailController.resumePosition(part))
             }
             return@LaunchedEffect
         }
         val loadedSuccessfully = detailController.load(
             video.bvid, defaultQuality, settings.codecPreference, settings.cdnService,
-            resume = settings.resumePlayback && selectionController.state.value.resumePositionMs <= 0L,
-            onDetail = { selectionController.restoreCid(it.cid) },
+            resume = { settings.resumePlayback && selectionController.state.value.resumePositionMs <= 0L },
+            onPartSelected = { selectionController.restoreCid(it, video.cid) },
+            requestedCid = video.cid,
             onReady = { position ->
                 selectionController.offerCloudResume(position)
                 val ready = detailController.state.value
@@ -72,7 +70,11 @@ fun LoadInitialVideo(
         val loaded = detailController.state.value
         loaded.detail?.let { d ->
             if (loaded.related.isNotEmpty()) readCache.putRelated(video.bvid, loaded.related)
-            readCache.putVideo(video.bvid, VideoCacheEntry(d, loaded.playInfo, loaded.danmaku, loaded.related))
+            val part = d.forPlaybackPart(video.cid)
+            val selected = selectionController.state.value
+            if (selected.bvid == video.bvid && selected.cid == part.cid) {
+                readCache.putVideo(video.bvid, VideoCacheEntry(d, loaded.playInfo, loaded.danmaku, loaded.related, part.cid))
+            }
         }
     }
 

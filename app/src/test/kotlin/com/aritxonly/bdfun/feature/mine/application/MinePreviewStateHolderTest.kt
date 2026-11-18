@@ -80,6 +80,8 @@ class MinePreviewStateHolderTest {
     }
     @Test fun historyResumesAndCompletedOrLaterStartsAtZero() {
         assertEquals(25_000L, entry.mineVideo(true).startPositionMs)
+        assertEquals(678L, entry.copy(cid = 678L).mineVideo(true).cid)
+        assertEquals(0L, entry.copy(cid = 678L).mineVideo(false).cid)
         assertEquals(0L, entry.copy(progress = -1).mineVideo(true).startPositionMs)
         assertEquals(0L, entry.mineVideo(false).startPositionMs)
     }

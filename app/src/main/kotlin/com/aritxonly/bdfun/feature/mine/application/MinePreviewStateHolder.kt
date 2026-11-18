@@ -114,5 +114,8 @@ internal fun HistoryItem.mineVideo(resume: Boolean): VideoItem = VideoItem(
     bvid = bvid, aid = aid, title = title, cover = cover, ownerName = author,
     ownerFace = "", ownerMid = 0, play = play.toLong(), danmaku = danmaku.toLong(),
     duration = duration, pubdate = viewedAt,
-    extras = VideoItemExtras(startPositionMs = if (resume && progress > 0) progress.toLong() * 1000 else 0),
+    extras = VideoItemExtras(
+        cid = if (resume) cid else 0L,
+        startPositionMs = if (resume && progress > 0) progress.toLong() * 1000 else 0L,
+    ),
 )
