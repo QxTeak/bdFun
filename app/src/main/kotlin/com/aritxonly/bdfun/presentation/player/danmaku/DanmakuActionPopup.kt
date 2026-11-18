@@ -1,9 +1,11 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -14,6 +16,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.geometry.isSpecified
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionOnScreen
 import androidx.compose.ui.platform.LocalView
@@ -28,9 +31,6 @@ import com.aritxonly.bdfun.BrandPink
 import com.aritxonly.bdfun.core.domain.danmakuTimestampMs
 import com.aritxonly.bdfun.core.model.video.DanmakuItem
 import com.aritxonly.teak.common.icons.AppGlyph
-import com.aritxonly.teak.common.settings.LocalTeakDropdownInteractive
-import com.aritxonly.teak.common.settings.TeakDropdownPanel
-import top.yukonga.miuix.kmp.glass.GlassPopupItem
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Blocklist
 import top.yukonga.miuix.kmp.icon.extended.Copy
@@ -55,12 +55,12 @@ internal fun DanmakuActionPopup(
     Popup(positioner, onDismissRequest = { if (!expanded) onDismiss() },
         properties = PopupProperties(focusable = true)) {
         Row(
-            Modifier.clip(CircleShape).background(Color.Black.copy(alpha = 0.68f)).padding(horizontal = 3.dp),
+            Modifier.danmakuPopupSurface(CircleShape).padding(horizontal = 3.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             DanmakuCapsuleButton("$likeLabel，$count 个赞", onLike) {
                 val tint = if (liked) BrandPink else Color.White
-                AppGlyph(TeakIcon.like(liked), tint, size = 15.dp)
+                DanmakuLikeGlyph(liked, tint, outlineInset = 0.25.dp)
                 if (count > 0) Text(count.toString(), color = tint, fontSize = 10.sp)
             }
             DanmakuCapsuleButton("复制弹幕", onCopy) { AppGlyph(MiuixIcons.Copy, Color.White, size = 15.dp) }
@@ -102,6 +102,7 @@ private fun DanmakuCapsuleButton(
 private fun DanmakuMoreDropdown(
     item: DanmakuItem, visible: Boolean, anchor: Rect?, onDismiss: () -> Unit, onSelect: (PoolAction) -> Unit,
 ) {
+    if (!visible || anchor == null) return
     val actions = remember(item) {
         buildList {
             add(PoolAction.Seek)
@@ -111,19 +112,45 @@ private fun DanmakuMoreDropdown(
             else if (item.userHash.isNotBlank()) add(PoolAction.Block)
         }
     }
-    TeakDropdownPanel(visible, onDismiss, width = 170.dp, anchorBounds = anchor, anchorTopGap = 4.dp, anchorEndGap = 0.dp) {
-        actions.forEach { action ->
-            val icon = when (action) {
-                PoolAction.Seek -> MiuixIcons.Play
-                PoolAction.Timestamp -> MiuixIcons.Link
-                PoolAction.Recall -> MiuixIcons.Undo
-                PoolAction.Block -> MiuixIcons.Blocklist
-                PoolAction.FollowSend -> MiuixIcons.Send
-                else -> null
+    val gapPx = with(androidx.compose.ui.platform.LocalDensity.current) { 4.dp.roundToPx() }
+    val positioner = remember(anchor, gapPx) { DanmakuDropdownPosition(anchor, gapPx) }
+    Popup(positioner, onDismissRequest = onDismiss, properties = PopupProperties(focusable = true)) {
+        Column(Modifier.widthIn(min = 110.dp, max = 180.dp)
+            .width(IntrinsicSize.Max).danmakuPopupSurface(RoundedCornerShape(11.dp)).padding(vertical = 3.dp)) {
+            actions.forEach { action ->
+                val icon = when (action) {
+                    PoolAction.Seek -> MiuixIcons.Play
+                    PoolAction.Timestamp -> MiuixIcons.Link
+                    PoolAction.Recall -> MiuixIcons.Undo
+                    PoolAction.Block -> MiuixIcons.Blocklist
+                    PoolAction.FollowSend -> MiuixIcons.Send
+                    else -> null
+                }
+                Row(Modifier.fillMaxWidth().heightIn(min = 30.dp)
+                    .clickable(role = Role.Button) { onDismiss(); onSelect(action) }
+                    .padding(horizontal = 10.dp, vertical = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(7.dp), verticalAlignment = Alignment.CenterVertically) {
+                    if (icon != null) AppGlyph(icon, Color.White, size = 14.dp)
+                    Text(action.title, color = Color.White, fontSize = 12.sp)
+                }
             }
-            GlassPopupItem(text = action.title, enabled = LocalTeakDropdownInteractive.current, icon = icon,
-                onClick = { onDismiss(); onSelect(action) })
         }
+    }
+}
+
+private fun Modifier.danmakuPopupSurface(shape: Shape): Modifier =
+    clip(shape).background(Color.Black.copy(alpha = 0.68f)).border(0.5.dp, Color.White.copy(alpha = 0.22f), shape)
+
+private class DanmakuDropdownPosition(private val anchor: Rect, private val gapPx: Int) : PopupPositionProvider {
+    override fun calculatePosition(anchorBounds: IntRect, windowSize: IntSize, layoutDirection: LayoutDirection,
+        popupContentSize: IntSize): IntOffset {
+        val maxX = (windowSize.width - popupContentSize.width).coerceAtLeast(0)
+        val maxY = (windowSize.height - popupContentSize.height).coerceAtLeast(0)
+        val x = (anchor.right.roundToInt() - popupContentSize.width).coerceIn(0, maxX)
+        val below = anchor.bottom.roundToInt() + gapPx
+        val above = anchor.top.roundToInt() - popupContentSize.height - gapPx
+        val y = if (below <= maxY || above < 0) below else above
+        return IntOffset(x, y.coerceIn(0, maxY))
     }
 }
 

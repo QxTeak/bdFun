@@ -20,7 +20,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Density
@@ -44,8 +44,7 @@ internal fun BoxScope.PlayerHotDanmakuOverlay(
     val hit = ui.danmakuHit
     if (!picture.hotDanmakuEnabled || !danmakuVisible || ui.fsAudioOnly.value) return
     val votes by hit.votes.collectAsState()
-    val textStyle = hotStyle(16f * picture.hotDanmakuTextScale)
-    val countStyle = hotStyle(20f * picture.hotDanmakuTextScale).copy(fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
+    val textStyle = hotStyle(DANMAKU_TEXT_SIZE_SP * picture.hotDanmakuTextScale)
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     val scope = rememberCoroutineScope()
@@ -55,8 +54,8 @@ internal fun BoxScope.PlayerHotDanmakuOverlay(
     BoxWithConstraints(Modifier.align(Alignment.TopCenter).fillMaxWidth()) {
         val window by ui.hotDanmaku
         val topPadding = if (fullscreen) 10.dp else 4.dp
-        val measurements = remember(window, votes, maxWidth, measurer, density, textStyle, countStyle) {
-            HotDanmakuMeasurement(measurer, density, textStyle, countStyle, maxWidth)
+        val measurements = remember(window, votes, maxWidth, measurer, density, textStyle) {
+            HotDanmakuMeasurement(measurer, density, textStyle, maxWidth)
                 .measure(window.visible, window.upcoming, votes)
         }
         val widths = measurements.visible
@@ -77,11 +76,11 @@ internal fun BoxScope.PlayerHotDanmakuOverlay(
             Modifier.fillMaxWidth().onSizeChanged { height = it.height }.padding(top = topPadding),
             horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically,
         ) {
-            widths.forEach { (item, countWidth) ->
+            widths.forEach { (item, countWidth, rowStyle) ->
                 key(item.id) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(item.text, color = Color.White, style = textStyle, maxLines = 1, softWrap = false)
-                        AnimatedDanmakuCount(votes[item.id]?.likes ?: item.likeCount, countStyle, Modifier.width(countWidth))
+                        Text(item.text, color = Color.White, style = rowStyle, maxLines = 1, softWrap = false)
+                        AnimatedDanmakuCount(votes[item.id]?.likes ?: item.likeCount, rowStyle, Modifier.width(countWidth))
                         val liked = votes[item.id]?.liked == true
                         HotAction(if (liked) "取消点赞" else "点赞弹幕", picture.danmakuLikeIcon(liked),
                             if (liked) picture.accentColor else Color.White) { hit.like?.invoke(item.id) }
@@ -107,7 +106,7 @@ internal fun BoxScope.PlayerHotDanmakuOverlay(
 }
 
 private data class HotDanmakuRowMeasurement(
-    val item: DanmakuItem, val countWidth: Dp, val widthPx: Float, val heightPx: Int,
+    val item: DanmakuItem, val countWidth: Dp, val textStyle: TextStyle, val widthPx: Float, val heightPx: Int,
 )
 
 private data class HotDanmakuMeasurements(
@@ -116,7 +115,7 @@ private data class HotDanmakuMeasurements(
 
 private class HotDanmakuMeasurement(
     private val measurer: TextMeasurer, private val density: Density,
-    private val textStyle: TextStyle, private val countStyle: TextStyle, private val maxWidth: Dp,
+    private val textStyle: TextStyle, private val maxWidth: Dp,
 ) {
     fun measure(
         visible: List<DanmakuItem>, upcoming: List<DanmakuItem>, votes: Map<Long, DanmakuVote>,
@@ -133,10 +132,11 @@ private class HotDanmakuMeasurement(
     }
 
     private fun measureItem(item: DanmakuItem, vote: DanmakuVote?): HotDanmakuRowMeasurement = with(density) {
-        val count = measurer.measure("×${vote?.likes ?: item.likeCount}", countStyle).size
-        val text = measurer.measure(item.text, textStyle).size
+        val rowStyle = textStyle.copy(fontSize = textStyle.fontSize * danmakuItemTextScale(item.size))
+        val count = measurer.measure("×${vote?.likes ?: item.likeCount}", rowStyle).size
+        val text = measurer.measure(item.text, rowStyle).size
         val countWidth = (count.width * 1.15f).toDp()
-        HotDanmakuRowMeasurement(item, countWidth, text.width + countWidth.toPx() + 50.dp.toPx(),
+        HotDanmakuRowMeasurement(item, countWidth, rowStyle, text.width + countWidth.toPx() + 50.dp.toPx(),
             maxOf(text.height, count.height, 24.dp.roundToPx()))
     }
 }
@@ -150,7 +150,13 @@ internal fun AnimatedDanmakuCount(count: Long, style: TextStyle, modifier: Modif
     Text("×$integer", modifier, color = Color.White, style = style, maxLines = 1, softWrap = false)
 }
 
-private fun hotStyle(size: Float) = TextStyle(fontSize = size.sp, shadow = Shadow(Color.Black, Offset(1f, 1f), 3f))
+const val DANMAKU_TEXT_SIZE_SP = 12f
+fun danmakuItemTextScale(size: Float): Float = size.coerceIn(0.75f, 1.25f)
+
+private fun hotStyle(size: Float) = TextStyle(
+    fontSize = size.sp, fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium,
+    shadow = Shadow(Color.Black, Offset(1f, 1f), 3f),
+)
 
 @Composable
 private fun HotAction(label: String, icon: Int, tint: Color, action: () -> Unit) {

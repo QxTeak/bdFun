@@ -25,7 +25,7 @@ internal fun rememberDanmakuEngineWindow(filtered: List<BiliDanmakuItem>): Danma
                     else -> DANMAKU_LAYER_SCROLL
                 }
                 textColor = 0xFF000000.toInt() or item.color
-                textSizeScale = item.size.coerceIn(0.75f, 1.25f)
+                textSizeScale = danmakuItemTextScale(item.size)
                 isSelf = item.self
                 isVipGradualColor = item.vipColor
                 isUpOwner = item.upIdentity

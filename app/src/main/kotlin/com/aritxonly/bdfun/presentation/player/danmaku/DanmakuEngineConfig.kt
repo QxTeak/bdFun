@@ -15,7 +15,7 @@ internal const val FIXED_SHOW_MS = 4_000L
 @Composable
 internal fun danmakuEngineConfig(drawing: DanmakuLayerDrawing, viewSize: IntSize, playbackSpeed: Float): DanmakuRenderConfig {
     val density = LocalDensity.current
-    val baseTextPx = with(density) { 12.sp.toPx() } * drawing.fontScale
+    val baseTextPx = with(density) { DANMAKU_TEXT_SIZE_SP.sp.toPx() } * drawing.fontScale
     val strokePx = with(density) { drawing.stroke.dp.toPx() }
     val area = drawing.area
     val speed = drawing.speed
