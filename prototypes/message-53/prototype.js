@@ -52,12 +52,22 @@ function toast(text) {
   setTimeout(() => message.remove(), 1900);
 }
 function go(destination) {
-  if (destination !== page()) stack.push(destination);
+  if (destination === page()) return;
+  stack.push(destination);
   render(true);
+  animateRoute(false);
 }
 function back() {
-  if (stack.length > 1) stack.pop();
+  if (stack.length <= 1) return;
+  stack.pop();
   render(true);
+  animateRoute(true);
+}
+function animateRoute(backward) {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const panel = page() === '消息中心' ? $('.inbox') : $('.detail');
+  panel.animate([{transform: `translateX(${backward ? '-24%' : '100%'})`}, {transform: 'translateX(0)'}],
+    {duration: 260, easing: 'cubic-bezier(.2,.7,.3,1)'});
 }
 function jump(destination) {
   stack = ['消息中心'];
@@ -96,9 +106,9 @@ function markAll() {
 function openInboxMenu() {
   showDropdown($('#inboxMore'), [['刷新消息', retry], ['消息设置', () => go('消息设置')]]);
 }
-function sessionMenu(id) {
+function sessionMenu(id, anchor) {
   const pref = preferences[id];
-  menu(people[id], [
+  showDropdown(anchor, [
     [pref.pin ? '取消置顶' : '置顶会话', () => { pref.pin = !pref.pin; render(); }],
     [pref.mute ? '关闭免打扰' : '消息免打扰', () => { pref.mute = !pref.mute; render(); }],
     ['标为已读', () => { unread[id] = 0; render(); }],
@@ -112,7 +122,7 @@ function inboxView() {
   const ids = inbox.filter(id => !followedOnly || id < 3)
     .sort((a, b) => Number(preferences[b].pin) - Number(preferences[a].pin));
   return ids.map(id => `<button class="row ${stack.includes('私信会话') && id === profile ? 'selected' : ''}"
-    onclick="openChat(${id})" oncontextmenu="event.preventDefault();sessionMenu(${id})">
+    data-session-id="${id}" onclick="openChat(${id})">
     ${avatar(id)}<span class="info"><span class="name">${people[id]} ${preferences[id].pin ? status('置顶') : ''}</span>
     <span class="preview">${snippets[id]}</span></span><span class="meta">${['刚刚','12:32','昨天','昨天','周一'][id]}
     ${unread[id] ? `<b class="badge">${unread[id]}</b>` : ''}</span></button>`).join('');
@@ -126,17 +136,18 @@ function feedMenu(key, like, anchor) {
   }]);
   showDropdown(anchor, actions);
 }
-function showDropdown(anchor, actions) {
+function showDropdown(anchor, actions, keepOpen = false) {
   const dropdown = $('#cardMenu');
   dropdown.replaceChildren();
-  for (const [label, action] of actions) {
+  for (const [label, action, selected] of actions) {
     const item = document.createElement('button');
-    item.textContent = label === '删除通知' ? '删除' : label;
-    item.onclick = () => { dropdown.hidePopover(); action(); };
+    item.textContent = (label === '删除通知' ? '删除' : label) + (selected ? '  ✓' : '');
+    if (selected !== undefined) item.setAttribute('aria-pressed', String(selected));
+    item.onclick = () => { if (!keepOpen) dropdown.hidePopover(); action(); };
     dropdown.append(item);
   }
   const bounds = anchor.getBoundingClientRect();
-  dropdown.showPopover();
+  if (!dropdown.matches(':popover-open')) dropdown.showPopover();
   dropdown.style.left = Math.max(8, bounds.right - dropdown.offsetWidth) + 'px';
   dropdown.style.top = Math.min(bounds.bottom, innerHeight - dropdown.offsetHeight - 8) + 'px';
 }
@@ -232,6 +243,20 @@ function openNoticeSettings(title = page() === '收到喜欢' ? '收到喜欢' :
   settingsTitle = title;
   go('通知设置子页');
 }
+function showNotificationChoices(anchor) {
+  const title = page() === '收到喜欢' ? '收到喜欢' : tab === 1 ? '@我' : '回复我的';
+  const pref = noticePreferences[title];
+  const pick = (key, value) => () => {
+    pref[key] = value;
+    showNotificationChoices(anchor);
+  };
+  const choices = [
+    ['消息提醒', pick('enabled', !pref.enabled), pref.enabled],
+    ['所有人', pick('receiver', 0), pref.receiver === 0],
+    ['我关注的人', pick('receiver', 1), pref.receiver === 1],
+  ];
+  showDropdown(anchor, choices, true);
+}
 function messageSettings() {
   const notices = Object.keys(noticePreferences).map(label => row(label, `openNoticeSettings('${label}')`)).join('');
   return group(notices + row('黑名单', "go('黑名单')") + row('消息屏蔽词', "go('消息屏蔽词')"));
@@ -283,7 +308,9 @@ function reportMenu() {
 }
 function bubble(id, body, mine = false) {
   if (withdrawn.has(profile+':'+id)) return '<div class="time">你撤回了一条消息</div>';
-  return `<div class="msg ${mine ? 'mine' : ''}"><div class="bubble ${mine ? 'mine' : ''}" oncontextmenu="event.preventDefault();messageMenu(${id},${mine})">${body}</div></div>`;
+  const profileButton = button(mine ? '我' : people[profile][0],
+    "toast('打开个人空间')", 'avatar chat-avatar');
+  return `<div class="msg ${mine ? 'mine' : ''}">${mine ? '' : profileButton}<div class="bubble ${mine ? 'mine' : ''}" oncontextmenu="event.preventDefault();messageMenu(${id},${mine})">${body}</div>${mine ? profileButton : ''}</div>`;
 }
 function chatView() {
   return '<div class="time">今天 09:32</div>'
@@ -346,9 +373,10 @@ function render(resetScroll = false) {
   $('#title').textContent = destination === '私信会话' ? people[profile] : destination === '通知设置子页' ? settingsTitle : destination;
   const gear = $('#gear');
   gear.hidden = !['私信会话', '回复与@', '收到喜欢'].includes(destination);
-  gear.onclick = () => showDropdown(gear, [['设置',
-    destination === '私信会话' ? () => go('聊天设置') : () => openNoticeSettings(),
-  ]]);
+  gear.onclick = () => {
+    if (destination === '私信会话') showDropdown(gear, [['设置', () => go('聊天设置')]]);
+    else showNotificationChoices(gear);
+  };
   const content = views[destination]();
   $('#content').innerHTML = destination === '消息中心' ? content : withState(content);
   if (resetScroll) $('#content').scrollTop = destination === '私信会话' ? $('#content').scrollHeight : 0;
@@ -456,18 +484,19 @@ function cancelCardPress() {
   cardPress = null;
 }
 function openCardMenu(card) {
-  feedMenu(card.dataset.feedKey, card.dataset.like === 'true', card);
+  if (card.dataset.sessionId !== undefined) sessionMenu(Number(card.dataset.sessionId), card);
+  else feedMenu(card.dataset.feedKey, card.dataset.like === 'true', card);
 }
-scrollPane.addEventListener('contextmenu', event => {
-  const card = event.target.closest('[data-feed-key]');
+$('.device').addEventListener('contextmenu', event => {
+  const card = event.target.closest('[data-feed-key], [data-session-id]');
   if (!card) return;
   event.preventDefault();
   cancelCardPress();
   if (!$('#cardMenu').matches(':popover-open')) openCardMenu(card);
 });
-scrollPane.addEventListener('pointerdown', event => {
+$('.device').addEventListener('pointerdown', event => {
   suppressCardClick = false;
-  const card = event.target.closest('[data-feed-key]');
+  const card = event.target.closest('[data-feed-key], [data-session-id]');
   if (!card || event.button !== 0) return;
   cardPress = {x:event.clientX, y:event.clientY, timer:setTimeout(() => {
     suppressCardClick = true;
@@ -479,14 +508,14 @@ window.addEventListener('pointermove', event => {
 });
 window.addEventListener('pointerup', cancelCardPress);
 window.addEventListener('pointercancel', cancelCardPress);
-scrollPane.addEventListener('click', event => {
+$('.device').addEventListener('click', event => {
   if (!suppressCardClick) return;
   suppressCardClick = false;
   event.preventDefault();
   event.stopImmediatePropagation();
 }, true);
-scrollPane.addEventListener('keydown', event => {
-  const card = event.target.closest('[data-feed-key]');
+$('.device').addEventListener('keydown', event => {
+  const card = event.target.closest('[data-feed-key], [data-session-id]');
   if (card && (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10'))) {
     event.preventDefault();
     openCardMenu(card);

@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.aritxonly.bdfun.AppGraph
-import com.aritxonly.bdfun.core.navigation.Route
 import com.aritxonly.teak.common.chrome.TrackTeakPageScroll
 
 @Composable
@@ -34,14 +33,12 @@ internal fun MessageDetailScreen(kind: MessageFeedKind, onBack: () -> Unit, init
         ),
         slots = ActivityPageSlots(topBarActions = {
             if (kind == MessageFeedKind.Reply || kind == MessageFeedKind.Like) {
-                MessageSettingsMenu {
-                    val type = when {
-                        kind == MessageFeedKind.Like -> 19
-                        ui.tab == 2 -> 18
-                        else -> 17
-                    }
-                    navigate(Route.MessageTools("settings", type = type))
+                val type = when {
+                    kind == MessageFeedKind.Like -> 19
+                    ui.tab == 2 -> 18
+                    else -> 17
                 }
+                MessageNotificationDropdown(type)
             }
         }),
     ) {

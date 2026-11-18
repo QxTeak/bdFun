@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.ui
 import top.yukonga.miuix.kmp.glass.GlassPopupItem
 
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -46,21 +47,23 @@ fun MessageTopActions(showContacts: Boolean = false) {
 
 @Composable
 internal fun MessageSettingsMenu(onSettings: () -> Unit) {
+    MessageOverflowMenu { _, dismiss ->
+        GlassPopupItem(text = "设置", onClick = { dismiss(); onSettings() })
+    }
+}
+
+@Composable
+internal fun MessageOverflowMenu(content: @Composable ColumnScope.(Boolean, () -> Unit) -> Unit) {
     var anchor by remember { mutableStateOf(Rect.Zero) }
     var expanded by remember { mutableStateOf(false) }
+    val dismiss = { expanded = false }
     TeakTopGlassButton(
         onClick = { expanded = anchor != Rect.Zero },
         modifier = Modifier
             .onGloballyPositioned { anchor = it.boundsInWindow() }
             .semantics { contentDescription = "更多设置" },
     ) { ThreeDotsGlyph() }
-    TeakGlassMenu(visible = expanded, onDismiss = { expanded = false }, anchorInWindow = anchor) {
-        GlassPopupItem(
-            text = "设置",
-            onClick = {
-                expanded = false
-                onSettings()
-            },
-        )
+    TeakGlassMenu(visible = expanded, onDismiss = dismiss, anchorInWindow = anchor) {
+        content(expanded, dismiss)
     }
 }

@@ -12,6 +12,13 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.ui.Modifier
@@ -60,7 +67,9 @@ internal fun MessageSessionList(
                 item(key = "login") { MessageLoginPrompt(events.onNeedLogin) }
             } else {
                 itemsIndexed(visibleSessions, key = { _, session -> session.id }) { _, session ->
-                    androidx.compose.foundation.layout.Box(Modifier.padding(bottom = 4.dp)
+                    var anchor by remember { mutableStateOf(Rect.Zero) }
+                    Box(Modifier.padding(bottom = 4.dp)
+                        .onGloballyPositioned { anchor = it.boundsInWindow() }
                         .clip(
                             if (classic) androidx.compose.ui.graphics.RectangleShape
                             else com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(18.dp),
@@ -74,7 +83,11 @@ internal fun MessageSessionList(
                                 session.talkerId > 0L -> openRoute(session.chatRoute())
                                 else -> context.showToast("该类型会话暂不支持打开")
                             }
-                        }, onLongClick = { menu.selected = session; menu.confirmDelete = false })
+                        }, onLongClick = {
+                            if (anchor != Rect.Zero && !snapshot.busy && !snapshot.loading) {
+                                menu.openSession(session, anchor)
+                            }
+                        })
                     }
                 }
                 item(key = "footer") {

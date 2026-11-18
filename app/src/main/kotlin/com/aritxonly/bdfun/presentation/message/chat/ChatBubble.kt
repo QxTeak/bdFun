@@ -36,6 +36,7 @@ internal fun ChatBubble(
     otherAvatar: String,
     myAvatar: String,
     emotes: Map<String, String> = emptyMap(),
+    talkerId: Long = 0,
 ) {
     val colors = MiuixTheme.colorScheme
     val mine = message.isMine
@@ -47,7 +48,7 @@ internal fun ChatBubble(
         verticalAlignment = Alignment.Top,
     ) {
         if (!mine) {
-            ChatAvatar(url = otherAvatar)
+            ChatAvatar(url = otherAvatar, profileMid = message.senderId.takeIf { it > 0 } ?: talkerId)
             Spacer(Modifier.width(7.dp))
         }
         Column(
@@ -89,7 +90,7 @@ internal fun ChatBubble(
         }
         if (mine) {
             Spacer(Modifier.width(7.dp))
-            ChatAvatar(url = myAvatar, placeholder = "我")
+            ChatAvatar(url = myAvatar, placeholder = "我", profileMid = message.senderId)
         }
     }
 }

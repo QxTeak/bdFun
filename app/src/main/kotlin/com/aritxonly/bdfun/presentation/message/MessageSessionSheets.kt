@@ -52,28 +52,67 @@ internal fun MessageSessionSheets(
         Text("清空后所有消息将被删除，无法恢复。", Modifier.padding(18.dp), color = colors.onBackgroundVariant)
         ActionSheetRow("确认清空", !busy && !loading, MiuixIcons.Delete) { onClearList() }
     }
-    TeakActionSheet(menu.selected != null, onDismiss = { if (!busy) menu.selected = null }, title = menu.selected?.name) {
-        val target = menu.selected
+    MessagePrivateSessionMenu(menu, enabled = !busy && !loading, onMutate = onMutate)
+}
+
+@Composable
+private fun MessagePrivateSessionMenu(
+    menu: MessageSessionMenuStateHolder,
+    enabled: Boolean,
+    onMutate: (SessionAction) -> Unit,
+) {
+    val target = menu.selected
+    val dismiss = {
+        menu.sessionMenuVisible = false
+        menu.selected = null
+    }
+    val select: (SessionAction) -> Unit = {
+        menu.sessionMenuVisible = false
+        onMutate(it)
+    }
+    TeakGlassMenu(
+        visible = menu.sessionMenuVisible && target != null,
+        onDismiss = dismiss,
+        anchorInWindow = menu.sessionAnchor,
+    ) {
         if (target != null) {
-            val enabled = !busy && !loading
-            if (menu.confirmDelete) {
-                Text("删除会话后，可通过对方的个人空间重新发起私信。", Modifier.padding(18.dp), color = colors.onBackgroundVariant)
-                ActionSheetRow("确认删除会话", enabled, MiuixIcons.Delete) { onMutate(SessionAction.Delete) }
-                ActionSheetRow("取消", enabled) { menu.confirmDelete = false }
-            } else {
-                ActionSheetRow(if (target.pinned) "取消置顶" else "置顶会话", enabled) {
-                    onMutate(SessionAction.Pin)
-                }
-                if (target.sessionType == 1) ActionSheetRow(if (target.muted) "关闭免打扰" else "消息免打扰", enabled) {
-                    onMutate(SessionAction.Mute)
-                }
-                if (target.talkerId > 0) ActionSheetRow("标为已读", enabled && (target.unread > 0 || target.preferences.unreadDot)) {
-                    onMutate(SessionAction.Read)
-                }
-                if (target.talkerId > 0) ActionSheetRow("删除会话", enabled, MiuixIcons.Delete) { menu.confirmDelete = true }
+            GlassPopupItem(
+                text = if (target.pinned) "取消置顶" else "置顶会话", enabled = enabled,
+                onClick = { select(SessionAction.Pin) },
+            )
+            if (target.sessionType == 1) {
+                GlassPopupItem(
+                    text = if (target.muted) "关闭免打扰" else "消息免打扰", enabled = enabled,
+                    onClick = { select(SessionAction.Mute) },
+                )
+            }
+            if (target.talkerId > 0) {
+                GlassPopupItem(
+                    text = "标为已读",
+                    enabled = enabled && (target.unread > 0 || target.preferences.unreadDot),
+                    onClick = { select(SessionAction.Read) },
+                )
+                GlassPopupItem(text = "删除会话", enabled = enabled, onClick = {
+                    menu.sessionMenuVisible = false
+                    menu.confirmDelete = true
+                })
             }
         }
     }
+    AlertDialog(
+        show = menu.confirmDelete && target != null,
+        onDismissRequest = { if (enabled) { menu.confirmDelete = false; dismiss() } },
+        miuixTitle = "删除会话？",
+        miuixSummary = "删除会话后，可通过对方的个人空间重新发起私信。",
+        confirmButton = {
+            TextButton(onClick = { onMutate(SessionAction.Delete) }, enabled = enabled,
+                miuixText = "删除", destructive = true) { Text("删除") }
+        },
+        dismissButton = {
+            TextButton(onClick = { menu.confirmDelete = false; dismiss() }, enabled = enabled,
+                miuixText = "取消") { Text("取消") }
+        },
+    )
 }
 
 @Composable
