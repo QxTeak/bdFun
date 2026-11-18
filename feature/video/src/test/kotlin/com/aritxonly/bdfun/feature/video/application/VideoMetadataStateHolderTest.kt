@@ -23,7 +23,29 @@ class VideoMetadataStateHolderTest {
             cuesGate?.await()
             return Outcome.Success(listOf(cue))
         }
+        override suspend fun likeDanmaku(cid: Long, id: Long) = send()
         override suspend fun sendDanmaku(post: DanmakuPost) = send()
+    }
+
+    @Test fun likesDeduplicatePerPartAndRejectInvalidIds() = runBlocking {
+        var calls = 0
+        val fake = Fake().apply { send = { calls++; Outcome.Success(Unit) } }
+        val holder = VideoMetadataStateHolder(fake)
+        assertFalse(holder.likeDanmaku(0, 1))
+        assertTrue(holder.likeDanmaku(1, 10))
+        assertTrue(holder.likeDanmaku(1, 10))
+        assertTrue(holder.likeDanmaku(2, 10))
+        assertEquals(2, calls)
+    }
+
+    @Test fun cancelledLikeCanRetry() = runBlocking {
+        val gate = CompletableDeferred<Unit>()
+        val fake = Fake().apply { send = { gate.await(); Outcome.Success(Unit) } }
+        val holder = VideoMetadataStateHolder(fake)
+        val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.likeDanmaku(1, 10) }
+        job.cancelAndJoin()
+        gate.complete(Unit)
+        assertTrue(holder.likeDanmaku(1, 10))
     }
 
     @Test fun oldCuesCannotReappearAfterSubtitlesAreDisabled() = runBlocking {

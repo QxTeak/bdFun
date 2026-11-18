@@ -2,6 +2,9 @@ package com.aritxonly.bdfun.core.domain
 
 interface PlaybackProgressRepository {
     fun resumeFor(bvid: String): Long
+    fun resumeFor(bvid: String, cid: Long): Long = resumeFor(playbackProgressKey(bvid, cid))
+    fun save(bvid: String, cid: Long, positionMs: Long, durationMs: Long) =
+        save(playbackProgressKey(bvid, cid), positionMs, durationMs)
     fun save(bvid: String, positionMs: Long, durationMs: Long)
     fun clear(bvid: String)
 }
@@ -25,3 +28,7 @@ fun playbackProgressEvictions(entries: Map<String, String?>): List<String> {
     return entries.entries.sortedBy { it.value?.split(",")?.getOrNull(2)?.toLongOrNull() ?: 0L }
         .take((entries.size - 400).coerceAtLeast(0)).map { it.key }
 }
+
+/** 未知 cid 保留旧键；已知分 P 独立存储，避免串用其他分 P 的位置。 */
+fun playbackProgressKey(bvid: String, cid: Long): String =
+    if (cid > 0 && bvid.isNotBlank()) "${bvid}_$cid" else bvid

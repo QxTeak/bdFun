@@ -25,7 +25,7 @@ fun rememberVideoScreenStateHolders(request: VideoScreenRequest, ports: VideoDet
             else -> 0L
         }
         val local = if (explicit <= 0L && settings.resumePlayback) {
-            ports.progress.resumeFor(video.bvid)
+            ports.progress.resumeFor(video.bvid, video.cid)
         } else {
             0L
         }

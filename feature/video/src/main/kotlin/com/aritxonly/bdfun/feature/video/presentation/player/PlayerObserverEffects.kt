@@ -68,7 +68,10 @@ fun BindPlayerObserver(
         onDispose {
             if (exit.resumePlayback()) {
                 runCatching {
-                    progress.save(latestBvid, playback.refresh().positionMs, playback.refresh().durationMs)
+                    val tick = playback.refresh()
+                    ui.preparedMediaKey.value?.split(":")?.let { key ->
+                        progress.save(key[0], key.getOrNull(1)?.toLongOrNull() ?: 0L, tick.positionMs, tick.durationMs)
+                    }
                 }
             }
             playback.removeListener(listener)

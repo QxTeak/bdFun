@@ -8,6 +8,7 @@ interface VideoDetailDanmakuHost {
     var aid: Long
     var cid: Long
     val danmakuProgressMs: Long
+    var danmakuLiker: (suspend (Long) -> Boolean)?
     var danmakuSender: (suspend (String, Int, Int, Int) -> Boolean)?
 }
 

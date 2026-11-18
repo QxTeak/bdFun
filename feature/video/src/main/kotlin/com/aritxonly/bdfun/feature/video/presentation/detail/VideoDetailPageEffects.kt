@@ -19,6 +19,7 @@ fun RegisterVideoDanmakuSender(
     DisposableEffect(currentCid, detail?.aid) {
         val d = detail
         if (d != null) {
+            VideoPageBus.danmakuLiker = { id -> metadataController.likeDanmaku(currentCid, id) }
             VideoPageBus.aid = d.aid
             VideoPageBus.cid = currentCid
             VideoPageBus.danmakuSender = { text, mode, fontSize, color ->
@@ -48,7 +49,7 @@ fun RegisterVideoDanmakuSender(
                 ok
             }
         }
-        onDispose { VideoPageBus.danmakuSender = null }
+        onDispose { VideoPageBus.danmakuSender = null; VideoPageBus.danmakuLiker = null }
     }
 
 }

@@ -21,6 +21,10 @@ fun filterDanmaku(items: List<DanmakuItem>, options: DanmakuFilterOptions): List
             }
         }
         .let { source -> if (dedupe) source.distinctBy { it.text } else source }
-        .sortedBy { it.timeMs }
         .toList()
+        .let { filtered ->
+            // 网络分段通常已按时间排序，避免对每次设置投影重复分配排序副本。
+            if ((1 until filtered.size).all { filtered[it - 1].timeMs <= filtered[it].timeMs }) filtered
+            else filtered.sortedBy { it.timeMs }
+        }
 }

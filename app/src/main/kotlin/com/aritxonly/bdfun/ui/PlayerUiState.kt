@@ -196,6 +196,7 @@ internal class VideoPagePresentationState(
         ) }
     override var panelBackdrop by mutableStateOf<ImageBitmap?>(null)
     var commentSender: (suspend (String, String?) -> Boolean)? = null
+    override var danmakuLiker: (suspend (Long) -> Boolean)? = null
     override var danmakuSender: (suspend (String, Int, Int, Int) -> Boolean)? = null
     var playerCollapseScroll: ((Float) -> Float)? = null
     val playerUi get() = this

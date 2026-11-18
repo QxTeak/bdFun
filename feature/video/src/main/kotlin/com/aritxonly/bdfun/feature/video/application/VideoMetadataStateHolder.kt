@@ -60,6 +60,23 @@ class VideoMetadataStateHolder(private val repository: VideoMetadataRepository) 
         if (version == subtitleRevision) mutableState.update { it.copy(subtitleCues = cues) }
     }
 
+    private val likedDanmaku = mutableSetOf<Pair<Long, Long>>()
+    private val pendingLikes = mutableSetOf<Pair<Long, Long>>()
+
+    suspend fun likeDanmaku(cid: Long, id: Long): Boolean {
+        if (cid <= 0 || id <= 0) return false
+        val key = cid to id
+        if (key in likedDanmaku) return true
+        if (!pendingLikes.add(key)) return false
+        try {
+            val success = repository.likeDanmaku(cid, id) is Outcome.Success
+            if (success) likedDanmaku.add(key)
+            return success
+        } finally {
+            pendingLikes.remove(key)
+        }
+    }
+
     suspend fun sendDanmaku(post: DanmakuPost): Boolean = repository.sendDanmaku(post) is Outcome.Success
 
     private fun <T> Outcome<T>.valueOr(fallback: T): T = when (this) {

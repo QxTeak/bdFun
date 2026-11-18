@@ -2,6 +2,8 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
@@ -26,6 +28,29 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
     val context = LocalContext.current
     val renderView = remember { DanmakuRenderView(context).apply { setRendererTouchable(false) } }
     DisposableEffect(renderView) { onDispose { renderView.releaseRenderer() } }
+    val page = LocalVideoPageState.current
+    val scope = rememberCoroutineScope()
+    DisposableEffect(renderView, playing, page.cid) {
+        renderView.setRendererTouchable(!playing)
+        renderView.engine.setOnItemClickListener { item, _, _ ->
+            val id = item.danmakuId
+            val liker = page.danmakuLiker
+            val cid = page.cid
+            if (id > 0 && liker != null && !playing) {
+                android.widget.PopupMenu(context, renderView).apply {
+                    menu.add("点赞弹幕：${item.text}").setOnMenuItemClickListener {
+                        if (page.cid == cid) scope.launch {
+                            val ok = liker(id)
+                            android.widget.Toast.makeText(context, if (ok) "已点赞" else "点赞失败，请确认已登录", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                        true
+                    }
+                    show()
+                }
+            }
+        }
+        onDispose { renderView.engine.setOnItemClickListener(null) }
+    }
     val ui = remember { DanmakuLayerPresentationStateHolder() }
     val options = currentDanmakuLayerOptions(fullscreen)
     val filtered = remember(items, options.filters) { filterDanmaku(items, options.filters) }
