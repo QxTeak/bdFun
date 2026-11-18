@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.domain.ChatPreferenceAction
@@ -28,8 +29,23 @@ internal fun MessageChatSettings(mid: Long, state: MessageToolsUiState, controll
         Row(Modifier.fillMaxWidth().clickable { com.aritxonly.bdfun.navigateToSpace(context, mid) }.padding(vertical = 16.dp)) {
             MessageAvatar(chat.avatar); Spacer(Modifier.width(12.dp)); Text(chat.name, color = colors.onBackground)
         }
-        val toggles = listOf(Triple("置顶聊天", chat.pinned, ChatPreferenceAction.Pin),
-            Triple("消息免打扰", chat.muted, ChatPreferenceAction.Mute), Triple("加入黑名单", chat.blocked, ChatPreferenceAction.Block)) +
+        val pinned = chat.pinned
+        if (pinned == null) {
+            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    Text("置顶聊天", color = colors.onBackground)
+                    Text(chat.pinError ?: "置顶状态未知", color = colors.onBackgroundVariant)
+                }
+                Text("重试", color = colors.primary, modifier = Modifier.clickable(
+                    enabled = !state.loading && !state.busy,
+                ) { scope.launch { controller.load() } }.padding(12.dp))
+            }
+        }
+        val toggles = listOfNotNull(
+            pinned?.let { Triple("置顶聊天", it, ChatPreferenceAction.Pin) },
+            Triple("消息免打扰", chat.muted, ChatPreferenceAction.Mute),
+            Triple("加入黑名单", chat.blocked, ChatPreferenceAction.Block),
+        ) +
             (chat.push?.let { listOf(Triple("内容推送", it, ChatPreferenceAction.Push)) } ?: emptyList())
         toggles.forEach { (label, value, action) ->
             Row(Modifier.fillMaxWidth().padding(vertical = 16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {

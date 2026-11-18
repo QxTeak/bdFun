@@ -2,8 +2,6 @@ package com.aritxonly.bdfun.ui
 
 import com.aritxonly.teak.common.icons.ResourceGlyph
 
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.More
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -72,26 +70,6 @@ internal fun SmallMessageAction(icon: Int, label: String, onClick: () -> Unit) {
         ResourceGlyph(res = icon, tint = colors.onBackgroundVariant, size = 14.dp)
         Spacer(Modifier.width(3.dp))
         Text(text = label, color = colors.onBackgroundVariant, fontSize = 11.sp)
-    }
-}
-
-/** 三个圆点的省略号按钮：和评论区同款，圆底，不是方形文字块。 */
-@Composable
-internal fun MessageMoreDots(onClick: () -> Unit) {
-    val colors = MiuixTheme.colorScheme
-    Box(
-        modifier = Modifier
-            .size(24.dp)
-            .clip(CircleShape)
-            .clickable(interactionSource = null, indication = null, onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        top.yukonga.miuix.kmp.basic.Icon(
-            imageVector = MiuixIcons.More,
-            contentDescription = "更多",
-            tint = colors.onBackgroundVariant,
-            modifier = Modifier.size(22.dp),
-        )
     }
 }
 

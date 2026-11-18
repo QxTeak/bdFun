@@ -54,7 +54,6 @@ internal fun MessageSessionList(
 
             if (pageType == 1) item(key = "shortcuts") { MessageShortcutGroup(snapshot.unread, events) }
             item(key = "menus") {
-                MessageInboxToolbar(snapshot, menu)
                 MessageSessionTabs(ui)
             }
             if (!loggedIn) {

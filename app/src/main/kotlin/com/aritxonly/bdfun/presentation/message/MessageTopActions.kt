@@ -8,9 +8,13 @@ import com.aritxonly.teak.common.chrome.TeakTopGlassButton
 
 /** 右上角操作放在 Activity 的 overlay 里：真玻璃必须在 backdrop 采集层之外，否则会 SIGSEGV。 */
 @Composable
-fun MessageTopActions() {
+fun MessageTopActions(showContacts: Boolean = false) {
     val MessagePageBus = LocalPageChromeState.current
 
+    if (showContacts) {
+        val navigate = messageRouteAction()
+        MessageTopButton("联系人") { navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("contacts")) }
+    }
     TeakTopGlassButton(onClick = { MessagePageBus.requestReadAll() },
         modifier = Modifier.semantics { contentDescription = "全部已读" }) { MarkReadGlyph() }
     TeakTopGlassButton(onClick = { MessagePageBus.requestMore() },

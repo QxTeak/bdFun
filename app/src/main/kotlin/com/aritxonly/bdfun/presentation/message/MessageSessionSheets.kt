@@ -18,6 +18,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun MessageSessionSheets(
     snapshot: com.aritxonly.bdfun.feature.message.application.MessageSessionsUiState,
     menu: MessageSessionMenuStateHolder,
+    showContactsFallback: Boolean,
     onRefresh: () -> Unit,
     onReadAll: () -> Unit,
     onClearList: () -> Unit,
@@ -30,10 +31,19 @@ internal fun MessageSessionSheets(
     val busy = snapshot.busy
     TeakActionSheet(menu.showMore, onDismiss = { menu.showMore = false }, title = "消息") {
         ActionSheetRow("刷新消息", !loading && !busy) { menu.showMore = false; onRefresh() }
-        snapshot.menu.forEach { item ->
+        // 保留服务端下发的快捷入口，联系人已在一级页顶栏。
+        if (showContactsFallback) {
+            ActionSheetRow("联系人", !loading && !busy) {
+                navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("contacts"))
+                menu.showMore = false
+            }
+        }
+        val entries = (snapshot.menu + snapshot.outside).distinctBy { Triple(it.type, it.title, it.url) }
+            .filterNot { it.type == 8 }
+        entries.forEach { item ->
             ActionSheetRow(item.title, !loading && !busy) { messageMenuAction(context, item, menu, navigate) }
         }
-        if (snapshot.menu.isEmpty()) {
+        if (entries.none { it.type == 2 }) {
             ActionSheetRow("消息设置", !busy) { navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("settings")); menu.showMore = false }
         }
     }

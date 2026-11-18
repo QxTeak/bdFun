@@ -41,15 +41,14 @@ internal fun MessageContactsScreen(initialGroup: Int, onBack: () -> Unit) {
     val title = if (initialGroup == 2) "黑名单" else "联系人"
     LaunchedEffect(controller) { controller.load() }
     MessageResumeEffect(scope) { controller.load() }
-    TeakActivityScaffold(settings = AppGraph.settings, onBack = onBack, options = ActivityPageOptions(title = title, limitContentWidth = LocalMessageNavigation.current == null)) {
+    TeakActivityScaffold(settings = AppGraph.settings, onBack = onBack, options = ActivityPageOptions(title = title, titleAlwaysVisible = true, backRevealed = true, limitContentWidth = LocalMessageNavigation.current == null)) {
         PullToRefreshBox(isRefreshing = state.loading && (state.people.isNotEmpty() || state.settings.isNotEmpty()),
             onRefresh = { scope.launch { controller.load() } }) {
         TrackTeakPageScroll(list)
         LazyColumn(state = list, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(
             start = TeakUiStyle.design.contentInset(16.dp),
             end = TeakUiStyle.design.contentInset(16.dp),
-            top = 8.dp + rememberStatusBarTop(), bottom = 40.dp)) {
-            item { TeakLargeTitle(title = title) }
+            top = TeakChromeDefaults.TopOverlayHeight + rememberStatusBarTop(), bottom = 40.dp)) {
             if (initialGroup != 2) item {
                 com.aritxonly.teak.common.navigation.TeakPagerTabs(
                     options = listOf("我的关注", "我的粉丝"), selected = ui.group,

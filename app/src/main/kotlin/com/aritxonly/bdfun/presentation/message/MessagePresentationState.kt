@@ -24,9 +24,17 @@ internal class MessageFeedPresentationStateHolder {
 }
 
 internal class MessageFeedMenuStateHolder {
-    var confirmMute by mutableStateOf(false)
     var selected by mutableStateOf<Pair<Int, MessageItem>?>(null)
+    var anchor by mutableStateOf(androidx.compose.ui.geometry.Rect.Zero)
+    var showMenu by mutableStateOf(false)
     var confirmDelete by mutableStateOf(false)
+
+    fun open(page: Int, item: MessageItem, bounds: androidx.compose.ui.geometry.Rect) {
+        selected = page to item
+        anchor = bounds
+        showMenu = true
+        confirmDelete = false
+    }
 }
 
 internal data class MessageScreenEvents(

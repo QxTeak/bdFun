@@ -5,9 +5,6 @@ import com.aritxonly.bdfun.ui.ActivityPageSlots
 
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.padding
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -47,10 +44,10 @@ internal fun PrivateChatRoot(session: MessageSession, onBack: (() -> Unit)? = nu
         ),
         slots = ActivityPageSlots(
             topBarActions = {
-                androidx.compose.material3.Text("设置", modifier = Modifier.padding(12.dp).clickable {
+                com.aritxonly.bdfun.ui.MessageTopButton("设置") {
                     val route = com.aritxonly.bdfun.core.navigation.Route.MessageTools("chat", session.talkerId.toString())
                     navigation?.route?.invoke(route) ?: context.startActivity(com.aritxonly.bdfun.navigation.createRouteIntent(context, route))
-                }, color = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.primary)
+                }
             },
             overlay = {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {

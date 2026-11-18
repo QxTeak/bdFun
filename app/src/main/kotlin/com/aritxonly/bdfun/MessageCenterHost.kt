@@ -64,7 +64,7 @@ private fun MessageCenterMaster(
         TeakActivityScaffold(
             settings = AppGraph.settings, onBack = onBack,
             options = ActivityPageOptions(title = "消息", limitContentWidth = false),
-            slots = ActivityPageSlots(topBarActions = { MessageTopActions() }),
+            slots = ActivityPageSlots(topBarActions = { MessageTopActions(showContacts = true) }),
         ) { MessageScreenRoute(androidx.compose.ui.platform.LocalContext.current) }
     }
 }
@@ -92,10 +92,7 @@ private fun MessageCenterPages(
 private fun MessageCenterPage(destination: MessageDestination, onBack: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     when (destination) {
-        is MessageDestination.Feed -> TeakActivityScaffold(
-            settings = AppGraph.settings, onBack = onBack,
-            options = ActivityPageOptions(title = messageFeedTitle(destination.kind), limitContentWidth = false),
-        ) { MessageDetailScreen(destination.kind, destination.tab) }
+        is MessageDestination.Feed -> MessageDetailScreen(destination.kind, onBack, destination.tab)
         is MessageDestination.Page -> when (val route = destination.route) {
             is Route.MessageTools -> MessageToolsScreen(route, onBack)
             is Route.MessageInbox -> TeakActivityScaffold(

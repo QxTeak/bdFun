@@ -94,3 +94,8 @@ adb shell am instrument -w com.aritxonly.bdfun.debug.test/com.aritxonly.bdfun.Pr
 ### MSG-01：gRPC 传输与网页 Cookie 隔离
 
 用户再次确认聊天设置 1217 未恢复，且 HyperPiliPlus 同入口正常。进一步比对固定上游 `lib/utils/accounts/account_manager/account_mgr.dart`：gRPC 分支添加 grpcHeaders 后立即返回，不走 Web Cookie 装载；bdFun 此前复用带 BiliCookieJar 的客户端，实际会附加网页 Cookie。现派生共享连接池/调度器的无 Cookie gRPC 客户端，既不发送 Web Cookie，也不将 gRPC 响应 Cookie 写回 Web 登录。补齐参考压缩声明；未压缩消息继续使用标准 frame flag=0。该差异修正不能代替真实账号的成功响应，1217 根因仍待验证。
+
+
+### MSG-01：置顶读取失败时保留聊天设置
+
+关联 [#53](https://github.com/QxTeak/bdFun/issues/53)。置顶请求失败时保留原错误，聊天设置继续显示成功读取的其他选项，置顶行提供重试。取消仍沿请求栈传播。真实账号下的 SessionUpdate 1217 根因及置顶写入后重进的一致性待验证。
