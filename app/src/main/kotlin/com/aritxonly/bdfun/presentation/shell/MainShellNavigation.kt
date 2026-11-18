@@ -22,13 +22,27 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
     val searchChrome = shell.chrome.search
     val wideNavigation = shell.backdrops.wideNavigation
     val haptics = rememberTeakHaptics()
+    val repeatTap = androidx.compose.runtime.remember { MainTabRepeatTapState() }
     val onBarItem: (TeakFloatingTabItem) -> Unit = { item ->
         haptics.tap()
         val index = destinations
             .indexOfFirst { it.key == item.key }
             .coerceAtLeast(0)
-        if (index == selected) {
-            // 再次点击当前页 → 刷新
+        if (index == tabPagerState.currentPage) {
+            val refresh = repeatTap.tap("$index:${ui.homeSection}", android.os.SystemClock.uptimeMillis())
+            if (!refresh) {
+                val chrome = when (index) {
+                    0 -> when (ui.homeSection) {
+                        1 -> shell.chrome.live
+                        2 -> shell.chrome.bangumi
+                        3, 4 -> shell.chrome.placeholder
+                        else -> shell.chrome.home
+                    }
+                    1 -> shell.chrome.dynamic
+                    else -> shell.chrome.mine
+                }
+                appScope.launch { scrollMainPageToTop(chrome.scrollableState) }
+            } else
             when (index) {
                 // 首页三段各有自己的刷新入口，别让直播/番剧去刷推荐。
                 // 直播/番剧和推荐页一致：先平滑回顶，再拉刷新。
@@ -40,6 +54,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
                 1 -> ui.dynamicRefreshTick++
             }
         } else {
+            repeatTap.reset()
             // 主 tab 不能左右滑，但点底栏切换仍保留横向滑动转场。
             appScope.launch { tabPagerState.animateScrollToPage(index) }
         }
