@@ -78,8 +78,8 @@ class JsonSettingsIndexCodecTest {
         val result = codec.decode(file.readText())
         assertTrue(result.toString(), result is SettingsIndexImport.Success)
         val index = SettingsIndex((result as SettingsIndexImport.Success).categories)
-        // 在原67项上增加自适应缓冲和独立的后台播放入口。
-        assertEquals(69, index.settings.size)
+        // 索引项总数：在早期67项上增加自适应缓冲、独立后台播放入口、预测性返回等；空降助手仍占一项（改为三档下拉）。
+        assertEquals(72, index.settings.size)
         assertEquals("switch", index.settings.getValue("adaptive_buffering").type)
     }
 }

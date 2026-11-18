@@ -16,6 +16,9 @@ internal data class ActivityPageOptions(val backRevealed: Boolean? = null, val s
 @Immutable
 internal data class ActivityDiscOptions(val showBackgroundDisc: Boolean = true,
     val discLift: Dp = 0.dp, val discEndPadding: Dp? = null)
+
+/** 底部有搜索框或回复条时，唱片的统一抬升高度（避开 64dp 控件 + 间距）。 */
+internal val BackgroundDiscDockLift = 74.dp
 @Immutable
 internal data class ActivityPageSlots(
     val topBarLeading: @Composable RowScope.() -> Unit = {},

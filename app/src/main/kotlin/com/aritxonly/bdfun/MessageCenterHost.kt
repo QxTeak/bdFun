@@ -16,6 +16,7 @@ import com.aritxonly.bdfun.feature.message.application.*
 import com.aritxonly.bdfun.feature.message.application.MessageFeedKind
 import com.aritxonly.bdfun.infra.storage.RouteJsonCodec
 import com.aritxonly.bdfun.ui.*
+import com.aritxonly.teak.common.chrome.centeredListWidth
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -30,7 +31,8 @@ internal fun MessageCenterHost(onBack: () -> Unit) {
                 val width = maxWidth
                 val split = usesMessageSplitPane(width.value)
                 Box(Modifier.fillMaxSize()) {
-                    Box(Modifier.width(if (split) 340.dp else width).fillMaxHeight()) {
+                    Box(Modifier.width(if (split) 340.dp else width).fillMaxHeight()
+                        .centeredListWidth(maxWidth = 680.dp)) {
                         MessagePaneVisible(split || entries.isEmpty()) {
                             MessageCenterMaster(navigation, entries, onBack)
                         }
@@ -39,7 +41,8 @@ internal fun MessageCenterHost(onBack: () -> Unit) {
                         .background(MiuixTheme.colorScheme.onBackgroundVariant.copy(alpha = .1f)))
                     // 两种布局使用同一组合位置，展开或旋转不会重建正在编辑的子页。
                     Box(Modifier.align(Alignment.CenterEnd)
-                        .width(if (split) width - 341.dp else width).fillMaxHeight()) {
+                        .width(if (split) width - 341.dp else width).fillMaxHeight()
+                        .centeredListWidth(maxWidth = 680.dp)) {
                         if (split && entries.isEmpty()) MessageCenterPlaceholder()
                         MessageCenterPages(entries, navigation, back)
                     }

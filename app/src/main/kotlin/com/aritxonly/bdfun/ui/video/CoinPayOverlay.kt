@@ -9,6 +9,7 @@ import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -180,7 +181,7 @@ private fun CoinPayLayout(
 ) {
     val selected = state.selected
     val maxIndex = state.maxIndex
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             // 黑色遮罩 60%，比原来的 50% 更能压住背景。
@@ -195,9 +196,14 @@ private fun CoinPayLayout(
                     },
                 )
             },
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.TopCenter,
     ) {
-        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+        // 两个切换箭头在硬币箱行里垂直居中，行高 110dp；整列下移到箭头中心 ≈ 屏幕 55% 处。
+        val arrowRowCenterOffset = 55.dp
+        // 内容总高度约 380dp；屏幕太矮时优先保证内容完整可见，不被挤到屏幕外。
+        val maxTop = (maxHeight - 380.dp).coerceAtLeast(0.dp)
+        val top = (maxHeight * 0.55f - arrowRowCenterOffset).coerceIn(0.dp, maxTop)
+        Column(modifier = Modifier.fillMaxWidth().padding(top = top), horizontalAlignment = Alignment.CenterHorizontally) {
             CoinBoxRow(selected, state.progress, state.paying, state.allowTwoCoins, onSwitch)
             Spacer(Modifier.height(4.dp))
             CoinCharacter(selected, state.canPaySelection, state.canPay, state.paying, state.progress, onPay)
@@ -318,13 +324,13 @@ private fun CoinBottomRow(
             modifier = Modifier.align(Alignment.CenterStart).padding(start = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            // 复用收藏夹 sheet 里的 Miuix 勾选样式；整体缩到 90%，和 13sp 文案更齐。
+            // 复用收藏夹 sheet 里的 Miuix 勾选样式；在现有 90% 基础上再缩 20%，和 13sp 文案更齐。
             Checkbox(
                 state = if (alsoLike) ToggleableState.On else ToggleableState.Off,
                 onClick = { if (!paying) onToggleLike() },
                 modifier = Modifier.graphicsLayer {
-                    scaleX = 0.9f
-                    scaleY = 0.9f
+                    scaleX = 0.72f
+                    scaleY = 0.72f
                 },
                 enabled = !paying,
             )

@@ -1,18 +1,14 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.feature.library.application.*
 import com.aritxonly.teak.common.chrome.TeakTopGlassButton
 import com.aritxonly.teak.common.chrome.teakGlassGlyphColor
@@ -20,10 +16,10 @@ import com.aritxonly.teak.common.navigation.TeakBatchAction
 import com.aritxonly.teak.common.navigation.TeakBatchActionBar
 import com.aritxonly.teak.common.navigation.TeakMorphMenuAnchor
 import com.aritxonly.teak.common.navigation.TeakMorphMenuState
+import top.yukonga.miuix.kmp.glass.GlassPopupItem
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.More
 import top.yukonga.miuix.kmp.icon.extended.Search
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 fun LibraryTopActions(menuState: TeakMorphMenuState) {
@@ -44,12 +40,14 @@ fun LibraryTopActions(menuState: TeakMorphMenuState) {
 fun LibraryMorphMenuContent(dismiss: (after: () -> Unit) -> Unit) {
     val LibraryPageBus = LocalPageChromeState.current
 
-    LibraryMenuRow("回到顶部") {
-        dismiss { LibraryPageBus.requestScrollTop() }
-    }
-    LibraryMenuRow("批量管理") {
-        dismiss { LibraryPageBus.requestBatch() }
-    }
+    GlassPopupItem(
+        text = "回到顶部",
+        onClick = { dismiss { LibraryPageBus.requestScrollTop() } },
+    )
+    GlassPopupItem(
+        text = "批量管理",
+        onClick = { dismiss { LibraryPageBus.requestBatch() } },
+    )
 }
 
 @Composable
@@ -116,17 +114,4 @@ internal fun LibraryThreeDotsGlyph() {
         tint = teakGlassGlyphColor(),
         modifier = Modifier.size(22.dp),
     )
-}
-
-@Composable
-internal fun LibraryMenuRow(label: String, onClick: () -> Unit) {
-    val colors = MiuixTheme.colorScheme
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-    ) {
-        Text(text = label, color = colors.onBackground, fontSize = 14.sp)
-    }
 }

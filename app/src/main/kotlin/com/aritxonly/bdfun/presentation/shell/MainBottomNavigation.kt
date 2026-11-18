@@ -63,8 +63,10 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainBottomNavigation(
                     .navigationBarsPadding(),
             )
         } else {
-            MainFloatingNavigation(settings, tabItems, selectedKey, onBarItem, visual, onBottomSearch)
+            MainFloatingNavigation(settings, tabItems, selectedKey, onBarItem, visual, onBottomSearch, onOpenVideo)
         }
-        if (visual.discSlot > 0.01f) MainNavigationDisc(settings, visual, onOpenVideo)
+        // HyperOS 4 窄屏把唱片叠进搜索键，不再额外占 bottom-end 的位置。
+        val discStackedInSearch = settings.interfaceStyle == 2 && !wideNavigation && !TeakUiStyle.isClassic
+        if (!discStackedInSearch && visual.discSlot > 0.01f) MainNavigationDisc(settings, visual, onOpenVideo)
     }
 }

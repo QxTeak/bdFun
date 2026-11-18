@@ -31,10 +31,22 @@ internal fun SpaceContentEffects(
         if (!snapshot.profile.settled && profile == null) return@LaunchedEffect
         val urls = (listOf(profile?.banner.orEmpty()) + profile?.bannerFallbacks.orEmpty() + DEFAULT_SPACE_BANNER)
             .filter { it.isNotBlank() }.distinct()
+        val imageCache = com.aritxonly.bdfun.ui.ProfileImageCache(context)
+        val mid = content.mid
+        // 上次落盘的头图先上屏；网络请求照常保留，成功后覆盖缓存。
+        if (banner.bitmap == null && mid > 0L) {
+            imageCache.loadBanner(mid)?.let { banner.bitmap = it }
+        }
         var bitmap: android.graphics.Bitmap? = null
         for (url in urls) {
+            val isDefault = com.aritxonly.bdfun.ui.isDefaultSpaceBanner(url)
+            // 已有缓存（多半是自己的头图）时不再拉默认图，避免先闪默认再换自定义。
+            if (isDefault && banner.bitmap != null) continue
             bitmap = loadSpaceBannerBitmap(context, url)
-            if (bitmap != null) break
+            if (bitmap != null) {
+                if (mid > 0L && !isDefault) imageCache.saveBanner(mid, bitmap)
+                break
+            }
         }
         banner.bitmap = bitmap ?: banner.bitmap
         if (bitmap != null && !bitmap.isRecycled) onBannerDarkChange(bitmapLuminance(bitmap) < 0.5f)

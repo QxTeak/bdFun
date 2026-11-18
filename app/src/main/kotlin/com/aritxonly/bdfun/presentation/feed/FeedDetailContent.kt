@@ -28,7 +28,7 @@ internal fun FeedDetailContent(dynamic: FeedItem, onBack: () -> Unit) {
                 title = "动态详情",
             ),
             disc = ActivityDiscOptions(
-                discLift = 74.dp,
+                discLift = com.aritxonly.bdfun.ui.BackgroundDiscDockLift,
                 discEndPadding = 0.dp,
             ),
             slots = ActivityPageSlots(

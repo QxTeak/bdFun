@@ -21,6 +21,7 @@ internal class SettingsStateHolder private constructor(private val groups: Setti
         fun create(prefs: SettingsPreferences, codec: SearchHistoryCodec, scope: CoroutineScope): SettingsStateHolder {
             migrateSettings0(prefs)
             migrateSettings1(prefs)
+            migrateSettings2(prefs)
             val values = SettingsValuesStateHolder()
             val floats = FloatSettingsWriter(prefs, scope)
             return SettingsStateHolder(SettingsGroups(

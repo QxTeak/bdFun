@@ -7,3 +7,13 @@ fun activeSponsorSegmentAt(segments: List<SponsorSegment>, positionMs: Long, dis
     segments.firstOrNull { segment ->
         segment.uuid !in dismissed && positionMs >= segment.startMs && positionMs < segment.endMs
     }
+
+/** 空降助手模式：0 关闭 / 1 提示 / 2 自动跳过；旧布尔配置迁移后只会落在 0 或 1。 */
+enum class SponsorSkipAction { Off, Prompt, Auto }
+
+fun sponsorSkipAction(mode: Int): SponsorSkipAction = when (mode) {
+    0 -> SponsorSkipAction.Off
+    2 -> SponsorSkipAction.Auto
+    else -> SponsorSkipAction.Prompt
+}
+

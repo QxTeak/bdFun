@@ -82,6 +82,12 @@ window.SETTINGS_CATALOG = [
             "inverted": true
           },
           {
+            "pref_name": "predictive_back",
+            "type": "switch",
+            "title": "预测性返回",
+            "default": false
+          },
+          {
             "pref_name": "feed_refresh_rate",
             "type": "dropdown",
             "title": "信息流帧率",
@@ -477,10 +483,25 @@ window.SETTINGS_CATALOG = [
         "title": "弹幕",
         "settings": [
           {
-            "pref_name": "sponsor_skip",
-            "type": "switch",
+            "pref_name": "sponsor_skip_mode",
+            "type": "dropdown",
             "title": "空降助手",
-            "default": true
+            "subtitle": "提示片段，或进入片段后自动跳到结尾",
+            "default": 1,
+            "options": [
+              {
+                "title": "关闭",
+                "value": 0
+              },
+              {
+                "title": "提示",
+                "value": 1
+              },
+              {
+                "title": "自动跳过",
+                "value": 2
+              }
+            ]
           },
           {
             "pref_name": "hot_danmaku",

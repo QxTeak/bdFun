@@ -28,6 +28,7 @@ import com.aritxonly.teak.common.interaction.blockTouches
 internal fun androidx.compose.foundation.layout.BoxScope.MainFloatingNavigation(
     settings: SettingsBindings, tabItems: List<TeakFloatingTabItem>, selectedKey: String,
     onBarItem: (TeakFloatingTabItem) -> Unit, visual: MainBottomNavigationVisual, onBottomSearch: () -> Unit,
+    onOpenVideo: (com.aritxonly.bdfun.core.model.video.VideoItem) -> Unit,
 ) {
 
     val wideFold = isWideFoldTopBar()
@@ -75,7 +76,9 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainFloatingNavigation(
             )
             if (hasSearch) {
                 androidx.compose.foundation.layout.Spacer(Modifier.width(TeakFloatingTabBarDefaults.DetachedSpacing))
-                MainBottomSearchButton(visual.tabBarAlpha, onBottomSearch)
+                // HyperOS 4：唱片叠在搜索键上。即使当前没有唱片也要保持同一个组件，
+                // 否则 discSlot 跨过阈值时会整块重建，进/出唱片都会硬切一下。
+                MainDockStack(settings, visual, onBottomSearch, onOpenVideo)
             }
         }
     }

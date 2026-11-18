@@ -3,11 +3,12 @@ package com.aritxonly.bdfun
 import com.aritxonly.bdfun.navigation.createRouteIntent
 import com.aritxonly.bdfun.ui.rememberImageRequest
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -15,9 +16,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -35,11 +43,38 @@ internal fun WideSpaceProfile(
 ) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
+    val imageCache = androidx.compose.runtime.remember(context) { com.aritxonly.bdfun.ui.ProfileImageCache(context) }
+    val cachedAvatar = androidx.compose.runtime.remember(mid) { imageCache.avatarFile(mid) }
+    val face = profile?.face.orEmpty()
+    val faceRequest = rememberImageRequest(face, crossfade = false)
+    var avatarModel by androidx.compose.runtime.remember(mid, face) {
+        androidx.compose.runtime.mutableStateOf<Any>(if (cachedAvatar.exists()) cachedAvatar else faceRequest)
+    }
+    androidx.compose.runtime.LaunchedEffect(mid, face) {
+        val loaded = com.aritxonly.bdfun.ui.loadProfileAvatarBitmap(context, face) ?: return@LaunchedEffect
+        if (mid > 0L) imageCache.saveAvatar(mid, loaded)
+        avatarModel = loaded
+    }
     Column(Modifier.fillMaxWidth().background(colors.background), horizontalAlignment = Alignment.CenterHorizontally) {
-        SpaceBanner(bitmap, aspect = 2.35f, alignmentY = profile?.bannerAlignmentY ?: 0f)
-        AsyncImage(model = rememberImageRequest(profile?.face.orEmpty()), contentDescription = "头像",
-            contentScale = ContentScale.Crop, modifier = Modifier.offset(y = (-32).dp).size(88.dp)
-                .clip(CircleShape).border(4.dp, colors.background, CircleShape))
+        SpaceBanner(bitmap, aspect = 2.35f)
+        // 描边画在外侧，头像缩到 80dp：外径仍是原来的 88dp。
+        Box(
+            modifier = Modifier
+                .offset(y = (-32).dp)
+                .size(88.dp)
+                .drawBehind {
+                    drawCircle(
+                        color = colors.background,
+                        radius = size.minDimension / 2f - 2.dp.toPx(),
+                        style = Stroke(width = 4.dp.toPx()),
+                    )
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            AsyncImage(model = avatarModel, contentDescription = "头像",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(80.dp).clip(CircleShape))
+        }
         Column(Modifier.fillMaxWidth().trimBottom(24.dp).padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text(profile?.name.orEmpty(), color = colors.primary, fontSize = 21.sp,

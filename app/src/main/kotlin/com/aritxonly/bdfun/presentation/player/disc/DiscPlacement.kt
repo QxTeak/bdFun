@@ -17,7 +17,7 @@ internal data class DiscPlacement(
 )
 
 @Composable
-internal fun rememberDiscPlacement(settings: SettingsBindings, tabCount: Int = 3): DiscPlacement {
+internal fun rememberDiscPlacement(settings: SettingsBindings, tabCount: Int = 3, stackedInSearch: Boolean = true): DiscPlacement {
     val windowWidthDp = LocalConfiguration.current.screenWidthDp.dp
     val classic = TeakUiStyle.isClassic
     val tabBarWidth = minOf(
@@ -29,9 +29,13 @@ internal fun rememberDiscPlacement(settings: SettingsBindings, tabCount: Int = 3
     val discGap = 8.dp
     val groupLeft = ((windowWidthDp - tabBarWidth - discGap - discWidth) / 2)
         .coerceAtLeast(0.dp)
-    if (TeakUiStyle.isHyperOs4) {
+    if (TeakUiStyle.isHyperOs4 && stackedInSearch) {
+        // 首页/主壳的唱片叠进搜索位，由 MainDockStack 自己定位，这里的值不参与绘制。
         return DiscPlacement(endPadding = 0.dp, bottomOffset = (-70).dp, size = discWidth)
     }
+    // 首页外的页面不再单独贴右下角：B 站布局和 HyperOS 4 都复用首页同一组几何。
+    // HyperOS 4 首页的底栏内容（Tab + 8dp 缝 + 52dp 搜索/唱片槽）与 B 站首页的
+    // 唱片 + 底栏在同一宽度约束下居中，所以两套布局算出的绝对位置本来就一致。
     val endPadding = if (classic) 8.dp else (groupLeft - 8.dp).coerceAtLeast(0.dp)
     val bottomOffset = if (classic) {
         8.dp

@@ -29,14 +29,13 @@ class SpaceInfoMapperTest {
         val result = map(p).profile
         assertTrue(result.vip); assertEquals("十年大会员", result.vipLabel); assertEquals(426L, result.chargingCount)
     }
-    @Test fun realBannerBranchesRetainCandidateOrderAndAlignment() {
+    @Test fun realBannerBranchesPreferAppDressingAndKeepFallbackOrder() {
         val p = payloads(); val profile = map(p).profile
-        assertEquals("https://i0.hdslb.com/bfs/garb/open/3fe5aa4c74e1d1bdfd09fe1e5aa451a0db9d685b.png", profile.banner)
+        // App 空间装扮图优先；网页版超宽 top_photo 排在后面兜底，避免通栏头图只显示一角。
+        assertEquals("https://i2.hdslb.com/bfs/space/dfb53c567f1c794cc68d89bdc11c060e3f157c54.jpg", profile.banner)
         assertEquals(listOf(
-            "https://i0.hdslb.com/bfs/space/6298c9dc83ddeca48968b384ad6f3dd1644f664e.jpg",
-            "https://i2.hdslb.com/bfs/space/dfb53c567f1c794cc68d89bdc11c060e3f157c54.jpg",
-            "https://i0.hdslb.com/bfs/space/dfb53c567f1c794cc68d89bdc11c060e3f157c54.jpg"), profile.bannerFallbacks)
-        assertEquals(-0.4208266f, profile.bannerAlignmentY, 0.000001f)
+            "https://i0.hdslb.com/bfs/space/dfb53c567f1c794cc68d89bdc11c060e3f157c54.jpg",
+            "https://i0.hdslb.com/bfs/space/6298c9dc83ddeca48968b384ad6f3dd1644f664e.jpg"), profile.bannerFallbacks)
     }
     @Test fun realAbsentMedalAndExperienceUseOriginalDefaults() {
         val p = map(payloads()).profile
