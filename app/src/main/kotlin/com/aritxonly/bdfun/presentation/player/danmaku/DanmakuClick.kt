@@ -33,7 +33,10 @@ internal fun BindDanmakuClick(view: DanmakuRenderView, hit: PlayerDanmakuHit): M
     val layout = remember(view, cid) { DanmakuClickLayout() }
     LaunchedEffect(cid, page.danmakuVotes) {
         hit.votes.value = emptyMap()
-        page.danmakuVotes?.collect { votes -> hit.votes.value = votes.filterKeys { it.first == cid }.mapKeys { it.key.second } }
+        page.danmakuVotes?.collect { votes ->
+            hit.votes.value = votes.filterKeys { it.first == cid }.mapKeys { it.key.second }
+            view.engine.invalidate()
+        }
     }
     DisposableEffect(view, hit, cid) {
         bindDanmakuVoteActions(page, hit, scope, view.context)

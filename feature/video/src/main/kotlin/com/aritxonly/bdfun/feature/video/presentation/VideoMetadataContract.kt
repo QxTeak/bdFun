@@ -7,7 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Dp
 
-data class VideoActionIcons(val like: (Boolean) -> Int, val dislike: Int, val coin: Int, val favorite: Int, val share: Int)
+data class VideoActionIcons(val like: Int, val dislike: Int, val coin: Int, val favorite: Int, val share: Int)
 data class VideoMetadataAppearance(val accentColor: Color, val icons: VideoActionIcons)
 
 /** 缓存键沿用原标题映射，保留原remember失效边界，注解与导航策略由app装配。 */

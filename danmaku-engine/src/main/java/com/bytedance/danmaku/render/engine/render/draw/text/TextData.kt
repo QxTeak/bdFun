@@ -16,6 +16,7 @@
 package com.bytedance.danmaku.render.engine.render.draw.text
 
 import android.graphics.Typeface
+import com.android.purebilibili.danmaku.engine.DanmakuTrailingAction
 import com.bytedance.danmaku.render.engine.control.DanmakuConfig
 import com.bytedance.danmaku.render.engine.data.DanmakuData
 import com.bytedance.danmaku.render.engine.utils.DRAW_TYPE_TEXT
@@ -40,5 +41,7 @@ open class TextData: DanmakuData() {
     var isUpOwner: Boolean = false
     /** 自己发送的弹幕：绘制半透明粉色底，保持 bdFun 原有观感。 */
     var isSelf: Boolean = false
+    internal var trailingAction: DanmakuTrailingAction? = null
+    internal var trailingActionId: Long = 0L
 
 }

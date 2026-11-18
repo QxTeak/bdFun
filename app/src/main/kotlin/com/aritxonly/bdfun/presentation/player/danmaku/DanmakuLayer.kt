@@ -41,7 +41,9 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
     }
     LaunchedEffect(hit, filtered) { hit.filteredSnapshot.value = filtered }
     DisposableEffect(hit) { onDispose { hit.filteredSnapshot.value = emptyList() } }
-    val window = rememberDanmakuEngineWindow(filtered)
+    val likeAction = rememberScrollingDanmakuLike(hit, page.cid)
+    PrefetchScrollingDanmakuVotes(filtered, page.cid, positionMs, hit)
+    val window = rememberDanmakuEngineWindow(filtered, likeAction)
     val config = danmakuEngineConfig(options.drawing, ui.viewSize, playbackSpeed)
     val masks = rememberDanmakuMasks(options.drawing.portraitGuard, ui.viewSize)
     val leadMs = hotDanmakuReservationLeadMs(

@@ -28,7 +28,9 @@ internal fun rememberFullscreenChromeAssembly(): FullscreenChromeAssembly {
                     contentScale = ContentScale.Crop, modifier = modifier)
             },
             danmakuSettings = { items ->
-                DanmakuSettingsContent(fullscreen = true, onInteract = {}, danmakuItems = items)
+                DanmakuSettingsContent(fullscreen = true, onInteract = {}, danmakuItems = items) {
+                    DanmakuCloudRulesEntry(onInteract = {})
+                }
             },
         )
     }

@@ -36,8 +36,6 @@ import com.aritxonly.teak.common.icons.LucideIcons
 import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
 
-private val HotDanmakuLikedTint = Color(0xFFFFC98D)
-
 data class HotDanmakuPresentation(val heightPx: Int = 0, val reservedTopPx: Int = 0)
 
 @Composable
@@ -89,9 +87,6 @@ internal fun BoxScope.PlayerHotDanmakuOverlay(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(item.text, color = Color.White, style = rowStyle, maxLines = 1, softWrap = false)
                         AnimatedDanmakuCount(votes[item.id]?.likes ?: item.likeCount, rowStyle, Modifier.width(countWidth))
-                        val liked = votes[item.id]?.liked == true
-                        HotAction(if (liked) "取消点赞" else "点赞弹幕", picture.hotDanmakuLikeIcon,
-                            if (liked) HotDanmakuLikedTint else Color.White, actionSize) { hit.like?.invoke(item.id) }
                         HotAction("发一条同款弹幕", LucideIcons.SendHorizontalFilled, Color.White, actionSize) { pending = item.text }
                     }
                 }
@@ -150,7 +145,7 @@ private class HotDanmakuMeasurement(
         val text = measurer.measure(item.text, rowStyle).size
         val countWidth = (count.width * 1.15f).toDp()
         val actionSize = HotDanmakuActionSize(rowStyle.fontSize.toDp())
-        val actionsWidth = (actionSize.target * 2 + 2.dp).toPx()
+        val actionsWidth = actionSize.target.toPx()
         HotDanmakuRowMeasurement(item, countWidth, rowStyle, actionSize, text.width + countWidth.toPx() + actionsWidth,
             maxOf(text.height, count.height, actionSize.target.roundToPx()))
     }

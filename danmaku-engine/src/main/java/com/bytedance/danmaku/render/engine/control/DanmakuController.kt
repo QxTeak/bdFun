@@ -15,6 +15,8 @@
  */
 package com.bytedance.danmaku.render.engine.control
 
+import com.android.purebilibili.danmaku.engine.DanmakuTrailingAction
+import com.bytedance.danmaku.render.engine.render.draw.text.TextData
 import android.graphics.Canvas
 import android.os.SystemClock
 import android.view.MotionEvent
@@ -310,6 +312,7 @@ class DanmakuController(private var mDanmakuView: View): ConfigChangeListener, I
     fun captureDanmakuClick(x: Float, y: Float): Pair<() -> Unit, () -> Unit>? {
         val listener = itemClickListener ?: return null
         var click: (() -> Unit)? = null
+        var trailingClick: (() -> Unit)? = null
         var capturedData: com.bytedance.danmaku.render.engine.data.DanmakuData? = null
         itemClickListener = object : IItemClickListener {
             override fun onDanmakuClick(
@@ -317,6 +320,14 @@ class DanmakuController(private var mDanmakuView: View): ConfigChangeListener, I
                 itemRect: android.graphics.RectF,
                 clickPoint: android.graphics.PointF
             ) {
+                val text = data as? TextData
+                val trailing = text?.trailingAction
+                if (text != null && trailing != null &&
+                    DanmakuTrailingAction.contains(itemRect, clickPoint.x, clickPoint.y)
+                ) {
+                    trailingClick = { if (data.isVisible) trailing.onClick(text.trailingActionId) }
+                    return
+                }
                 // Renderer reuses these geometry objects between frames.
                 val rect = android.graphics.RectF(itemRect)
                 val point = android.graphics.PointF(clickPoint.x, clickPoint.y)
@@ -330,6 +341,7 @@ class DanmakuController(private var mDanmakuView: View): ConfigChangeListener, I
             val target = mRenderEngine.findTouchTarget(event) ?: return null
             event.action = MotionEvent.ACTION_UP
             target.onTouchEvent(event)
+            trailingClick?.let { return it to {} }
             val action = click ?: return null
             val data = capturedData ?: return null
             executeCommand(com.bytedance.danmaku.render.engine.utils.CMD_PAUSE_ITEM, data = data)

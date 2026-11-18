@@ -50,6 +50,10 @@ class HotDanmakuTimeline(items: List<DanmakuItem>) {
 private fun isHotDanmakuCandidate(item: DanmakuItem): Boolean =
     item.id > 0L && item.text.isNotBlank() && item.likeCount >= 10L
 
+/** 固定弹幕保留原展示，高赞按钮只跟随正向和反向滚动弹幕。 */
+fun isHighLikeScrollingDanmaku(item: DanmakuItem): Boolean =
+    (item.mode in 1..3 || item.mode == 6) && isHotDanmakuCandidate(item)
+
 private fun rankedHotDanmaku(items: Sequence<DanmakuItem>, maxItems: Int) = items
     .filter(::isHotDanmakuCandidate)
     .sortedWith(compareByDescending<DanmakuItem> { it.likeCount }.thenBy { it.id })

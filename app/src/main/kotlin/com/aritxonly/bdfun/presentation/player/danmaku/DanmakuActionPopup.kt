@@ -45,7 +45,7 @@ import kotlin.math.roundToInt
 @Composable
 internal fun DanmakuActionPopup(
     position: Offset, liked: Boolean, count: Long, item: DanmakuItem, onDismiss: () -> Unit,
-    onLike: () -> Unit, onCopy: () -> Unit, onReport: (() -> Unit)?, onMore: (PoolAction) -> Unit,
+    onLike: () -> Unit, onCopy: () -> Unit, onReport: (() -> Unit)?, onMore: (DanmakuMenuAction) -> Unit,
 ) {
     val positioner = remember(position) { DanmakuPopupPosition(position) }
     val likeLabel = if (liked) "取消点赞" else "点赞弹幕"
@@ -100,16 +100,16 @@ private fun DanmakuCapsuleButton(
 
 @Composable
 private fun DanmakuMoreDropdown(
-    item: DanmakuItem, visible: Boolean, anchor: Rect?, onDismiss: () -> Unit, onSelect: (PoolAction) -> Unit,
+    item: DanmakuItem, visible: Boolean, anchor: Rect?, onDismiss: () -> Unit, onSelect: (DanmakuMenuAction) -> Unit,
 ) {
     if (!visible || anchor == null) return
     val actions = remember(item) {
         buildList {
-            add(PoolAction.Seek)
-            if (danmakuTimestampMs(item.text, Long.MAX_VALUE) != null) add(PoolAction.Timestamp)
-            add(PoolAction.FollowSend)
-            if (item.self) add(PoolAction.Recall)
-            else if (item.userHash.isNotBlank()) add(PoolAction.Block)
+            add(DanmakuMenuAction.Seek)
+            if (danmakuTimestampMs(item.text, Long.MAX_VALUE) != null) add(DanmakuMenuAction.Timestamp)
+            add(DanmakuMenuAction.FollowSend)
+            if (item.self) add(DanmakuMenuAction.Recall)
+            else if (item.userHash.isNotBlank()) add(DanmakuMenuAction.Block)
         }
     }
     val gapPx = with(androidx.compose.ui.platform.LocalDensity.current) { 4.dp.roundToPx() }
@@ -119,18 +119,17 @@ private fun DanmakuMoreDropdown(
             .width(IntrinsicSize.Max).danmakuPopupSurface(RoundedCornerShape(13.dp)).padding(vertical = 3.dp)) {
             actions.forEach { action ->
                 val icon = when (action) {
-                    PoolAction.Seek -> MiuixIcons.Play
-                    PoolAction.Timestamp -> MiuixIcons.Link
-                    PoolAction.Recall -> MiuixIcons.Undo
-                    PoolAction.Block -> MiuixIcons.Blocklist
-                    PoolAction.FollowSend -> MiuixIcons.Send
-                    else -> null
+                    DanmakuMenuAction.Seek -> MiuixIcons.Play
+                    DanmakuMenuAction.Timestamp -> MiuixIcons.Link
+                    DanmakuMenuAction.Recall -> MiuixIcons.Undo
+                    DanmakuMenuAction.Block -> MiuixIcons.Blocklist
+                    DanmakuMenuAction.FollowSend -> MiuixIcons.Send
                 }
                 Row(Modifier.fillMaxWidth().heightIn(min = 30.dp)
                     .clickable(role = Role.Button) { onDismiss(); onSelect(action) }
                     .padding(horizontal = 10.dp, vertical = 4.dp),
                     horizontalArrangement = Arrangement.spacedBy(7.dp), verticalAlignment = Alignment.CenterVertically) {
-                    if (icon != null) AppGlyph(icon, Color.White, size = 14.dp)
+                    AppGlyph(icon, Color.White, size = 14.dp)
                     Text(action.title, color = Color.White, fontSize = 12.sp)
                 }
             }

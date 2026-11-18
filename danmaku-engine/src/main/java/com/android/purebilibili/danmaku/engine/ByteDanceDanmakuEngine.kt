@@ -322,6 +322,8 @@ internal class ByteDanceDanmakuEngine(
         } else {
             EngineTextData(item, visibility).apply {
                 text = item.text
+                trailingAction = item.trailingAction
+                trailingActionId = item.danmakuId
                 textSize = item.textSize ?: item.textSizeScale
                     .takeUnless { it == 1f }
                     ?.let { scale -> currentConfig.textSizePx * scale }

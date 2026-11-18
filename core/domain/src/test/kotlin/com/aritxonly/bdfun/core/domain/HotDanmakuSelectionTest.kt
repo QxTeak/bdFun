@@ -8,6 +8,13 @@ class HotDanmakuSelectionTest {
     private fun item(id: Long, text: String, likes: Long, time: Long = 20_000L) =
         DanmakuItem(time, 1, 0xFFFFFF, 25f, text, id, likes, count = 999)
 
+    @Test fun inlineLikeRequiresTenLikesAndOnlyAppliesToScrollingItems() {
+        val high = item(1, "高赞", 10)
+        assertEquals(listOf(1, 2, 3, 6), (1..9).filter { isHighLikeScrollingDanmaku(high.copy(mode = it)) })
+        assertEquals(false, isHighLikeScrollingDanmaku(high.copy(likeCount = 9)))
+        assertEquals(false, isHighLikeScrollingDanmaku(high.copy(id = 0)))
+    }
+
     @Test fun reservesBeforeAppearanceAndReopensAfterTheLastEntryExpires() {
         val first = item(1, "first", 30, 20_000L)
         val second = item(2, "second", 40, 60_000L)

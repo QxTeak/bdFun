@@ -1,7 +1,6 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.BrandPink
@@ -29,7 +28,6 @@ internal fun rememberPlayerRenderPorts(
             settings.hotDanmakuEnabled,
             BrandPink,
             settings.danmakuStroke,
-            hotDanmakuLikeIcon = TeakIcon.like(true),
             hotDanmakuTextScale = if (presentation.fullscreen) settings.danmakuScaleFullscreen else settings.danmakuScaleInline,
             danmakuOpacity = settings.danmakuOpacity,
         ),
@@ -52,8 +50,7 @@ internal fun rememberPlayerRenderPorts(
                 DanmakuCommandOverlay(playback, page.aid, presentation.fullscreenInfo.currentCid,
                     actions.interaction, presentation.fullscreenInfo.liked)
             }
-            val controlsVisible by ui.controlsVisible
-            DanmakuManagementOverlay(media.danmaku, playback, presentation.fullscreenInfo.currentCid, controlsVisible)
+            DanmakuSelectionActions(playback, presentation.fullscreenInfo.currentCid)
         },
         inlineMore = { PlayerInlineMore(playback, media, presentation, actions, fsActions, ui) },
     )

@@ -6,7 +6,8 @@ import com.aritxonly.bdfun.core.common.formatDateTime
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
+import com.aritxonly.teak.common.icons.AppGlyph
+import com.aritxonly.teak.common.icons.LucideIcons
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -63,7 +64,7 @@ internal fun VideoMetadataStatistics(content: VideoMetadataContent, slots: Video
         }
         if (onlineCount > 0 || onlineText.isNotBlank()) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                PersonGlyph(color = colors.onBackgroundVariant, size = 12.dp)
+                AppGlyph(LucideIcons.Users, colors.onBackgroundVariant, size = 12.dp)
                 Spacer(Modifier.width(3.dp))
                 Text("${onlineText.ifBlank { formatCount(onlineCount) }} 人",
                     color = colors.onBackgroundVariant, fontSize = 12.sp, maxLines = 1)

@@ -23,7 +23,9 @@ internal class DanmakuPanelRuntime(
 
 @Composable
 fun DanmakuSettingsContent(fullscreen: Boolean, onInteract: () -> Unit,
-    danmakuItems: List<DanmakuItem> = emptyList(), modifier: Modifier = Modifier, liveMode: Boolean = false) {
+    danmakuItems: List<DanmakuItem> = emptyList(), modifier: Modifier = Modifier, liveMode: Boolean = false,
+    videoTools: @Composable () -> Unit = {},
+) {
     val settings = LocalSettingsBindings.current
     val controller = remember(settings) { DanmakuPanelStateHolder(settings.repository.danmaku) }
     val ui by controller.state.collectAsState()
@@ -34,6 +36,7 @@ fun DanmakuSettingsContent(fullscreen: Boolean, onInteract: () -> Unit,
         DanmakuPanelFilters(runtime)
         Spacer(Modifier.height(8.dp))
         DanmakuPanelTools(runtime)
+        videoTools()
         Spacer(Modifier.height(8.dp))
         DanmakuPanelReset(runtime)
         Spacer(Modifier.height(4.dp))
