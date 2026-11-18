@@ -116,7 +116,7 @@ private fun DanmakuMoreDropdown(
     val positioner = remember(anchor, gapPx) { DanmakuDropdownPosition(anchor, gapPx) }
     Popup(positioner, onDismissRequest = onDismiss, properties = PopupProperties(focusable = true)) {
         Column(Modifier.widthIn(min = 110.dp, max = 180.dp)
-            .width(IntrinsicSize.Max).danmakuPopupSurface(RoundedCornerShape(11.dp)).padding(vertical = 3.dp)) {
+            .width(IntrinsicSize.Max).danmakuPopupSurface(RoundedCornerShape(13.dp)).padding(vertical = 3.dp)) {
             actions.forEach { action ->
                 val icon = when (action) {
                     PoolAction.Seek -> MiuixIcons.Play

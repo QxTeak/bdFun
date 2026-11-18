@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
@@ -35,6 +36,8 @@ import com.aritxonly.teak.common.icons.LucideIcons
 import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
 
+private val HotDanmakuLikedTint = Color(0xFFFFC98D)
+
 data class HotDanmakuPresentation(val heightPx: Int = 0, val reservedTopPx: Int = 0)
 
 @Composable
@@ -44,9 +47,13 @@ internal fun BoxScope.PlayerHotDanmakuOverlay(
     val hit = ui.danmakuHit
     if (!picture.hotDanmakuEnabled || !danmakuVisible || ui.fsAudioOnly.value) return
     val votes by hit.votes.collectAsState()
-    val textStyle = hotStyle(DANMAKU_TEXT_SIZE_SP * picture.hotDanmakuTextScale)
-    val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
+    val strokePx = with(density) { picture.hotDanmakuStrokeDp.dp.toPx() }
+    val textStyle = hotStyle(DANMAKU_TEXT_SIZE_SP * picture.hotDanmakuTextScale * 1.1f, strokePx)
+    val baseOpacity = picture.danmakuOpacity.coerceIn(0f, 1f)
+    // 中间档位略提高不透明度，同时保留全透明与全不透明的端点。
+    val opacity = baseOpacity + (1f - baseOpacity) * (baseOpacity * 0.2f)
+    val measurer = rememberTextMeasurer()
     val scope = rememberCoroutineScope()
     var pending by remember(hit.sendSame) { mutableStateOf<String?>(null) }
     var sending by remember { mutableStateOf(false) }
@@ -73,18 +80,19 @@ internal fun BoxScope.PlayerHotDanmakuOverlay(
         }
         LaunchedEffect(ids, hit.loadVotes) { if (ids.isNotEmpty()) hit.loadVotes?.invoke(ids) }
         if (widths.isNotEmpty()) Row(
-            Modifier.fillMaxWidth().onSizeChanged { height = it.height }.padding(top = topPadding),
+            Modifier.fillMaxWidth().onSizeChanged { height = it.height }.padding(top = topPadding)
+                .graphicsLayer { alpha = opacity },
             horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically,
         ) {
-            widths.forEach { (item, countWidth, rowStyle) ->
+            widths.forEach { (item, countWidth, rowStyle, actionSize) ->
                 key(item.id) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(item.text, color = Color.White, style = rowStyle, maxLines = 1, softWrap = false)
                         AnimatedDanmakuCount(votes[item.id]?.likes ?: item.likeCount, rowStyle, Modifier.width(countWidth))
                         val liked = votes[item.id]?.liked == true
-                        HotAction(if (liked) "取消点赞" else "点赞弹幕", picture.danmakuLikeIcon(liked),
-                            if (liked) picture.accentColor else Color.White) { hit.like?.invoke(item.id) }
-                        HotAction("发一条同款弹幕", LucideIcons.SendHorizontalFilled, Color.White) { pending = item.text }
+                        HotAction(if (liked) "取消点赞" else "点赞弹幕", picture.hotDanmakuLikeIcon,
+                            if (liked) HotDanmakuLikedTint else Color.White, actionSize) { hit.like?.invoke(item.id) }
+                        HotAction("发一条同款弹幕", LucideIcons.SendHorizontalFilled, Color.White, actionSize) { pending = item.text }
                     }
                 }
             }
@@ -106,8 +114,13 @@ internal fun BoxScope.PlayerHotDanmakuOverlay(
 }
 
 private data class HotDanmakuRowMeasurement(
-    val item: DanmakuItem, val countWidth: Dp, val textStyle: TextStyle, val widthPx: Float, val heightPx: Int,
+    val item: DanmakuItem, val countWidth: Dp, val textStyle: TextStyle,
+    val actionSize: HotDanmakuActionSize, val widthPx: Float, val heightPx: Int,
 )
+
+private data class HotDanmakuActionSize(val glyph: Dp) {
+    val target: Dp = maxOf(24.dp, glyph + 4.dp)
+}
 
 private data class HotDanmakuMeasurements(
     val visible: List<HotDanmakuRowMeasurement>, val reservedContentHeightPx: Int,
@@ -136,8 +149,10 @@ private class HotDanmakuMeasurement(
         val count = measurer.measure("×${vote?.likes ?: item.likeCount}", rowStyle).size
         val text = measurer.measure(item.text, rowStyle).size
         val countWidth = (count.width * 1.15f).toDp()
-        HotDanmakuRowMeasurement(item, countWidth, rowStyle, text.width + countWidth.toPx() + 50.dp.toPx(),
-            maxOf(text.height, count.height, 24.dp.roundToPx()))
+        val actionSize = HotDanmakuActionSize(rowStyle.fontSize.toDp())
+        val actionsWidth = (actionSize.target * 2 + 2.dp).toPx()
+        HotDanmakuRowMeasurement(item, countWidth, rowStyle, actionSize, text.width + countWidth.toPx() + actionsWidth,
+            maxOf(text.height, count.height, actionSize.target.roundToPx()))
     }
 }
 
@@ -153,15 +168,15 @@ internal fun AnimatedDanmakuCount(count: Long, style: TextStyle, modifier: Modif
 const val DANMAKU_TEXT_SIZE_SP = 12f
 fun danmakuItemTextScale(size: Float): Float = size.coerceIn(0.75f, 1.25f)
 
-private fun hotStyle(size: Float) = TextStyle(
-    fontSize = size.sp, fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Medium,
-    shadow = Shadow(Color.Black, Offset(1f, 1f), 3f),
+private fun hotStyle(size: Float, strokePx: Float) = TextStyle(
+    fontSize = size.sp, fontFamily = FontFamily.SansSerif, fontWeight = FontWeight.Bold,
+    shadow = if (strokePx > 0f) Shadow(Color.Black.copy(alpha = 0.9f), Offset.Zero, strokePx) else null,
 )
 
 @Composable
-private fun HotAction(label: String, icon: Int, tint: Color, action: () -> Unit) {
-    Box(Modifier.size(24.dp).semantics { contentDescription = label }.clickable(role = Role.Button, onClick = action),
+private fun HotAction(label: String, icon: Int, tint: Color, size: HotDanmakuActionSize, action: () -> Unit) {
+    Box(Modifier.size(size.target).semantics { contentDescription = label }.clickable(role = Role.Button, onClick = action),
         contentAlignment = Alignment.Center) {
-        AppGlyph(icon, tint, size = 18.dp)
+        AppGlyph(icon, tint, size = size.glyph)
     }
 }
