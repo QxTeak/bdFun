@@ -2,21 +2,16 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.rememberCoroutineScope
-import kotlinx.coroutines.launch
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.SideEffect
+import com.aritxonly.bdfun.core.domain.hotDanmakuReservationLeadMs
 import com.aritxonly.bdfun.core.domain.DanmakuRuleMatcher
 import com.aritxonly.bdfun.feature.video.application.DanmakuModerationState
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.android.purebilibili.danmaku.engine.DanmakuRenderView
 import com.aritxonly.bdfun.core.model.video.DanmakuItem as BiliDanmakuItem
@@ -49,18 +44,15 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
     val window = rememberDanmakuEngineWindow(filtered)
     val config = danmakuEngineConfig(options.drawing, ui.viewSize, playbackSpeed)
     val masks = rememberDanmakuMasks(options.drawing.portraitGuard, ui.viewSize)
-    val reservedTopPx = hotPresentation.heightPx.toFloat()
-    LaunchedEffect(renderView, hotPresentation.items, filtered) {
-        val ids = hotPresentation.items.mapTo(mutableSetOf()) { it.id }
-        val texts = hotPresentation.items.flatMapTo(mutableSetOf()) {
-            listOf(it.text, if (it.count > 1) "${it.text} x${it.count}" else it.text)
-        }
-        renderView.engine.setHiddenDanmaku(ids, texts)
-    }
+    val leadMs = hotDanmakuReservationLeadMs(
+        if (options.filters.blockScroll) 0 else config.scrollDurationMs,
+        if (options.filters.blockFixed) 0 else config.pinnedDurationMs,
+        playbackSpeed,
+    )
+    SideEffect { hit.hotReservationLeadMs.longValue = leadMs }
     AndroidView(factory = { renderView }, modifier = modifier.then(clickCoordinates)
-        .onSizeChanged { ui.viewSize = it }
-        .drawWithContent { clipRect(top = reservedTopPx.coerceAtMost(size.height)) { this@drawWithContent.drawContent() } },
+        .onSizeChanged { ui.viewSize = it },
         update = { view -> view.alpha = options.drawing.opacity.coerceIn(0f, 1f) })
     BindDanmakuEngineEffects(renderView, window, masks, config, playing, positionMs, options.drawing.lowRefresh,
-        reservedTopPx)
+        hotPresentation.reservedTopPx.toFloat())
 }

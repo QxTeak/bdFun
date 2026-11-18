@@ -58,6 +58,6 @@ class VideoPlayerUiStateHolder(initialSpeed: Float, initialAutoPlayNext: Boolean
     val playerViewRef = mutableStateOf<VideoOutput?>(null)
     val mediaSession = mutableStateOf<ForegroundMediaSession?>(null)
     val lastFullscreenForControls = mutableStateOf(initialFullscreen)
-    val hotDanmaku = mutableStateOf<List<com.aritxonly.bdfun.core.model.video.DanmakuItem>>(emptyList())
+    val hotDanmaku = mutableStateOf(com.aritxonly.bdfun.core.domain.HotDanmakuWindow())
     val inlineOrientation = mutableIntStateOf(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED)
 }

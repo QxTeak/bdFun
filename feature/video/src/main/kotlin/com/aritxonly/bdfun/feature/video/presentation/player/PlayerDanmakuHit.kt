@@ -7,6 +7,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 class PlayerDanmakuHit {
     val votes = kotlinx.coroutines.flow.MutableStateFlow<Map<Long, com.aritxonly.bdfun.core.domain.DanmakuVote>>(emptyMap())
     val filteredSnapshot = androidx.compose.runtime.mutableStateOf<List<com.aritxonly.bdfun.core.model.video.DanmakuItem>>(emptyList())
+    val hotReservationLeadMs = androidx.compose.runtime.mutableLongStateOf(0L)
     val hotPresentation = androidx.compose.runtime.mutableStateOf(HotDanmakuPresentation())
     var loadVotes: (suspend (List<Long>) -> Unit)? = null
     var sendSame: (suspend (String) -> Boolean)? = null

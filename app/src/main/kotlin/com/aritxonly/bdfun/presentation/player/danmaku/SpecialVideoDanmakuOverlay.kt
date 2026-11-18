@@ -88,7 +88,7 @@ internal fun SpecialVideoDanmakuOverlay(
         val canvas = drawContext.canvas.nativeCanvas
         val clip = ui.danmakuHit.hotPresentation.value.heightPx.toFloat().coerceAtMost(size.height)
         canvas.save()
-        canvas.clipRect(0f, clip, size.width, size.height)
+        canvas.clipRect(0f, 0f, size.width, size.height)
         drawAdvancedDanmaku(canvas, advancedWindow.update(now), now, paint, size.width, size.height, opacity)
         taps.clipTop = clip
         for (scene in taps.active) {

@@ -18,12 +18,16 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.bdfun.core.domain.DanmakuVote
 import com.aritxonly.bdfun.core.domain.fittingHotDanmakuIndices
 import com.aritxonly.bdfun.core.model.video.DanmakuItem
 import com.aritxonly.teak.common.icons.AppGlyph
@@ -31,14 +35,14 @@ import com.aritxonly.teak.common.icons.LucideIcons
 import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
 
-data class HotDanmakuPresentation(val items: List<DanmakuItem> = emptyList(), val heightPx: Int = 0)
+data class HotDanmakuPresentation(val heightPx: Int = 0, val reservedTopPx: Int = 0)
 
 @Composable
 internal fun BoxScope.PlayerHotDanmakuOverlay(
     ui: VideoPlayerUiStateHolder, fullscreen: Boolean, picture: VideoPictureSettings, danmakuVisible: Boolean,
 ) {
     val hit = ui.danmakuHit
-    if (!picture.hotDanmakuEnabled || !danmakuVisible || ui.fsAudioOnly.value || ui.hotDanmaku.value.isEmpty()) return
+    if (!picture.hotDanmakuEnabled || !danmakuVisible || ui.fsAudioOnly.value) return
     val votes by hit.votes.collectAsState()
     val textStyle = hotStyle(16f * picture.hotDanmakuTextScale)
     val countStyle = hotStyle(20f * picture.hotDanmakuTextScale).copy(fontWeight = FontWeight.Bold, fontStyle = FontStyle.Italic)
@@ -49,25 +53,28 @@ internal fun BoxScope.PlayerHotDanmakuOverlay(
     var sending by remember { mutableStateOf(false) }
     DisposableEffect(hit) { onDispose { hit.hotPresentation.value = HotDanmakuPresentation() } }
     BoxWithConstraints(Modifier.align(Alignment.TopCenter).fillMaxWidth()) {
-        val items = ui.hotDanmaku.value
-        val widths = remember(items, votes, maxWidth, measurer, density, textStyle, countStyle) {
-            with(density) {
-                val measured = items.map { item ->
-                    val count = votes[item.id]?.likes ?: item.likeCount
-                    val countWidth = (measurer.measure("×$count", countStyle).size.width * 1.15f).toDp()
-                    val textWidth = measurer.measure(item.text, textStyle).size.width
-                    Triple(item, countWidth, textWidth + countWidth.toPx() + 50.dp.toPx())
-                }
-                fittingHotDanmakuIndices(measured.map { it.third }, maxWidth.toPx(), 4.dp.toPx()).map { measured[it] }
-            }
+        val window by ui.hotDanmaku
+        val topPadding = if (fullscreen) 10.dp else 4.dp
+        val measurements = remember(window, votes, maxWidth, measurer, density, textStyle, countStyle) {
+            HotDanmakuMeasurement(measurer, density, textStyle, countStyle, maxWidth)
+                .measure(window.visible, window.upcoming, votes)
         }
-        val visible = remember(widths) { widths.map { it.first } }
-        val ids = remember(visible) { visible.map { it.id } }
+        val widths = measurements.visible
+        val ids = remember(widths) { widths.map { it.item.id } }
         var height by remember { mutableIntStateOf(0) }
-        SideEffect { hit.hotPresentation.value = HotDanmakuPresentation(visible, if (visible.isEmpty()) 0 else height) }
+        SideEffect {
+            val visibleHeight = if (widths.isEmpty()) 0 else height
+            val measuredReserve = measurements.reservedContentHeightPx.takeIf { it > 0 }?.let {
+                it + with(density) { topPadding.roundToPx() }
+            } ?: 0
+            hit.hotPresentation.value = HotDanmakuPresentation(
+                heightPx = visibleHeight,
+                reservedTopPx = maxOf(visibleHeight, measuredReserve),
+            )
+        }
         LaunchedEffect(ids, hit.loadVotes) { if (ids.isNotEmpty()) hit.loadVotes?.invoke(ids) }
-        if (visible.isNotEmpty()) Row(
-            Modifier.fillMaxWidth().onSizeChanged { height = it.height }.padding(top = if (fullscreen) 10.dp else 4.dp),
+        if (widths.isNotEmpty()) Row(
+            Modifier.fillMaxWidth().onSizeChanged { height = it.height }.padding(top = topPadding),
             horizontalArrangement = Arrangement.SpaceEvenly, verticalAlignment = Alignment.CenterVertically,
         ) {
             widths.forEach { (item, countWidth) ->
@@ -96,6 +103,41 @@ internal fun BoxScope.PlayerHotDanmakuOverlay(
                     }
                 }) { Text("发送") }
             }, dismissButton = { TextButton(enabled = !sending, onClick = { pending = null }) { Text("取消") } })
+    }
+}
+
+private data class HotDanmakuRowMeasurement(
+    val item: DanmakuItem, val countWidth: Dp, val widthPx: Float, val heightPx: Int,
+)
+
+private data class HotDanmakuMeasurements(
+    val visible: List<HotDanmakuRowMeasurement>, val reservedContentHeightPx: Int,
+)
+
+private class HotDanmakuMeasurement(
+    private val measurer: TextMeasurer, private val density: Density,
+    private val textStyle: TextStyle, private val countStyle: TextStyle, private val maxWidth: Dp,
+) {
+    fun measure(
+        visible: List<DanmakuItem>, upcoming: List<DanmakuItem>, votes: Map<Long, DanmakuVote>,
+    ): HotDanmakuMeasurements = with(density) {
+        val rows = visible.map { measureItem(it, votes[it.id]) }
+        val indices = fittingHotDanmakuIndices(rows.map { it.widthPx }, maxWidth.toPx(), 4.dp.toPx())
+        val usableWidth = maxWidth.toPx() - 2 * 4.dp.toPx()
+        // 将要显示的条目也按完整宽度判断，放不下的长文不应空占轨道。
+        val futureHeight = upcoming.maxOfOrNull { item ->
+            val row = measureItem(item, votes[item.id])
+            if (row.widthPx <= usableWidth) row.heightPx else 0
+        } ?: 0
+        HotDanmakuMeasurements(indices.map { rows[it] }, maxOf(futureHeight, indices.maxOfOrNull { rows[it].heightPx } ?: 0))
+    }
+
+    private fun measureItem(item: DanmakuItem, vote: DanmakuVote?): HotDanmakuRowMeasurement = with(density) {
+        val count = measurer.measure("×${vote?.likes ?: item.likeCount}", countStyle).size
+        val text = measurer.measure(item.text, textStyle).size
+        val countWidth = (count.width * 1.15f).toDp()
+        HotDanmakuRowMeasurement(item, countWidth, text.width + countWidth.toPx() + 50.dp.toPx(),
+            maxOf(text.height, count.height, 24.dp.roundToPx()))
     }
 }
 

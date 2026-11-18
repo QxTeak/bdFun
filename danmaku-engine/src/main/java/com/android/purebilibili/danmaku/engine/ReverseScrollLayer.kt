@@ -31,6 +31,11 @@ internal class ReverseScrollLayer : IRenderLayer, ITouchDelegate, ConfigChangeLi
     private val preDrawItems = ArrayList<DrawItem<DanmakuData>>()
     private var width = 0
     private var height = 0
+    private var reservedTopPx = 0f
+
+    override fun setReservedTop(heightPx: Float) {
+        reservedTopPx = heightPx.coerceAtLeast(0f)
+    }
 
     override fun init(controller: DanmakuController, cachePool: IDrawCachePool) {
         this.controller = controller
@@ -70,7 +75,7 @@ internal class ReverseScrollLayer : IRenderLayer, ITouchDelegate, ConfigChangeLi
         buffer.forEach { item ->
             // 还停在顶部让位区域里的旧行不接收新弹幕。
             val accepted = lines.any { line ->
-                line.y + 0.5f >= config.scroll.marginTop && line.addItem(playTime, item)
+                line.y + 0.5f >= maxOf(config.scroll.marginTop, reservedTopPx) && line.addItem(playTime, item)
             }
             if (accepted) {
                 controller.notifyEvent(Events.obtainEvent(EVENT_DANMAKU_SHOW, item.data))

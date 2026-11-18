@@ -3,7 +3,7 @@
 对照源码：BiliPai [7a8cebf](https://github.com/jay3-yy/BiliPai/tree/7a8cebf95fad712e60184e855575161599d591db) 的 `HotDanmakuBar`、`HotDanmakuPolicy`、`DanmakuManager`、`DanmakuRepository`、`DanmakuActionToolbar`，以及 Hyper-PiliPlus [0d08dd2](https://github.com/AritxOnly/Hyper-PiliPlus/tree/0d08dd25bdeaa9a55e5a0e333154b681fd8048fe) 的 `header_control.dart`、`danmaku.dart`。
 
 - 高赞候选使用过滤后的弹幕。最近 15 秒、分段点赞数至少 10 是候选规则。按文字、计数和两个按钮的实际宽度选择最多三条完整内容。整行仍容不下的条目跳过。
-- 浮层高度来自实际布局。渲染器保留原轨道和时钟，入场时给高赞栏留位，已在重叠区的弹幕在绘制时裁掉，高赞栏已展示的条目按 ID 和正文去重。
+- 高赞栏保持透明。播放器按当前的弹幕行程、固定弹幕停留时间和播放倍速预判未来的高赞栏，只有能完整放下的条目才提前为新弹幕预留顶部轨道。计数条出现和消失时，已有弹幕保持原轨道、照常走完，允许短暂重叠。
 - 热门栏和普通弹幕操作共享统计。分段 `like` 用于候选排序及缺失数据时的显示。统计接口 `likes` 是总点赞数，`user_like` 是账号是否点赞。分段 `count` 仍表示服务端合并重复数。更新后重读统计，失败回滚，已有赞和已取消按上游返回码纠正。
 - 高赞栏可直接切换点赞或确认跟发。普通弹幕选中后固定，点赞时浮层保持打开并更新计数，复制、举报和释放策略沿用播放器入口。
 
