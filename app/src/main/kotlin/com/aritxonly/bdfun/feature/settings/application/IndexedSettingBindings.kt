@@ -26,6 +26,8 @@ private fun appearanceBindings(repository: SettingsRepository) = mapOf(
         { repository.appearance.feedRefreshRate = (it as SettingValue.Number).value }),
     "animations_enabled" to IndexedSettingBinding({ SettingValue.Flag(repository.appearance.animationsEnabled) },
         { repository.appearance.animationsEnabled = (it as SettingValue.Flag).value }),
+    "tab_click_refresh" to IndexedSettingBinding({ SettingValue.Flag(repository.appearance.tabClickRefresh) },
+        { repository.appearance.tabClickRefresh = (it as SettingValue.Flag).value }),
     "bottom_bar_raise" to IndexedSettingBinding({ SettingValue.Flag(repository.appearance.bottomBarRaise) },
         { repository.appearance.bottomBarRaise = (it as SettingValue.Flag).value }),
     "scroll_top_enabled" to IndexedSettingBinding({ SettingValue.Flag(repository.appearance.scrollTopEnabled) },

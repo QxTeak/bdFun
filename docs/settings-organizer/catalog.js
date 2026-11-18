@@ -110,6 +110,13 @@ window.SETTINGS_CATALOG = [
             "subtitle": "根据画面状态自动调整屏幕刷新率"
           },
           {
+            "pref_name": "tab_click_refresh",
+            "type": "switch",
+            "title": "点击底栏回顶并刷新",
+            "default": false,
+            "subtitle": "首页、动态：开启后回顶并刷新；关闭后仅回顶，已在顶部时点击刷新"
+          },
+          {
             "pref_name": "bottom_bar_raise",
             "type": "switch",
             "title": "抬高底栏",

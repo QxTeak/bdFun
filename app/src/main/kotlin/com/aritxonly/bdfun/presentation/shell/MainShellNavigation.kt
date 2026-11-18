@@ -22,26 +22,28 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
     val searchChrome = shell.chrome.search
     val wideNavigation = shell.backdrops.wideNavigation
     val haptics = rememberTeakHaptics()
-    val repeatTap = androidx.compose.runtime.remember { MainTabRepeatTapState() }
     val onBarItem: (TeakFloatingTabItem) -> Unit = { item ->
         haptics.tap()
         val index = destinations
             .indexOfFirst { it.key == item.key }
             .coerceAtLeast(0)
         if (index == tabPagerState.currentPage) {
-            val refresh = repeatTap.tap("$index:${ui.homeSection}", android.os.SystemClock.uptimeMillis())
-            if (!refresh) {
-                val chrome = when (index) {
-                    0 -> when (ui.homeSection) {
-                        1 -> shell.chrome.live
-                        2 -> shell.chrome.bangumi
-                        3, 4 -> shell.chrome.placeholder
-                        else -> shell.chrome.home
-                    }
-                    1 -> shell.chrome.dynamic
-                    else -> shell.chrome.mine
+            val chrome = when (index) {
+                0 -> when (ui.homeSection) {
+                    1 -> shell.chrome.live
+                    2 -> shell.chrome.bangumi
+                    3, 4 -> shell.chrome.placeholder
+                    else -> shell.chrome.home
                 }
-                appScope.launch { scrollMainPageToTop(chrome.scrollableState) }
+                1 -> shell.chrome.dynamic
+                else -> shell.chrome.mine
+            }
+            val scroll = chrome.scrollableState
+            val refresh = index in 0..1 && com.aritxonly.bdfun.core.domain.TabClickPolicy.shouldRefresh(
+                settings.tabClickRefresh, scroll != null && !scroll.canScrollBackward,
+            )
+            if (!refresh) {
+                appScope.launch { scrollMainPageToTop(scroll) }
             } else {
                 when (index) {
                     // 首页三段各有自己的刷新入口，别让直播/番剧去刷推荐。
@@ -55,7 +57,6 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
                 }
             }
         } else {
-            repeatTap.reset()
             // 主 tab 不能左右滑，但点底栏切换仍保留横向滑动转场。
             appScope.launch { tabPagerState.animateScrollToPage(index) }
         }
