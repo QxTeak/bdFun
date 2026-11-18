@@ -74,13 +74,8 @@ internal fun rememberMainShellState(background: Color): MainShellState {
         }
         1 -> com.aritxonly.bdfun.ui.RegisterScrollTop(dynamicFeed.listState, "dynamic")
     }
-    TrackTeakPageScroll(homeFeed.gridState, homeChrome)
-    TrackTeakPageScroll(dynamicFeed.listState, dynamicChrome)
-    TrackTeakPageScroll(mineList, mineChrome)
-    // 直播 / 番剧 / 影视与推荐页同一套：滚动进度驱动顶栏渐进模糊和下滑玻璃。
-    TrackTeakPageScroll(AppGraph.livePageState.gridState, liveChrome)
-    TrackTeakPageScroll(AppGraph.bangumiPageState.gridState, bangumiChrome)
-    TrackTeakPageScroll(AppGraph.cinemaPageState.gridState, cinemaChrome)
+    TrackMainShellPages(homeFeed, dynamicFeed, mineList, homeChrome, liveChrome,
+        bangumiChrome, cinemaChrome, dynamicChrome, mineChrome)
     // 参考 HyperIsland 的做法：整屏一块 backdrop，录制时先铺一层 surface 再画内容
     val backdrop = rememberLayerBackdrop { drawRect(background); drawContent() }
     // 搜索页自己一块：首页顶栏的渐变模糊和筛选菜单都采样它，复用同一套页面结构。
@@ -107,6 +102,27 @@ internal fun rememberMainShellState(background: Color): MainShellState {
         MainShellBackdrops(backdrop, searchBackdrop, wideNavigation), searchReveal,
         bottom, { AppGraph.searchStateHolder() },
     )
+}
+
+/** 首页各段 / 动态 / 我的各自绑定滚动进度；拆出来让主函数保持在尺寸门槛内。 */
+@Composable
+private fun TrackMainShellPages(
+    homeFeed: com.aritxonly.bdfun.feature.home.presentation.HomeFeedState,
+    dynamicFeed: com.aritxonly.bdfun.feature.feed.presentation.FeedState,
+    mineList: androidx.compose.foundation.lazy.LazyListState,
+    home: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    live: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    bangumi: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    cinema: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    dynamic: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    mine: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+) {
+    TrackTeakPageScroll(homeFeed.gridState, home)
+    TrackTeakPageScroll(dynamicFeed.listState, dynamic)
+    TrackTeakPageScroll(mineList, mine)
+    TrackTeakPageScroll(AppGraph.livePageState.gridState, live)
+    TrackTeakPageScroll(AppGraph.bangumiPageState.gridState, bangumi)
+    TrackTeakPageScroll(AppGraph.cinemaPageState.gridState, cinema)
 }
 
 @Composable
