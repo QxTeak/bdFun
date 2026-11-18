@@ -224,7 +224,7 @@ fun TeakPagerTabs(
 
 /** 与页面 chrome 同一套手动弹簧：不依赖宿主 App 的 rememberSpringFloat。 */
 @Composable
-private fun rememberPagerSpring(
+internal fun rememberPagerSpring(
     target: Float,
     stiffness: Float,
     damping: Float,

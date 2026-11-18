@@ -105,7 +105,7 @@ private fun BindPlayerBackgroundBridge(
                 }
 
                 override fun togglePlayPause() {
-                    if (playback.refresh().playing) playback.pause() else playback.play()
+                    if (playback.refresh().playWhenReady) playback.pause() else playback.play()
                 }
 
                 override fun boostStart() {

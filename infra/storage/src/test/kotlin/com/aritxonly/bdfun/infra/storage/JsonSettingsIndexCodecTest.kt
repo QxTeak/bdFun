@@ -77,6 +77,9 @@ class JsonSettingsIndexCodecTest {
         val file = java.io.File("../../app/src/main/assets/settings-index.json")
         val result = codec.decode(file.readText())
         assertTrue(result.toString(), result is SettingsIndexImport.Success)
-        assertEquals(64, SettingsIndex((result as SettingsIndexImport.Success).categories).settings.size)
+        val index = SettingsIndex((result as SettingsIndexImport.Success).categories)
+        // 在原67项上增加自适应缓冲和独立的后台播放入口。
+        assertEquals(69, index.settings.size)
+        assertEquals("switch", index.settings.getValue("adaptive_buffering").type)
     }
 }

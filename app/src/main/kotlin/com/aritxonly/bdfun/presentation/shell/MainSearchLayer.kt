@@ -33,9 +33,13 @@ internal fun MainSearchLayer(settings: SettingsBindings, shell: MainShellState, 
             CompositionLocalProvider(
                 LocalTeakBackdrop provides searchBackdrop,
                 LocalTeakPageScrollState provides searchChrome,
+                com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress provides searchChrome.materialProgress,
             ) {
                 SearchOverlay(
                     settings = settings,
+                    wideResultsBar = if (com.aritxonly.bdfun.ui.useSingleRowSearchResults()) {
+                        { trailing -> MainHomeBarContent(settings, shell, bottomSearch, resultActions = trailing) }
+                    } else null,
                     controllerFactory = shell.searchFactory,
                     submitted = input.submitted,
                     reveal = searchReveal,

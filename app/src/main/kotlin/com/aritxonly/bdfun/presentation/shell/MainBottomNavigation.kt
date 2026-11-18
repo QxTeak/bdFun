@@ -25,7 +25,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainBottomNavigation(
     if (visual.tabBarAlpha > 0.01f) {
         MainBottomNavigationShade(settings, wideNavigation, visual.tabBarAlpha)
         if (wideNavigation) {
-            if (TeakUiStyle.isClassic) {
+            if (TeakUiStyle.current.layout.edgeNavigation) {
                 // 经典样式在宽屏上也保持贴边底栏，不用悬浮胶囊和单独搜索钮。
                 ClassicTabBar(
                     items = tabItems,
@@ -43,7 +43,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainBottomNavigation(
             } else {
                 MainWideNavigation(tabItems, selectedKey, onBarItem, visual, onSearch)
             }
-        } else if (TeakUiStyle.isClassic) {
+        } else if (TeakUiStyle.current.layout.edgeNavigation) {
 
             // 经典样式：底栏贴着屏幕底边，上方一条分割线，不做悬浮胶囊。
             ClassicTabBar(

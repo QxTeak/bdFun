@@ -110,6 +110,12 @@ window.SETTINGS_CATALOG = [
             "subtitle": "根据画面状态自动调整屏幕刷新率"
           },
           {
+            "pref_name": "tab_click_refresh",
+            "type": "switch",
+            "title": "点击底栏回顶并刷新",
+            "default": true
+          },
+          {
             "pref_name": "bottom_bar_raise",
             "type": "switch",
             "title": "抬高底栏",
@@ -399,6 +405,13 @@ window.SETTINGS_CATALOG = [
             "default": true
           },
           {
+            "pref_name": "adaptive_buffering",
+            "type": "switch",
+            "title": "自适应缓冲",
+            "subtitle": "开启后在本机学习观看习惯；关闭使用分阶段固定规则。当前播放即可生效",
+            "default": false
+          },
+          {
             "pref_name": "decoder_mode",
             "type": "dropdown",
             "title": "硬解模式",
@@ -505,9 +518,17 @@ window.SETTINGS_CATALOG = [
         "title": "后台播放",
         "settings": [
           {
+            "pref_name": "background_play",
+            "type": "switch",
+            "title": "离开 App 或锁屏后继续播放",
+            "subtitle": "视频页仍打开时，切换到其他 App、锁屏或隐藏画中画后继续听视频",
+            "default": true
+          },
+          {
             "pref_name": "show_disc_after_video",
             "type": "switch",
-            "title": "退出视频后继续播放",
+            "title": "退出视频页后继续播放",
+            "subtitle": "返回首页等方式离开视频页时，使用画中画或唱片继续播放；不影响锁屏和切换 App",
             "default": true
           },
           {
@@ -575,6 +596,14 @@ window.SETTINGS_CATALOG = [
       {
         "title": "首页推荐",
         "settings": [
+          {
+            "pref_name": "home_channels",
+            "type": "action",
+            "title": "首页频道",
+            "subtitle": "选择首页显示的频道，推荐始终开启",
+            "storage": "none",
+            "default": ""
+          },
           {
             "pref_name": "home_card_style",
             "type": "dropdown",

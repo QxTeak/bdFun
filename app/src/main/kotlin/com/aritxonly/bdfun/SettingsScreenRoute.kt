@@ -31,6 +31,7 @@ internal fun SettingsScreenRoute(activity: ComponentActivity) {
 
 private fun openSettingsDestination(context: ComponentActivity, destination: SettingsDestination) {
     when (destination) {
+        SettingsDestination.HomeChannels -> Unit // 由设置浏览器内嵌路由处理。
         SettingsDestination.Update -> context.startActivity(Intent(context, UpdateActivity::class.java))
         SettingsDestination.Discussion -> openSettingsTelegramGroup(context)
         SettingsDestination.Changelog -> navigateToChangelog(context)

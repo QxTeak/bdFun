@@ -23,6 +23,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
     val activeChrome = when (ui.homeSection) {
         1 -> shell.chrome.live
         2 -> shell.chrome.bangumi
+        3, 4 -> shell.chrome.placeholder
         else -> shell.chrome.home
     }
     // 下拉刷新指示器：三段各一份状态，都画在 App 层同一个位置。
@@ -31,16 +32,21 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
     val pullRefreshing = liveState?.refreshing ?: bangumiState?.refreshing ?: homeFeed.refreshing
     val pullOffsetDp = liveState?.pullOffsetDp ?: bangumiState?.pullOffsetDp ?: homeFeed.pullOffsetDp
 
-    MainTopBarChrome(
+    if (!(ui.showSearch && ui.searchSubmitted != null && com.aritxonly.bdfun.ui.useSingleRowSearchResults())) MainTopBarChrome(
         shell = shell,
         pageIndex = 0,
         pageFloat = pageFloat,
         surface = activeChrome,
     ) {
-        MainHomeBarContent(settings, shell)
+        MainHomeBarContent(
+            settings, shell,
+            tabsCollapseProgress = if (settings.interfaceStyle == 0 && !ui.showSearch) {
+                activeChrome.materialProgress
+            } else 0f,
+        )
     }
 
-    if (pageFloat < 0.99f) {
+    if (pageFloat < 0.99f && ui.homeSection < 3) {
         // 下拉刷新指示器：独立覆盖层，挂在 App 层，探出顶栏也不会被裁掉。
         // 透明度直接由下拉位移决定：位移 58dp 开始淡入、84dp 全显；
         // 卡片在位移 <46dp 时才会撞到小电视，因此永远追不上。

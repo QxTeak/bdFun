@@ -10,10 +10,6 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.BitmapShader
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.Shader
 import android.os.Build
 import android.os.IBinder
 import android.support.v4.media.MediaMetadataCompat
@@ -61,11 +57,11 @@ abstract class PlaybackForegroundService : Service() {
         mediaSession = MediaSessionCompat(this, "BdFunBackgroundPlayback").apply {
             setCallback(object : MediaSessionCompat.Callback() {
                 override fun onPlay() {
-                    if (!playback.playing) playback.togglePlayPause()
+                    if (!playback.playbackSnapshot.playWhenReady) playback.togglePlayPause()
                 }
 
                 override fun onPause() {
-                    if (playback.playing) playback.togglePlayPause()
+                    if (playback.playbackSnapshot.playWhenReady) playback.togglePlayPause()
                 }
 
                 override fun onSkipToNext() {
@@ -123,7 +119,7 @@ abstract class PlaybackForegroundService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    /** 拉取封面并裁成圆形，失败就保持上一张。 */
+    /** 前后台均提交完整原图，由系统媒体面板决定显示形状。 */
     private fun ensureArtwork(url: String) {
         if (url.isBlank() || url == artUrl) return
         artUrl = url
@@ -141,27 +137,15 @@ abstract class PlaybackForegroundService : Service() {
                 ?.drawable
                 ?.let { (it as? android.graphics.drawable.BitmapDrawable)?.bitmap }
             if (source == null) return@launch
-            val circular = circularCrop(source)
             withContext(Dispatchers.Main) {
                 if (artUrl == url) {
-                    artBitmap = circular
+                    artBitmap = source
                     val manager =
                         getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                     runCatching { manager.notify(NOTIFICATION_ID, buildNotification()) }
                 }
             }
         }
-    }
-
-    private fun circularCrop(source: Bitmap): Bitmap {
-        val side = minOf(source.width, source.height).coerceAtLeast(1)
-        val output = Bitmap.createBitmap(side, side, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(output)
-        val paint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
-        paint.shader = BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
-        val radius = side / 2f
-        canvas.drawCircle(radius, radius, radius, paint)
-        return output
     }
 
     private fun createChannel() {
@@ -191,7 +175,8 @@ abstract class PlaybackForegroundService : Service() {
         }
         val title = playback.title.ifBlank { "正在播放" }
         val artist = playback.author.ifBlank { "bdFun" }
-        val playing = playback.playing
+        val snapshot = playback.playbackSnapshot
+        val playing = snapshot.playWhenReady && snapshot.phase != com.aritxonly.bdfun.core.application.PlaybackPhase.Ended
         val art = artBitmap
         val action = { name: String, code: Int ->
             PendingIntent.getService(
@@ -202,7 +187,7 @@ abstract class PlaybackForegroundService : Service() {
             )
         }
 
-        updateNotificationSession(title, artist, playing, art)
+        updateNotificationSession(title, artist, snapshot, art)
 
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_media_play)
@@ -241,7 +226,7 @@ abstract class PlaybackForegroundService : Service() {
             )
             .build()
     }
-    private fun updateNotificationSession(title: String, artist: String, playing: Boolean, art: Bitmap?) {
+    private fun updateNotificationSession(title: String, artist: String, snapshot: com.aritxonly.bdfun.core.application.PlaybackSnapshot, art: Bitmap?) {
         mediaSession?.let { session ->
             session.setMetadata(
                 MediaMetadataCompat.Builder()
@@ -253,7 +238,7 @@ abstract class PlaybackForegroundService : Service() {
                     )
                     .apply {
                         if (art != null) {
-                            // 系统媒体控件显示圆形封面。
+                            // 与页面会话使用相同原图，避免两种封面输入交替。
                             putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, art)
                             putBitmap(MediaMetadataCompat.METADATA_KEY_ART, art)
                             putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, art)
@@ -273,13 +258,9 @@ abstract class PlaybackForegroundService : Service() {
                             PlaybackStateCompat.ACTION_STOP,
                     )
                     .setState(
-                        if (playing) {
-                            PlaybackStateCompat.STATE_PLAYING
-                        } else {
-                            PlaybackStateCompat.STATE_PAUSED
-                        },
-                        playback.positionMs,
-                        1f,
+                        mediaSessionPlaybackState(snapshot),
+                        snapshot.positionMs,
+                        snapshot.speed,
                     )
                     .build(),
             )

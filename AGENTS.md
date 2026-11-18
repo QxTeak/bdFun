@@ -651,6 +651,12 @@ ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保�
 ### 信息流帧率设置
 主界面默认请求 60Hz，可在外观设置选择 120 或自适应（0，交给系统）；MainActivity 观察设置状态应用窗口偏好，不改变播放器智能刷新率策略。
 
+### 2026-11-17 BUF-70 点播缓冲
+
+点播加载统一走 core/domain/buffering 的 VideoBufferProvider(CacheStrategy)，固定分阶段规则和本地生存统计策略共享安全水位/倍速/内存约束，Media3适配在infra/playback。设置adaptive_buffering默认关闭、当前播放即时生效；关闭不更新模型。账号聚合在infra/storage，游客不落盘；不得把卡顿/错误/自然结束作为主动退出或在后台交接时重建会话。详见docs/BUFFERING_DESIGN.md；直播/预览/离线下载不在本轮范围，真机收益与敏感路径验收仍须实测。
+
+BUF-70/PR81后台保活：同实例点播使用Media3 WAKE_MODE_NETWORK与WAKE_LOCK；Home/锁屏保留Activity时由onPause按播放意图启动现有mediaPlayback前台服务，onResume停止非detached服务。不要只在唱片adopt启动，也不要用isPlaying排除缓冲中的会话；清理会话须停服务。真机后台断流根因和完整路径仍需验证。
+
 ### 2026-11-16 经典布局全页面对齐检查点
 
 经典样式（interfaceStyle=1）改为常驻栏形态，全部改动以 `TeakUiStyle.isClassic` 为门槛，官方与 HyperOS 4 分支不变。顶栏不再做大标题/小标题切换：页面标题常驻显示在整条顶栏中央，内容里的大标题位置只保留 56dp 占位，由 `LocalTeakClassicChrome` 区分页面壳与引导页；顶栏、底栏、动态分段栏、设置搜索栏和输入栏都用 Miuix 的整条纹理模糊（`teakClassicBarGlass`，非渐进式），叠加半透明底色保证可读，关闭高级材质时退化为平面底色；所有栏不再画分割线，顶栏按钮（返回、搜索、设置等）只保留图标不画圆底，只有回到顶部按钮保留玻璃圆钮。首页恢复推荐/直播/番剧分段（搜索框下一行），收藏/关注/消息/已发送/动态/空间等列表改为无行分割线的通栏行；评论折叠回复恢复 12dp 圆角分组框，与其他布局复用同一段实现。未改内容卡片、播放器覆盖层和登录/引导页的独立卡片造型。
@@ -685,6 +691,13 @@ ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保�
 
 投币页：整列内容改为屏幕居中（原来贴底），遮罩改为 50% 黑（`0x80000000`）；左右切换键和关闭键改用 Miuix 图标（`MiuixIcons.ChevronBackward/ChevronForward/Close`），删除对应的 PNG；「同时点赞」的勾改为复用收藏夹 sheet 的 Miuix `Checkbox`（`ToggleableState.On/Off`）。评论「自由复制」弹层改用与收藏夹同款的 `MiuixBottomSheet`（标题 + 关闭按钮 + 底部主按钮），内容仍是可选择文本。
 
+### BUF-70 后台与退出页面偏好分离
+
+background_play（离开App或锁屏后继续播放）独立于show_disc_after_video/stopOnVideoPageExit（退出视频页后继续播放）。Home、锁屏、画中画不可见不代表页面finish，不得由stopOnVideoPageExit在onUserLeaveHint或历史pipEntered标记上暂停。后台关闭仍由生命周期ON_STOP暂停；真正返回/关闭视频页沿用退出偏好。两项都在设置索引展示，保持原存储值。
+
+### 2026-11-17 风格配置收敛
+
+TeakStyle 提供 Official/Classic/HyperOs4 三元入口，持久化编号保持 0/1/2；Official 与 HyperOs4 共享 TeakDesign.Modern，排列由 TeakLayout 单独描述。新增卡片形状与内容留白优先通过 design 解析，底部搜索通过 layout 解析。此次仅扩展 TeakUI 的主题契约，不重构材质引擎，不移动动画或状态作用域。
 ### 2026-11-17 宽屏直播/骨架屏/首页滑动检查点
 
 骨架屏的统一实现在 `TeakUI/.../skeleton/TeakSkeleton.kt`（`rememberTeakSkeletonSweep`、`Modifier.teakSkeleton`、`TeakSkeletonVideoCard/VideoRow`）；灰块颜色和扫光只在这里定义，页面只按真实布局摆位置。视频详情的元信息、分P、合集、相关推荐，以及首页/直播/番剧/搜索/评论/媒体库首屏都复用这一套；分P/合集/相关推荐与元信息一样改为骨架直接原位替换，不再做上浮淡入。`VideoMetadataSkeleton` 保留真实结构，但不再自带扫光实现。
@@ -694,3 +707,18 @@ ICON-16 的 AppGlyph 与主底栏 VectorPainter 使用双倍采样缓存，保�
 首页左右滑动改由 `HomeSectionPager` 承担，在推荐/直播/番剧之间切换；底栏首页/动态/我的不再响应横滑，只由点击切换（仍用 `animateScrollToPage` 保留横向转场）。顶栏胶囊指示器读取 pager 的连续位置（`currentPage + currentPageOffsetFraction`），手指拖动时跟手移动，不再等落页才跳；`RegisterScrollTop`、三段各自的刷新入口和搜索/底栏玻璃都继续读同一个 `homeSection`，刷新与滚动状态未改。视频页收起态在返回键右侧新增回首页键，复用半屏播放器的 `InlineHomeGlyph`，通过 `MainTabRequestStateHolder` 通知主壳回到推荐页。
 
 投币页默认停在 2 币；`VideoDetail.copyright == 2`（转载）或已投过时退回 1 币，接口字段经 `VideoDetailDto/VideoDetailInfo` 透传并补 mapper 测试。两个硬币箱本身可点选，左右箭头、硬币箱点击和整页左右滑都能切换；遮罩由 50% 黑改为 60% 黑（`0x99000000`）。
+<<<<<<< HEAD
+=======
+
+### 2026-11-17 自适应分段控件检查点
+
+首页分段基础控件位于 TeakUI 的 AdaptiveScrollableTabs；app TeakSegmentedBar 保留薄转发。
+scrollable 默认 false，maxVisibleItems 默认 3；开启并超限时启用内部露字和居中滚动，
+两端不得添加空占位，中间切换必须独立保持指示器位置。详见 TeakUI/docs/PAGE_CHROME_SPEC.md。
+首页频道使用 core/model/HomeChannel 稳定 key 与 HomeChannelPolicy 归一化；推荐不可禁用。
+设置三级页经 SettingsBindings/AppearanceSettingsStateHolder 写入既有 SettingsPreferences，
+首页 pager 下标只表示可见顺序，不能直接当频道身份；热门、影视目前为明确占位页。
+自适应分段动画用浮点位置直接驱动绘制层，不得恢复逐帧 LaunchedEffect + ScrollState
+同步。手势期间由组件预览位置，松手才提交频道；动画取消必须用代数守卫，旧 finally
+不得释放新手势的位置所有权。
+>>>>>>> origin/main

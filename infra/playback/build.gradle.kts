@@ -11,6 +11,8 @@ android {
 }
 kotlin { jvmToolchain(21) }
 dependencies {
+    testImplementation(libs.junit)
+    testImplementation(libs.robolectric)
     implementation(project(":core:application"))
     implementation(project(":core:domain"))
     implementation(project(":core:model"))
@@ -30,3 +32,5 @@ dependencies {
     constraints { implementation(libs.androidx.annotation.experimental) { because("与 app 已解析的 Media3 注解版本一致") } }
     implementation(libs.coroutines.android)
 }
+
+apply(from = rootProject.file("gradle/robolectric-tests.gradle.kts"))

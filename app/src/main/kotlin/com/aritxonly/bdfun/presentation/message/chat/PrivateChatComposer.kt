@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.ui.EmojiPanel
 import com.aritxonly.teak.common.chrome.TeakChromeDefaults
-import com.aritxonly.teak.common.chrome.teakClassicBarGlass
+import com.aritxonly.teak.common.chrome.TeakComposerBackground
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
 import com.aritxonly.teak.common.material.LocalTeakMaterialSpec
 import com.aritxonly.teak.common.material.TeakGlassRecipes
@@ -45,16 +45,9 @@ internal fun PrivateChatComposer(content: PrivateChatComposerContent, actions: P
     }
     val animatedBottom = if (imeDp > navDp) imeDp else navDp + raiseDp
 
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
-    val barColor = colors.surfaceContainer
-    val dividerColor = colors.onBackground.copy(alpha = 0.12f)
 
     Box(Modifier.fillMaxWidth()) {
-        if (classic) {
-            // 输入栏整条玻璃模糊 + 半透明底，保证输入框文字始终清晰。
-            Box(Modifier.matchParentSize().teakClassicBarGlass())
-            Box(Modifier.matchParentSize().background(barColor.copy(alpha = 0.62f)))
-        }
+        TeakComposerBackground()
         Column(
             modifier = Modifier
                 .fillMaxWidth()

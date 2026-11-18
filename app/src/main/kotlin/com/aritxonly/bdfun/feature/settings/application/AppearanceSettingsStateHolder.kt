@@ -21,6 +21,15 @@ internal class AppearanceSettingsStateHolder(
 
     private val dynamicColorState = stateCell("dynamicColorState", prefs.getBoolean("dynamic_color", false))
 
+    private val tabClickRefreshState = stateCell("tabClickRefreshState",
+        prefs.getBoolean("tab_click_refresh", TabClickPolicy.DEFAULT_REFRESH))
+    override var tabClickRefresh: Boolean
+        get() = tabClickRefreshState.value
+        set(value) {
+            tabClickRefreshState.value = value
+            prefs.edit().putBoolean("tab_click_refresh", value).apply()
+        }
+
     private val bottomBarRaiseState = stateCell("bottomBarRaiseState", prefs.getBoolean("bottom_bar_raise", false))
 
     private val darkModeState = stateCell("darkModeState", prefs.getInt("dark_mode", 0))
@@ -31,6 +40,16 @@ internal class AppearanceSettingsStateHolder(
 
     private val interfaceStyleState = stateCell("interfaceStyleState", prefs.getInt("interface_style", 2))
     /** 首页卡片样式：0 = 双排小卡，1 = 大卡（动态页视频卡同款）。 */
+
+    private val homeChannelsState = stateCell("homeChannelsState",
+        HomeChannelPolicy.normalize(prefs.getStringSet("home_channels", null) ?: HomeChannelPolicy.defaults))
+    override var homeChannels: Set<String>
+        get() = homeChannelsState.value
+        set(value) {
+            val normalized = HomeChannelPolicy.normalize(value)
+            homeChannelsState.value = normalized
+            prefs.edit().putStringSet("home_channels", normalized).apply()
+        }
 
     private val homeCardStyleState = stateCell("homeCardStyleState", prefs.getInt("home_card_style", 0))
 

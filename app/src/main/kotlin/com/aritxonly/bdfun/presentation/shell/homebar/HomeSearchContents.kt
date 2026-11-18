@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.SearchCleanup
 import top.yukonga.miuix.kmp.icon.extended.Search
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -29,7 +30,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.HomeSearchContents(sear
     val searchInteraction = material.searchInteraction
     val onOpenSearchPage = actions.onOpenSearchPage
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp),
+        modifier = Modifier.fillMaxWidth().padding(start = 14.dp, end = if (searchActive) 40.dp else 14.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Icon(
@@ -51,14 +52,17 @@ internal fun androidx.compose.foundation.layout.BoxScope.HomeSearchContents(sear
         }
     }
     if (searchActive && searchResultsVisible) {
-        Box(
-            modifier = Modifier
-                .matchParentSize()
-                .clickable(
-                    interactionSource = searchInteraction,
-                    indication = null,
-                    onClick = onOpenSearchPage,
-                ),
-        )
+        Box(Modifier.matchParentSize().padding(end = 40.dp).clickable(
+            interactionSource = searchInteraction, indication = null, onClick = onOpenSearchPage,
+        ))
+    }
+    if (searchActive && search.query.isNotEmpty()) {
+        androidx.compose.material3.IconButton(
+            onClick = actions.onClearQuery,
+            modifier = Modifier.align(Alignment.CenterEnd).size(40.dp),
+        ) {
+            Icon(MiuixIcons.Basic.SearchCleanup, "清空搜索",
+                tint = MiuixTheme.colorScheme.onBackgroundVariant, modifier = Modifier.size(18.dp))
+        }
     }
 }

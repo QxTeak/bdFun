@@ -2,10 +2,11 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.Composable
 
-internal val settingsEmbeddedDestinations = setOf(SettingsDestination.Update, SettingsDestination.Help, SettingsDestination.Changelog,
+internal val settingsEmbeddedDestinations = setOf(SettingsDestination.HomeChannels, SettingsDestination.Update, SettingsDestination.Help, SettingsDestination.Changelog,
     SettingsDestination.Credits, SettingsDestination.Donation)
 
 internal fun settingsDetailTitle(destination: SettingsDestination): String = when (destination) {
+    SettingsDestination.HomeChannels -> "首页频道"
     SettingsDestination.Update -> "检查更新"
     SettingsDestination.Help -> "帮助中心"
     SettingsDestination.Changelog -> "更新日志"
@@ -15,8 +16,9 @@ internal fun settingsDetailTitle(destination: SettingsDestination): String = whe
 }
 
 @Composable
-internal fun SettingsDetailContent(destination: SettingsDestination, onBack: () -> Unit) {
+internal fun SettingsDetailContent(destination: SettingsDestination, onBack: () -> Unit, settings: com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings) {
     when (destination) {
+        SettingsDestination.HomeChannels -> HomeChannelsSettingsPage(settings)
         SettingsDestination.Update -> com.aritxonly.bdfun.UpdateScreenRoute()
         SettingsDestination.Help -> HelpScreen()
         SettingsDestination.Changelog -> ChangelogScreen(onBack)

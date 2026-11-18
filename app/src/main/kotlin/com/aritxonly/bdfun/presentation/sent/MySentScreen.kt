@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import com.aritxonly.teak.common.chrome.TrackTeakPageScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -25,19 +27,19 @@ internal fun MySentScreen(controller: SentHistoryStateHolder, onOpenVideo: (Vide
     val shown = state.shown
     val listState = rememberLazyListState()
     TrackTeakPageScroll(listState)
-    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val classic = TeakUiStyle.isClassic
     val cardShape = remember(classic) {
-        if (classic) androidx.compose.ui.graphics.RectangleShape else ContinuousCornerShape(18.dp)
+        TeakUiStyle.design.cardShape(ContinuousCornerShape(18.dp))
     }
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize().statusBarsPadding(),
         contentPadding = PaddingValues(
-            start = if (classic) 0.dp else 16.dp,
-            end = if (classic) 0.dp else 16.dp,
+            start = TeakUiStyle.design.contentInset(16.dp),
+            end = TeakUiStyle.design.contentInset(16.dp),
             top = 8.dp, bottom = 40.dp,
         ),
-        verticalArrangement = Arrangement.spacedBy(if (classic) 0.dp else 8.dp),
+        verticalArrangement = Arrangement.spacedBy(TeakUiStyle.design.itemSpacing(8.dp)),
     ) {
         item(key = "title") { SentHistoryHeader() }
         item(key = "filters") { SentHistoryFilters(state, controller::select) }

@@ -59,7 +59,7 @@ internal fun MainTabPager(
             overscrollEffect = null,
         ) { page ->
             when (page) {
-                0 -> HomeSectionPager(
+                0 -> androidx.compose.runtime.key(settings.homeChannels) { HomeSectionPager(
                     homeSection = homeSection,
                     onSectionChange = onHomeSectionChange,
                     onSectionPositionChange = onHomeSectionPositionChange,
@@ -69,7 +69,7 @@ internal fun MainTabPager(
                     topBarHeight = topBarHeight,
                     interactive = homeInteractive && pager.settledPage == 0 && !pager.isScrollInProgress,
                     context = context,
-                )
+                ) }
 
                 1 -> FeedScreen(
                     state = dynamicFeed,
@@ -87,7 +87,7 @@ internal fun MainTabPager(
 }
 
 /**
- * 首页三段：推荐 / 直播 / 番剧。
+ * 首页五段：推荐 / 直播 / 番剧 / 热门 / 影视。
  *
  * 和底栏主 tab 一样用 HorizontalPager，但这里才是手指左右划动切换的地方；
  * 顶部胶囊点选与滑动共用同一个 pager 状态，两边的选中态不会打架。
@@ -105,16 +105,20 @@ private fun HomeSectionPager(
     interactive: Boolean,
     context: android.content.Context,
 ) {
+    val channels = com.aritxonly.bdfun.core.domain.HomeChannelPolicy.visible(settings.homeChannels)
+    val latestSection by androidx.compose.runtime.rememberUpdatedState(homeSection)
+    val latestOnSectionChange by androidx.compose.runtime.rememberUpdatedState(onSectionChange)
+    val latestOnPositionChange by androidx.compose.runtime.rememberUpdatedState(onSectionPositionChange)
     val sectionPager = rememberPagerState(
-        initialPage = homeSection.coerceIn(0, 2),
-        pageCount = { 3 },
+        initialPage = channels.indexOfFirst { it.ordinal == homeSection }.coerceAtLeast(0),
+        pageCount = { channels.size },
     )
     // 顶栏点选触发的滚动期间，不要把手滑经过的中间页当成用户选择同步回去。
     var programmatic by remember { mutableStateOf(false) }
     // 顶部胶囊点选：只改 shell 状态，这里统一负责动画过去。
     LaunchedEffect(homeSection) {
-        val target = homeSection.coerceIn(0, 2)
-        if (sectionPager.currentPage != target) {
+        val target = channels.indexOfFirst { it.ordinal == homeSection }.coerceAtLeast(0)
+        if (sectionPager.currentPage != target || sectionPager.currentPageOffsetFraction != 0f) {
             programmatic = true
             try {
                 sectionPager.animateScrollToPage(target)
@@ -126,39 +130,52 @@ private fun HomeSectionPager(
     // 手指划到哪一段，就把选中态同步回 shell（顶栏胶囊、回到顶部、刷新入口都读它）。
     LaunchedEffect(sectionPager) {
         snapshotFlow { sectionPager.currentPage }.collect { page ->
-            if (!programmatic && page != homeSection) onSectionChange(page)
+            val id = channels[page].ordinal
+            if (!programmatic && id != latestSection) latestOnSectionChange(id)
         }
     }
     // 顶栏指示器要跟手指走：把 pager 的连续位置每帧同步给 shell，而不是等落页才跳。
     LaunchedEffect(sectionPager) {
         snapshotFlow {
-            (sectionPager.currentPage + sectionPager.currentPageOffsetFraction).coerceIn(0f, 2f)
-        }.collect(onSectionPositionChange)
+            (sectionPager.currentPage + sectionPager.currentPageOffsetFraction).coerceIn(0f, channels.lastIndex.toFloat())
+        }.collect { latestOnPositionChange(it) }
     }
     HorizontalPager(
         state = sectionPager,
         modifier = Modifier.fillMaxSize(),
         beyondViewportPageCount = 0,
         overscrollEffect = null,
-    ) { section ->
-        when (section) {
-            1 -> com.aritxonly.bdfun.presentation.live.LivePage(
-                state = AppGraph.livePageState,
-                loggedIn = session != null,
-                topBarHeight = topBarHeight,
-            )
-            2 -> com.aritxonly.bdfun.presentation.pgc.BangumiPage(
-                state = AppGraph.bangumiPageState,
-                topBarHeight = topBarHeight,
-            )
-            else -> HomeScreenRoute(
-                state = homeFeed,
-                onOpenVideo = { navigateToVideo(context, it) },
-                cardStyle = settings.homeCardStyle,
-                interactive = interactive,
-                topBarHeight = topBarHeight,
-            )
-        }
+    ) { page ->
+        val section = channels[page].ordinal
+        HomeSectionContent(section, homeFeed, session, settings, topBarHeight, interactive, context)
+    }
+}
+
+@Composable
+private fun HomeSectionContent(
+    section: Int,
+    homeFeed: com.aritxonly.bdfun.feature.home.presentation.HomeFeedState,
+    session: UserProfile?, settings: SettingsBindings, topBarHeight: androidx.compose.ui.unit.Dp,
+    interactive: Boolean, context: android.content.Context,
+) {
+    when (section) {
+        1 -> com.aritxonly.bdfun.presentation.live.LivePage(
+            state = AppGraph.livePageState,
+            loggedIn = session != null,
+            topBarHeight = topBarHeight,
+        )
+        2 -> com.aritxonly.bdfun.presentation.pgc.BangumiPage(
+            state = AppGraph.bangumiPageState,
+            topBarHeight = topBarHeight,
+        )
+        3, 4 -> HomeSectionPlaceholder(HomeSectionTitles[section], topBarHeight)
+        else -> HomeScreenRoute(
+            state = homeFeed,
+            onOpenVideo = { navigateToVideo(context, it) },
+            cardStyle = settings.homeCardStyle,
+            interactive = interactive,
+            topBarHeight = topBarHeight,
+        )
     }
 }
 

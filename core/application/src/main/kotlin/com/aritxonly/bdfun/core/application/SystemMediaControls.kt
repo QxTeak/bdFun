@@ -24,6 +24,7 @@ class MediaControlsRegistry {
 }
 
 interface BackgroundPlaybackPort {
+    val playbackSnapshot: PlaybackSnapshot
     val title: String
     val author: String
     val cover: String

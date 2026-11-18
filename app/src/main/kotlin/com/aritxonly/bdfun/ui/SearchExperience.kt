@@ -24,6 +24,7 @@ internal fun SearchOverlay(
     onOpenUser: (SearchUser) -> Unit,
     controllerFactory: () -> com.aritxonly.bdfun.feature.search.application.SearchStateHolder,
     modifier: Modifier = Modifier,
+    wideResultsBar: (@Composable (@Composable () -> Unit) -> Unit)? = null,
 ) {
     val controller = remember { controllerFactory() }
     val content by controller.state.collectAsState()
@@ -41,6 +42,6 @@ internal fun SearchOverlay(
 
     SearchRevealFrame(submitted, reveal, modifier) {
         SearchOverlayContent(settings, submitted, query, ui, content, onPickKeyword, onOpenVideo, onOpenUser,
-            onLoadMore = { scope.launch { controller.loadMore() } })
+            onLoadMore = { scope.launch { controller.loadMore() } }, wideResultsBar = wideResultsBar)
     }
 }

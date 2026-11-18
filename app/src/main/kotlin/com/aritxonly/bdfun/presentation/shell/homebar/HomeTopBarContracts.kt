@@ -18,7 +18,7 @@ internal data class HomeTopBarSearch(val active: Boolean = false, val query: Str
  */
 @androidx.compose.runtime.Immutable
 internal data class HomeTopBarTabs(
-    val options: List<String> = listOf("推荐", "直播", "番剧"),
+    val options: List<String> = com.aritxonly.bdfun.HomeSectionTitles,
     val selected: Int = 0,
     val onSelect: (Int) -> Unit = {},
     /** 页面 pager 的连续位置；手指拖动时指示器跟着走，而不是等整页切完。 */

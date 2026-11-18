@@ -7,6 +7,44 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class IndexedSettingsStateHolderTest {
+    @Test fun backgroundAndPageExitPreferencesAreIndependent() {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        try {
+            val repository = SettingsStateHolder.create(MemorySettingsPreferences(), TestHistoryCodec, scope)
+            val settings = listOf("background_play", "show_disc_after_video").map {
+                Setting(it, "switch", it, null, SettingValue.Flag(true))
+            }
+            val index = SettingsIndex(listOf(SettingsCategory("播放", "settings/player", null,
+                listOf(SettingsGroup("后台", settings)))))
+            val controller = IndexedSettingsStateHolder(index, repository, repository.state, scope)
+            controller.update("show_disc_after_video", SettingValue.Flag(false))
+            assertTrue(repository.stopOnVideoPageExit)
+            assertTrue(repository.backgroundPlay)
+            controller.update("background_play", SettingValue.Flag(false))
+            controller.update("show_disc_after_video", SettingValue.Flag(true))
+            assertFalse(repository.stopOnVideoPageExit)
+            assertFalse(repository.backgroundPlay)
+        } finally { scope.cancel() }
+    }
+
+    @Test fun adaptiveBufferSwitchWritesThePlaybackRepository() {
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        try {
+            val prefs = MemorySettingsPreferences()
+            val repository = SettingsStateHolder.create(prefs, TestHistoryCodec, scope)
+            val setting = Setting("adaptive_buffering", "switch", "自适应缓冲", null, SettingValue.Flag(false))
+            val index = SettingsIndex(listOf(SettingsCategory("播放", "settings/player", null,
+                listOf(SettingsGroup("缓冲", listOf(setting))))))
+            val controller = IndexedSettingsStateHolder(index, repository, repository.state, scope)
+            assertEquals(SettingValue.Flag(false), controller.state.value.values["adaptive_buffering"])
+            assertEquals(SettingUpdate.Updated, controller.update("adaptive_buffering", SettingValue.Flag(true)))
+            assertTrue(repository.playback.adaptiveBuffering)
+            assertEquals(true, prefs.values["adaptive_buffering"])
+            assertEquals(SettingUpdate.Updated, controller.reset("adaptive_buffering"))
+            assertFalse(repository.playback.adaptiveBuffering)
+        } finally { scope.cancel() }
+    }
+
     @Test fun preservesOldValuesAndWritesThroughOriginalController() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         try {

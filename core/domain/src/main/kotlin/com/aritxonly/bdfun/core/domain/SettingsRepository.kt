@@ -4,11 +4,13 @@ interface AppearanceSettings {
     var feedRefreshRate: Int
     var dynamicColor: Boolean
     var refractionEnabled: Boolean
+    var tabClickRefresh: Boolean
     var bottomBarRaise: Boolean
     var animationsEnabled: Boolean
     var darkMode: Int
     var colorStyle: Int
     var interfaceStyle: Int
+    var homeChannels: Set<String>
     var homeCardStyle: Int
     var shadowsEnabled: Boolean
     var scrollTopEnabled: Boolean
@@ -27,6 +29,7 @@ interface AppearanceSettings {
 }
 
 interface PlaybackSettings {
+    var adaptiveBuffering: Boolean
     var qualityPreference: Int
     var lowPower: Boolean
     var autoRotate: Boolean

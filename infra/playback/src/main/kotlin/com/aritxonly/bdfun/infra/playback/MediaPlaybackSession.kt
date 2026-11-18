@@ -175,6 +175,7 @@ class MediaPlaybackSession(
         artwork?.let {
             builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ALBUM_ART, it)
             builder.putBitmap(MediaMetadataCompat.METADATA_KEY_ART, it)
+            builder.putBitmap(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON, it)
         }
         session.setMetadata(builder.build())
     }

@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun
 
+import com.aritxonly.teak.common.theme.TeakStyle
+
 import com.aritxonly.bdfun.navigateToMessages
 import com.aritxonly.bdfun.navigateToLogin
 import androidx.compose.runtime.Composable
@@ -14,43 +16,45 @@ import com.aritxonly.bdfun.ui.rememberTeakHaptics
 import kotlinx.coroutines.launch
 
 @Composable
-internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellState, bottomSearch: Boolean = false) {
+internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellState, bottomSearch: Boolean = false, tabsCollapseProgress: Float = 0f, resultActions: (@Composable () -> Unit)? = null) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val ui = shell.ui
+    val channels = com.aritxonly.bdfun.core.domain.HomeChannelPolicy.visible(settings.homeChannels)
+    val channelIndex = channels.indexOfFirst { it.ordinal == ui.homeSection }.coerceAtLeast(0)
     val input = shell.searchInput(bottomSearch)
     val session = shell.feeds.session
-    val unreadMessageCount = shell.feeds.unreadMessageCount
     val tabPagerState = shell.navigation.pager
     val appScope = shell.navigation.scope
     val searchChrome = shell.chrome.search
-    val searchReveal = input.reveal
     val haptics = rememberTeakHaptics()
     // HyperOS 4：分段替换搜索框；哔哩哔哩（官方）与经典：搜索框保留，分段放在它下面一行。
     val tabs = when {
         bottomSearch -> null
-        settings.interfaceStyle == 2 -> HomeTopBarTabs(
-            selected = ui.homeSection,
+        TeakStyle.fromStoredValue(settings.interfaceStyle).layout.hasBottomSearch -> HomeTopBarTabs(
+            options = channels.map { it.title },
+            selected = channelIndex,
             position = ui.homeSectionPosition,
-            onSelect = { haptics.tap(); ui.homeSection = it },
+            onSelect = { haptics.tap(); ui.homeSection = channels[it].ordinal },
         )
         settings.interfaceStyle == 0 || settings.interfaceStyle == 1 -> HomeTopBarTabs(
-            selected = ui.homeSection,
+            options = channels.map { it.title },
+            selected = channelIndex,
             position = ui.homeSectionPosition,
             belowSearch = true,
-            onSelect = { haptics.tap(); ui.homeSection = it },
+            onSelect = { haptics.tap(); ui.homeSection = channels[it].ordinal },
         )
         else -> null
     }
     HomeTopBar(
         content = HomeTopBarContent(
             profile = session,
-            unreadCount = unreadMessageCount,
+            unreadCount = shell.feeds.unreadMessageCount,
         ),
         search = HomeTopBarSearch(
             active = input.active,
             query = input.query,
-            reveal = searchReveal,
+            reveal = input.reveal,
             resultsVisible = input.active && input.submitted != null,
         ),
         actions = HomeTopBarActions(
@@ -85,6 +89,9 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
         },
         ),
         tabs = tabs,
+        resultActions = resultActions,
+        tabsCollapseProgress = tabsCollapseProgress,
+        singleRowSearchTabs = com.aritxonly.bdfun.ui.officialHomeBarSingleRow(settings.interfaceStyle),
         modifier = Modifier,
     )
 }

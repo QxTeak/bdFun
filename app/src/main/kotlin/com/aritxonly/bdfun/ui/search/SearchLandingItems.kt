@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.teak.common.theme.TeakUiStyle
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,11 +30,11 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchSuggestionItem
             SectionHeader(title = "搜索建议", action = null, onAction = null)
         }
         item(key = "suggest-list") {
-            val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+            val classic = TeakUiStyle.isClassic
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(if (classic) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(18.dp))
+                    .clip(TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)))
                     .background(colors.surfaceContainer)
                     .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 4.dp),
             ) {
@@ -74,11 +76,11 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHistoryItems(
         }
         item(key = "history-grid") {
             // 与热搜一致的容器；经典样式去掉圆角、贴着屏幕边缘。
-            val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+            val classic = TeakUiStyle.isClassic
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(if (classic) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(18.dp))
+                    .clip(TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)))
                     .background(colors.surfaceContainer)
                     .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 8.dp),
             ) {
@@ -112,11 +114,11 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHotItems(
             SectionHeader(title = "热搜", action = null, onAction = null)
         }
         item(key = "hot-list") {
-            val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+            val classic = TeakUiStyle.isClassic
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(if (classic) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(18.dp))
+                    .clip(TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)))
                     .background(colors.surfaceContainer)
                     .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 6.dp),
             ) {
