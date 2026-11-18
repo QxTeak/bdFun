@@ -24,9 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.aritxonly.bdfun.AppGraph
 import com.aritxonly.bdfun.feature.pgc.application.BangumiRankSection
+import com.aritxonly.bdfun.feature.pgc.application.BangumiRankStateHolder
 import com.aritxonly.bdfun.presentation.pgc.BangumiPageStateHolder
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
@@ -36,13 +39,17 @@ import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
 /**
- * 首页第三段「番剧」。外壳与推荐页一致（顶栏渐进模糊 + 下滑玻璃 + App 层下拉小电视），
- * 内容为「最近追番」横排 + 竖长封面推荐网格。
+ * 首页第三段「番剧」/ 第五段「影视」共用的页面实现。
+ *
+ * 外壳与推荐页一致（顶栏渐进模糊 + 下滑玻璃 + App 层下拉小电视），
+ * 内容为追番/追剧横排 + 竖长封面推荐网格。两段只换数据源和两处文案。
  */
 @Composable
 internal fun BangumiPage(
     state: BangumiPageStateHolder,
-    topBarHeight: androidx.compose.ui.unit.Dp = HomeTopBarHeight,
+    rankState: BangumiRankStateHolder = AppGraph.bangumiRankState,
+    followingSectionTitle: String = "最近追番",
+    topBarHeight: Dp = HomeTopBarHeight,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -50,7 +57,6 @@ internal fun BangumiPage(
     val gridState = state.gridState
     val pullUi = remember { DiscoverPullUi() }
     // 排行榜内嵌在追番下面；数据在 AppContainer，页面只做投影。
-    val rankState = com.aritxonly.bdfun.AppGraph.bangumiRankState
     val rankUi by rankState.state.collectAsState()
     val pull = rememberBangumiPullSession(state, pullUi)
     LaunchedEffect(rankState) { rankState.ensureLoaded() }
@@ -96,7 +102,7 @@ internal fun BangumiPage(
         item(key = "pgc-banner", span = { GridItemSpan(maxLineSpan) }) {
             BangumiBanner(bannerItems) { seasonId -> openBangumi(context, seasonId, scope) }
         }
-        bangumiFollowSection(state, context, startPadding)
+        bangumiFollowSection(state, context, startPadding, followingSectionTitle)
         bangumiRankSections(
             sections = rankUi.sections,
             holder = rankState,
@@ -119,6 +125,23 @@ internal fun BangumiPage(
         }
         bangumiPageStateItems(state, scope)
     }
+}
+
+/**
+ * 首页第五段「影视」：完全复用 [BangumiPage]，只换数据源、榜单与追剧标题。
+ * 不复制任何 UI 代码，布局/卡片/动效参数与番剧页保持一致。
+ */
+@Composable
+internal fun CinemaPage(
+    state: BangumiPageStateHolder,
+    topBarHeight: Dp = HomeTopBarHeight,
+) {
+    BangumiPage(
+        state = state,
+        rankState = AppGraph.cinemaRankState,
+        followingSectionTitle = "最近追剧",
+        topBarHeight = topBarHeight,
+    )
 }
 
 private fun bangumiBannerItems(

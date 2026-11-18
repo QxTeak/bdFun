@@ -18,6 +18,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.model.video.VideoItem
+import com.aritxonly.teak.common.theme.TeakStyle
+import com.aritxonly.teak.common.theme.TeakUiStyle
 import kotlin.math.roundToInt
 
 @Composable
@@ -27,6 +29,8 @@ internal fun HomeVideoGrid(
     ui: HomePresentationStateHolder, refreshConnection: NestedScrollConnection,
     scope: kotlinx.coroutines.CoroutineScope, onOpenVideo: (VideoItem) -> Unit, host: HomePresentationHost,
 ) {
+    // 哔哩哔哩布局的分段 Tab 和首行卡片之间再多留 5dp，和原版间距对齐。
+    val sectionGap = if (TeakUiStyle.current == TeakStyle.Official) 5.dp else 0.dp
     LazyVerticalGrid(
         columns = if (width >= 600.dp) host.gridCells(180.dp, 260.dp) else GridCells.Fixed(if (largeCards) 1 else 2),
         state = state.gridState,
@@ -36,7 +40,7 @@ internal fun HomeVideoGrid(
             .nestedScroll(refreshConnection),
         contentPadding = PaddingValues(
             start = 12.dp,
-            top = host.topBarHeight + statusBarTop + 6.dp,
+            top = host.topBarHeight + statusBarTop + 6.dp + sectionGap,
             end = 12.dp,
             // 让最后一排卡片能滚出悬浮底栏
             bottom = 104.dp,

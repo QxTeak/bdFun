@@ -7,7 +7,6 @@ import com.aritxonly.bdfun.core.model.user.SpaceInfo
 import com.aritxonly.bdfun.core.model.user.UserProfile
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import com.aritxonly.bdfun.core.domain.orderedSpaceBanners
-import com.aritxonly.bdfun.core.domain.spaceBannerAlignment
 import com.aritxonly.bdfun.infra.bili.biliAvatar as avatar
 import com.aritxonly.bdfun.infra.bili.biliImage as image
 import org.json.JSONObject
@@ -58,7 +57,6 @@ private fun mapSpaceProfile(payloads: SpacePayloadsDto, likes: Long): UserProfil
         decoration = UserProfileDecoration(
             banner = spaceBannerCandidates(appSpace, info).firstOrNull().orEmpty(),
             bannerFallbacks = spaceBannerCandidates(appSpace, info).drop(1),
-            bannerAlignmentY = spaceBannerAlignment(appSpace),
             officialTitle = official?.s("title").orEmpty(),
             officialDesc = official?.s("desc").orEmpty(),
             officialType = official?.optInt("type", 0) ?: 0,
@@ -109,19 +107,9 @@ internal fun readSpaceCharge(appSpace: JSONObject?): Long {
 
 internal fun spaceBannerCandidates(payload: JSONObject?, info: JSONObject): List<String> {
     val images = payload?.optJSONObject("images")
-    val first = images?.optJSONObject("collection_top_simple")?.optJSONObject("top")
-        ?.optJSONArray("result")?.optJSONObject(0)
-    val collection = first?.optJSONObject("item")?.optJSONObject("image")?.s("default_image").orEmpty()
     val web = info.s("top_photo").ifBlank { info.optJSONObject("card")?.s("top_photo").orEmpty() }
         .ifBlank { info.optJSONObject("space")?.s("top_photo").orEmpty() }
-    // The App endpoint can return its default pink dressing even when a custom web banner exists.
-    return orderedSpaceBanners(collection, first?.s("cover").orEmpty(), web,
-        images?.s("imgUrl").orEmpty(), images?.s("night_imgurl").orEmpty()).map(::image)
-}
-
-internal fun spaceBannerAlignment(payload: JSONObject?): Float {
-    val item = payload?.optJSONObject("images")?.optJSONObject("collection_top_simple")
-        ?.optJSONObject("top")?.optJSONArray("result")?.optJSONObject(0)?.optJSONObject("item")
-    val image = item?.optJSONObject("image") ?: item?.optJSONObject("animation")
-    return spaceBannerAlignment(image?.s("location").orEmpty(), image?.optDouble("height", 0.0) ?: 0.0)
+    // 只认 App 空间装扮图；网页版 top_photo 与收藏集 cover 的比例不适合通栏头图，仅作兜底。
+    return orderedSpaceBanners(web, images?.s("imgUrl").orEmpty(), images?.s("night_imgurl").orEmpty())
+        .map(::image)
 }

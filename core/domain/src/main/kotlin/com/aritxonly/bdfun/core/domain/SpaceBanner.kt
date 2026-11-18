@@ -7,19 +7,15 @@ fun normalizeSpaceBanner(url: String): String = when {
     else -> url
 }
 
-fun orderedSpaceBanners(collection: String, cover: String, web: String, day: String, night: String): List<String> {
-    // acc/info returns this built-in default even when the App has a personal dressing.
-    val defaultWeb = web.contains("cb1c3ef50e22b6096fde67febe863494caefebad")
-    return (if (defaultWeb) listOf(collection, cover, day, night, web)
-        else listOf(collection, cover, web, day, night)).filter { it.isNotBlank() }
-        .map(::normalizeSpaceBanner).distinct()
-}
-
-/** HyperPiliPlus TopImage.location: skip the prefix, use the selected crop's vertical centre. */
-fun spaceBannerAlignment(location: String, height: Double): Float {
-    if (!height.isFinite() || height <= 0) return 0f
-    val crop = location.split('-').drop(1).take(2).mapNotNull { it.toDoubleOrNull() }
-    if (crop.size != 2) return 0f
-    val offset = (crop.sum() / height - 1).toFloat()
-    return if (offset.isFinite()) offset.coerceIn(-1f, 1f) else 0f
-}
+/**
+ * 空间头图候选顺序：App 空间装扮图（imgUrl / night_imgurl）优先，网页版 `top_photo` 最后兜底。
+ *
+ * `top_photo` 常见 3009×313 这种超宽图，裁进 16:10 的通栏头图只会显示图片的一角；
+ * 收藏集装扮的 cover 则是 2:3 竖长原画，同样不能当通栏头图。两者都不应排在 App 装扮图前面，
+ * 与官方 App 的空间页保持一致。
+ */
+fun orderedSpaceBanners(web: String, day: String, night: String): List<String> =
+    listOf(day, night, web)
+        .filter { it.isNotBlank() }
+        .map(::normalizeSpaceBanner)
+        .distinct()

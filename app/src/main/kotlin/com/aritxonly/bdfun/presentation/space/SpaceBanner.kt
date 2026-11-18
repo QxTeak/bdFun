@@ -23,7 +23,7 @@ internal const val DEFAULT_SPACE_BANNER =
     "https://i0.hdslb.com/bfs/space/cb1c3ef50e22b6096fde67febe863494caefebad.png"
 
 @Composable
-internal fun SpaceBanner(bitmap: android.graphics.Bitmap?, aspect: Float = 16f / 10f, alignmentY: Float = 0f) {
+internal fun SpaceBanner(bitmap: android.graphics.Bitmap?, aspect: Float = 16f / 10f) {
     val dark = MiuixTheme.colorScheme.background.luminance() < 0.5f
     Box(
         modifier = Modifier
@@ -37,7 +37,6 @@ internal fun SpaceBanner(bitmap: android.graphics.Bitmap?, aspect: Float = 16f /
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
-                alignment = androidx.compose.ui.BiasAlignment(0f, alignmentY),
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -48,14 +47,12 @@ internal fun SpaceBanner(bitmap: android.graphics.Bitmap?, aspect: Float = 16f /
 internal suspend fun loadSpaceBannerBitmap(
     context: android.content.Context,
     url: String,
-    cacheOnly: Boolean = false,
 ): android.graphics.Bitmap? = withContext(Dispatchers.IO) {
     val request = ImageRequest.Builder(context)
         .data(com.aritxonly.bdfun.core.common.biliImageUrl(url))
         .setHeader("Referer", "https://space.bilibili.com/")
         .size(1440, 1440)
         .scale(coil.size.Scale.FIT)
-        .networkCachePolicy(if (cacheOnly) coil.request.CachePolicy.DISABLED else coil.request.CachePolicy.ENABLED)
         .allowHardware(false)
         .build()
     val result = coil.Coil.imageLoader(context).execute(request)

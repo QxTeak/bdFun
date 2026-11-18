@@ -29,4 +29,12 @@ class SponsorSegmentPolicyTest {
         assertNull(activeSponsorSegmentAt(listOf(segment("backward", 2000, 1000)), 1500, emptySet()))
         assertNull(activeSponsorSegmentAt(emptyList(), 0, emptySet()))
     }
+
+    @Test fun skipModeMapsToOffPromptOrAuto() {
+        assertEquals(SponsorSkipAction.Off, sponsorSkipAction(0))
+        assertEquals(SponsorSkipAction.Prompt, sponsorSkipAction(1))
+        assertEquals(SponsorSkipAction.Auto, sponsorSkipAction(2))
+        // 未知值沿用旧默认的「提示」，不静默关闭或自动跳转。
+        assertEquals(SponsorSkipAction.Prompt, sponsorSkipAction(99))
+    }
 }

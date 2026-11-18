@@ -28,6 +28,8 @@ class LibraryActivity : ComponentActivity() {
                 onBack = { finish() },
                 options = ActivityPageOptions(
                     title = "收藏",
+                    // 宽屏交给网格按首页的 280..560dp 卡片自动加列，不再压成单栏 680dp。
+                    limitContentWidth = false,
                 ),
                 slots = ActivityPageSlots(
                     topBarActions = { LibraryTopActions(menuState) },

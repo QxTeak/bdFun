@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.drawscope.Stroke
 import com.aritxonly.bdfun.trimBottom
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
@@ -21,11 +21,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +45,19 @@ import com.aritxonly.bdfun.feature.mine.application.*
 internal fun MineProfileCard(shown: UserProfile, cardShape: androidx.compose.ui.graphics.Shape, navigation: MineNavigation) {
     val colors = MiuixTheme.colorScheme
     val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val imageCache = remember(context) { com.aritxonly.bdfun.ui.ProfileImageCache(context) }
+    val cachedAvatar = remember(shown.mid) { imageCache.avatarFile(shown.mid) }
+    val faceRequest = rememberImageRequest(shown.face, crossfade = false)
+    // 缓存优先上屏；网络请求照常进行，成功后再覆盖缓存和当前头像。
+    var avatarModel by remember(shown.mid, shown.face) {
+        mutableStateOf<Any>(if (cachedAvatar.exists()) cachedAvatar else faceRequest)
+    }
+    LaunchedEffect(shown.mid, shown.face) {
+        val loaded = com.aritxonly.bdfun.ui.loadProfileAvatarBitmap(context, shown.face) ?: return@LaunchedEffect
+        if (shown.mid > 0L) imageCache.saveAvatar(shown.mid, loaded)
+        avatarModel = loaded
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -48,12 +65,27 @@ internal fun MineProfileCard(shown: UserProfile, cardShape: androidx.compose.ui.
             .padding(start = 20.dp, end = 20.dp, bottom = 20.dp),
     ) {
         Row(Modifier.fillMaxWidth().trimBottom(24.dp), verticalAlignment = Alignment.Bottom) {
-            AsyncImage(
-                model = rememberImageRequest(shown.face), contentDescription = "头像",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(76.dp).clip(CircleShape).background(colors.surfaceContainerHigh)
-                    .border(5.dp, colors.surfaceContainer, CircleShape),
-            )
+            // 描边画在外侧，同时把头像缩到 66dp：整体外径仍是原来的 76dp，不会比内描边时更大。
+            Box(
+                modifier = Modifier
+                    .size(76.dp)
+                    .drawBehind {
+                        drawCircle(
+                            color = colors.surfaceContainer,
+                            radius = size.minDimension / 2f - 2.5.dp.toPx(),
+                            style = Stroke(width = 5.dp.toPx()),
+                        )
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                AsyncImage(
+                    model = avatarModel, contentDescription = "头像",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(66.dp).clip(CircleShape).background(colors.surfaceContainerHigh),
+                )
+                // 与个人空间页同款弧线+圆点点缀，尺寸按 76dp 外径等比缩小。
+                AvatarAccent(outerSize = 76.dp)
+            }
             Spacer(Modifier.weight(1f))
             Button(onClick = { navigation.onOpenSpace(shown.mid) }, cornerRadius = 16.dp, minWidth = 0.dp,
                 colors = ButtonDefaults.buttonColors(color = colors.surfaceContainerHigh, contentColor = colors.onBackground),
@@ -81,10 +113,8 @@ private fun androidx.compose.foundation.layout.RowScope.MineIdentity(shown: User
         Spacer(Modifier.height(9.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (shown.vip) {
-                Text(shown.vipLabel.ifBlank { "大会员" }, color = com.aritxonly.bdfun.BrandPink,
-                    fontSize = 11.sp, modifier = Modifier.clip(CircleShape)
-                        .background(com.aritxonly.bdfun.BrandPink.copy(alpha = 0.12f))
-                        .padding(horizontal = 7.dp, vertical = 3.dp))
+                // 与个人主页同一枚大会员胶囊，不再单独实现一套粉底浅色文字。
+                AccountVipBadge(text = shown.vipLabel.ifBlank { "大会员" })
                 Spacer(Modifier.width(9.dp))
             }
             Text("硬币 ${"%.1f".format(shown.coins)}", color = colors.onBackgroundVariant, fontSize = 11.sp)

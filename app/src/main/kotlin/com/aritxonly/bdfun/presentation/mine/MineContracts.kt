@@ -6,7 +6,13 @@ import com.aritxonly.bdfun.core.model.user.UserProfile
 import com.aritxonly.bdfun.core.model.user.SentRecord
 import com.aritxonly.bdfun.feature.mine.application.*
 
-internal data class MineScreenRequest(val profile: UserProfile?, val showSentHistory: Boolean, val sessionRevision: Long = 0)
+internal data class MineScreenRequest(
+    val profile: UserProfile?, val showSentHistory: Boolean, val sessionRevision: Long = 0,
+    /** 登录态资料仍在刷新：我的页显示骨架屏，避免先闪游客卡再切换。 */
+    val sessionLoading: Boolean = false,
+    /** 已登录（cookie 还在）但资料未回来；游客不能显示骨架屏。 */
+    val loggedIn: Boolean = false,
+)
 internal class MineDependencies(val createData: (UserProfile?) -> MineStateHolder, val recent: () -> List<SentRecord>,
     val layout: com.aritxonly.bdfun.core.application.MineLayoutStateHolder,
     val createPreview: (UserProfile?) -> MinePreviewStateHolder,

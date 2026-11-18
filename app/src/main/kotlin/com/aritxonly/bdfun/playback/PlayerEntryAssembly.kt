@@ -18,7 +18,7 @@ internal fun rememberPlayerEntryPorts(): PlayerEntryPorts {
         createPlayback = { dependencies.createPlayback(context, runCatching { settings.decoderMode }.getOrDefault(0)) },
         tracking = { dependencies.controllers.tracking() },
         defaultSpeed = { settings.defaultPlaybackSpeed }, autoPlayNext = { settings.autoPlayNext },
-        sponsorSkipEnabled = { settings.sponsorSkipEnabled }, danmakuOn = { settings.danmakuOn },
+        sponsorSkipMode = { settings.sponsorSkipMode }, danmakuOn = { settings.danmakuOn },
         bluetoothLatency = { rememberPlayerBluetoothLatency() }, engine = engine,
         render = { playback, media, presentation, actions, ui ->
             rememberPlayerRenderPorts(playback, media, presentation, actions, ui)

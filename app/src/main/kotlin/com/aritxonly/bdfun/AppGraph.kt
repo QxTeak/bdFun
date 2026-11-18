@@ -78,6 +78,8 @@ object AppGraph {
     val homeFeedState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.homeFeedState
     internal val livePageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.livePageState
     internal val bangumiPageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.bangumiPageState
+    internal val cinemaPageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.cinemaPageState
+    internal val cinemaRankState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.cinemaRankState
 
     /** 登录态：MainActivity 与 LoginActivity 共享，登录成功直接写这里。 */
     internal val mainTabRequests get() = checkNotNull(container) { "AppGraph 尚未初始化" }.mainTabRequests

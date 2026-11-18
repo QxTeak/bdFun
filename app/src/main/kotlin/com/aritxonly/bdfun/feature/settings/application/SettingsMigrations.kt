@@ -68,3 +68,11 @@ internal fun migrateSettings1(prefs: SettingsPreferences) {
                 .apply()
         }
     }
+
+/** 空降助手从布尔开关升级为三档下拉：老用户的开关值只映射到「关闭 / 提示」，不擅自开启自动跳过。 */
+internal fun migrateSettings2(prefs: SettingsPreferences) {
+        if (!prefs.contains("sponsor_skip_mode")) {
+            val legacy = if (prefs.contains("sponsor_skip")) prefs.getBoolean("sponsor_skip", true) else true
+            prefs.edit().putInt("sponsor_skip_mode", if (legacy) 1 else 0).apply()
+        }
+    }

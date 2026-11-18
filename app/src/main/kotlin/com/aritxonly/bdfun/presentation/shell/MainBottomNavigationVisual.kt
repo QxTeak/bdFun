@@ -38,7 +38,8 @@ internal fun rememberMainBottomNavigationVisual(
         BrandPink
     }
 
-    val discVisible = !wideNavigation && settings.showDiscAfterVideo && BackgroundPlayback.active
+    // 搜索页不能出现唱片；搜索覆盖层打开时和底栏一起立即隐藏。
+    val discVisible = !wideNavigation && !searchVisible && settings.showDiscAfterVideo && BackgroundPlayback.active
     val discSlot = rememberSpringFloat(
         target = if (discVisible) 1f else 0f,
         stiffness = 300f,

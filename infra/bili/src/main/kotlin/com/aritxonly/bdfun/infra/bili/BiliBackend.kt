@@ -48,8 +48,9 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
         api.liveRecommend(page, parentAreaId, areaId)
     suspend fun liveAreaList(parentId: Long = 0L) = api.liveAreaList(parentId)
     suspend fun liveFollowers() = api.liveFollowers()
-    suspend fun pgcFollowing(page: Int = 1) = api.pgcFollowing(page)
-    suspend fun pgcIndex(page: Int = 1, pageSize: Int = 20) = api.pgcIndex(page, pageSize)
+    suspend fun pgcFollowing(page: Int = 1, type: Int = 1) = api.pgcFollowing(page, type)
+    suspend fun pgcIndex(page: Int = 1, pageSize: Int = 20, seasonType: Int = 1) =
+        api.pgcIndex(page, pageSize, seasonType)
     suspend fun pgcTimeline(types: Int) = api.pgcTimeline(types)
     suspend fun pgcSeason(seasonId: Long) = api.pgcSeason(seasonId)
     suspend fun nav() = api.nav()

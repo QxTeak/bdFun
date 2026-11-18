@@ -29,6 +29,7 @@ class HistoryActivity : ComponentActivity() {
                 onBack = { finish() },
                 options = ActivityPageOptions(
                     title = "历史",
+                    limitContentWidth = false,
                 ),
                 slots = ActivityPageSlots(
                     topBarActions = { LibraryTopActions(menuState) },

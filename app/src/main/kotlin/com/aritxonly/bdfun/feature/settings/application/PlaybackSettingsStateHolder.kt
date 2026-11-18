@@ -108,7 +108,7 @@ internal class PlaybackSettingsStateHolder(
 
     private val progressBarModeState = stateCell("progressBarModeState", prefs.getInt("progress_bar_mode", 0))
 
-    private val sponsorSkipState = stateCell("sponsorSkipState", prefs.getBoolean("sponsor_skip", true))
+    private val sponsorSkipModeState = stateCell("sponsorSkipModeState", prefs.getInt("sponsor_skip_mode", 1))
 
     private val btLatencyMsState = stateCell("btLatencyMsState", prefs.getInt("bt_latency_ms", 100))
 
@@ -327,11 +327,11 @@ internal class PlaybackSettingsStateHolder(
             prefs.edit().putInt("progress_bar_mode", progressBarModeState.value).apply()
         }
 
-    override var sponsorSkipEnabled: Boolean
-        get() = sponsorSkipState.value
+    override var sponsorSkipMode: Int
+        get() = sponsorSkipModeState.value.coerceIn(0, 2)
         set(value) {
-            sponsorSkipState.value = value
-            prefs.edit().putBoolean("sponsor_skip", value).apply()
+            sponsorSkipModeState.value = value.coerceIn(0, 2)
+            prefs.edit().putInt("sponsor_skip_mode", sponsorSkipModeState.value).apply()
         }
 
     override var bluetoothLatencyMs: Int

@@ -10,10 +10,10 @@ import org.json.JSONObject
 private const val pgcReferer = "https://www.bilibili.com/anime/"
 
 /**
- * 最近追番（PiliPlus 的「我的追番」接口 /x/space/bangumi/follow/list?type=1）。
- * 未登录返回空列表，页面只显示推荐。
+ * 最近追番（PiliPlus 的「我的追番」接口 /x/space/bangumi/follow/list）。
+ * type=1 番剧、type=2 影视；未登录返回空列表，页面只显示推荐。
  */
-internal suspend fun BiliApiContext.pgcFollowing(page: Int = 1): List<BangumiCard> =
+internal suspend fun BiliApiContext.pgcFollowing(page: Int = 1, type: Int = 1): List<BangumiCard> =
     withContext(Dispatchers.IO) {
         // 这个接口必须带自己的 mid；未登录时直接返回空，别把 -101 当成页面错误。
         if (!isLoggedIn || mid <= 0L) return@withContext emptyList()
@@ -22,7 +22,7 @@ internal suspend fun BiliApiContext.pgcFollowing(page: Int = 1): List<BangumiCar
                 "/x/space/bangumi/follow/list",
                 mapOf(
                     "vmid" to mid.toString(),
-                    "type" to "1",
+                    "type" to type.toString(),
                     "follow_status" to "0",
                     "pn" to page.toString(),
                     "ps" to "15",
@@ -37,10 +37,15 @@ internal suspend fun BiliApiContext.pgcFollowing(page: Int = 1): List<BangumiCar
     }
 
 /**
- * 番剧推荐（PiliPlus 番剧索引同款 /pgc/season/index/result）。
+ * 番剧/影视推荐（PiliPlus 番剧索引同款 /pgc/season/index/result）。
  * order=3 为「追番人数」排序，接口因此会带回 order 字段（xx万追番）。
+ * seasonType：1 番剧、2 电影、5 电视剧、3 纪录片、7 综艺。
  */
-internal suspend fun BiliApiContext.pgcIndex(page: Int = 1, pageSize: Int = 20): List<BangumiCard> =
+internal suspend fun BiliApiContext.pgcIndex(
+    page: Int = 1,
+    pageSize: Int = 20,
+    seasonType: Int = 1,
+): List<BangumiCard> =
     withContext(Dispatchers.IO) {
         cancellableCatching {
             val data = dataRequest(
@@ -49,7 +54,7 @@ internal suspend fun BiliApiContext.pgcIndex(page: Int = 1, pageSize: Int = 20):
                     "st" to "1",
                     "order" to "3",
                     "sort" to "0",
-                    "season_type" to "1",
+                    "season_type" to seasonType.toString(),
                     "type" to "1",
                     "season_version" to "-1",
                     "spoken_language_type" to "-1",
@@ -101,11 +106,11 @@ private fun JSONObject.toBangumiCard(): BangumiCard? {
         indexShow = optString("index_show").orEmpty().ifBlank {
             optJSONObject("new_ep")?.optString("index_show").orEmpty()
         },
-        // order 已经是「1770.2万追番」这种成品文案，别再拼一次后缀。
+        // order 已经是「1770.2万追番」这种成品文案，别再拼一次后缀；影视还会返回「xx万追剧」。
         followText = optString("order").orEmpty().let { raw ->
             when {
                 raw.isBlank() -> ""
-                raw.contains("追番") -> raw
+                raw.contains("追番") || raw.contains("追剧") -> raw
                 else -> "${raw}追番"
             }
         },
