@@ -4,7 +4,8 @@ import com.aritxonly.teak.common.chrome.TeakScrollContainer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,6 +24,7 @@ internal fun SearchResultList(
     onOpenVideo: (VideoItem) -> Unit, onOpenUser: (SearchUser) -> Unit,
     onLoadMore: () -> Unit = {},
 ) {
+    val wide = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600
     val pageColors = MiuixTheme.colorScheme
     val listState = if (page == 0) presentation.videos else presentation.users
     // 只有视频 Tab 有分页：滑到接近底部就拉下一页；drop(1) 忽略进入页面时的首次布局。
@@ -39,7 +41,8 @@ internal fun SearchResultList(
         }
     }
     TeakScrollContainer(listState, Modifier.fillMaxSize()) {
-    LazyColumn(
+    LazyVerticalGrid(
+        columns = if (wide) GridCells.Adaptive(260.dp) else GridCells.Fixed(1),
         state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
@@ -50,6 +53,7 @@ internal fun SearchResultList(
             bottom = 32.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         searchResultStatusItems(content, pageColors)
         if (page == 0) {

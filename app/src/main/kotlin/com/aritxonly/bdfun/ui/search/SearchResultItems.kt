@@ -1,5 +1,7 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -8,7 +10,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
@@ -23,7 +25,7 @@ import com.aritxonly.teak.common.skeleton.TeakSkeletonBlock
 import com.aritxonly.teak.common.skeleton.TeakSkeletonVideoRow
 import com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep
 
-internal fun androidx.compose.foundation.lazy.LazyListScope.searchResultStatusItems(
+internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchResultStatusItems(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
     pageColors: top.yukonga.miuix.kmp.theme.Colors,
 ) {
@@ -34,7 +36,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchResultStatusIt
     // 首个结果页的加载交给结果列表自己的骨架，这里只保留错误提示。
     error?.let { message ->
         if (results.isEmpty() && users.isEmpty()) {
-            item(key = "error") {
+            item(key = "error", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
                 Text(
                     text = message,
                     color = pageColors.onBackgroundVariant,
@@ -47,7 +49,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchResultStatusIt
 
 }
 
-internal fun androidx.compose.foundation.lazy.LazyListScope.searchVideoResultItems(
+internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchVideoResultItems(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
     pageColors: top.yukonga.miuix.kmp.theme.Colors, onOpenVideo: (VideoItem) -> Unit,
 ) {
@@ -64,18 +66,19 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchVideoResultIte
         val oneTake = rememberOneTakeAnchor()
         val itemContext = LocalContext.current
         val cardRadiusPx = with(LocalDensity.current) { 10.dp.toPx() }
-        SearchResultRow(
-            video = video,
-            modifier = oneTake.modifier,
-            onClick = {
+        val open = {
                 oneTake.open(itemContext, video, cardRadiusPx) {
                     onOpenVideo(video)
                 }
-            },
-        )
+        }
+        if (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600) {
+            SearchResultGridCard(video, open, oneTake.modifier)
+        } else {
+            SearchResultRow(video, open, oneTake.modifier)
+        }
     }
     if (loadedOnce && !loading && results.isEmpty() && error == null) {
-        item(key = "empty-videos") {
+        item(key = "empty-videos", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
             Text(
                 text = "没有找到相关视频",
                 color = pageColors.onBackgroundVariant,
@@ -87,13 +90,13 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchVideoResultIte
 
 }
 
-internal fun androidx.compose.foundation.lazy.LazyListScope.searchVideoPageFooter(
+internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchVideoPageFooter(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
     pageColors: top.yukonga.miuix.kmp.theme.Colors,
 ) {
     if (content.results.isEmpty()) return
     if (content.loadingMore) {
-        item(key = "search-loading-more") {
+        item(key = "search-loading-more", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
             Box(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                 contentAlignment = Alignment.Center,
@@ -102,7 +105,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchVideoPageFoote
             }
         }
     } else if (content.end) {
-        item(key = "search-end") {
+        item(key = "search-end", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
             Box(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
                 contentAlignment = Alignment.Center,
@@ -113,7 +116,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchVideoPageFoote
     }
 }
 
-internal fun androidx.compose.foundation.lazy.LazyListScope.searchUserResultItems(
+internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchUserResultItems(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
     pageColors: top.yukonga.miuix.kmp.theme.Colors, onOpenUser: (SearchUser) -> Unit,
 ) {
@@ -130,7 +133,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchUserResultItem
         SearchUserRow(user = user, onClick = { onOpenUser(user) })
     }
     if (loadedOnce && !loading && users.isEmpty() && error == null) {
-        item(key = "empty-users") {
+        item(key = "empty-users", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
             Text(
                 text = "没有找到相关用户",
                 color = pageColors.onBackgroundVariant,
@@ -144,10 +147,18 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchUserResultItem
 /** 搜索结果首屏：和 SearchResultRow 同尺寸的骨架行。 */
 @androidx.compose.runtime.Composable
 private fun SearchVideoSkeletonRow() {
-    TeakSkeletonVideoRow(
-        progress = rememberTeakSkeletonSweep(),
-        modifier = Modifier.padding(vertical = 2.dp),
-    )
+    val sweep = rememberTeakSkeletonSweep()
+    if (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600) {
+        Column {
+            TeakSkeletonBlock(sweep, Modifier.fillMaxWidth().aspectRatio(16f / 9f))
+            Spacer(Modifier.height(8.dp))
+            TeakSkeletonBlock(sweep, Modifier.fillMaxWidth().height(40.dp))
+            Spacer(Modifier.height(4.dp))
+            TeakSkeletonBlock(sweep, Modifier.fillMaxWidth(0.6f).height(32.dp))
+        }
+    } else {
+        TeakSkeletonVideoRow(progress = sweep, modifier = Modifier.padding(vertical = 2.dp))
+    }
 }
 
 /** 用户结果首屏：头像 + 两行文字。 */
