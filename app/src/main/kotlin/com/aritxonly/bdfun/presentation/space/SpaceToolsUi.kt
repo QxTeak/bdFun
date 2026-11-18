@@ -2,10 +2,7 @@ package com.aritxonly.bdfun
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -13,6 +10,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import com.aritxonly.bdfun.ui.TeakGlassMenu
 import kotlinx.coroutines.launch
+import top.yukonga.miuix.kmp.glass.GlassPopupItem
 import top.yukonga.miuix.kmp.basic.Text
 
 internal class SpaceToolsUiState {
@@ -32,19 +30,23 @@ internal fun SpaceToolsUi(runtime: SpaceScreenRuntime, chrome: SpaceChromeState)
     val content = runtime.content
     val context = LocalContext.current
     val scope = runtime.scope
-    TeakGlassMenu(ui.menu, { ui.menu = false }, ui.anchor) {
-        if (!content.isSelf) Text(if (state.blocked) "已拉黑" else "拉黑", Modifier.fillMaxWidth()
-            .clickable(enabled = !state.blocked && !state.blockBusy) { ui.menu = false; ui.confirmBlock = true }.padding(18.dp))
-        Text("分享", Modifier.fillMaxWidth().clickable {
+    TeakGlassMenu(ui.menu, { ui.menu = false }, ui.anchor,
+        minWidth = 168.dp, maxWidth = 216.dp, maxHeight = 420.dp) {
+        if (!content.isSelf) GlassPopupItem(
+            text = if (state.blocked) "已拉黑" else "拉黑",
+            enabled = !state.blocked && !state.blockBusy,
+            onClick = { ui.menu = false; ui.confirmBlock = true },
+        )
+        GlassPopupItem(text = "分享", onClick = {
             ui.menu = false
             context.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
                 type = "text/plain"; putExtra(Intent.EXTRA_TEXT, "https://space.bilibili.com/${content.mid}")
             }, "分享空间"))
-        }.padding(18.dp))
-        if (!content.isSelf) Text("举报", Modifier.fillMaxWidth().clickable {
+        })
+        if (!content.isSelf) GlassPopupItem(text = "举报", onClick = {
             ui.menu = false
             context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://www.bilibili.com/appeal/?prefid=0&mid=${content.mid}")))
-        }.padding(18.dp))
+        })
     }
     if (ui.confirmBlock) AlertDialog(onDismissRequest = { ui.confirmBlock = false },
         title = { Text(if (content.loggedIn) "拉黑此用户？" else "请先登录") },
