@@ -46,7 +46,7 @@ internal fun SearchResultList(
             start = 16.dp,
             end = 16.dp,
             // 顶栏 + Tab 栏 + 一点间距
-            top = HomeTopBarHeight + 54.dp,
+            top = HomeTopBarHeight + if (useSingleRowSearchResults()) 6.dp else 54.dp,
             bottom = 32.dp,
         ),
         verticalArrangement = Arrangement.spacedBy(12.dp),

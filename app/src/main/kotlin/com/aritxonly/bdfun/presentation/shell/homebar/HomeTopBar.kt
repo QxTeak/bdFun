@@ -52,6 +52,7 @@ fun homeTopBarHeight(interfaceStyle: Int): Dp =
 internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, actions: HomeTopBarActions,
     tabs: HomeTopBarTabs? = null,
     tabsCollapseProgress: Float = 0f,
+    resultActions: (@Composable () -> Unit)? = null,
     singleRowSearchTabs: Boolean = false,
     modifier: Modifier = Modifier) {
     val windowSize = androidx.compose.ui.platform.LocalWindowInfo.current.containerSize
@@ -67,6 +68,10 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
     val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
     val material = remember(wide, searchWidth, recipe, backdrop, searchInteraction, classic) {
         HomeTopBarMaterial(wide, searchWidth, recipe, backdrop, searchInteraction, classic)
+    }
+    if (resultActions != null) {
+        HomeTopBarSearchRow(content, search, actions, material, resultActions)
+        return
     }
     // 搜索展开时让出高度：结果页从顶栏下沿开始，不会被分段条盖住。
     val visibleTabs = tabs.takeUnless { search.active }
@@ -240,11 +245,16 @@ private fun HomeTopBarLandscapeRow(
 private fun HomeTopBarSearchRow(
     content: HomeTopBarContent, search: HomeTopBarSearch,
     actions: HomeTopBarActions, material: HomeTopBarMaterial,
+    resultActions: (@Composable () -> Unit)? = null,
 ) {
     Row(Modifier.fillMaxWidth().height(HomeTopBarHeight).padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically) {
         HomeTopBarLeft(content, search, actions)
         Spacer(Modifier.width(10.dp))
         HomeSearchSurface(search, actions, material)
+        if (resultActions != null) {
+            Spacer(Modifier.width(12.dp))
+            Box(Modifier.weight(1f)) { resultActions() }
+        }
     }
 }
