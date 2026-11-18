@@ -28,15 +28,7 @@ internal fun BindDanmakuClick(view: DanmakuRenderView, hit: PlayerDanmakuHit): M
         page.danmakuVotes?.collect { votes -> hit.votes.value = votes.filterKeys { it.first == page.cid }.mapKeys { it.key.second } }
     }
     DisposableEffect(view, hit, page.cid) {
-        val activeCid = page.cid
-        hit.loadVotes = { ids -> if (page.cid == activeCid) page.danmakuVoteLoader?.invoke(ids) }
-        hit.sendSame = { text -> page.cid == activeCid && page.danmakuSender?.invoke(text, 1, 25, 0xFFFFFF) == true }
-        hit.like = { id ->
-            if (page.cid == activeCid) scope.launch {
-                val ok = page.danmakuLiker?.invoke(id) == true
-                if (page.cid == activeCid && !ok) Toast.makeText(view.context, "操作失败，请确认已登录", Toast.LENGTH_SHORT).show()
-            }
-        }
+        bindDanmakuVoteActions(page, hit, scope, view.context)
         // 单击确认由播放器负责，原生 View 不再抢走拖动、双击和长按。
         view.setRendererTouchable(false)
         hit.capture = capture@{ window ->
@@ -60,7 +52,7 @@ internal fun BindDanmakuClick(view: DanmakuRenderView, hit: PlayerDanmakuHit): M
                     layout.voteJob?.cancel()
                     view.engine.clearClickSelection()
                 }.apply {
-                    show(item.text.orEmpty(), point?.x?.toInt() ?: 0, point?.y?.toInt() ?: 0,
+                    show(item.mergedOriginalText ?: item.text.orEmpty(), point?.x?.toInt() ?: 0, point?.y?.toInt() ?: 0,
                         liked = hit.votes.value[id]?.liked == true,
                         count = hit.votes.value[id]?.likes ?: item.likeCount,
                         like = {
@@ -69,12 +61,18 @@ internal fun BindDanmakuClick(view: DanmakuRenderView, hit: PlayerDanmakuHit): M
                                 if (page.cid == cid) Toast.makeText(view.context,
                                     if (ok) "操作成功" else "点赞失败，请确认已登录", Toast.LENGTH_SHORT).show()
                             }
-                        }, report = { reason, content ->
+                        }, report = if (item.isSelf) null else { reason, content ->
                             if (page.cid == cid && reporter != null) scope.launch {
                                 val ok = reporter(id, reason, content)
                                 if (page.cid == cid) Toast.makeText(view.context,
                                     if (ok) "举报已提交" else "举报失败，请稍后重试", Toast.LENGTH_SHORT).show()
                             }
+                        }, more = {
+                            page.inspectDanmaku = com.aritxonly.bdfun.core.model.video.DanmakuItem(
+                                item.showAtTime, 1, 0xFFFFFF, 25f,
+                                item.mergedOriginalText ?: item.text.orEmpty(), id, item.likeCount,
+                                self = item.isSelf, userHash = item.userHash,
+                            )
                         })
                     layout.voteJob = scope.launch {
                         launch { hit.loadVotes?.invoke(listOf(id)) }
@@ -98,4 +96,17 @@ internal fun BindDanmakuClick(view: DanmakuRenderView, hit: PlayerDanmakuHit): M
         }
     }
     return Modifier.onGloballyPositioned { layout.coordinates = it }
+}
+
+private fun bindDanmakuVoteActions(page: VideoPagePresentationState, hit: PlayerDanmakuHit,
+    scope: kotlinx.coroutines.CoroutineScope, context: android.content.Context) {
+    val activeCid = page.cid
+    hit.loadVotes = { ids -> if (page.cid == activeCid) page.danmakuVoteLoader?.invoke(ids) }
+    hit.sendSame = { text -> page.cid == activeCid && page.danmakuSender?.invoke(text, 1, 25, 0xFFFFFF) == true }
+    hit.like = { id ->
+        if (page.cid == activeCid) scope.launch {
+            val ok = page.danmakuLiker?.invoke(id) == true
+            if (page.cid == activeCid && !ok) Toast.makeText(context, "操作失败，请确认已登录", Toast.LENGTH_SHORT).show()
+        }
+    }
 }

@@ -77,6 +77,7 @@ fun VideoPlayerLayout(
         PlayerDanmakuInputOverlay(fullscreen, danmaku, ui, ports.danmakuSender)
 
         ports.inlineMore()
+        if (!presentation.pictureInPicture) ports.danmakuOverlays(this, danmakuVisible)
     }
 }
 

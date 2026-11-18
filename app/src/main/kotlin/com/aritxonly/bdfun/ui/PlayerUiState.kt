@@ -196,6 +196,8 @@ internal class VideoPagePresentationState(
         ) }
     override var panelBackdrop by mutableStateOf<ImageBitmap?>(null)
     var commentSender: (suspend (String, String?) -> Boolean)? = null
+    var inspectDanmaku by mutableStateOf<com.aritxonly.bdfun.core.model.video.DanmakuItem?>(null)
+    override var danmakuModeration: com.aritxonly.bdfun.feature.video.application.DanmakuModerationStateHolder? by mutableStateOf(null)
     override var danmakuReporter: (suspend (Long, com.aritxonly.bdfun.core.domain.DanmakuReportReason, String) -> Boolean)? = null
     override var danmakuVoteLoader: (suspend (List<Long>) -> Unit)? = null
     override var danmakuVotes: kotlinx.coroutines.flow.StateFlow<Map<Pair<Long, Long>, com.aritxonly.bdfun.core.domain.DanmakuVote>>? by mutableStateOf(null)

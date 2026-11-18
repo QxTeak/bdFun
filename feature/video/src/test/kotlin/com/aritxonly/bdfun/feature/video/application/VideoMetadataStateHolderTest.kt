@@ -34,7 +34,30 @@ class VideoMetadataStateHolderTest {
                 is Outcome.Failure -> result
             }
         }
-        override suspend fun sendDanmaku(post: DanmakuPost) = send()
+        override suspend fun sendDanmaku(post: DanmakuPost): Outcome<Long> = when (val result = send()) {
+            is Outcome.Success -> Outcome.Success(10L)
+            is Outcome.Failure -> result
+        }
+        override suspend fun recallDanmaku(cid: Long, id: Long) = send()
+        override suspend fun specialDanmaku(aid: Long, cid: Long) = Outcome.Success(emptyList<DanmakuItem>())
+        override suspend fun danmakuCommands(aid: Long, cid: Long) = Outcome.Success(emptyList<DanmakuCommand>())
+        override suspend fun submitDanmakuCommand(selection: DanmakuCommandSelection) = send()
+        override suspend fun danmakuRules() = Outcome.Success(emptyList<DanmakuCloudRule>())
+        override suspend fun addDanmakuRule(kind: DanmakuRuleKind, value: String) =
+            Outcome.Success(DanmakuCloudRule(1, kind, value))
+        override suspend fun syncDanmakuConfig(config: DanmakuCloudConfig) = send()
+        override suspend fun deleteDanmakuRule(id: Long) = send()
+    }
+
+    @Test fun recallAppliesOnlyToOwnIdentifiedDanmakuInTheSelectedPart() = runBlocking {
+        var calls = 0
+        val holder = VideoMetadataStateHolder(Fake().apply { send = { calls++; Outcome.Success(Unit) } })
+        val item = DanmakuItem(0, 1, 0, 25f, "弹幕", id = 18)
+        assertFalse(holder.danmakuModeration.recall(9, item))
+        assertFalse(holder.danmakuModeration.recall(9, item.copy(id = 0, self = true)))
+        assertTrue(holder.danmakuModeration.recall(9, item.copy(self = true)))
+        assertEquals(1, calls)
+        assertEquals(setOf(9L to 18L), holder.danmakuModeration.state.value.recalled)
     }
 
     @Test fun invalidReportNeverReachesRepository() = runBlocking {

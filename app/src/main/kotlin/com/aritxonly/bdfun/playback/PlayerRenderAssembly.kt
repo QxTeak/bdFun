@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.BrandPink
@@ -38,6 +39,14 @@ internal fun rememberPlayerRenderPorts(
             PlayerFullscreenVisuals(chrome.appearance, chrome.slots, settings.danmakuOn, settings.backgroundPlay)
         },
         danmakuSender = { page.danmakuSender },
+        danmakuOverlays = { visible ->
+            if (visible && !settings.danmakuBlockAdvanced && !ui.fsAudioOnly.value) {
+                SpecialVideoDanmakuOverlay(media.danmaku, playback, ui, page.aid, presentation.fullscreenInfo.currentCid)
+                DanmakuCommandOverlay(playback, page.aid, presentation.fullscreenInfo.currentCid, actions.interaction)
+            }
+            val controlsVisible by ui.controlsVisible
+            DanmakuManagementOverlay(media.danmaku, playback, presentation.fullscreenInfo.currentCid, controlsVisible)
+        },
         inlineMore = { PlayerInlineMore(playback, media, presentation, actions, fsActions, ui) },
     )
 }

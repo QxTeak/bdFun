@@ -14,4 +14,5 @@ data class DanmakuItem(
     val count: Int = 0,
     /** 自己刚发送的弹幕：渲染时加圆角底。 */
     val self: Boolean = false,
+    val userHash: String = "",
 )

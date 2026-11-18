@@ -19,6 +19,7 @@ fun RegisterVideoDanmakuSender(
     DisposableEffect(currentCid, detail?.aid) {
         val d = detail
         if (d != null) {
+            VideoPageBus.danmakuModeration = metadataController.danmakuModeration
             VideoPageBus.danmakuReporter = { id, reason, content ->
                 metadataController.reportDanmaku(com.aritxonly.bdfun.core.domain.DanmakuReport(currentCid, id, reason, content))
             }
@@ -28,12 +29,12 @@ fun RegisterVideoDanmakuSender(
             VideoPageBus.aid = d.aid
             VideoPageBus.cid = currentCid
             VideoPageBus.danmakuSender = { text, mode, fontSize, color ->
-                val ok = metadataController.sendDanmaku(
+                val id = metadataController.sendDanmaku(
                     com.aritxonly.bdfun.core.domain.DanmakuPost(
-                        currentCid, d.bvid, text, VideoPageBus.danmakuProgressMs, mode, fontSize, color,
+                        currentCid, d.bvid, text, VideoPageBus.danmakuProgressMs, mode, fontSize, color, d.aid,
                     ),
                 )
-                if (ok) {
+                if (id != null && VideoPageBus.cid == currentCid) {
                     ports.sentHistory().record(
                         kind = "danmaku",
                         text = text,
@@ -49,12 +50,13 @@ fun RegisterVideoDanmakuSender(
                         size = fontSize / 25f,
                         text = text,
                         self = true,
+                        id = id,
                     ))
                 }
-                ok
+                id != null
             }
         }
-        onDispose { VideoPageBus.danmakuSender = null; VideoPageBus.danmakuLiker = null; VideoPageBus.danmakuVotes = null; VideoPageBus.danmakuVoteLoader = null; VideoPageBus.danmakuReporter = null }
+        onDispose { VideoPageBus.danmakuModeration = null; VideoPageBus.danmakuSender = null; VideoPageBus.danmakuLiker = null; VideoPageBus.danmakuVotes = null; VideoPageBus.danmakuVoteLoader = null; VideoPageBus.danmakuReporter = null }
     }
 
 }

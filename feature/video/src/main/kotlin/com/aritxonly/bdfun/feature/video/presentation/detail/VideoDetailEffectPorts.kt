@@ -8,6 +8,7 @@ interface VideoDetailDanmakuHost {
     var aid: Long
     var cid: Long
     val danmakuProgressMs: Long
+    var danmakuModeration: com.aritxonly.bdfun.feature.video.application.DanmakuModerationStateHolder?
     var danmakuReporter: (suspend (Long, com.aritxonly.bdfun.core.domain.DanmakuReportReason, String) -> Boolean)?
     var danmakuVoteLoader: (suspend (List<Long>) -> Unit)?
     var danmakuVotes: kotlinx.coroutines.flow.StateFlow<Map<Pair<Long, Long>, com.aritxonly.bdfun.core.domain.DanmakuVote>>?

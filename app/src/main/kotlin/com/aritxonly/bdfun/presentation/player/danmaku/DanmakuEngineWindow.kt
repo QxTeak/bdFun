@@ -21,11 +21,14 @@ internal fun rememberDanmakuEngineWindow(filtered: List<BiliDanmakuItem>): Danma
                 layerType = when (item.mode) {
                     4 -> DANMAKU_LAYER_BOTTOM
                     5 -> DANMAKU_LAYER_TOP
+                    6 -> com.android.purebilibili.danmaku.engine.DANMAKU_LAYER_REVERSE
                     else -> DANMAKU_LAYER_SCROLL
                 }
                 textColor = 0xFF000000.toInt() or item.color
                 textSizeScale = item.size.coerceIn(0.75f, 1.25f)
                 isSelf = item.self
+                userHash = item.userHash
+                mergedOriginalText = item.text
                 if (item.id > 0L) danmakuId = item.id
                 likeCount = item.likeCount
                 duplicateCount = item.count

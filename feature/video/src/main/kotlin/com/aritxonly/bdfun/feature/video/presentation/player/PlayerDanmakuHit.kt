@@ -12,11 +12,12 @@ class PlayerDanmakuHit {
     var sendSame: (suspend (String) -> Boolean)? = null
     var like: ((Long) -> Unit)? = null
     var coordinates: LayoutCoordinates? = null
+    var captureSpecial: ((Offset) -> PlayerDanmakuPress?)? = null
     var capture: ((Offset) -> PlayerDanmakuPress?)? = null
     fun at(position: Offset): PlayerDanmakuPress? {
         val layout = coordinates?.takeIf { it.isAttached } ?: return null
         val window = layout.localToWindow(position)
-        return capture?.invoke(window)
+        return captureSpecial?.invoke(window) ?: capture?.invoke(window)
     }
 }
 

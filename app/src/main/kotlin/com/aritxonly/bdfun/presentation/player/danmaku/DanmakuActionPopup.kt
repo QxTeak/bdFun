@@ -27,7 +27,7 @@ internal class DanmakuActionPopup(private val anchor: View, private val release:
     }
 
     fun show(text: String, x: Int, y: Int, liked: Boolean, count: Long, like: () -> Unit,
-        report: (DanmakuReportReason, String) -> Unit) {
+        report: ((DanmakuReportReason, String) -> Unit)?, more: () -> Unit) {
         val context = anchor.context
         val padding = (12 * context.resources.displayMetrics.density).toInt()
         val content = LinearLayout(context).apply {
@@ -42,11 +42,12 @@ internal class DanmakuActionPopup(private val anchor: View, private val release:
                     clipboard.setPrimaryClip(android.content.ClipData.newPlainText("弹幕", text))
                     close()
                 })
-                addView(toolbarAction("举报") {
+                if (report != null) addView(toolbarAction("举报") {
                     reporting = true
                     popup?.dismiss()
                     showReport(report)
                 })
+                addView(toolbarAction("更多") { close(); more() })
             })
         }
         content.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED)

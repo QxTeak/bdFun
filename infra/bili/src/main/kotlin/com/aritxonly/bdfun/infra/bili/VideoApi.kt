@@ -200,7 +200,7 @@ internal suspend fun BiliApiContext.danmakuSegments(cid: Long, durationSec: Int)
             }
         }.awaitAll()
     }.filterNotNull()
-    return mapDanmakuSegments(parsed)
+    return mapDanmakuSegments(parsed, danmakuUserHash(mid))
 }
 
 internal suspend fun BiliApiContext.fetchDanmakuSegment(cid: Long, index: Int): ByteArray? {
@@ -231,7 +231,7 @@ internal suspend fun BiliApiContext.danmakuXml(cid: Long): List<DanmakuItem> = w
         response.body?.bytes() ?: return@withContext emptyList()
     }
     val xml = decodeDanmakuBytes(bytes)
-    parseDanmakuXml(xml)
+    parseDanmakuXml(xml, danmakuUserHash(mid))
 }
 
 /**
@@ -266,8 +266,9 @@ internal suspend fun BiliApiContext.sendDanmaku(
     mode: Int = 1,
     fontSize: Int = 25,
     color: Int = 0xFFFFFF,
-): Boolean = withContext(Dispatchers.IO) {
-    postRequest(
+    aid: Long = 0,
+): Long = withContext(Dispatchers.IO) {
+    val data = postRequest(
         "/x/v2/dm/post",
         mapOf(
             "type" to "1",
@@ -280,9 +281,9 @@ internal suspend fun BiliApiContext.sendDanmaku(
             "color" to color.toString(),
             "pool" to "0",
             "csrf" to csrf,
-        ),
+        ) + if (aid > 0) mapOf("aid" to aid.toString()) else emptyMap(),
     )
-    true
+    data.optString("dmid_str").toLongOrNull() ?: data.optLong("dmid")
 }
 
 internal suspend fun BiliApiContext.likeVideo(aid: Long, like: Boolean): Boolean = withContext(Dispatchers.IO) {

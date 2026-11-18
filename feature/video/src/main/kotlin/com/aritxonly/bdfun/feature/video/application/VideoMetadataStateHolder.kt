@@ -118,7 +118,10 @@ class VideoMetadataStateHolder(private val repository: VideoMetadataRepository) 
         return DanmakuVote(count, liked)
     }
 
-    suspend fun sendDanmaku(post: DanmakuPost): Boolean = repository.sendDanmaku(post) is Outcome.Success
+    val danmakuModeration = DanmakuModerationStateHolder(repository)
+
+    suspend fun sendDanmaku(post: DanmakuPost): Long? =
+        (repository.sendDanmaku(post) as? Outcome.Success)?.value
 
     private fun <T> Outcome<T>.valueOr(fallback: T): T = when (this) {
         is Outcome.Success -> value

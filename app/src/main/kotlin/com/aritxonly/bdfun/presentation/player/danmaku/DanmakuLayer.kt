@@ -9,6 +9,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import com.aritxonly.bdfun.core.domain.DanmakuRuleMatcher
+import com.aritxonly.bdfun.feature.video.application.DanmakuModerationState
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -30,7 +34,12 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
     val clickCoordinates = BindDanmakuClick(renderView, hit)
     val ui = remember { DanmakuLayerPresentationStateHolder() }
     val options = currentDanmakuLayerOptions(fullscreen)
-    val filtered = remember(items, options.filters) { filterDanmaku(items, options.filters) }
+    val page = LocalVideoPageState.current
+    val moderation = page.danmakuModeration?.state?.collectAsState()?.value ?: DanmakuModerationState()
+    val matcher = remember(moderation.rules) { DanmakuRuleMatcher(moderation.rules) }
+    val filtered = remember(items, options.filters, matcher, moderation.recalled, page.cid) {
+        filterDanmaku(items.filterNot { matcher.blocks(it) || (page.cid to it.id) in moderation.recalled }, options.filters)
+    }
     LaunchedEffect(hit, filtered) { hit.filteredSnapshot.value = filtered }
     DisposableEffect(hit) { onDispose { hit.filteredSnapshot.value = emptyList() } }
     val window = rememberDanmakuEngineWindow(filtered)

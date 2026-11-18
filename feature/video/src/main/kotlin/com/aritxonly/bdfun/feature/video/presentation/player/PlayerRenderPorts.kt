@@ -28,5 +28,6 @@ class PlayerRenderPorts(
     val inlineAppearance: () -> InlinePlayerAppearance,
     val fullscreenVisuals: @Composable () -> PlayerFullscreenVisuals,
     val danmakuSender: () -> (suspend (String, Int, Int, Int) -> Boolean)?,
+    val danmakuOverlays: @Composable androidx.compose.foundation.layout.BoxScope.(Boolean) -> Unit,
     val inlineMore: @Composable () -> Unit,
 )
