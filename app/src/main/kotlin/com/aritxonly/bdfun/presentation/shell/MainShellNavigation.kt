@@ -42,16 +42,17 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
                     else -> shell.chrome.mine
                 }
                 appScope.launch { scrollMainPageToTop(chrome.scrollableState) }
-            } else
-            when (index) {
-                // 首页三段各有自己的刷新入口，别让直播/番剧去刷推荐。
-                // 直播/番剧和推荐页一致：先平滑回顶，再拉刷新。
-                0 -> when (ui.homeSection) {
-                    1 -> AppGraph.livePageState.requestRefresh()
-                    2 -> AppGraph.bangumiPageState.requestRefresh()
-                    0 -> homeFeed.requestRefresh()
+            } else {
+                when (index) {
+                    // 首页三段各有自己的刷新入口，别让直播/番剧去刷推荐。
+                    // 直播/番剧和推荐页一致：先平滑回顶，再拉刷新。
+                    0 -> when (ui.homeSection) {
+                        1 -> AppGraph.livePageState.requestRefresh()
+                        2 -> AppGraph.bangumiPageState.requestRefresh()
+                        0 -> homeFeed.requestRefresh()
+                    }
+                    1 -> ui.dynamicRefreshTick++
                 }
-                1 -> ui.dynamicRefreshTick++
             }
         } else {
             repeatTap.reset()
