@@ -199,10 +199,10 @@ private fun androidx.compose.foundation.layout.BoxScope.BangumiTextBadge(text: S
     }
 }
 
-/** 标签色按文案匹配：独家橙、限免绿、新作蓝、超前紫，其余用青绿，避免灰色。 */
+/** 标签色按文案匹配：独家橙、限时免费红、新作蓝、超前紫，其余用青绿，避免灰色。 */
 private fun bangumiBadgeColor(text: String): Color = when {
     text.contains("独家") -> Color(0xFFE65100)
-    text.contains("限免") -> Color(0xFF2E7D32)
+    text.contains("限免") || text.contains("免费") -> Color(0xFFC62828)
     text.contains("新作") -> Color(0xFF1565C0)
     text.contains("超前") -> Color(0xFF6A1B9A)
     text.contains("会员") -> BrandPink

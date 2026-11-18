@@ -68,7 +68,7 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     when (selected) {
         0 -> when (ui.homeSection) {
             1 -> com.aritxonly.bdfun.ui.RegisterScrollTop(AppGraph.livePageState.gridState, "live")
-            2 -> com.aritxonly.bdfun.ui.RegisterScrollTop(AppGraph.bangumiPageState.gridState, "pgc")
+            3 -> com.aritxonly.bdfun.ui.RegisterScrollTop(AppGraph.bangumiPageState.gridState, "pgc")
             4 -> com.aritxonly.bdfun.ui.RegisterScrollTop(AppGraph.cinemaPageState.gridState, "cinema")
             0 -> com.aritxonly.bdfun.ui.RegisterScrollTop(homeFeed.gridState, "home")
         }
