@@ -14,9 +14,18 @@ internal class MessageSessionsPresentationStateHolder(readAll: Int, more: Int) {
 internal class MessageSessionMenuStateHolder {
     var selected by mutableStateOf<MessageSession?>(null)
     var confirmDelete by mutableStateOf(false)
+    var sessionMenuVisible by mutableStateOf(false)
+    var sessionAnchor by mutableStateOf(androidx.compose.ui.geometry.Rect.Zero)
     var showMore by mutableStateOf(false)
     var confirmRead by mutableStateOf(false)
     var confirmClear by mutableStateOf(false)
+
+    fun openSession(session: MessageSession, anchor: androidx.compose.ui.geometry.Rect) {
+        selected = session
+        sessionAnchor = anchor
+        confirmDelete = false
+        sessionMenuVisible = true
+    }
 }
 
 internal class MessageFeedPresentationStateHolder {
@@ -24,9 +33,17 @@ internal class MessageFeedPresentationStateHolder {
 }
 
 internal class MessageFeedMenuStateHolder {
-    var confirmMute by mutableStateOf(false)
     var selected by mutableStateOf<Pair<Int, MessageItem>?>(null)
+    var anchor by mutableStateOf(androidx.compose.ui.geometry.Rect.Zero)
+    var showMenu by mutableStateOf(false)
     var confirmDelete by mutableStateOf(false)
+
+    fun open(page: Int, item: MessageItem, bounds: androidx.compose.ui.geometry.Rect) {
+        selected = page to item
+        anchor = bounds
+        showMenu = true
+        confirmDelete = false
+    }
 }
 
 internal data class MessageScreenEvents(

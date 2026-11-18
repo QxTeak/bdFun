@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.*
+import androidx.compose.ui.geometry.Rect
 import com.aritxonly.bdfun.core.application.PageChromeState
 import com.aritxonly.bdfun.core.application.PageChromeStateHolder
 import kotlinx.coroutines.*
@@ -51,6 +52,7 @@ internal class PageChromePresentationState(scope: CoroutineScope) {
     var readAllRequest: Int
         get() = snapshot.readAllRequest
         set(value) = update { it.copy(readAllRequest = value) }
+    var moreAnchor by mutableStateOf(Rect.Zero)
     var moreRequest: Int
         get() = snapshot.moreRequest
         set(value) = update { it.copy(moreRequest = value) }

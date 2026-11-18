@@ -20,7 +20,7 @@ import com.aritxonly.bdfun.AppGraph
 import com.aritxonly.bdfun.core.navigation.Route
 import com.aritxonly.bdfun.feature.message.application.*
 import com.aritxonly.bdfun.navigateToSpace
-import com.aritxonly.teak.common.chrome.TeakLargeTitle
+import com.aritxonly.teak.common.chrome.TeakChromeDefaults
 import com.aritxonly.teak.common.chrome.TrackTeakPageScroll
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -49,15 +49,14 @@ internal fun MessageToolsScreen(route: Route.MessageTools, onBack: () -> Unit) {
     val feedScope = rememberMessageTaskScope(feed, feed::close)
     LaunchedEffect(controller) { controller.load() }
     MessageResumeEffect(scope) { if (tool is MessageTool.Settings || tool is MessageTool.Chat) controller.load() }
-    TeakActivityScaffold(settings = AppGraph.settings, onBack = onBack, options = ActivityPageOptions(title = title, limitContentWidth = LocalMessageNavigation.current == null)) {
+    TeakActivityScaffold(settings = AppGraph.settings, onBack = onBack, options = ActivityPageOptions(title = title, titleAlwaysVisible = true, backRevealed = true, limitContentWidth = LocalMessageNavigation.current == null)) {
         PullToRefreshBox(isRefreshing = state.loading && (state.people.isNotEmpty() || state.settings.isNotEmpty()),
             onRefresh = { scope.launch { controller.load() } }) {
         TrackTeakPageScroll(list)
         LazyColumn(state = list, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(
             start = TeakUiStyle.design.contentInset(16.dp),
             end = TeakUiStyle.design.contentInset(16.dp),
-            top = 8.dp + rememberStatusBarTop(), bottom = 48.dp)) {
-            item { TeakLargeTitle(title = title) }
+            top = TeakChromeDefaults.TopOverlayHeight + rememberStatusBarTop(), bottom = 48.dp)) {
             if (tool is MessageTool.Likes) {
                 if (state.title.isNotBlank()) item {
                     Text(state.title, Modifier.fillMaxWidth().clickable {

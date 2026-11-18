@@ -37,6 +37,6 @@ fun MessageScreen(
     BackHandler(enabled = LocalMessageNavigation.current == null, onBack = onBack)
     TrackTeakPageScroll(listState)
     MessageSessionList(listState, loggedIn, snapshot, ui, menu, events, actions::loadFooter, title, pageType, actions::load)
-    MessageSessionSheets(snapshot, menu, onRefresh = { actions.load() },
+    MessageSessionSheets(snapshot, menu, showContactsFallback = pageType != 1 || LocalMessageNavigation.current == null, onRefresh = { actions.load() },
         onReadAll = actions::readAll, onClearList = actions::clearList, onMutate = actions::mutate)
 }

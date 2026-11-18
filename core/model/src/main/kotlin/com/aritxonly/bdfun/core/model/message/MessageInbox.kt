@@ -17,5 +17,5 @@ data class ImSetting(
 data class ImSettingsPage(val title: String, val settings: List<ImSetting>)
 data class MessageKeywordList(val keywords: List<String>, val listLimit: Int, val charLimit: Int, val limitText: String)
 data class MessageContactsPage(val people: List<MessageLikePerson>, val more: Boolean)
-data class ChatPreferences(val name: String, val avatar: String, val pinned: Boolean, val muted: Boolean,
-    val push: Boolean?, val blocked: Boolean)
+data class ChatPreferences(val name: String, val avatar: String, val pinned: Boolean?, val muted: Boolean,
+    val push: Boolean?, val blocked: Boolean, val pinError: String? = null)
