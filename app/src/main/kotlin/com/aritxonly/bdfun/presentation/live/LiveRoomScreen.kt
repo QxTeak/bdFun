@@ -21,6 +21,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.aritxonly.teak.common.navigation.TeakMorphMenuHost
 import com.aritxonly.teak.common.navigation.TeakMorphMenuState
+import top.yukonga.miuix.kmp.glass.GlassPopupItem
 
 @Composable
 internal fun LiveRoomScreen(
@@ -100,26 +101,33 @@ internal fun LiveRoomRender.LiveRoomPanels(landscape: Boolean) {
 internal fun LiveRoomRender.LiveRoomMenu() {
     val context = LocalContext.current
     TeakMorphMenuHost(menuState) { dismiss ->
-        LiveMenuRow("复制直播间链接") {
-            val url = "https://live.bilibili.com/${room.roomId}"
-            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
-            clipboard?.setPrimaryClip(ClipData.newPlainText("直播间链接", url))
-            dismiss { context.showToast("已复制直播间链接") }
-        }
-        LiveMenuRow("在浏览器中打开") {
-            dismiss {
-                runCatching {
-                    context.startActivity(
-                        android.content.Intent(
-                            android.content.Intent.ACTION_VIEW,
-                            android.net.Uri.parse("https://live.bilibili.com/${room.roomId}"),
-                        ),
-                    )
-                }.onFailure { context.showToast("无法打开链接") }
-            }
-        }
-        LiveMenuRow("举报直播间") {
-            dismiss { context.showToast("举报功能稍后接入") }
-        }
+        GlassPopupItem(
+            text = "复制直播间链接",
+            onClick = {
+                val url = "https://live.bilibili.com/${room.roomId}"
+                val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
+                clipboard?.setPrimaryClip(ClipData.newPlainText("直播间链接", url))
+                dismiss { context.showToast("已复制直播间链接") }
+            },
+        )
+        GlassPopupItem(
+            text = "在浏览器中打开",
+            onClick = {
+                dismiss {
+                    runCatching {
+                        context.startActivity(
+                            android.content.Intent(
+                                android.content.Intent.ACTION_VIEW,
+                                android.net.Uri.parse("https://live.bilibili.com/${room.roomId}"),
+                            ),
+                        )
+                    }.onFailure { context.showToast("无法打开链接") }
+                }
+            },
+        )
+        GlassPopupItem(
+            text = "举报直播间",
+            onClick = { dismiss { context.showToast("举报功能稍后接入") } },
+        )
     }
 }

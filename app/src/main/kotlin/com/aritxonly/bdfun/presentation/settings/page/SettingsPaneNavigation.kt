@@ -34,6 +34,8 @@ internal fun SettingsPaneNavigation(session: SettingsBrowserSession, values: Map
     }
     NavDisplay(stack, modifier, onBack = { if (!session.browser.back()) runtime.navigation.onBack() },
         transition = if (runtime.settings.animationsEnabled) NavTransitions.MiuixDefault else NavTransitions.None,
+        // 关闭预测性返回只是不跟手预览；转场、压暗和圆角仍由同一份 MiuixDefault/effects 提供。
+        predictiveBackPreview = runtime.settings.predictiveBackEnabled,
         effects = effects) {
         entry<SettingsPaneRoute> { key ->
             val current = key == desired.last()

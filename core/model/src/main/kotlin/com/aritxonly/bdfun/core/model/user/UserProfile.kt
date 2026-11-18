@@ -18,7 +18,6 @@ data class UserProfile(
     val likes get() = stats.likes
     val banner get() = decoration.banner
     val bannerFallbacks get() = decoration.bannerFallbacks
-    val bannerAlignmentY get() = decoration.bannerAlignmentY
     val officialTitle get() = decoration.officialTitle
     val officialDesc get() = decoration.officialDesc
     val officialType get() = decoration.officialType
@@ -41,7 +40,6 @@ data class UserProfileDecoration(
     /** 空间头图。 */
     val banner: String = "",
     val bannerFallbacks: List<String> = emptyList(),
-    val bannerAlignmentY: Float = 0f,
     /** 空间页资料：认证标题 / 等级经验（接口没有时为空 / 0）。 */
     val officialTitle: String = "",
     val officialDesc: String = "",

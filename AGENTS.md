@@ -720,3 +720,40 @@ scrollable 默认 false，maxVisibleItems 默认 3；开启并超限时启用内
 自适应分段动画用浮点位置直接驱动绘制层，不得恢复逐帧 LaunchedEffect + ScrollState
 同步。手势期间由组件预览位置，松手才提交频道；动画取消必须用代数守卫，旧 finally
 不得释放新手势的位置所有权。
+
+
+### 2026-11-17 投币下移 / 宽屏限宽 / 预测性返回 / 头像与图片缓存
+
+投币页整列按屏幕高度下移，左右切换箭头中心落在屏幕 55% 处（矮屏按内容完整可见兜底）；同时点赞勾选在 0.9 的基础上再缩 20% 至 0.72。收藏/历史/稍后再看取消 680dp 单列壳，网格改用首页同款 `BoundedVideoGridCells(280..560dp)` 自动加列；收藏搜索、消息中心主/右栏、设置宽屏详情栏统一以 `centeredListWidth(maxWidth = 680.dp)` 限制阅读宽度，禁止再叠加默认 `centeredListWidth()` 造成二次收缩。设置新增「预测性返回」，默认关闭，存储键 `predictive_back`；设置页 NavDisplay 直接读取该开关：开启用 Miuix 默认预测转场，关闭用 `NoPredictivePreviewTransition`（拖动不跟手、松手仍播完返回动画）。系统级跨 Activity 预览由平台 manifest/targetSdk 决定，不受该开关运行时控制。我的页与空间页头像描边改为 `drawBehind` 画在头像外侧的圆环，不再用 `border` 吃头像边缘。我的页窄屏头图改回与空间页一致的 16:10，避免同一张图两处裁切不一致。新增 `data/ProfileImageCache`：头像/头图按 mid 落盘到 `filesDir/profile_images`，展示先读缓存、接口照常请求，成功后写回；默认头图不覆盖 3 天内有效的自定义缓存，减少冷启动先闪默认图。
+
+### 2026-11-18 同步 main / 头图 / 预测性返回 / 唱片堆叠
+
+本轮先同步 origin/main（f4240d9，含 #86/#88/#89 等 37 个提交）。冲突集中在首页自适应分段、搜索网格与设置索引：这些文件 main 已是更新实现，按 main 版本收口；设置相关只保留本地新增的 `predictive_back`/`tab_click_refresh` 投影并补进同一张表。
+
+空间头图：`orderedSpaceBanners(web, day, night)` 改为 App 空间装扮图（`images.imgUrl` / `night_imgurl`）优先、网页版 `top_photo` 最后兜底；收藏集装扮 `collection_top_simple` 的 cover 是 2:3 竖长原画，不再作为头图候选，`bannerAlignmentY` 一并删除。只有本人的账号同时有 3009×313 的网页头图和 1080×514 的 App 头图，旧顺序把 9.6:1 的超宽图裁进 16:10 通栏，才会只显示图片一角。
+
+预测性返回：`NoPredictivePreviewTransition` 在拖动阶段不跟手，松手提交时用最后一次手势进度把退出进度重新归一化到 0→1，避免结算阶段停住再消失（返回动画不能省）；设置页 NavDisplay 直接读取 `runtime.settings.predictiveBackEnabled`，开启走 Miuix 默认预测转场，关闭走该转场。系统级跨 Activity 预览仍由平台 manifest/targetSdk 决定。
+
+唱片与搜索堆叠：`MainDockStack` 不再由 `discSlot` 跨阈值时的条件分支创建（会整块重建、硬切），HyperOS 4 下始终保留同一组件；后台播放开始/结束时自动播放同一套堆叠动画，手势和自动切换共用 `Animatable` 与代数守卫，迟到的旧 finally 不能改新状态；去掉用 `discSlot` 乘出来的 alpha，避免唱片出现前先闪一下空白。被划走的卡先跟手下沉，再缩小/旋转收进后层并淡出，过半后后层升到最上；整卡 blur 会重建 RenderEffect 并让内层玻璃退化成方形，已移除。我的页在登录资料未回来时显示整页骨架（头图、资料行、快捷入口与预览块），且头图网络图未回来时用扫光骨架占位；游客不显示骨架。HyperOS 4 首页外页面的唱片改为 B 站悬浮播放器位置（右下 16dp、抬离导航栏 16dp），首页仍由 `MainDockStack` 叠进搜索位。\n\n材质阴影会被动画容器的方形边界裁掉：堆叠卡的变换层按 `slot + 40dp × 2` 用 `requiredSize` 放大、卡片在层内居中，阴影有了绘制余量，不再被 54dp 槽位裁成方形。底栏里的唱片关闭自己的 `dropShadow`（外层变换下阴影 RenderNode 会露出方形边），改用 TeakUI 新增的公共 `Modifier.teakGlassControlShadow(CircleShape)`：它与 `TeakGlassIconButton` 内部完全同一套 Deadliner 阴影 profile，所以唱片和搜索玻璃的阴影一致；唱片内容在阴影内侧再按 `CircleShape` 裁切；搜索卡不裁切，保证它的玻璃阴影在切换过程中一直存在（结束后才出现是不允许的）。
+
+### 2026-11-18 唱片位置统一 / 空降助手三档 / 返回动画同一套
+
+用户明确要求：B 站布局下首页外页面（动态详情除外）的唱片必须和首页底栏旁的位置一致，HyperOS 4 也照此对齐；空降助手改为三档下拉；关闭预测性返回后的返回动画必须和开启时同一套，不能丢压暗和圆角。
+
+唱片位置：`rememberDiscPlacement` 删除 HyperOS 4 首页外页面的「右下 16dp、抬离导航栏 16dp」分支，首页外独立页面与首页共用同一组几何（Tab 234dp + 8dp 缝 + 52dp 槽整体居中；`endPadding = groupLeft - 8dp`、`bottomOffset = 4dp - bottomBarRaise`；HyperOS 4 首页叠加搜索槽时仍返回 -70dp 占位，由 `MainDockStack` 自行定位）。`TeakActivityScaffold` 的 `discLift` 不再对 HyperOS 4 清零，动态详情继续用 `discEndPadding = 0.dp` + `BackgroundDiscDockLift`。模拟器（1220×2656、420dpi）实测：B 站首页、HyperOS 4 首页、两种布局下的设置页唱片中心均为 x≈927px；不要再把 HyperOS 4 独立页面改回右下角悬浮播放器位置。
+
+空降助手：存储键由布尔 `sponsor_skip` 改为三档整数 `sponsor_skip_mode`（0 关闭 / 1 提示 / 2 自动跳过，默认 1），设置索引用 dropdown 展示，`PlaybackSettings.sponsorSkipMode` 经 IndexedSettingBindings 接线。旧布尔值只在迁移时映射为 0/1，绝不自动打开 2；模式判定是 core/domain 的 `sponsorSkipAction(mode)`（未知值回落到提示），玩家侧 `rememberPlayerSponsor` 在提示模式返回 `prompt`、自动模式返回 `autoSkip`，`VideoPlayerLayout` 在进入片段时直接 `seekTo(endMs)`。自动跳过不写 dismissed，用户拖回片段会再次生效；提示模式仍按 uuid 记录已关闭。
+
+预测性返回：`miuix-nav` 的 `NavDisplay` 新增 `predictiveBackPreview: Boolean = true`（本地 `../miuix-src/miuix-45645854…/miuix-nav/.../NavDisplay.kt` 补丁）。开启时手势跟手；关闭时只消费手势事件，不驱动 `animatedTop`、不发布 gesture、不传手势速度，松手直接 pop，页面从静止位置走与正常返回完全相同的 `NavTransitions.MiuixDefault` + `NavDisplayEffects`。App 侧设置页只传 `predictiveBackPreview = runtime.settings.predictiveBackEnabled`，不要再写第二份转场；压暗和圆角由同一份 effects 提供。**升级 Miuix 快照时必须把该参数和对应的三处手势分支重新打回上游源码**，否则开关会变成无操作。
+
+### 2026-11-18 独立唱片阴影 / 设置页避让 / 首页首行间距
+
+独立唱片（`DiscSurface`）的拖拽、退出上滑和按压缩放统一放在 `requiredSize(size + DiscShadowRoom * 2)` 的动画层上，唱片本体只挂 `teakGlassControlShadow(CircleShape)`。原因和 `MainDockStack` 一样：同一节点一旦带 `graphicsLayer`，`dropShadow` 的 RenderNode 方形边界会把阴影裁成方块；放大图层后阴影有绘制余量。`DiscShadowRoom = 40.dp` 由 `MainDockStack` 与 `DiscSurface` 共用，不要再各写一份。
+
+设置一级页的唱片与动态详情完全对齐（`discLift = BackgroundDiscDockLift`、`discEndPadding = 0.dp`），且任何搜索页都不显示唱片（设置搜索时 `showBackgroundDisc = false`，主壳搜索覆盖层打开时 `discVisible` 也立即置 false）。动态详情共用同一个 `BackgroundDiscDockLift`（74dp），不要在两处写魔数。`TeakActivityScaffold` 在「唱片有抬升 + 页面显示回到顶部 + `scrollTopEnabled` 且 `scrollTopSide == 1`（右侧）」时把唱片镜像到左下：`align(BottomStart)`，并把与右侧相同的 `endPadding` 用作 `startPadding`，视觉上与右侧位置对称。
+
+哔哩哔哩布局（`TeakStyle.Official`）的首页推荐网格，首行卡片与分段 Tab 之间额外加 5dp（`HomeVideoGrid` 的 `sectionGap`）；HyperOS 4 与经典布局保持原间距。
+
+头像点缀与大会员胶囊统一在 `ui/AccountBadges.kt`：`AccountVipBadge` 是个人空间与「我的」页共用的粉底白字/灰底胶囊（8.5sp、5×1dp 内边距），`BoxScope.AvatarAccent(outerSize)` 负责弧线+圆点并按外径等比缩放（canvas = outer−2dp、stroke = outer×0.03125、dot = outer×0.0833、dot 偏移 = 0.401/0.281 倍外径）。个人空间用 96dp，我的页用 76dp；不要再在任何页面单独复制弧线或大会员样式。
+
+

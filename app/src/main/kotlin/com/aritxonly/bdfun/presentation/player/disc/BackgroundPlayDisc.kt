@@ -19,14 +19,18 @@ import androidx.compose.runtime.collectAsState
 
 @Composable
 internal fun BackgroundPlayDisc(settings: SettingsBindings, dependencies: DiscDependencies,
-    modifier: Modifier = Modifier, size: Dp = 54.dp, onOpenFallback: (VideoItem) -> Unit) {
+    modifier: Modifier = Modifier, size: Dp = 54.dp, outerSize: Dp? = null,
+    breathEnabled: Boolean = true, shadowEnabled: Boolean = true, onOpenFallback: (VideoItem) -> Unit) {
     val runtime = rememberDiscRuntime(settings, dependencies, size, onOpenFallback)
     DiscLifecycleEffects(runtime)
     val motion = rememberDiscMotion(runtime)
     DiscExitEffect(runtime)
     DiscCoverEffects(runtime)
     DiscPlaybackEffects(runtime)
-    DiscSurface(runtime, rememberDiscVisual(runtime, motion), modifier)
+    val visual = rememberDiscVisual(runtime, motion).let {
+        if (breathEnabled) it else it.copy(breathEnabled = false)
+    }
+    DiscSurface(runtime, visual, modifier, outerSize, shadowEnabled)
 }
 
 @Composable

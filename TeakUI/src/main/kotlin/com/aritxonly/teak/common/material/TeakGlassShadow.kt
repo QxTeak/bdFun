@@ -176,3 +176,23 @@ fun Modifier.teakContentControlShadow(shape: Shape, alpha: Float = 1f): Modifier
     } else TeakGlassShadowProfile.ContentControl
     return teakGlassShadow(shape, isDark, alpha, profile)
 }
+
+/**
+ * 内容控件（底栏圆钮、唱片等）使用的 Deadliner 玻璃阴影。
+ *
+ * 与 [TeakGlassIconButton] 内部选择的 profile 完全一致：有控件强调时用 ContentControl，
+ * 否则用 Standard/TopBarControl。搜索玻璃和唱片共用这一层，避免各自维护一套阴影配方。
+ */
+@Composable
+fun Modifier.teakGlassControlShadow(shape: Shape, alpha: Float = 1f): Modifier {
+    val isDark = androidx.compose.material3.MaterialTheme.colorScheme.onSurface.luminance() > 0.5f
+    val emphasis = com.aritxonly.teak.common.theme.LocalTeakControlEmphasis.current
+    val topBarHosted = com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted.current
+    val profile = when {
+        emphasis && topBarHosted -> TeakGlassShadowProfile.ContentTopBarControl
+        emphasis -> TeakGlassShadowProfile.ContentControl
+        topBarHosted -> TeakGlassShadowProfile.TopBarControl
+        else -> TeakGlassShadowProfile.Standard
+    }
+    return teakGlassShadow(shape, isDark, alpha, profile)
+}

@@ -21,7 +21,7 @@ class PlayerEntryPorts(
     val createPlayback: () -> VideoPlaybackPlatform,
     val tracking: () -> com.aritxonly.bdfun.feature.video.application.PlaybackTrackingStateHolder,
     val defaultSpeed: () -> Float, val autoPlayNext: () -> Boolean,
-    val sponsorSkipEnabled: () -> Boolean, val danmakuOn: () -> Boolean,
+    val sponsorSkipMode: () -> Int, val danmakuOn: () -> Boolean,
     val bluetoothLatency: @Composable () -> Int,
     val engine: PlayerEnginePorts,
     val render: @Composable (VideoPlaybackPlatform, VideoMediaInput, VideoPlayerPresentation, VideoPlayerActions, VideoPlayerUiStateHolder) -> PlayerRenderPorts,

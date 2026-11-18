@@ -14,9 +14,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.model.settings.SettingValue
 import com.aritxonly.bdfun.feature.settings.application.*
 import com.aritxonly.teak.common.chrome.TeakPageScaffold
+import com.aritxonly.teak.common.chrome.centeredListWidth
 import com.aritxonly.teak.common.chrome.rememberTeakPageScrollState
 import com.aritxonly.teak.common.interaction.blockTouches
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
@@ -71,9 +73,19 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
             SettingsPaneScaffold(runtime, pane, title, back, detail != null,
                 fullWidth = session.selected?.layout == "about",
                 search = if (!session.wide && detail == null && !categories && !searching && session.selected != null) ({ session.browser.search(session.selected.route) }) else null,
+                // 搜索页不出现唱片；设置一级页的唱片与动态详情同一位置（右下、抬到搜索框上方）。
+                disc = ActivityDiscOptions(
+                    showBackgroundDisc = !searching,
+                    discLift = if (categories) BackgroundDiscDockLift else 0.dp,
+                    discEndPadding = if (categories) 0.dp else null,
+                ),
             ) {
-                if (detail != null) SettingsDetailContent(detail, back, runtime.settings)
-                else SettingsPaneBody(local, values, localRuntime, controller, categories)
+                if (detail != null) {
+                    // 宽屏右栏可能远宽于 680dp；详情页仍按阅读宽度居中，和独立 Activity 保持一致。
+                    Box(Modifier.fillMaxSize().centeredListWidth(maxWidth = 680.dp)) {
+                        SettingsDetailContent(detail, back, runtime.settings)
+                    }
+                } else SettingsPaneBody(local, values, localRuntime, controller, categories)
                 if (categories) SettingsLogoutDialog(session.browser, runtime.navigation.onLogout)
             }
         }
@@ -82,9 +94,11 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
 
 @Composable
 private fun SettingsPaneScaffold(runtime: SettingsPageRuntime, pane: SettingsPane, title: String,
-    back: () -> Unit, detail: Boolean, fullWidth: Boolean, search: (() -> Unit)?, content: @Composable () -> Unit) {
+    back: () -> Unit, detail: Boolean, fullWidth: Boolean, search: (() -> Unit)?,
+    disc: ActivityDiscOptions, content: @Composable () -> Unit) {
     if (pane == SettingsPane.Single) {
         TeakActivityScaffold(runtime.settings, back, options = ActivityPageOptions(title = title, limitContentWidth = !fullWidth),
+            disc = disc,
             slots = ActivityPageSlots(topBarActions = { if (search != null) SettingsCategorySearchButton(search) }), content = content)
     } else PageChromeScope {
         // 两栏共用主题，但外壳、滚动、弹层和玻璃采样各自持有，不能再套整页内容宽度限制。

@@ -7,9 +7,9 @@ import kotlin.math.sqrt
 class DiscGesturePolicyTest {
     private fun action(x: Float, y: Float, long: Boolean = false) =
         discReleaseAction(x, y, sqrt(x * x + y * y), long, 32f, 8f)
-    @Test fun longPressReleaseOnlyEndsBoostEvenAfterLargeMovement() {
+    @Test fun longPressReleaseDoesNothingEvenAfterLargeMovement() {
         for ((x, y) in listOf(0f to 0f, -40f to 0f, 0f to -40f, 40f to 40f))
-            assertEquals(DiscReleaseAction.EndBoost, action(x, y, true))
+            assertEquals(DiscReleaseAction.None, action(x, y, true))
     }
     @Test fun horizontalThresholdIsInclusiveAndWinsTiesInBothDirections() {
         assertEquals(DiscReleaseAction.Next, action(-32f, 0f))
