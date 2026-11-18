@@ -7,6 +7,8 @@ import com.aritxonly.bdfun.core.model.comment.CommentItem
 internal class CommentPagePresentationStateHolder {
     var consumedFocusKey by mutableStateOf("")
     var highlightRpid by mutableStateOf(0L)
+    /** 高亮序号；同一条评论被再次定位时也要重新闪灰。 */
+    var flashSeq by mutableIntStateOf(0)
     var replySheetTarget by mutableStateOf<CommentItem?>(null)
     var replySheetVisible by mutableStateOf(false)
     var replySheetFocusRpid by mutableStateOf(0L)

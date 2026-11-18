@@ -40,9 +40,11 @@ internal class CommentThreadStateHolder(val actions: CommentActionsStateHolder, 
             extras = CommentExtras(
                 mid = profile?.mid ?: 0L,
                 root = root,
+                parent = parent,
             ),
         )
-        mutableState.update { it.copy(extra = listOf(item) + it.extra) }
+        // 按发送先后追加；展示层再把每条回复插到它回复的那条下面。
+        mutableState.update { it.copy(extra = it.extra + item) }
         return result
     }
     suspend fun delete(rpid: Long): Boolean {

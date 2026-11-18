@@ -34,7 +34,8 @@ private fun CommentPageList(
     val ui = runtime.ui
     CommentListView(
         state = CommentListViewState(state.items, state.total, state.loading, state.loadingMore, state.end,
-            state.error?.messageOr("评论加载失败"), state.query.sortHot, ui.highlightRpid, ui.disliked),
+            state.error?.messageOr("评论加载失败"), state.query.sortHot, ui.highlightRpid, ui.disliked,
+            ui.flashSeq),
         layout = CommentListViewLayout(layout.bare, runtime.request.title, layout.topInset,
             layout.bottomPadding, layout.showLoading, header, layout.flatList, layout.compactHeaderSpacing),
         actions = CommentListViewActions(

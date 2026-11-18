@@ -76,6 +76,17 @@ class CommentListStateHolderTest {
         assertEquals(1, holder.state.value.page)
         assertFalse(holder.state.value.loadingMore)
     }
+    @Test fun sentCommentIsPinnedFirstUntilTheNextServerReload() = runBlocking {
+        val fake = Fake().apply { load = { _, page -> Outcome.Success(CommentPage(listOf(item(1)), page, true, 9)) } }
+        val holder = CommentListStateHolder(fake, query); holder.reset()
+        holder.prependLocal(item(77))
+        assertEquals(listOf(77L, 1L), holder.state.value.items.map { it.rpid })
+        assertEquals(10, holder.state.value.total)
+        holder.reload()
+        assertEquals(listOf(1L), holder.state.value.items.map { it.rpid })
+        assertEquals(9, holder.state.value.total)
+    }
+
     @Test fun likeProjectionUpdatesCollapsedPreviewAsWellAsTopLevel() = runBlocking {
         val fake = Fake().apply { load = { _, page -> Outcome.Success(CommentPage(
             listOf(item(1).let { it.copy(extras = it.extras.copy(previewReplies = listOf(item(2)))) }), page, true, 1)) } }

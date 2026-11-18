@@ -31,7 +31,7 @@ class CommentThreadStateHolderTest {
         assertEquals(10L, fake.sent?.root)
         assertEquals(20L, fake.sent?.parent)
         val item = holder.state.value.extra.single()
-        assertEquals(55L, item.rpid); assertEquals(10L, item.root)
+        assertEquals(55L, item.rpid); assertEquals(10L, item.root); assertEquals(20L, item.parent)
         assertEquals("我", item.uname); assertEquals(9L, item.ctime)
     }
     @Test fun nullPostDoesNotCreatePhantomReply() = runBlocking {
