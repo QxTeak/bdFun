@@ -2,6 +2,8 @@ package com.aritxonly.bdfun.infra.bili
 
 import com.aritxonly.bdfun.infra.bili.mapper.readFeedVideo
 import com.aritxonly.bdfun.infra.bili.mapper.mapFeedVideo
+import com.aritxonly.bdfun.infra.bili.mapper.readPopularPage
+import com.aritxonly.bdfun.core.model.video.PopularPage
 import com.aritxonly.bdfun.core.model.video.VideoItemExtras
 import android.content.Context
 import android.net.Uri
@@ -166,12 +168,12 @@ internal suspend fun BiliApiContext.dislikeRecommendation(video: VideoItem, reas
     }
 }
 
-internal suspend fun BiliApiContext.popular(page: Int = 1): List<VideoItem> = withContext(Dispatchers.IO) {
+internal suspend fun BiliApiContext.popular(page: Int = 1): PopularPage = withContext(Dispatchers.IO) {
     val data = dataRequest(
         "/x/web-interface/popular",
         mapOf("pn" to page.toString(), "ps" to "20"),
     )
-    mapFeedVideos(data, "list", this@popular::parseFeedVideo)
+    readPopularPage(data)
 }
 
 internal suspend fun BiliApiContext.ranking(rid: Int = 0): List<VideoItem> = withContext(Dispatchers.IO) {

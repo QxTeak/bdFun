@@ -30,7 +30,7 @@ internal data class MainShellChrome(
     val live: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val bangumi: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val cinema: com.aritxonly.teak.common.chrome.TeakPageScrollState,
-    val placeholder: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    val popular: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val dynamic: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val search: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     val mine: com.aritxonly.teak.common.chrome.TeakPageScrollState,

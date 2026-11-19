@@ -22,7 +22,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
     // 推荐 / 直播 / 热门 / 番剧 / 影视 各自一份滚动进度，但顶栏和搜索过渡是同一份实现。
     val activeChrome = when (ui.homeSection) {
         1 -> shell.chrome.live
-        2 -> shell.chrome.placeholder
+        2 -> shell.chrome.popular
         3 -> shell.chrome.bangumi
         4 -> shell.chrome.cinema
         else -> shell.chrome.home

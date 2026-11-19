@@ -40,11 +40,22 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun LibraryModePage(content: LibraryModeContent, layout: LibraryModeLayout, actions: LibraryModeActions) {
     val gridState = rememberLazyGridState()
+    val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     RegisterScrollTop(gridState, "library")
     if (layout.isActive) TrackTeakPageScroll(gridState)
     LibraryModeEffects(gridState, layout, actions)
-    Box(modifier = Modifier.fillMaxSize()) {
-        LibraryGrid(content, layout, actions, gridState)
+    // 大标题画在网格外：顶部下拉回弹只带动卡片，标题保持底位；上滑仍按滚动偏移被推走。
+    com.aritxonly.teak.common.chrome.TeakPinnedLargeTitleHost(
+        title = layout.title,
+        topInset = statusBarTop + TeakChromeDefaults.ContentTopPadding,
+        scrollOffsetPx = {
+            if (gridState.firstVisibleItemIndex > 0) 10_000f
+            else gridState.firstVisibleItemScrollOffset.toFloat()
+        },
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            LibraryGrid(content, layout, actions, gridState)
+        }
     }
 }
 
@@ -57,7 +68,7 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
         val wide = maxWidth >= 600.dp
         LazyVerticalGrid(
             state = gridState,
-            columns = if (wide) BoundedVideoGridCells(FeedCardMinWidth.dp, FeedCardMaxWidth.dp) else GridCells.Fixed(2),
+            columns = if (wide) BoundedVideoGridCells(RecommendedCardMinWidth.dp, RecommendedCardMaxWidth.dp) else GridCells.Fixed(2),
             contentPadding = PaddingValues(start = TeakChromeDefaults.ContentHorizontalPadding,
                 end = TeakChromeDefaults.ContentHorizontalPadding, top = statusBarTop + TeakChromeDefaults.ContentTopPadding,
                 bottom = if (content.batchMode) 92.dp else TeakChromeDefaults.ContentBottomPadding),

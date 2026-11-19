@@ -47,6 +47,69 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchResultSta
 
 }
 
+/**
+ * 搜索 / 热门共用的视频结果行。
+ *
+ * 页面只决定数据、加载态和分页时机，行本身与一镜到底的接入都留在这里，
+ * 避免热门页再复制一份卡片。
+ */
+internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows(
+    videos: List<com.aritxonly.bdfun.data.VideoItem>,
+    keyPrefix: String,
+    onOpenVideo: (com.aritxonly.bdfun.data.VideoItem) -> Unit,
+) {
+    items(items = videos, key = { keyPrefix + it.bvid }) { video ->
+        val oneTake = rememberOneTakeAnchor()
+        val itemContext = LocalContext.current
+        val cardRadiusPx = with(LocalDensity.current) { 10.dp.toPx() }
+        val open = {
+            oneTake.open(itemContext, video, cardRadiusPx) {
+                onOpenVideo(video)
+            }
+        }
+        SearchResultRow(video, open, oneTake.modifier)
+    }
+}
+
+/** 首屏骨架：和 [videoResultRows] 的行同尺寸。 */
+internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultSkeleton(
+    count: Int = 6,
+    keyPrefix: String = "video-skeleton",
+) {
+    items(count = count, key = { "$keyPrefix-$it" }) {
+        SearchVideoSkeletonRow()
+    }
+}
+
+/** 分页尾部：加载中 / 没有更多。颜色由调用方在组合期取好，列表作用域里不读 CompositionLocal。 */
+internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultFooter(
+    loadingMore: Boolean,
+    end: Boolean,
+    colors: top.yukonga.miuix.kmp.theme.Colors,
+    endText: String = "没有更多了",
+    modifier: Modifier = Modifier,
+) {
+    if (loadingMore) {
+        item(key = "video-loading-more", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+            Box(
+                modifier = modifier.fillMaxWidth().padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text("加载中…", color = colors.onBackgroundVariant, fontSize = 12.sp)
+            }
+        }
+    } else if (end) {
+        item(key = "video-end", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+            Box(
+                modifier = modifier.fillMaxWidth().padding(vertical = 16.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(endText, color = colors.onBackgroundVariant, fontSize = 12.sp)
+            }
+        }
+    }
+}
+
 internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchVideoResultItems(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
     pageColors: top.yukonga.miuix.kmp.theme.Colors, onOpenVideo: (VideoItem) -> Unit,
@@ -56,21 +119,9 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchVideoResu
     val loadedOnce = content.loadedOnce
     val error = content.error
     if (loading && results.isEmpty()) {
-        items(count = 6, key = { "search-skeleton-$it" }) {
-            SearchVideoSkeletonRow()
-        }
+        videoResultSkeleton(keyPrefix = "search-skeleton")
     }
-    items(items = results, key = { "r" + it.bvid }) { video ->
-        val oneTake = rememberOneTakeAnchor()
-        val itemContext = LocalContext.current
-        val cardRadiusPx = with(LocalDensity.current) { 10.dp.toPx() }
-        val open = {
-                oneTake.open(itemContext, video, cardRadiusPx) {
-                    onOpenVideo(video)
-                }
-        }
-        SearchResultRow(video, open, oneTake.modifier)
-    }
+    videoResultRows(results, "r", onOpenVideo)
     if (loadedOnce && !loading && results.isEmpty() && error == null) {
         item(key = "empty-videos", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
             Text(
@@ -89,25 +140,7 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchVideoPage
     pageColors: top.yukonga.miuix.kmp.theme.Colors,
 ) {
     if (content.results.isEmpty()) return
-    if (content.loadingMore) {
-        item(key = "search-loading-more", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("加载中…", color = pageColors.onBackgroundVariant, fontSize = 12.sp)
-            }
-        }
-    } else if (content.end) {
-        item(key = "search-end", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
-            Box(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text("没有更多了", color = pageColors.onBackgroundVariant, fontSize = 12.sp)
-            }
-        }
-    }
+    videoResultFooter(loadingMore = content.loadingMore, end = content.end, colors = pageColors)
 }
 
 internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchUserResultItems(

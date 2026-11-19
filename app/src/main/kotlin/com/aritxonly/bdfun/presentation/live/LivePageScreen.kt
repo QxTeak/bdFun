@@ -54,7 +54,10 @@ internal fun LivePage(
 
     LazyVerticalGrid(
         columns = if (LocalConfiguration.current.screenWidthDp >= 600) {
-            com.aritxonly.bdfun.ui.BoundedVideoGridCells(180.dp, 260.dp)
+            com.aritxonly.bdfun.ui.BoundedVideoGridCells(
+                com.aritxonly.bdfun.ui.RecommendedCardMinWidth.dp,
+                com.aritxonly.bdfun.ui.RecommendedCardMaxWidth.dp,
+            )
         } else {
             GridCells.Fixed(2)
         },

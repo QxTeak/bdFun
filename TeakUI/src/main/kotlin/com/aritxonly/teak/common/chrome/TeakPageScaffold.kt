@@ -282,6 +282,8 @@ fun TeakLargeTitle(
     /** 头图上叠标题时传白色；普通页面默认跟随主题。 */
     titleColor: Color = MiuixTheme.colorScheme.onBackground,
     subtitleColor: Color = MiuixTheme.colorScheme.onBackgroundVariant,
+    /** 由 [TeakPinnedLargeTitleHost] 画的那一份：不参与“列表副本隐藏”的判断。 */
+    drawnAsPinnedCopy: Boolean = false,
 ) {
     // 经典页面不再在内容里画大标题，标题常驻顶栏；这里只保留顶栏占位，让内容从栏下开始。
     if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic && LocalTeakClassicChrome.current) {
@@ -289,13 +291,15 @@ fun TeakLargeTitle(
         return
     }
     if (isWideFoldTopBar()) { Spacer(Modifier.height(TeakChromeDefaults.TopOverlayHeight - 12.dp)); return }
+    // 页面把标题画在不随回弹位移的覆盖层时，列表里这一份只负责占位。
+    val hidden = !drawnAsPinnedCopy && LocalTeakLargeTitleHidden.current
     val colors = MiuixTheme.colorScheme
     val p = (pageState.collapse / TeakChromeDefaults.CollapseFadeFraction).coerceIn(0f, 1f)
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .graphicsLayer { alpha = 1f - p }
-            .blur(TeakChromeDefaults.CollapseBlurRadius * p),
+            .graphicsLayer { alpha = if (hidden) 0f else 1f - p }
+            .then(if (hidden) Modifier else Modifier.blur(TeakChromeDefaults.CollapseBlurRadius * p)),
     ) {
         Spacer(Modifier.height(topSpacer))
         Text(

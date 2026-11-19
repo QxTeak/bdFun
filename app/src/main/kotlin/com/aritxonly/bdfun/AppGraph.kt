@@ -78,6 +78,7 @@ object AppGraph {
     val homeFeedState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.homeFeedState
     internal val livePageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.livePageState
     internal val bangumiPageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.bangumiPageState
+    internal val popularPageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.popularPageState
     internal val cinemaPageState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.cinemaPageState
     internal val cinemaRankState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.cinemaRankState
 
