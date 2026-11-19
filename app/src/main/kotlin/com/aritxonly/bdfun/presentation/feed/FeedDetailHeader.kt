@@ -3,17 +3,13 @@ package com.aritxonly.bdfun
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.feature.feed.application.FeedDetailUiState
 import com.aritxonly.bdfun.ui.FeedCard
 import com.aritxonly.bdfun.ui.FeedCardActions
 import com.aritxonly.bdfun.ui.FeedCardPresentation
 import com.aritxonly.teak.common.chrome.TeakLargeTitle
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 internal fun LazyListScope.dynamicDetailHeader(snapshot: FeedDetailUiState, actions: FeedDetailActions) {
     val detail = snapshot.detail
@@ -38,16 +34,9 @@ internal fun LazyListScope.dynamicDetailHeader(snapshot: FeedDetailUiState, acti
                     onComment = {},
                     onRepost = {},
                 ),
+                flat = true,
             )
         }
     }
-    item(key = "detail-comment-label") {
-        Text(
-            text = "评论",
-            color = MiuixTheme.colorScheme.onBackground,
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(start = 2.dp, top = 16.dp, bottom = 2.dp),
-        )
-    }
+    // 评论标题/排序行由 CommentScreen 自己的「共 N 条评论」承载，页面不再单独写一套。
 }

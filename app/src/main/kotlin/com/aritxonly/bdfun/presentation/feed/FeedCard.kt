@@ -24,6 +24,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun FeedCard(
     item: FeedItem, actions: FeedCardActions, presentation: FeedCardPresentation,
     modifier: Modifier = Modifier, live: Boolean = false,
+    /** 详情页：不裁圆角、不铺卡片底色，左右留白直接对齐视频页评论区。 */
+    flat: Boolean = false,
 ) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
@@ -38,8 +40,7 @@ internal fun FeedCard(
         modifier = modifier
             .then(oneTake.modifier)
             .fillMaxWidth()
-            .clip(shape)
-            .background(colors.surfaceContainer)
+            .then(if (flat) Modifier else Modifier.clip(shape).background(colors.surfaceContainer))
             .clickable(interactionSource = null, indication = null) {
                 if (presentation.animatedOpen && item.mid > 0L) {
                     oneTake.openFeed(context, item, cardRadiusPx) { actions.onOpen() }
@@ -47,7 +48,7 @@ internal fun FeedCard(
                     actions.onOpen()
                 }
             }
-            .padding(if (classic) 16.dp else 12.dp),
+            .padding(horizontal = if (flat) 12.dp else if (classic) 16.dp else 12.dp, vertical = 12.dp),
     ) {
         FeedCardAuthor(item, live = live)
         FeedCardText(item, presentation.expanded)

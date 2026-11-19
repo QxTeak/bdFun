@@ -33,12 +33,14 @@ internal fun FeedDetailScreen(dynamic: FeedItem, onBack: () -> Unit) {
                 commentType = detail.commentType,
             ),
             onBack = onBack,
+            // 和视频页评论区完全同一套：平铺、无圆角卡片、同样的间距和骨架屏。
             layout = CommentScreenLayout(
                 bare = true,
                 topInset = 4.dp,
-                bottomPadding = 132.dp,
+                bottomPadding = 96.dp,
                 trackBackProgress = true,
-                showLoading = false,
+                flatList = true,
+                compactHeaderSpacing = true,
                 scrollTop = true,
             ),
             header = { dynamicDetailHeader(snapshot, actions) },
