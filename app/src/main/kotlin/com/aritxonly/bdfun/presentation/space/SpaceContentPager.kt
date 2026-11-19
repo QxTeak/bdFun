@@ -23,6 +23,7 @@ internal fun SpaceContentPager(
             modifier = modifier,
             // 相邻页也保持组合，滑过去时内容已经就位。
             beyondViewportPageCount = 1,
+            overscrollEffect = null,
         ) { page ->
             androidx.compose.runtime.key(wideSpace, page) {
             LazyColumn(
@@ -36,6 +37,7 @@ internal fun SpaceContentPager(
                     top = if (wideSpace) statusBarTop + 56.dp else 0.dp,
                     bottom = 40.dp,
                 ),
+                overscrollEffect = null,
             ) {
         when (page) {
             0 -> spaceHomeItems(content, actions)
