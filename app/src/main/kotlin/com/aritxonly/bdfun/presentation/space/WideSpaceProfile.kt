@@ -1,54 +1,88 @@
 package com.aritxonly.bdfun
 
 import com.aritxonly.bdfun.navigation.createRouteIntent
+import com.aritxonly.bdfun.ui.rememberImageRequest
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.aritxonly.bdfun.ui.ContinuousCornerShape
 import com.aritxonly.bdfun.ui.showToast
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/**
- * 宽屏（横屏）个人空间左栏。
- *
- * 头像、LV/大会员、粉丝牌直接复用竖屏的 [SpaceProfileAvatar]、[SpaceProfileBadges]：
- * 三处标识的样式与竖屏保持同一份实现，粉丝牌也在等级同一行。
- */
 @Composable
 internal fun WideSpaceProfile(
-    content: SpaceScreenContent,
-    actions: SpaceScreenActions,
+    profile: com.aritxonly.bdfun.core.model.user.UserProfile?, bitmap: android.graphics.Bitmap?, mid: Long,
+    isSelf: Boolean, followed: Boolean, busy: Boolean, onFollow: () -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
-    val profile = content.snapshot.profile.space?.profile
-    val mid = content.mid
-    val isSelf = content.isSelf
-    val followed = content.snapshot.profile.followed
-    val busy = content.snapshot.profile.followBusy
+    val imageCache = androidx.compose.runtime.remember(context) { com.aritxonly.bdfun.ui.ProfileImageCache(context) }
+    val cachedAvatar = androidx.compose.runtime.remember(mid) { imageCache.avatarFile(mid) }
+    val face = profile?.face.orEmpty()
+    val faceRequest = rememberImageRequest(face, crossfade = false)
+    var avatarModel by androidx.compose.runtime.remember(mid, face) {
+        androidx.compose.runtime.mutableStateOf<Any>(if (cachedAvatar.exists()) cachedAvatar else faceRequest)
+    }
+    androidx.compose.runtime.LaunchedEffect(mid, face) {
+        val loaded = com.aritxonly.bdfun.ui.loadProfileAvatarBitmap(context, face) ?: return@LaunchedEffect
+        if (mid > 0L) imageCache.saveAvatar(mid, loaded)
+        avatarModel = loaded
+    }
     Column(Modifier.fillMaxWidth().background(colors.background), horizontalAlignment = Alignment.CenterHorizontally) {
-        SpaceBanner(content.banner.bitmap, aspect = 2.35f)
-        // 头像描边、压图偏移和弧线点缀与竖屏同一份实现；资料列上移抵消头像只占位的 96dp。
-        SpaceProfileAvatar(content, actions)
-        Column(Modifier.fillMaxWidth().offset(y = (-38).dp).trimBottom(24.dp).padding(horizontal = 16.dp),
+        SpaceBanner(bitmap, aspect = 2.35f)
+        // 描边画在外侧，头像缩到 80dp：外径仍是原来的 88dp。
+        Box(
+            modifier = Modifier
+                .offset(y = (-32).dp)
+                .size(88.dp)
+                .drawBehind {
+                    drawCircle(
+                        color = colors.background,
+                        radius = size.minDimension / 2f - 2.dp.toPx(),
+                        style = Stroke(width = 4.dp.toPx()),
+                    )
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            AsyncImage(model = avatarModel, contentDescription = "头像",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.size(80.dp).clip(CircleShape))
+        }
+        Column(Modifier.fillMaxWidth().trimBottom(24.dp).padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(14.dp)) {
             Text(profile?.name.orEmpty(), color = colors.primary, fontSize = 21.sp,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center, fontWeight = FontWeight.Medium)
-            SpaceProfileBadges(content, actions)
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text("LV${profile?.level ?: 0}", color = colors.primary, fontSize = 13.sp)
+                if (profile?.vip == true) Text(profile.vipLabel.ifBlank { "大会员" }, color = colors.primary, fontSize = 13.sp)
+            }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
                 SpaceStat("粉丝", profile?.follower ?: 0, Modifier.weight(1f).clickable { RelationActivity.open(context, mid, true) })
                 SpaceStat("关注", profile?.following ?: 0, Modifier.weight(1f).clickable { RelationActivity.open(context, mid, false) })
@@ -56,7 +90,7 @@ internal fun WideSpaceProfile(
             }
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                FollowCapsule(isSelf = isSelf, followed = followed, busy = busy, modifier = Modifier.weight(1f), onClick = actions.onFollow)
+                FollowCapsule(isSelf = isSelf, followed = followed, busy = busy, modifier = Modifier.weight(1f), onClick = onFollow)
                 if (!isSelf) MessageCircleButton {
                     context.startActivity(createRouteIntent(context,
                         com.aritxonly.bdfun.core.navigation.Route.PrivateChat(mid, name = profile?.name.orEmpty(),
@@ -67,6 +101,7 @@ internal fun WideSpaceProfile(
                 modifier = Modifier.fillMaxWidth().clip(ContinuousCornerShape(18.dp)).background(colors.surfaceContainer).padding(16.dp), fontSize = 13.sp)
             if (!profile?.officialTitle.isNullOrBlank()) Text(profile?.officialTitle.orEmpty(), color = colors.onBackgroundVariant, fontSize = 12.sp)
             if (!profile?.officialDesc.isNullOrBlank()) Text(profile?.officialDesc.orEmpty(), color = colors.onBackgroundVariant, fontSize = 12.sp)
+            if (!profile?.fansMedalName.isNullOrBlank()) Text("${profile?.fansMedalName} · Lv${profile?.fansMedalLevel}", color = colors.primary, fontSize = 12.sp)
             Text("UID：$mid", color = colors.onBackgroundVariant, fontSize = 12.sp, modifier = Modifier.fillMaxWidth())
             Text("充电 · ${formatCountNoDecimal(profile?.chargingCount ?: 0)}人已为其充电", color = colors.onBackgroundVariant,
                 fontSize = 13.sp, modifier = Modifier.fillMaxWidth().clip(ContinuousCornerShape(18.dp))
