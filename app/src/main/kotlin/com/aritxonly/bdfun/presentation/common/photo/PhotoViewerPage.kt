@@ -1,6 +1,6 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -9,16 +9,16 @@ import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Path
@@ -28,10 +28,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import coil.compose.AsyncImage
 import com.aritxonly.bdfun.core.common.biliImageThumbUrl
 import kotlin.math.abs
+import kotlin.math.roundToInt
 
 /**
  * 大图单页：从缩略图的裁切画面展开成完整图片，并支持双指缩放、双击放大、放大后平移。
@@ -42,10 +44,7 @@ import kotlin.math.abs
  * 这里图片始终按完整尺寸布局，只在绘制阶段用路径裁剪。
  *
  * 两层图：底层是列表里同一张缩略图（只缩宽度、不裁切，缓存命中，入场/退场第一帧就贴合），
- * 上层是原图，加载完成后淡入。
- *
- * 性能：入场进度只在绘制阶段读取（graphicsLayer / drawWithContent），组合期不再逐帧重组
- * 两层图片；裁剪 Path 只在 drawWithCache 里创建一次并复用。
+ * 上层是原图，加载完成后淡入。这样既不会出现"切到原图后闪一下"，也能保证放大后是完整图。
  */
 @Composable
 internal fun PhotoViewerPage(
@@ -63,59 +62,45 @@ internal fun PhotoViewerPage(
     LaunchedEffect(page.zoom) { view.zoom = page.zoom }
 
     // 原图就绪后淡入，避免入场动画期间"空一下再跳出来"。
-    // 用 Animatable 而不是 animateFloatAsState：透明度改到 graphicsLayer 里读取，不逐帧重组。
     var fullReady by remember(url) { mutableStateOf(false) }
-    val fullAlpha = remember(url) { Animatable(0f) }
-    LaunchedEffect(fullReady) { fullAlpha.animateTo(if (fullReady) 1f else 0f, tween(160)) }
+    val fullAlpha by animateFloatAsState(
+        targetValue = if (fullReady) 1f else 0f,
+        animationSpec = tween(durationMillis = 160),
+        label = "photo-full-fade",
+    )
 
     val density = LocalDensity.current
     val screenWidth = view.size.width.toFloat()
     val screenHeight = view.size.height.toFloat()
     if (screenWidth <= 0f || screenHeight <= 0f) return
 
-    val imageAspect = page.aspect.takeIf { it > 0.01f } ?: (screenWidth / screenHeight)
-    val imageWidthPx = if (screenWidth / screenHeight > imageAspect) screenHeight * imageAspect else screenWidth
-    val imageHeightPx = imageWidthPx / imageAspect
-    val imageWidthDp = with(density) { imageWidthPx.toDp() }
-    val imageHeightDp = with(density) { imageHeightPx.toDp() }
-
-    val originX = origin?.left ?: 0f
-    val originY = origin?.top ?: 0f
-    val originWidth = origin?.width ?: 0f
-    val originHeight = origin?.height ?: 0f
-    // 只捕获不随动画变化的量；progress 在 lambda 执行（绘制阶段）时才读取。
-    val morphAt: () -> PhotoMorphFrame = remember(
-        originX, originY, originWidth, originHeight, screenWidth, screenHeight, imageAspect, originRadiusPx,
-    ) {
-        {
-            photoMorphFrame(
-                progress = view.progress.value,
-                originX = originX,
-                originY = originY,
-                originWidth = originWidth,
-                originHeight = originHeight,
-                screenWidth = screenWidth,
-                screenHeight = screenHeight,
-                imageAspect = imageAspect,
-                originRadius = originRadiusPx,
-            )
-        }
-    }
-    val stage = PhotoStageFrame(
-        morph = morphAt,
-        thumbModel = remember(url) { biliImageThumbUrl(url, PhotoThumbWidth) },
-        fullAlpha = { fullAlpha.value },
-        inTransition = { view.progress.value < 0.999f },
-        imageWidth = imageWidthDp,
-        imageHeight = imageHeightDp,
-        // 缩放/平移也跟着进度收敛：放大过再退出时，画面会平滑回到缩略图而不是"啪"一下跳回去。
-        zoom = { 1f + (page.zoom - 1f) * view.progress.value },
-        pan = { page.pan * view.progress.value },
-        // 拖动位移随进度衰减：进度归零时正好落在缩略图上，不会带着偏移落地再跳回去。
-        dragY = { view.dragY * view.progress.value },
-        onAspect = { page.aspect = it },
+    val progress = view.progress.value
+    val morph = photoMorphFrame(
+        progress = progress,
+        originX = origin?.left ?: 0f,
+        originY = origin?.top ?: 0f,
+        originWidth = origin?.width ?: 0f,
+        originHeight = origin?.height ?: 0f,
+        screenWidth = screenWidth,
+        screenHeight = screenHeight,
+        imageAspect = page.aspect,
+        originRadius = originRadiusPx,
     )
-    PhotoViewerStage(url, page, view, stage, onDismiss, onLongPress) { width, height ->
+    val frame = PhotoStageFrame(
+        morph = morph,
+        thumbModel = remember(url) { biliImageThumbUrl(url, PhotoThumbWidth) },
+        fullAlpha = fullAlpha,
+        // 完全展开后不再裁剪：否则放大后的图片会被自身矩形（比屏幕小）切掉。
+        inTransition = progress < 0.999f,
+        imageWidth = with(density) { morph.imageWidth.toDp() },
+        imageHeight = with(density) { morph.imageHeight.toDp() },
+        // 缩放/平移也跟着进度收敛：放大过再退出时，画面会平滑回到缩略图而不是"啪"一下跳回去。
+        zoom = 1f + (page.zoom - 1f) * progress,
+        pan = page.pan * progress,
+        // 拖动位移随进度衰减：进度归零时正好落在缩略图上，不会带着偏移落地再跳回去。
+        dragY = view.dragY * progress,
+    )
+    PhotoViewerStage(url, page, view, frame, onDismiss, onLongPress) { width, height ->
         if (width > 0 && height > 0) page.aspect = width.toFloat() / height
         fullReady = true
         // 告诉宿主：宽高比已经确定，可以放心跑入场动画了。
@@ -123,18 +108,17 @@ internal fun PhotoViewerPage(
     }
 }
 
-/** 一帧内所有会变的几何/透明度，全部用 lambda 晚读，避免逐帧重组。 */
-private class PhotoStageFrame(
-    val morph: () -> PhotoMorphFrame,
+/** 一帧内所有会变的几何/透明度，打包传给各层，避免函数参数超过 12 个。 */
+private data class PhotoStageFrame(
+    val morph: PhotoMorphFrame,
     val thumbModel: String,
-    val fullAlpha: () -> Float,
-    val inTransition: () -> Boolean,
+    val fullAlpha: Float,
+    val inTransition: Boolean,
     val imageWidth: Dp,
     val imageHeight: Dp,
-    val zoom: () -> Float,
-    val pan: () -> Offset,
-    val dragY: () -> Float,
-    val onAspect: (Float) -> Unit,
+    val zoom: Float,
+    val pan: Offset,
+    val dragY: Float,
 )
 
 @Composable
@@ -142,11 +126,12 @@ private fun PhotoViewerStage(
     url: String,
     page: PhotoViewerPageState,
     view: PhotoViewerTransitionState,
-    stage: PhotoStageFrame,
+    frame: PhotoStageFrame,
     onDismiss: () -> Unit,
     onLongPress: (String, Offset) -> Unit,
     onFullLoaded: (Int, Int) -> Unit,
 ) {
+    val morph = frame.morph
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -167,10 +152,10 @@ private fun PhotoViewerStage(
                 currentPan = { page.pan },
                 size = { view.size },
             )
-            .graphicsLayer { translationY = stage.dragY() },
+            .graphicsLayer { translationY = frame.dragY },
     ) {
-        Box(Modifier.fillMaxSize().morphClip(stage.morph, stage.inTransition)) {
-            PhotoViewerLayers(url, view, stage, onFullLoaded)
+        Box(Modifier.fillMaxSize().morphClip(morph, skipClip = !frame.inTransition)) {
+            PhotoViewerLayers(url, page, view, frame, onFullLoaded)
         }
     }
 }
@@ -178,39 +163,38 @@ private fun PhotoViewerStage(
 @Composable
 private fun PhotoViewerLayers(
     url: String,
+    page: PhotoViewerPageState,
     view: PhotoViewerTransitionState,
-    stage: PhotoStageFrame,
+    frame: PhotoStageFrame,
     onFullLoaded: (Int, Int) -> Unit,
 ) {
-    // 原图完全淡入后才移除缩略图；这个判断只在跨过阈值时重组一次。
-    val thumbVisible by remember { derivedStateOf { stage.fullAlpha() < 0.999f } }
     // 原图还没就绪时只画缩略图：它和卡片是同一张源图、同样的中心裁切，
     // 所以入场第一帧、退场最后一帧都和列表里的缩略图完全重合。
-    if (thumbVisible) {
+    if (frame.fullAlpha < 0.999f) {
         MorphImage(
-            model = stage.thumbModel,
-            morph = stage.morph,
-            width = stage.imageWidth,
-            height = stage.imageHeight,
-            zoom = stage.zoom,
-            pan = stage.pan,
+            model = frame.thumbModel,
+            morph = frame.morph,
+            width = frame.imageWidth,
+            height = frame.imageHeight,
+            zoom = frame.zoom,
+            pan = frame.pan,
             // Crop：宽高比还没算出来时也保证铺满框，不会出现黑边。
             contentScale = ContentScale.Crop,
             // 缩略图也报一次宽高比：它命中缓存后立刻就能开始入场动画。
             onLoaded = { width, height ->
-                if (width > 0 && height > 0) stage.onAspect(width.toFloat() / height)
+                if (width > 0 && height > 0) page.aspect = width.toFloat() / height
                 view.contentReady = true
             },
         )
     }
     MorphImage(
         model = url,
-        morph = stage.morph,
-        width = stage.imageWidth,
-        height = stage.imageHeight,
-        zoom = stage.zoom,
-        pan = stage.pan,
-        alpha = stage.fullAlpha,
+        morph = frame.morph,
+        width = frame.imageWidth,
+        height = frame.imageHeight,
+        zoom = frame.zoom,
+        pan = frame.pan,
+        alpha = frame.fullAlpha,
         onLoaded = onFullLoaded,
     )
 }
@@ -218,16 +202,16 @@ private fun PhotoViewerLayers(
 /** 和列表一致的缩略图宽度；宽度决定裁切尺寸，必须和 FeedImageGrid 保持同步。 */
 private const val PhotoThumbWidth = 720
 
-/** 图片按完整尺寸布局，用 graphicsLayer 定位，布局约束永远不参与裁剪。 */
+/** 图片按完整尺寸布局，用 offset 定位中心、graphicsLayer 做裁切倍率，布局约束永远不参与裁剪。 */
 @Composable
 private fun MorphImage(
     model: Any?,
-    morph: () -> PhotoMorphFrame,
+    morph: PhotoMorphFrame,
     width: Dp,
     height: Dp,
-    zoom: () -> Float,
-    pan: () -> Offset,
-    alpha: () -> Float = { 1f },
+    zoom: Float,
+    pan: Offset,
+    alpha: Float = 1f,
     contentScale: ContentScale = ContentScale.Fit,
     onLoaded: ((Int, Int) -> Unit)? = null,
 ) {
@@ -242,44 +226,45 @@ private fun MorphImage(
             onLoaded?.invoke(drawable.intrinsicWidth, drawable.intrinsicHeight)
         },
         modifier = Modifier
+            .offset {
+                IntOffset(
+                    (morph.imageCenterX - morph.imageWidth / 2f).roundToInt(),
+                    (morph.imageCenterY - morph.imageHeight / 2f).roundToInt(),
+                )
+            }
             .size(width, height)
             .graphicsLayer {
-                val frame = morph()
-                val scale = frame.imageScale * zoom()
+                val scale = morph.imageScale * zoom
                 scaleX = scale
                 scaleY = scale
-                translationX = frame.imageCenterX - size.width / 2f + pan().x
-                translationY = frame.imageCenterY - size.height / 2f + pan().y
-                this.alpha = alpha()
+                translationX = pan.x
+                translationY = pan.y
+                this.alpha = alpha
             },
     )
 }
 
-/** 只在绘制阶段裁剪，图片布局尺寸不受影响；Path 在缓存块里复用。 */
-private fun Modifier.morphClip(
-    morph: () -> PhotoMorphFrame,
-    skipClip: () -> Boolean,
-): Modifier = drawWithCache {
-    val path = Path()
-    onDrawWithContent {
-        if (skipClip()) {
-            drawContent()
-            return@onDrawWithContent
-        }
-        val frame = morph()
-        path.reset()
-        path.addRoundRect(
+/**
+ * 只在绘制阶段裁剪，图片布局尺寸不受影响。
+ */
+private fun Modifier.morphClip(morph: PhotoMorphFrame, skipClip: Boolean): Modifier = drawWithContent {
+    if (skipClip) {
+        drawContent()
+        return@drawWithContent
+    }
+    val path = Path().apply {
+        addRoundRect(
             RoundRect(
-                left = frame.clipLeft,
-                top = frame.clipTop,
-                right = frame.clipLeft + frame.clipWidth,
-                bottom = frame.clipTop + frame.clipHeight,
-                radiusX = frame.cornerRadius,
-                radiusY = frame.cornerRadius,
+                left = morph.clipLeft,
+                top = morph.clipTop,
+                right = morph.clipLeft + morph.clipWidth,
+                bottom = morph.clipTop + morph.clipHeight,
+                radiusX = morph.cornerRadius,
+                radiusY = morph.cornerRadius,
             ),
         )
-        clipPath(path) { this@onDrawWithContent.drawContent() }
     }
+    clipPath(path) { this@drawWithContent.drawContent() }
 }
 
 private fun toggleZoom(zoom: Float, tap: Offset, size: IntSize): Float {
