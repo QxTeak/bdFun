@@ -51,9 +51,26 @@ internal class CommentThreadRuntime(
                 }
                 keyboard?.hide()
                 context.showToast("回复成功")
-                // LazyColumn 保持原可见条目的锚点，新回复插到顶部后要主动展示。
-                listState.animateScrollToItem(2)
+                // 新回复已插到被回复对象下面：滚过去时把父评论留在屏幕顶部，别把整页甩回列表头。
+                val local = controller.state.value.extra.lastOrNull()
+                val merged = mergeThreadReplies(input.replies, controller.state.value.extra, controller.state.value.deleted)
+                val index = if (local != null) merged.indexOfFirst { it.rpid == local.rpid } else -1
+                if (index >= 0) {
+                    // 前两项是「原评论」和「共 N 条评论」。
+                    runCatching { listState.animateScrollToItem(if (index > 0) index + 1 else 0) }
+                    currentCoroutineContext().ensureActive()
+                    if (controller.isActive && local != null) flash(local.rpid)
+                }
             } else context.showToast(actions.state.value.sendError?.messageOr("发送失败，请稍后重试") ?: "发送失败，请稍后重试")
+        }
+    }
+    /** 定位/发送成功后闪一下灰：与设置页按压同款，900ms 后清掉高亮。 */
+    fun flash(rpid: Long) {
+        transient.flashRpid = rpid
+        transient.flashSeq++
+        scope.launch {
+            delay(900)
+            if (transient.flashRpid == rpid) transient.flashRpid = 0L
         }
     }
     fun toggleLike(item: CommentItem) {

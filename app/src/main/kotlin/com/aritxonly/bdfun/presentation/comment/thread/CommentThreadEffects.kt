@@ -47,9 +47,7 @@ internal fun CommentThreadEffects(
             runtime.transient.consumedFocusRpid = focusRpid
             // 前面有「原评论」和「共 N 条评论」两个 item。
             listState.animateScrollToItem(index + 2)
-            runtime.transient.flashRpid = focusRpid
-            delay(700)
-            if (runtime.transient.flashRpid == focusRpid) runtime.transient.flashRpid = 0L
+            runtime.flash(focusRpid)
         } else if (!end && !loading) {
             onLoadMore()
         }

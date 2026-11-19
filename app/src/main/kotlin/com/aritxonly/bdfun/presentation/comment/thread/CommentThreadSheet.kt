@@ -33,7 +33,7 @@ internal fun CommentThreadSheet(
     )
     if (!input.visible && progress <= 0.005f) return
     val connection = rememberCommentThreadCollapseConnection(page)
-    val allReplies = (state.extra + input.replies).distinctBy { it.rpid }.filterNot { it.rpid in state.deleted }
+    val allReplies = mergeThreadReplies(input.replies, state.extra, state.deleted)
     CommentThreadEffects(runtime, input, viewport, allReplies, navigation)
     CommentThreadDialog(
         content = ThreadSheetContent(input.comment, allReplies, state.extra.size, input.loading, input.end,

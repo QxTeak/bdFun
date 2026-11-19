@@ -90,5 +90,19 @@ internal class CommentListStateHolder(private val repository: CommentContentRepo
         ) }
     }
 
+    /**
+     * 本地刚发出的评论钉在第一条；下一次 [reload]/[reset] 会用 API 结果整体替换，
+     * 因此刷新后自然回到服务端排序位置，不需要额外的去重状态。
+     */
+    fun prependLocal(item: CommentItem) {
+        if (closed) return
+        mutableState.update {
+            it.copy(
+                items = listOf(item) + it.items.filterNot { row -> row.rpid == item.rpid },
+                total = it.total + 1,
+            )
+        }
+    }
+
     fun remove(rpid: Long) { if (closed) return; mutableState.update { it.copy(items = it.items.filterNot { item -> item.rpid == rpid }, total = (it.total - 1).coerceAtLeast(0)) } }
 }

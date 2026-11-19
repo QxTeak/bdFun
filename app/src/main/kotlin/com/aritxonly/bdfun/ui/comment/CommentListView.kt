@@ -40,6 +40,8 @@ internal data class CommentListViewState(
     val comments: List<CommentItem>, val total: Int, val loading: Boolean, val loadingMore: Boolean,
     val end: Boolean, val error: String?, val sortHot: Boolean, val highlightRpid: Long,
     val disliked: Map<Long, Boolean>,
+    /** 每次定位/发送成功都会 +1，让同一条评论能重复闪灰。 */
+    val flashSeq: Int = 0,
 )
 internal data class CommentListViewLayout(
     val bare: Boolean, val title: String, val topInset: androidx.compose.ui.unit.Dp,
