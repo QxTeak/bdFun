@@ -21,6 +21,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -30,6 +31,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -291,12 +294,17 @@ fun TeakLargeTitle(
         return
     }
     if (isWideFoldTopBar()) { Spacer(Modifier.height(TeakChromeDefaults.TopOverlayHeight - 12.dp)); return }
-    // 页面把标题画在不随回弹位移的覆盖层时，列表里这一份只负责占位。
-    val hidden = !drawnAsPinnedCopy && LocalTeakLargeTitleHidden.current
+    // 页面外壳会把标题复制到滚动容器外固定绘制；列表里这一份只占位并上报锚点。
+    val anchorState = LocalTeakLargeTitleAnchor.current
+    val hosted = anchorState != null && !drawnAsPinnedCopy
+    val hidden = anchorState != null && hosted && anchorState.present > 0 && anchorState.anchor != null
+    val baseModifier = if (anchorState != null && hosted) {
+        TeakLargeTitleAnchorEffect(anchorState, title, subtitle, titleColor, subtitleColor, pageState, modifier)
+    } else modifier
     val colors = MiuixTheme.colorScheme
     val p = (pageState.collapse / TeakChromeDefaults.CollapseFadeFraction).coerceIn(0f, 1f)
     Column(
-        modifier = modifier
+        modifier = baseModifier
             .fillMaxWidth()
             .graphicsLayer { alpha = if (hidden) 0f else 1f - p }
             .then(if (hidden) Modifier else Modifier.blur(TeakChromeDefaults.CollapseBlurRadius * p)),
@@ -363,14 +371,17 @@ fun TeakPageScaffold(
         drawContent()
     }
     com.aritxonly.teak.common.modal.RegisterAdvancedMaterialModalBackdrop(backdrop)
+    val largeTitleState = remember { TeakLargeTitleAnchorState() }
     CompositionLocalProvider(
         LocalTeakBackdrop provides backdrop,
         LocalTeakPageScrollState provides pageState,
         LocalTeakClassicChrome provides com.aritxonly.teak.common.theme.TeakUiStyle.isClassic,
+        LocalTeakLargeTitleAnchor provides largeTitleState,
     ) {
         Box(
             modifier = modifier
                 .fillMaxSize()
+                .onGloballyPositioned { largeTitleState.rootOrigin = it.boundsInWindow().topLeft }
                 .background(backgroundColor),
         ) {
             Box(
@@ -383,6 +394,8 @@ fun TeakPageScaffold(
                     TeakScrollContainer(pageState.scrollableState, Modifier.fillMaxSize(), content = content)
                 } else content()
             }
+            // 大标题固定副本：画在滚动容器外，顶部回弹只带动内容，不会把标题一起带下去。
+            TeakPinnedLargeTitle(largeTitleState, pageState)
             Box(modifier = Modifier.fillMaxSize()) { overlay() }
             if (showTopBar) CompositionLocalProvider(LocalTopBarScrollProgress provides ((topBarMaterialProgress ?: pageState.materialProgress).coerceIn(0f, 1f) * barBlurFraction.coerceIn(0f, 1f))) {
                 ProgressiveTopBarMaterial {

@@ -37,7 +37,7 @@ internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Mod
     // 卡片自身在非经典样式下带12dp顶距，补足到16dp，避免叠成28dp。
     val cardGap = if (TeakUiStyle.isClassic) 16.dp else 4.dp
     if (!session.navigation.searching) TrackTeakPageScroll(list, chrome)
-    SettingsPinnedList(title = "设置", list = list, modifier = modifier) {
+    LazyColumn(modifier, state = list, contentPadding = settingsListPadding()) {
         item { TeakLargeTitle("设置", pageState = chrome) }
         session.seperation.forEach { group ->
             val entries = group.entries.mapNotNull { entry ->
@@ -82,7 +82,7 @@ internal fun SettingsCategoryContent(session: SettingsBrowserSession, values: Ma
         SettingsAboutContent(session, values, runtime, controller, modifier)
         return
     }
-    SettingsPinnedList(title = category.name, list = list, modifier = modifier) {
+    LazyColumn(modifier, state = list, contentPadding = settingsListPadding()) {
         item { TeakLargeTitle(category.name) }
         items(category.groups) { group -> SettingsIndexedGroup(group, session, values, runtime, controller) }
     }
@@ -92,8 +92,7 @@ internal fun SettingsCategoryContent(session: SettingsBrowserSession, values: Ma
 internal fun SettingsSearchResults(session: SettingsBrowserSession, hits: List<SettingsSearchHit>, modifier: Modifier, runtime: SettingsPageRuntime) {
     val list = rememberLazyListState()
     if (session.navigation.searching) TrackTeakPageScroll(list)
-    SettingsPinnedList(title = "搜索设置", list = list,
-        modifier = modifier.imePadding().background(MiuixTheme.colorScheme.surface)) {
+    LazyColumn(modifier.imePadding().background(MiuixTheme.colorScheme.surface), state = list, contentPadding = settingsListPadding()) {
         item { TeakLargeTitle("搜索设置") }
         if (session.navigation.query.isBlank()) {
             item { Text("搜索名称、说明或关键词", Modifier.padding(20.dp), color = MiuixTheme.colorScheme.onSurfaceVariantSummary) }
@@ -117,32 +116,6 @@ internal fun settingsListPadding(): PaddingValues {
     return PaddingValues(start = horizontal, end = horizontal,
         top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + TeakChromeDefaults.ContentTopPadding,
         bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 100.dp)
-}
-
-/**
- * 设置各列表的公共外壳：大标题画在列表外，顶部下拉回弹只带动设置项。
- *
- * 列表里的 [TeakLargeTitle] 仍然保留，作为高度一模一样的占位。
- */
-@Composable
-private fun SettingsPinnedList(
-    title: String,
-    list: androidx.compose.foundation.lazy.LazyListState,
-    modifier: Modifier = Modifier,
-    content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit,
-) {
-    val padding = settingsListPadding()
-    TeakPinnedLargeTitleHost(
-        title = title,
-        topInset = padding.calculateTopPadding(),
-        horizontalInset = padding.calculateStartPadding(androidx.compose.ui.platform.LocalLayoutDirection.current),
-        scrollOffsetPx = {
-            if (list.firstVisibleItemIndex > 0) 10_000f
-            else list.firstVisibleItemScrollOffset.toFloat()
-        },
-    ) {
-        LazyColumn(modifier, state = list, contentPadding = padding, content = content)
-    }
 }
 
 @Composable

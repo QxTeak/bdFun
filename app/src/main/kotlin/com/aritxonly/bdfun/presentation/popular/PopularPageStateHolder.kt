@@ -2,6 +2,7 @@ package com.aritxonly.bdfun.presentation.popular
 
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -11,10 +12,10 @@ import com.aritxonly.bdfun.core.model.video.VideoItem
 import com.aritxonly.bdfun.presentation.common.discover.readable
 
 /**
- * 首页「热门」段的状态：单列表分页，没有子 Tab 和下拉手势。
+ * 首页「热门」段的状态：单列表分页。
  *
- * 网格状态由 shell 的 TrackTeakPageScroll 接管（顶栏渐进模糊/返回顶部），
- * 再次点击底栏「首页」时通过 [requestRefresh] 回顶并重新拉第一页。
+ * 和推荐 / 直播 / 番剧共用同一套下拉刷新：页面持有 PullRefreshSession，
+ * 这里只负责 px / dp / 进度回写、刷新中标记，以及「再次点底栏首页」的刷新请求。
  */
 internal class PopularPageStateHolder(private val repository: PopularRepository) {
     val gridState = LazyGridState()
@@ -25,6 +26,8 @@ internal class PopularPageStateHolder(private val repository: PopularRepository)
         private set
     var loadingMore by mutableStateOf(false)
         private set
+    var refreshing by mutableStateOf(false)
+        private set
     var end by mutableStateOf(false)
         private set
     var error by mutableStateOf<String?>(null)
@@ -33,6 +36,9 @@ internal class PopularPageStateHolder(private val repository: PopularRepository)
         private set
     var refreshRequest by mutableIntStateOf(0)
         private set
+    /** 下拉位移，供 App 层的小电视读取；与推荐页同一份字段。 */
+    var pullOffsetDp by mutableFloatStateOf(0f)
+    var pullFraction by mutableFloatStateOf(0f)
 
     private var page = 0
     private var token = 0
@@ -44,6 +50,17 @@ internal class PopularPageStateHolder(private val repository: PopularRepository)
     suspend fun ensureLoaded() {
         if (loadedOnce || loading) return
         reload()
+    }
+
+    /** 下拉松手后的刷新：与直播/番剧一致，标记 refreshing 让指示器保持到数据回来。 */
+    suspend fun refresh() {
+        if (refreshing) return
+        refreshing = true
+        try {
+            reload()
+        } finally {
+            refreshing = false
+        }
     }
 
     /** 拉第一页；刷新与首次加载共用，旧请求的结果由 [token] 丢弃。 */
@@ -102,8 +119,4 @@ internal class PopularPageStateHolder(private val repository: PopularRepository)
         error = null
         if (videos.isEmpty()) reload() else loadMore()
     }
-
-    /** 供页面判断是否需要在刷新时先回顶。 */
-    fun isAtTop(): Boolean =
-        gridState.firstVisibleItemIndex == 0 && gridState.firstVisibleItemScrollOffset == 0
 }

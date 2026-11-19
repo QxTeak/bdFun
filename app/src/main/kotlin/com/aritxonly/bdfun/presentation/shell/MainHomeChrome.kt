@@ -29,10 +29,13 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
     }
     // 下拉刷新指示器：各段各一份状态，都画在 App 层同一个位置。
     val liveState = if (ui.homeSection == 1) AppGraph.livePageState else null
+    val popularState = if (ui.homeSection == 2) AppGraph.popularPageState else null
     val bangumiState = if (ui.homeSection == 3) AppGraph.bangumiPageState else null
     val cinemaState = if (ui.homeSection == 4) AppGraph.cinemaPageState else null
-    val pullRefreshing = liveState?.refreshing ?: bangumiState?.refreshing ?: cinemaState?.refreshing ?: homeFeed.refreshing
-    val pullOffsetDp = liveState?.pullOffsetDp ?: bangumiState?.pullOffsetDp ?: cinemaState?.pullOffsetDp ?: homeFeed.pullOffsetDp
+    val pullRefreshing = liveState?.refreshing ?: popularState?.refreshing
+        ?: bangumiState?.refreshing ?: cinemaState?.refreshing ?: homeFeed.refreshing
+    val pullOffsetDp = liveState?.pullOffsetDp ?: popularState?.pullOffsetDp
+        ?: bangumiState?.pullOffsetDp ?: cinemaState?.pullOffsetDp ?: homeFeed.pullOffsetDp
 
     if (!(ui.showSearch && ui.searchSubmitted != null && com.aritxonly.bdfun.ui.useSingleRowSearchResults())) MainTopBarChrome(
         shell = shell,
@@ -48,7 +51,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
         )
     }
 
-    if (pageFloat < 0.99f && ui.homeSection != 2) {
+    if (pageFloat < 0.99f) {
         // 下拉刷新指示器：独立覆盖层，挂在 App 层，探出顶栏也不会被裁掉。
         // 透明度直接由下拉位移决定：位移 58dp 开始淡入、84dp 全显；
         // 卡片在位移 <46dp 时才会撞到小电视，因此永远追不上。
