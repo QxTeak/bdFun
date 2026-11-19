@@ -6,6 +6,7 @@ import com.aritxonly.bdfun.feature.message.application.visibleSessions
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -74,6 +75,10 @@ internal fun MessageSessionList(
             if (!loggedIn) {
                 item(key = "login") { MessageLoginPrompt(events.onNeedLogin) }
             } else {
+                // 首次进入用骨架屏；下拉刷新才由 App 层的小电视提示。
+                if (snapshot.loading && visibleSessions.isEmpty()) {
+                    items(count = 8, key = { "session-skeleton-$it" }) { MessageSessionSkeletonRow() }
+                }
                 itemsIndexed(visibleSessions, key = { _, session -> session.id }) { _, session ->
                     var anchor by remember { mutableStateOf(Rect.Zero) }
                     Box(Modifier.padding(bottom = 4.dp)
@@ -99,7 +104,9 @@ internal fun MessageSessionList(
                     }
                 }
                 item(key = "footer") {
-                    MessagePageFooter(snapshot.loading, snapshot.error, snapshot.inboxCursor != null, visibleSessions.isEmpty(), onLoad = onLoad)
+                    if (!(snapshot.loading && visibleSessions.isEmpty())) {
+                        MessagePageFooter(snapshot.loading, snapshot.error, snapshot.inboxCursor != null, visibleSessions.isEmpty(), onLoad = onLoad)
+                    }
                 }
             }
         }

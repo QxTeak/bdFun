@@ -826,13 +826,6 @@
             "default": ""
           },
           {
-            "pref_name": "donation",
-            "type": "action",
-            "title": "捐赠",
-            "storage": "none",
-            "default": ""
-          },
-          {
             "pref_name": "credits",
             "type": "action",
             "title": "引用",

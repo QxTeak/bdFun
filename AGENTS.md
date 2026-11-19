@@ -772,6 +772,15 @@ scrollable 默认 false，maxVisibleItems 默认 3；开启并超限时启用内
 
 验证：`:app:compileDebugKotlin`、`:app:lintDebug`、`:app:assembleDebug`、`:app:assembleRelease`、`:app:testDebugUnitTest`、`:core:domain:test`、`:core:application:test`、`checkLayering` 全部通过；模拟器实测热门分页/加载更多、收藏页顶部下拉时标题不动、上滑时标题正常推走、横屏空间头像点缀与三种标识。Windows 下直接跑 `checkLayering` 会被 Python 默认 GBK 读 UTF-8 源码卡住，需设置 `PYTHONUTF8=1`（CI 的 Linux 环境不需要）。
 
+### 2026-11-19 preview-7.0 发布准备
+
+大标题不再在页面里各包一层 host：`TeakPageScaffold` 统一持有 `TeakLargeTitleAnchorState`，列表里的 `TeakLargeTitle` 只占位并登记文案，页面外壳按统一 chrome 位置（状态栏 + 8dp、统一左右内边距）画一份固定副本，滚动偏移在布局阶段同步读列表状态。不要重新引入按页传 topInset/scrollOffset 的旧写法；页面只要用 `TeakPageScaffold` 并在列表首项放 `TeakLargeTitle` 就自动生效。省略号形变菜单的阴影跳变问题尚未修复（本轮回退），后续单独处理。
+
+消息页统一用 `HomePullRefreshBox`（首页同一套 `PullRefreshSession` + 小电视 + 回顶/收尾时序）；首次进入用 `MessageSkeletons` 骨架屏，不再显示小电视；`MessageSessionsEffects`/`MessageFeedEffects`/联系人/消息设置已移除 resume 时重载，从回复页等二级页返回不重新拉取。消息页 Tab 与上方快捷入口卡片的间距为 14dp。
+
+设置第一页「关于」卡片下方直接放「捐赠」入口（复用关于的图标），关于二级页里的捐赠项已删；入口走 `runtime.navigation.onAbout(SettingsDestination.Donation)`。版本默认值改为 `preview-7.0`，正式发版由 `.github/workflows/release.yml` 的 `workflow_dispatch` 传 `version=preview-7.0` 和更新日志；应用内更新日志读取 GitHub Release，发版后自动出现。
+
+
 
 
 

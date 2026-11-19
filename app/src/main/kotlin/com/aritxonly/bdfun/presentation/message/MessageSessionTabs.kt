@@ -13,7 +13,8 @@ import com.aritxonly.teak.common.navigation.TeakPagerTabs
 internal fun MessageSessionTabs(ui: MessageSessionsPresentationStateHolder) {
     Box(
         modifier = Modifier.fillMaxWidth().padding(
-            top = 8.dp, bottom = 14.dp,
+            // 和上面的快捷入口卡片再拉开一点，避免两个圆角块贴在一起。
+            top = 14.dp, bottom = 14.dp,
             start = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 16.dp else 0.dp,
         ),
         contentAlignment = Alignment.CenterStart,
