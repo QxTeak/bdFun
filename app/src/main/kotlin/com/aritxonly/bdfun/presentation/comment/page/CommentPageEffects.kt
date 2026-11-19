@@ -12,14 +12,6 @@ internal fun CommentPageEffects(runtime: CommentPageRuntime, layout: CommentScre
             runtime.menu.hide()
         }
     }
-    LaunchedEffect(runtime.menu, runtime.menu.visible) {
-        if (runtime.menu.visible) runtime.page.commentMenuOpen = true
-        else {
-            delay(320)
-            runtime.page.commentMenuOpen = false
-        }
-    }
-    DisposableEffect(runtime.page) { onDispose { runtime.page.commentMenuOpen = false } }
     val emotes = LocalRichTextDependencies.current.emotes
     LaunchedEffect(Unit) { emotes.ensure() }
     LaunchedEffect(runtime.list) { runtime.list.reset(request.query()) }

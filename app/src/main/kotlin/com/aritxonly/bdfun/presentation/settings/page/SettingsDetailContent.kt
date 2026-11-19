@@ -15,7 +15,7 @@ internal fun settingsDetailTitle(destination: SettingsDestination): String = whe
 }
 
 @Composable
-internal fun SettingsDetailContent(destination: SettingsDestination, onBack: () -> Unit, settings: com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings) {
+internal fun SettingsDetailContent(destination: SettingsDestination, onBack: () -> Unit) {
     when (destination) {
         SettingsDestination.Update -> com.aritxonly.bdfun.UpdateScreenRoute()
         SettingsDestination.Help -> HelpScreen()

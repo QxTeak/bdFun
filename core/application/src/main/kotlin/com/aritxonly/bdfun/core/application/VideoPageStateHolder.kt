@@ -24,7 +24,6 @@ data class VideoPageState(
     val consumedReplyFocus get() = requests.consumedReplyFocus
     val dismissReply get() = requests.dismissReply
     val consumedDismissReply get() = requests.consumedDismissReply
-    val commentMenuOpen get() = reply.commentMenuOpen
     val commentThreadVisible get() = reply.commentThreadVisible
     val fullscreen get() = player.fullscreen
     val controlsVisible get() = player.controlsVisible
@@ -65,7 +64,6 @@ data class VideoPagePlayerState(
 
 data class VideoPageReplyState(
     val replyEditing: Boolean = false,
-    val commentMenuOpen: Boolean = false,
     val commentThreadVisible: Boolean = false,
     val replyName: String? = null,
     val replyRoot: Long = 0L,

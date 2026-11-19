@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.ImageBitmap
 
 interface VideoPageOverlayHost {
     val replyEditing: Boolean
-    val commentMenuOpen: Boolean
     var dismissReply: Int
     var danmakuInputClose: Int
     var danmakuPanelOpen: Boolean
