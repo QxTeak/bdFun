@@ -14,6 +14,7 @@ class MessageToolsStateHolderTest {
         var requests = mutableListOf<Pair<Int, Long>>()
         var failure = false
         var writes = 0
+        var chat = ChatPreferences("", "", false, false, null, false)
         var list = MessageKeywordList(listOf("已有"), 2, 3, "已达上限")
         override suspend fun likes(id: String, page: Int, lastMid: Long): Outcome<MessageLikeDetail> {
             requests += page to lastMid; gate?.await()
@@ -32,7 +33,7 @@ class MessageToolsStateHolderTest {
             list = list.copy(keywords = list.keywords - keyword); return Outcome.Success(Unit)
         }
         override suspend fun contacts(group: Int, query: String, page: Int) = Outcome.Success(MessageContactsPage(people, true))
-        override suspend fun chatPreferences(mid: Long) = Outcome.Success(ChatPreferences("", "", false, false, null, false))
+        override suspend fun chatPreferences(mid: Long) = Outcome.Success(chat)
         override suspend fun setChatPreference(mid: Long, action: ChatPreferenceAction, enabled: Boolean) = Outcome.Success(Unit)
     }
     @Test fun likesAdvanceByPageAndLastMidAndStopOnRepeatedPeople() = runBlocking {
@@ -73,6 +74,24 @@ class MessageToolsStateHolderTest {
         holder.draft("新词"); source.failure = true; assertEquals("offline", holder.addKeyword())
         assertEquals("新词", holder.state.value.draft); assertFalse(holder.state.value.busy)
     }
+    @Test fun pinReadFailureKeepsOtherSettingsAndRetryUpdatesPin() = runBlocking {
+        val source = Fake().apply {
+            chat = chat.copy(pinned = null, muted = true, pinError = "置顶设置加载失败：1217 (1217)")
+        }
+        val holder = MessageToolsStateHolder(source, MessageTool.Chat(123))
+        holder.load()
+        val failed = holder.state.value.chat!!
+        assertNull(failed.pinned)
+        assertTrue(failed.muted)
+        assertTrue(failed.pinError!!.contains("1217"))
+        assertNull(holder.state.value.error)
+
+        source.chat = source.chat.copy(pinned = true, pinError = null)
+        holder.load()
+        assertEquals(true, holder.state.value.chat?.pinned)
+        assertNull(holder.state.value.chat?.pinError)
+    }
+
     @Test fun failedSettingWriteKeepsServerSnapshotAndUnlocks() = runBlocking {
         val source = Fake(); val holder = MessageToolsStateHolder(source, MessageTool.Settings(19))
         holder.load(); source.failure = true

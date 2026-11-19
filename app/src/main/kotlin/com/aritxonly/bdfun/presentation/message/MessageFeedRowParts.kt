@@ -57,14 +57,12 @@ internal fun MessageOriginalText(text: String) {
 }
 
 @Composable
-internal fun MessageRowFooter(item: MessageItem, onMore: (() -> Unit)? = null) {
+internal fun MessageRowFooter(item: MessageItem) {
     val colors = MiuixTheme.colorScheme
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(formatMessageDate(item.time), color = colors.onBackgroundVariant, fontSize = 12.sp)
         if (item.noticeState == 1) {
             Text(" · 已关闭通知", color = colors.onBackgroundVariant, fontSize = 12.sp)
         }
-        Spacer(Modifier.weight(1f))
-        if (onMore != null) MessageMoreDots(onMore)
     }
 }

@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
@@ -18,12 +19,16 @@ import com.aritxonly.bdfun.ui.rememberImageRequest
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-internal fun ChatAvatar(url: String, placeholder: String = "") {
+internal fun ChatAvatar(url: String, placeholder: String = "", profileMid: Long = 0) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val colors = MiuixTheme.colorScheme
     Box(
         modifier = Modifier
             .size(32.dp)
             .clip(CircleShape)
+            .then(if (profileMid > 0) Modifier.clickable(onClickLabel = "查看个人空间") {
+                navigateToSpace(context, profileMid)
+            } else Modifier)
             .background(colors.surfaceContainerHigh),
         contentAlignment = Alignment.Center,
     ) {

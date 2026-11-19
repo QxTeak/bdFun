@@ -17,6 +17,8 @@ import org.junit.Test
 
 class SpacePageViewModelTest {
     private val unused = object : SpaceRepository {
+        override suspend fun searchVideos(mid: Long, keyword: String, page: Int) = videos(mid, page)
+        override suspend fun block(mid: Long) = com.aritxonly.bdfun.core.common.Outcome.Success(true)
         override suspend fun profile(mid: Long): Outcome<SpaceInfo> = error("unused")
         override suspend fun seasons(mid: Long): Outcome<List<SpaceSeason>> = error("unused")
         override suspend fun dynamics(mid: Long, offset: String): Outcome<FeedPage> = error("unused")

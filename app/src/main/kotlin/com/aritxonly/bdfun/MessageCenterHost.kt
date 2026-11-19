@@ -1,6 +1,5 @@
 package com.aritxonly.bdfun
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -18,6 +17,13 @@ import com.aritxonly.bdfun.infra.storage.RouteJsonCodec
 import com.aritxonly.bdfun.ui.*
 import com.aritxonly.teak.common.chrome.centeredListWidth
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.nav.core.NavDisplay
+import top.yukonga.miuix.kmp.nav.core.NavDisplayEffects
+import top.yukonga.miuix.kmp.nav.core.NavKey
+import top.yukonga.miuix.kmp.nav.core.navBackStackOf
+import top.yukonga.miuix.kmp.nav.core.rememberNavSystemCornerRadius
+import top.yukonga.miuix.kmp.nav.transition.NavTransition
+import top.yukonga.miuix.kmp.nav.transition.NavTransitions
 
 @Composable
 internal fun MessageCenterHost(onBack: () -> Unit) {
@@ -25,31 +31,29 @@ internal fun MessageCenterHost(onBack: () -> Unit) {
     key(owner) {
         val navigation = rememberSaveable(saver = messageCenterSaver()) { MessageCenterStateHolder() }
         val entries by navigation.entries.collectAsState()
-        val back = { if (!navigation.back()) onBack() }
+        val currentBack by rememberUpdatedState(onBack)
+        val back = { if (!navigation.back()) currentBack() }
+        val master = remember(navigation) {
+            movableContentOf { MessageCenterMaster(navigation, entries, currentBack) }
+        }
         TeakBareTheme(AppGraph.settings) { _, _ ->
             BoxWithConstraints(Modifier.fillMaxSize()) {
                 val width = maxWidth
                 val split = usesMessageSplitPane(width.value)
-                Box(Modifier.fillMaxSize()) {
-                    Box(Modifier.width(if (split) 340.dp else width).fillMaxHeight()
-                        .centeredListWidth(maxWidth = 680.dp)) {
-                        MessagePaneVisible(split || entries.isEmpty()) {
-                            MessageCenterMaster(navigation, entries, onBack)
-                        }
+                if (split) {
+                    Box(Modifier.width(340.dp).fillMaxHeight().centeredListWidth(maxWidth = 680.dp)) {
+                        master()
                     }
-                    if (split) Box(Modifier.padding(start = 340.dp).width(1.dp).fillMaxHeight()
+                    Box(Modifier.padding(start = 340.dp).width(1.dp).fillMaxHeight()
                         .background(MiuixTheme.colorScheme.onBackgroundVariant.copy(alpha = .1f)))
-                    // 两种布局使用同一组合位置，展开或旋转不会重建正在编辑的子页。
-                    Box(Modifier.align(Alignment.CenterEnd)
-                        .width(if (split) width - 341.dp else width).fillMaxHeight()
-                        .centeredListWidth(maxWidth = 680.dp)) {
-                        if (split && entries.isEmpty()) MessageCenterPlaceholder()
-                        MessageCenterPages(entries, navigation, back)
-                    }
+                }
+                Box(Modifier.align(Alignment.CenterEnd)
+                    .width(if (split) width - 341.dp else width).fillMaxHeight()
+                    .centeredListWidth(maxWidth = 680.dp)) {
+                    MessageCenterPages(entries, navigation, back, split, master)
                 }
             }
         }
-        BackHandler(onBack = back)
     }
 }
 
@@ -67,24 +71,52 @@ private fun MessageCenterMaster(
         TeakActivityScaffold(
             settings = AppGraph.settings, onBack = onBack,
             options = ActivityPageOptions(title = "消息", limitContentWidth = false),
-            slots = ActivityPageSlots(topBarActions = { MessageTopActions() }),
+            slots = ActivityPageSlots(topBarActions = { MessageTopActions(showContacts = true) }),
         ) { MessageScreenRoute(androidx.compose.ui.platform.LocalContext.current) }
     }
 }
 
+private data class MessagePaneRoute(val page: MessageCenterEntry? = null) : NavKey
+
 @Composable
 private fun MessageCenterPages(
-    entries: List<MessageCenterEntry>, state: MessageCenterStateHolder, onBack: () -> Unit,
+    entries: List<MessageCenterEntry>,
+    state: MessageCenterStateHolder,
+    onBack: () -> Unit,
+    split: Boolean,
+    master: @Composable () -> Unit,
 ) {
     val binding = MessageNavigation(
         route = { state.open(MessageDestination.Page(it)) },
-        feed = { kind, tab -> state.open(MessageDestination.Feed(kind, tab)) }, back = onBack,
+        feed = { kind, tab -> state.open(MessageDestination.Feed(kind, tab)) },
+        back = onBack,
     )
-    entries.forEachIndexed { index, entry ->
-        key(entry.id) {
-            MessagePaneVisible(index == entries.lastIndex) {
+    val desired = listOf(MessagePaneRoute()) + entries.map(::MessagePaneRoute)
+    val stack = remember { navBackStackOf(*desired.toTypedArray()) }
+    SideEffect { if (stack.toList() != desired) { stack.clear(); stack.addAll(desired) } }
+    val systemCornerRadius = rememberNavSystemCornerRadius()
+    val effects = remember(split, systemCornerRadius) {
+        NavDisplayEffects(enableCornerClip = !split, cornerClipRadius = if (split) 0.dp else systemCornerRadius)
+    }
+    val motion = if (AppGraph.settings.animationsEnabled) NavTransitions.MiuixDefault else NavTransitions.None
+    val transition = remember(motion) {
+        // 多级页面被盖住时仍保留私聊草稿、历史列表和设置状态。
+        object : NavTransition by motion {
+            override val opaqueDepth = Float.MAX_VALUE
+        }
+    }
+    NavDisplay(
+        stack, Modifier.fillMaxSize(), onBack = onBack, transition = transition,
+        predictiveBackPreview = AppGraph.settings.predictiveBackEnabled,
+        effects = effects,
+    ) {
+        entry<MessagePaneRoute>(contentKey = { it.page?.id ?: "message-inbox" }) { route ->
+            val page = route.page
+            if (page == null) {
+                if (split) MessageCenterPlaceholder() else master()
+            } else {
                 CompositionLocalProvider(LocalMessageNavigation provides binding) {
-                    MessageCenterPage(entry.destination, onBack)
+                    MessageCenterPage(page.destination, onBack)
                 }
             }
         }
@@ -95,10 +127,7 @@ private fun MessageCenterPages(
 private fun MessageCenterPage(destination: MessageDestination, onBack: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     when (destination) {
-        is MessageDestination.Feed -> TeakActivityScaffold(
-            settings = AppGraph.settings, onBack = onBack,
-            options = ActivityPageOptions(title = messageFeedTitle(destination.kind), limitContentWidth = false),
-        ) { MessageDetailScreen(destination.kind, destination.tab) }
+        is MessageDestination.Feed -> MessageDetailScreen(destination.kind, onBack, destination.tab)
         is MessageDestination.Page -> when (val route = destination.route) {
             is Route.MessageTools -> MessageToolsScreen(route, onBack)
             is Route.MessageInbox -> TeakActivityScaffold(

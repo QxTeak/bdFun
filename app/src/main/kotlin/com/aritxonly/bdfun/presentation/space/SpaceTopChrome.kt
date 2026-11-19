@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.layout
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -24,6 +26,7 @@ import top.yukonga.miuix.kmp.icon.extended.Search
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 internal class SpaceChromeState {
+    val tools = SpaceToolsUiState()
     var wide by mutableStateOf(false)
     var title by mutableStateOf("")
     var profileWidth by mutableStateOf(320.dp)
@@ -56,10 +59,10 @@ internal fun SpaceTopChrome(state: SpaceChromeState, onBack: () -> Unit) {
         }
     }
     val actions: @Composable androidx.compose.foundation.layout.RowScope.(Color) -> Unit = { tint ->
-        TeakTopGlassButton(onClick = {}) {
+        TeakTopGlassButton(onClick = { state.tools.search = true }) {
             Icon(MiuixIcons.Search, contentDescription = "搜索", tint = tint, modifier = Modifier.size(20.dp))
         }
-        TeakTopGlassButton(onClick = {}) {
+        TeakTopGlassButton(onClick = { state.tools.menu = true }, modifier = Modifier.onGloballyPositioned { state.tools.anchor = it.boundsInWindow() }) {
             Icon(MiuixIcons.More, contentDescription = "更多", tint = tint, modifier = Modifier.size(20.dp))
         }
     }

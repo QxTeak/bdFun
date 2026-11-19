@@ -1,6 +1,10 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.semantics.onLongClick
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
@@ -17,11 +21,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.aritxonly.bdfun.data.MessageItem
-import com.aritxonly.teak.common.icons.AppGlyph
 import kotlinx.coroutines.launch
-import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.basic.*
-import top.yukonga.miuix.kmp.icon.extended.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -71,11 +71,12 @@ internal fun MessagePageFooter(loading: Boolean, error: String?, hasMore: Boolea
 @Composable
 internal fun SystemNotificationRow(item: MessageItem, onMore: () -> Unit) {
     val colors = MiuixTheme.colorScheme
-    Column(Modifier.fillMaxWidth().padding(16.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(item.title, Modifier.weight(1f), color = colors.onSurfaceContainer, fontSize = 16.sp)
-            AppGlyph(MiuixIcons.More, size = 18.dp, modifier = Modifier.clickable(onClick = onMore).padding(12.dp), tint = colors.onBackgroundVariant)
-        }
+    val currentOnMore by rememberUpdatedState(onMore)
+    Column(Modifier.fillMaxWidth()
+        .pointerInput(Unit) { detectTapGestures(onLongPress = { currentOnMore() }) }
+        .semantics { onLongClick(label = "消息操作") { onMore(); true } }
+        .padding(16.dp)) {
+        Text(item.title, color = colors.onSurfaceContainer, fontSize = 16.sp)
         // Notification bodies contain HTML links. Render text and links, never a WebView or script.
         androidx.compose.ui.viewinterop.AndroidView(
             factory = { context -> android.widget.TextView(context).apply {
@@ -89,6 +90,7 @@ internal fun SystemNotificationRow(item: MessageItem, onMore: () -> Unit) {
                     val scheme = android.net.Uri.parse(it.url).scheme
                     if (scheme != "http" && scheme != "https") html.removeSpan(it)
                 }
+                view.setOnLongClickListener { onMore(); true }
                 view.text = html
                 view.setTextColor(colors.onSurfaceContainer.toArgb())
                 view.setLinkTextColor(colors.primary.toArgb())

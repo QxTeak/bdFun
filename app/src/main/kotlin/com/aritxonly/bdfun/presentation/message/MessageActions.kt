@@ -54,7 +54,7 @@ internal class MessageFeedActions(
         val (page, item) = menu.selected ?: return
         scope.launch {
             when (val result = controller.mutate(page, item, delete)) {
-                is Outcome.Success -> { menu.selected = null; menu.confirmDelete = false; menu.confirmMute = false }
+                is Outcome.Success -> { menu.selected = null; menu.confirmDelete = false }
                 is Outcome.Failure -> context.showToast(result.error.messageOr("操作失败"))
                 null -> Unit
             }
