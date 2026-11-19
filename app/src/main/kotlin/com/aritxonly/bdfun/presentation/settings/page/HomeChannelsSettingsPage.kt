@@ -2,15 +2,13 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,8 +19,6 @@ import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.core.domain.HomeChannelPolicy
 import com.aritxonly.bdfun.core.model.home.HomeChannel
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
-import com.aritxonly.teak.common.chrome.TeakLargeTitle
-import com.aritxonly.teak.common.chrome.TrackTeakPageScroll
 import com.aritxonly.teak.common.settings.TeakSettingsCard
 import com.aritxonly.teak.common.settings.TeakSettingsSwitchRow
 import com.aritxonly.teak.common.settings.TeakSettingsValueRow
@@ -30,43 +26,40 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.ChevronForward
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+/**
+ * 首页频道设置：不再单独开页，直接作为「首页、动态与搜索」分类里的一小段，
+ * 上面是显示开关，下面是同一份列表的顺序调整。
+ */
 @Composable
-internal fun HomeChannelsSettingsPage(settings: SettingsBindings) {
-    val list = rememberLazyListState()
-    TrackTeakPageScroll(list)
+internal fun HomeChannelsSettingsSection(settings: SettingsBindings) {
     val order = HomeChannelPolicy.normalizeOrder(settings.homeChannelOrder)
-    LazyColumn(Modifier.fillMaxSize(), state = list, contentPadding = settingsListPadding()) {
-        item { TeakLargeTitle("首页频道") }
-        item {
-            TeakSettingsCard(title = "显示") {
-                TeakSettingsValueRow("推荐", "始终开启")
-                HomeChannel.entries.drop(1).forEach { channel ->
-                    TeakSettingsSwitchRow(
-                        title = channel.title,
-                        description = if (channel == HomeChannel.Popular) "内容即将上线" else "",
-                        checked = channel.key in settings.homeChannels,
-                        onCheckedChange = { enabled ->
-                            settings.homeChannels = if (enabled) settings.homeChannels + channel.key
-                            else settings.homeChannels - channel.key
-                        },
-                    )
-                }
+    Column(Modifier.fillMaxWidth()) {
+        TeakSettingsCard(title = "首页频道") {
+            TeakSettingsValueRow("推荐", "始终开启")
+            HomeChannel.entries.drop(1).forEach { channel ->
+                TeakSettingsSwitchRow(
+                    title = channel.title,
+                    description = if (channel == HomeChannel.Popular) "内容即将上线" else "",
+                    checked = channel.key in settings.homeChannels,
+                    onCheckedChange = { enabled ->
+                        settings.homeChannels = if (enabled) settings.homeChannels + channel.key
+                        else settings.homeChannels - channel.key
+                    },
+                )
             }
         }
-        item {
-            TeakSettingsCard(title = "排序") {
-                order.forEachIndexed { index, key ->
-                    val channel = HomeChannel.entries.firstOrNull { it.key == key } ?: return@forEachIndexed
-                    val enabled = channel.key in settings.homeChannels
-                    HomeChannelOrderRow(
-                        title = channel.title,
-                        enabled = enabled,
-                        canMoveUp = index > 0,
-                        canMoveDown = index < order.lastIndex,
-                        onMoveUp = { moveChannel(settings, order, key, -1) },
-                        onMoveDown = { moveChannel(settings, order, key, 1) },
-                    )
-                }
+        TeakSettingsCard(title = "频道顺序") {
+            order.forEachIndexed { index, key ->
+                val channel = HomeChannel.entries.firstOrNull { it.key == key } ?: return@forEachIndexed
+                val enabled = channel.key in settings.homeChannels
+                HomeChannelOrderRow(
+                    title = channel.title,
+                    enabled = enabled,
+                    canMoveUp = index > 0,
+                    canMoveDown = index < order.lastIndex,
+                    onMoveUp = { moveChannel(settings, order, key, -1) },
+                    onMoveDown = { moveChannel(settings, order, key, 1) },
+                )
             }
         }
     }
