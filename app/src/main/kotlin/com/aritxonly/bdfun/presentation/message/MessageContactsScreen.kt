@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -16,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.AppGraph
 import com.aritxonly.bdfun.feature.message.application.MessageTool
 import com.aritxonly.bdfun.navigateToSpace
+import com.aritxonly.bdfun.presentation.common.pullrefresh.HomePullRefreshBox
 import com.aritxonly.teak.common.chrome.*
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -26,7 +25,6 @@ private class ContactPresentationState(initial: Int) {
     var query by mutableStateOf("")
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MessageContactsScreen(initialGroup: Int, onBack: () -> Unit) {
     val ui = remember { ContactPresentationState(initialGroup) }
@@ -42,10 +40,17 @@ internal fun MessageContactsScreen(initialGroup: Int, onBack: () -> Unit) {
     LaunchedEffect(controller) { controller.load() }
     MessageResumeEffect(scope) { controller.load() }
     TeakActivityScaffold(settings = AppGraph.settings, onBack = onBack, options = ActivityPageOptions(title = title, titleAlwaysVisible = true, backRevealed = true, limitContentWidth = LocalMessageNavigation.current == null)) {
-        PullToRefreshBox(isRefreshing = state.loading && (state.people.isNotEmpty() || state.settings.isNotEmpty()),
-            onRefresh = { scope.launch { controller.load() } }) {
+        HomePullRefreshBox(
+            refreshing = state.loading && (state.people.isNotEmpty() || state.settings.isNotEmpty()),
+            topPadding = TeakChromeDefaults.TopOverlayHeight - 8.dp,
+            canScrollBackward = { list.canScrollBackward },
+            isAtTop = { list.firstVisibleItemIndex == 0 && list.firstVisibleItemScrollOffset == 0 },
+            scrollToTop = { list.animateScrollToItem(0) },
+            onRefresh = { controller.load() },
+            modifier = Modifier.fillMaxSize(),
+        ) { pullModifier ->
         TrackTeakPageScroll(list)
-        LazyColumn(state = list, modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(
+        LazyColumn(state = list, modifier = Modifier.fillMaxSize().then(pullModifier), contentPadding = PaddingValues(
             start = TeakUiStyle.design.contentInset(16.dp),
             end = TeakUiStyle.design.contentInset(16.dp),
             top = TeakChromeDefaults.TopOverlayHeight + rememberStatusBarTop(), bottom = 40.dp)) {

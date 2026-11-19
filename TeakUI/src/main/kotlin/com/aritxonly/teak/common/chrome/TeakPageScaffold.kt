@@ -20,7 +20,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -282,6 +284,8 @@ fun TeakLargeTitle(
     /** 头图上叠标题时传白色；普通页面默认跟随主题。 */
     titleColor: Color = MiuixTheme.colorScheme.onBackground,
     subtitleColor: Color = MiuixTheme.colorScheme.onBackgroundVariant,
+    /** 由 [TeakPinnedLargeTitleHost] 画的那一份：不参与“列表副本隐藏”的判断。 */
+    drawnAsPinnedCopy: Boolean = false,
 ) {
     // 经典页面不再在内容里画大标题，标题常驻顶栏；这里只保留顶栏占位，让内容从栏下开始。
     if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic && LocalTeakClassicChrome.current) {
@@ -289,13 +293,25 @@ fun TeakLargeTitle(
         return
     }
     if (isWideFoldTopBar()) { Spacer(Modifier.height(TeakChromeDefaults.TopOverlayHeight - 12.dp)); return }
+    // 页面外壳会把标题复制到滚动容器外固定绘制；列表里这一份只占位并登记文案。
+    val anchorState = LocalTeakLargeTitleAnchor.current
+    val hosted = anchorState != null && !drawnAsPinnedCopy
+    if (anchorState != null && hosted) {
+        anchorState.data = TeakLargeTitleData(title, subtitle, titleColor, subtitleColor)
+        DisposableEffect(anchorState) {
+            anchorState.register()
+            onDispose { anchorState.unregister() }
+        }
+    }
+    val hidden = hosted
+    val baseModifier = modifier
     val colors = MiuixTheme.colorScheme
     val p = (pageState.collapse / TeakChromeDefaults.CollapseFadeFraction).coerceIn(0f, 1f)
     Column(
-        modifier = modifier
+        modifier = baseModifier
             .fillMaxWidth()
-            .graphicsLayer { alpha = 1f - p }
-            .blur(TeakChromeDefaults.CollapseBlurRadius * p),
+            .graphicsLayer { alpha = if (hidden) 0f else 1f - p }
+            .then(if (hidden) Modifier else Modifier.blur(TeakChromeDefaults.CollapseBlurRadius * p)),
     ) {
         Spacer(Modifier.height(topSpacer))
         Text(
@@ -359,10 +375,14 @@ fun TeakPageScaffold(
         drawContent()
     }
     com.aritxonly.teak.common.modal.RegisterAdvancedMaterialModalBackdrop(backdrop)
+    val largeTitleState = remember { TeakLargeTitleAnchorState() }
+    val largeTitleTopInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() +
+        TeakChromeDefaults.ContentTopPadding
     CompositionLocalProvider(
         LocalTeakBackdrop provides backdrop,
         LocalTeakPageScrollState provides pageState,
         LocalTeakClassicChrome provides com.aritxonly.teak.common.theme.TeakUiStyle.isClassic,
+        LocalTeakLargeTitleAnchor provides largeTitleState,
     ) {
         Box(
             modifier = modifier
@@ -378,6 +398,9 @@ fun TeakPageScaffold(
                 if (title != null && limitContentWidth) {
                     TeakScrollContainer(pageState.scrollableState, Modifier.fillMaxSize(), content = content)
                 } else content()
+                // 大标题固定副本画在滚动容器外，但在 backdrop 录制层内：
+                // 这样顶栏渐进模糊仍能采样到标题，标题不会在顶栏底边被一块硬边遮住。
+                TeakPinnedLargeTitle(largeTitleState, pageState, topInset = largeTitleTopInset)
             }
             Box(modifier = Modifier.fillMaxSize()) { overlay() }
             if (showTopBar) CompositionLocalProvider(LocalTopBarScrollProgress provides ((topBarMaterialProgress ?: pageState.materialProgress).coerceIn(0f, 1f) * barBlurFraction.coerceIn(0f, 1f))) {

@@ -168,6 +168,11 @@ internal class AppContainer(
         com.aritxonly.bdfun.presentation.pgc.BangumiPageStateHolder(
             com.aritxonly.bdfun.infra.bili.BiliPgcDiscoverRepository(api))
     }
+    // 首页「热门」段：单列表分页，接口与 PiliPlus 热门页一致。
+    val popularPageState by lazy {
+        com.aritxonly.bdfun.presentation.popular.PopularPageStateHolder(
+            com.aritxonly.bdfun.infra.bili.BiliPopularRepository(api))
+    }
     val bangumiRankState by lazy {
         com.aritxonly.bdfun.feature.pgc.application.BangumiRankStateHolder(
             com.aritxonly.bdfun.infra.bili.BiliPgcRankRepository(api))

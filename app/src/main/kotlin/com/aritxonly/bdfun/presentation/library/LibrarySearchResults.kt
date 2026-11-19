@@ -28,7 +28,7 @@ internal fun LibrarySearchResults(content: LibrarySearchContent, actions: Librar
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 600.dp
         LazyVerticalGrid(
-            columns = if (wide) BoundedVideoGridCells(FeedCardMinWidth.dp, FeedCardMaxWidth.dp) else GridCells.Fixed(2),
+            columns = if (wide) BoundedVideoGridCells(RecommendedCardMinWidth.dp, RecommendedCardMaxWidth.dp) else GridCells.Fixed(2),
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(
                 start = 16.dp,

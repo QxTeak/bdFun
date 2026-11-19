@@ -57,7 +57,7 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
         val wide = maxWidth >= 600.dp
         LazyVerticalGrid(
             state = gridState,
-            columns = if (wide) BoundedVideoGridCells(FeedCardMinWidth.dp, FeedCardMaxWidth.dp) else GridCells.Fixed(2),
+            columns = if (wide) BoundedVideoGridCells(RecommendedCardMinWidth.dp, RecommendedCardMaxWidth.dp) else GridCells.Fixed(2),
             contentPadding = PaddingValues(start = TeakChromeDefaults.ContentHorizontalPadding,
                 end = TeakChromeDefaults.ContentHorizontalPadding, top = statusBarTop + TeakChromeDefaults.ContentTopPadding,
                 bottom = if (content.batchMode) 92.dp else TeakChromeDefaults.ContentBottomPadding),

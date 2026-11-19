@@ -34,7 +34,7 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     val liveChrome = rememberTeakPageScrollState()
     val bangumiChrome = rememberTeakPageScrollState()
     val cinemaChrome = rememberTeakPageScrollState()
-    val placeholderChrome = rememberTeakPageScrollState()
+    val popularChrome = rememberTeakPageScrollState()
     val dynamicChrome = rememberTeakPageScrollState()
     val searchChrome = rememberTeakPageScrollState()
     val mineChrome = rememberTeakPageScrollState()
@@ -68,6 +68,7 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     when (selected) {
         0 -> when (ui.homeSection) {
             1 -> com.aritxonly.bdfun.ui.RegisterScrollTop(AppGraph.livePageState.gridState, "live")
+            2 -> com.aritxonly.bdfun.ui.RegisterScrollTop(AppGraph.popularPageState.gridState, "popular")
             3 -> com.aritxonly.bdfun.ui.RegisterScrollTop(AppGraph.bangumiPageState.gridState, "pgc")
             4 -> com.aritxonly.bdfun.ui.RegisterScrollTop(AppGraph.cinemaPageState.gridState, "cinema")
             0 -> com.aritxonly.bdfun.ui.RegisterScrollTop(homeFeed.gridState, "home")
@@ -75,7 +76,7 @@ internal fun rememberMainShellState(background: Color): MainShellState {
         1 -> com.aritxonly.bdfun.ui.RegisterScrollTop(dynamicFeed.listState, "dynamic")
     }
     TrackMainShellPages(homeFeed, dynamicFeed, mineList, homeChrome, liveChrome,
-        bangumiChrome, cinemaChrome, dynamicChrome, mineChrome)
+        bangumiChrome, cinemaChrome, popularChrome, dynamicChrome, mineChrome)
     // 参考 HyperIsland 的做法：整屏一块 backdrop，录制时先铺一层 surface 再画内容
     val backdrop = rememberLayerBackdrop { drawRect(background); drawContent() }
     // 搜索页自己一块：首页顶栏的渐变模糊和筛选菜单都采样它，复用同一套页面结构。
@@ -97,7 +98,7 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     val bottom = remember { BottomSearchShellStateHolder(ui, appScope, { searchChrome.reset() }) { AppGraph.settings.animationsEnabled } }
     return MainShellState(
         ui, MainShellNavigation(tabPagerState, destinations, tabItems, appScope),
-        MainShellChrome(homeChrome, liveChrome, bangumiChrome, cinemaChrome, placeholderChrome, dynamicChrome, searchChrome, mineChrome, mineList),
+        MainShellChrome(homeChrome, liveChrome, bangumiChrome, cinemaChrome, popularChrome, dynamicChrome, searchChrome, mineChrome, mineList),
         MainShellFeeds(session, homeFeed, dynamicFeed, unreadMessageCount),
         MainShellBackdrops(backdrop, searchBackdrop, wideNavigation), searchReveal,
         bottom, { AppGraph.searchStateHolder() },
@@ -114,6 +115,7 @@ private fun TrackMainShellPages(
     live: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     bangumi: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     cinema: com.aritxonly.teak.common.chrome.TeakPageScrollState,
+    popular: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     dynamic: com.aritxonly.teak.common.chrome.TeakPageScrollState,
     mine: com.aritxonly.teak.common.chrome.TeakPageScrollState,
 ) {
@@ -121,6 +123,7 @@ private fun TrackMainShellPages(
     TrackTeakPageScroll(dynamicFeed.listState, dynamic)
     TrackTeakPageScroll(mineList, mine)
     TrackTeakPageScroll(AppGraph.livePageState.gridState, live)
+    TrackTeakPageScroll(AppGraph.popularPageState.gridState, popular)
     TrackTeakPageScroll(AppGraph.bangumiPageState.gridState, bangumi)
     TrackTeakPageScroll(AppGraph.cinemaPageState.gridState, cinema)
 }

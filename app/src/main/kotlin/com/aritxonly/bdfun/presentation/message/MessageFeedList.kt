@@ -3,15 +3,11 @@ package com.aritxonly.bdfun.ui
 import com.aritxonly.teak.common.theme.TeakUiStyle
 
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.ui.Alignment
 import com.aritxonly.bdfun.core.model.message.MessageItem
 import com.aritxonly.bdfun.feature.message.application.MessageFeedUiState
+import com.aritxonly.bdfun.presentation.common.pullrefresh.HomePullRefreshBox
 import com.aritxonly.teak.common.chrome.isWideFoldTopBar
 import top.yukonga.miuix.kmp.basic.TopAppBarDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,7 +29,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import com.aritxonly.teak.common.navigation.TeakPagerTabs
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MessageFeedList(
     kind: MessageFeedKind,
@@ -52,25 +47,21 @@ internal fun MessageFeedList(
     val key = if (ui.tab == 1) 0 else ui.tab
     val allItems = itemsByTab[key].orEmpty()
     val pageItems = if (ui.tab == 1) allItems.filter { it.followed } else allItems
-    val topInset = rememberStatusBarTop() +
-        if (isWideFoldTopBar()) TopAppBarDefaults.CollapsedHeight else TeakChromeDefaults.TopOverlayHeight
+    val barHeight = if (isWideFoldTopBar()) TopAppBarDefaults.CollapsedHeight else TeakChromeDefaults.TopOverlayHeight
+    val topInset = rememberStatusBarTop() + barHeight
     val refreshing = loadingByTab[key] == true && pageItems.isNotEmpty()
-    val pullState = rememberPullToRefreshState()
-    PullToRefreshBox(
-        isRefreshing = refreshing,
+    HomePullRefreshBox(
+        refreshing = refreshing,
+        topPadding = barHeight - 8.dp,
+        canScrollBackward = { listState.canScrollBackward },
+        isAtTop = { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 },
+        scrollToTop = { listState.animateScrollToItem(0) },
         onRefresh = { if (!snapshot.busy) actions.load(ui.tab) },
         modifier = Modifier.fillMaxSize(),
-        state = pullState,
-        indicator = {
-            PullToRefreshDefaults.Indicator(
-                state = pullState, isRefreshing = refreshing,
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = topInset),
-            )
-        },
-    ) {
+    ) { pullModifier ->
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxSize().then(pullModifier),
             contentPadding = PaddingValues(
                 start = TeakUiStyle.design.contentInset(16.dp),
                 end = TeakUiStyle.design.contentInset(16.dp),

@@ -12,12 +12,6 @@ import androidx.compose.ui.unit.dp
 internal fun SpaceWideProfilePane(
     content: SpaceScreenContent, layout: SpaceScreenLayout, actions: SpaceScreenActions,
 ) {
-    val mid = content.mid
-    val isSelf = content.isSelf
-    val profile = content.snapshot.profile.space?.profile
-    val followed = content.snapshot.profile.followed
-    val followBusy = content.snapshot.profile.followBusy
-    val banner = content.banner
     val profileWidth = layout.profileWidth
     val profileListState = layout.profileListState
     LazyColumn(
@@ -25,6 +19,6 @@ internal fun SpaceWideProfilePane(
         modifier = Modifier.width(profileWidth).fillMaxHeight(),
         contentPadding = PaddingValues(bottom = 24.dp),
     ) { item(key = "profile") {
-        WideSpaceProfile(profile, banner.bitmap, mid, isSelf, followed, followBusy) { actions.onFollow() }
+        WideSpaceProfile(content, actions)
     } }
 }

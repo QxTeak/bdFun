@@ -6,6 +6,7 @@ import com.aritxonly.bdfun.feature.message.application.visibleSessions
 import androidx.compose.foundation.background
 import androidx.compose.ui.draw.clip
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -19,14 +20,13 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.aritxonly.bdfun.presentation.common.pullrefresh.HomePullRefreshBox
+import com.aritxonly.teak.common.chrome.TeakChromeDefaults
 import com.aritxonly.teak.common.chrome.TeakLargeTitle
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun MessageSessionList(
     listState: androidx.compose.foundation.lazy.LazyListState,
@@ -43,11 +43,20 @@ internal fun MessageSessionList(
     val openRoute = messageRouteAction()
     val visibleSessions = snapshot.visibleSessions(ui.tabIndex == 1)
     val classic = TeakUiStyle.isClassic
-    PullToRefreshBox(isRefreshing = snapshot.loading && snapshot.sessions.isNotEmpty(), onRefresh = onRefresh, modifier = Modifier.fillMaxSize()) {
+    HomePullRefreshBox(
+        refreshing = snapshot.loading && snapshot.sessions.isNotEmpty(),
+        topPadding = TeakChromeDefaults.TopBarHeight - 8.dp,
+        canScrollBackward = { listState.canScrollBackward },
+        isAtTop = { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 },
+        scrollToTop = { listState.animateScrollToItem(0) },
+        onRefresh = { onRefresh() },
+        modifier = Modifier.fillMaxSize(),
+    ) { pullModifier ->
         LazyColumn(
             state = listState,
             modifier = Modifier
-                .fillMaxSize(),
+                .fillMaxSize()
+                .then(pullModifier),
             contentPadding = PaddingValues(
                 start = TeakUiStyle.design.contentInset(16.dp),
                 end = TeakUiStyle.design.contentInset(16.dp),
@@ -66,6 +75,10 @@ internal fun MessageSessionList(
             if (!loggedIn) {
                 item(key = "login") { MessageLoginPrompt(events.onNeedLogin) }
             } else {
+                // 首次进入用骨架屏；下拉刷新才由 App 层的小电视提示。
+                if (snapshot.loading && visibleSessions.isEmpty()) {
+                    items(count = 8, key = { "session-skeleton-$it" }) { MessageSessionSkeletonRow() }
+                }
                 itemsIndexed(visibleSessions, key = { _, session -> session.id }) { _, session ->
                     var anchor by remember { mutableStateOf(Rect.Zero) }
                     Box(Modifier.padding(bottom = 4.dp)
@@ -91,7 +104,9 @@ internal fun MessageSessionList(
                     }
                 }
                 item(key = "footer") {
-                    MessagePageFooter(snapshot.loading, snapshot.error, snapshot.inboxCursor != null, visibleSessions.isEmpty(), onLoad = onLoad)
+                    if (!(snapshot.loading && visibleSessions.isEmpty())) {
+                        MessagePageFooter(snapshot.loading, snapshot.error, snapshot.inboxCursor != null, visibleSessions.isEmpty(), onLoad = onLoad)
+                    }
                 }
             }
         }

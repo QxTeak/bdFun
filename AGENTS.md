@@ -760,5 +760,27 @@ scrollable 默认 false，maxVisibleItems 默认 3；开启并超限时启用内
 
 官方客户端反编译与接口实测确认：影视不是单一番剧接口，而是电影/电视剧/纪录片/综艺聚合（`season_type` 2/5/3/7）。追剧列表 `/x/space/bangumi/follow/list` 用 `type=2`；推荐 `/pgc/season/index/result` 按四种 season_type 同页并行后 round-robin 交错去重；头图 `/pgc/web/timeline` 合并四种类型（影视时间线可能很稀疏，保留番剧页原有的榜单/推荐回退）；榜单 `/pgc/season/rank/tabs` + `/pgc/season/rank/v2/list` 使用 index_id 2/5/3/7，首节合并为「热门影视榜」。页面展示完全复用 `BangumiPage`（`CinemaPage` 只传独立 state/rankState 与「最近追剧」标题），禁止复制一套 UI。`MainHomeChrome`、`MainShellNavigation`、`MainShellStateFactory` 为影视频道绑定独立滚动进度、下拉指示器与回顶刷新，行为与番剧页一致；`MainShellStateFactory` 的滚动绑定拆到 `TrackMainShellPages` 以满足 80 行函数门槛。
 
+### 2026-11-19 首页热门 / 大标题回弹 / 宽屏空间
+
+首页「热门」段已从占位页换成分页列表：接口是 PiliPlus 同款 `/x/web-interface/popular?pn=&ps=20`（真实响应 2026-11-19 匿名抓取，分页结束标记是 `data.no_more`，不是 `has_more`）。`VideoItem` 走现有 feed 映射，新增 `core:model` 的 `PopularPage`、`core:domain` 的 `PopularRepository`、`infra:bili` 的 `BiliPopularRepository` 与 `readPopularPage`。展示在 `app/presentation/popular`，列表行直接复用搜索结果的 `videoResultRows` / `videoResultSkeleton` / `videoResultFooter`（搜索页与热门页共用，禁止再复制卡片）；滚动进度由 shell 的 `TrackTeakPageScroll` 绑定，频道 chrome 从 `placeholder` 改名为 `popular`，`HomeSectionPlaceholder` 已删除。热门没有下拉手势，再次点底栏「首页」通过 `requestRefresh()` 回顶并重拉第一页。
+
+大标题回弹：`TeakUI` 新增 `TeakPinnedLargeTitleHost`。列表里的 `TeakLargeTitle` 只负责占位（`LocalTeakLargeTitleHidden` 时 alpha=0、不加模糊），可见的标题画在滚动容器之外，按 `firstVisibleItemScrollOffset` 上移，所以上滑照常被推走、顶部下拉回弹时标题固定在底位。已接入收藏/历史/稍后再看、关注/粉丝列表、消息会话列表、设置一级/分类/搜索列表；动态详情与评论页、更新日志、条款、引导页尚未接入（大标题仍在评论列表内）。新增页面若也用大标题，照这个模式把标题留在列表占位并包一层 host。
+
+宽屏限宽：`ui/FeedLayout.kt` 新增 `RecommendedCardMinWidth/MaxWidth`（180/260），与首页推荐、直播共用；收藏/历史/稍后再看和收藏内搜索的宽屏网格由 280..560 改为这组常量，只加列不拉长卡片。
+
+横屏个人空间：`WideSpaceProfile` 改为直接复用 `SpaceProfileAvatar`（含 `AvatarAccent` 弧线点缀）和 `SpaceProfileBadges`（LV 图片、大会员胶囊、粉丝牌同一行），竖屏组件不变。
+
+验证：`:app:compileDebugKotlin`、`:app:lintDebug`、`:app:assembleDebug`、`:app:assembleRelease`、`:app:testDebugUnitTest`、`:core:domain:test`、`:core:application:test`、`checkLayering` 全部通过；模拟器实测热门分页/加载更多、收藏页顶部下拉时标题不动、上滑时标题正常推走、横屏空间头像点缀与三种标识。Windows 下直接跑 `checkLayering` 会被 Python 默认 GBK 读 UTF-8 源码卡住，需设置 `PYTHONUTF8=1`（CI 的 Linux 环境不需要）。
+
+### 2026-11-19 preview-7.0 发布准备
+
+大标题不再在页面里各包一层 host：`TeakPageScaffold` 统一持有 `TeakLargeTitleAnchorState`，列表里的 `TeakLargeTitle` 只占位并登记文案，页面外壳按统一 chrome 位置（状态栏 + 8dp、统一左右内边距）画一份固定副本，滚动偏移在布局阶段同步读列表状态。不要重新引入按页传 topInset/scrollOffset 的旧写法；页面只要用 `TeakPageScaffold` 并在列表首项放 `TeakLargeTitle` 就自动生效。省略号形变菜单的阴影跳变问题尚未修复（本轮回退），后续单独处理。
+
+消息页统一用 `HomePullRefreshBox`（首页同一套 `PullRefreshSession` + 小电视 + 回顶/收尾时序）；首次进入用 `MessageSkeletons` 骨架屏，不再显示小电视；`MessageSessionsEffects`/`MessageFeedEffects`/联系人/消息设置已移除 resume 时重载，从回复页等二级页返回不重新拉取。消息页 Tab 与上方快捷入口卡片的间距为 14dp。
+
+设置第一页「关于」卡片下方直接放「捐赠」入口（复用关于的图标），关于二级页里的捐赠项已删；入口走 `runtime.navigation.onAbout(SettingsDestination.Donation)`。版本默认值改为 `preview-7.0`，正式发版由 `.github/workflows/release.yml` 的 `workflow_dispatch` 传 `version=preview-7.0` 和更新日志；应用内更新日志读取 GitHub Release，发版后自动出现。
+
+
+
 
 

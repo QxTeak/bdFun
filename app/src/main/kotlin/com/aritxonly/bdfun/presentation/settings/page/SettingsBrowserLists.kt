@@ -51,6 +51,12 @@ internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Mod
                         ArrowPreference(title = category.name, startAction = { SettingsCategoryIcon(entry) },
                             modifier = if (selected) Modifier.background(MiuixTheme.colorScheme.primary.copy(alpha = .08f)) else Modifier,
                             onClick = { session.browser.open(category.route) })
+                        if (entry.route == "settings/about") {
+                            // 捐赠从「关于」页挪到设置第一页，和关于同一张卡片、排在关于下面；
+                            // 图标先直接复用关于的。
+                            ArrowPreference(title = "捐赠", startAction = { SettingsCategoryIcon(entry) },
+                                onClick = { runtime.navigation.onAbout(SettingsDestination.Donation) })
+                        }
                     }
                 }
             }

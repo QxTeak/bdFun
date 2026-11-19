@@ -32,6 +32,10 @@ class TeakPageScrollState {
     var collapse by mutableFloatStateOf(0f)
         private set
 
+    /** 大标题相对静止位置已经上滑的距离（px）；回弹位移不计入，所以标题不会被带下去。 */
+    var titleOffsetPx by mutableFloatStateOf(0f)
+        private set
+
     var materialProgress by mutableFloatStateOf(0f)
         private set
 
@@ -39,6 +43,7 @@ class TeakPageScrollState {
         materialProgress = 0f
         backRevealed = false
         collapse = 0f
+        titleOffsetPx = 0f
     }
 
     /**
@@ -61,6 +66,8 @@ class TeakPageScrollState {
         } else {
             (offsetPx / collapseRangePx).coerceIn(0f, 1f)
         }
+        // 第一项已经滚出屏幕时，标题早就淡出；用一个大值把固定标题推出画面即可。
+        titleOffsetPx = if (firstVisibleItemIndex > 0) 10_000f else offsetPx
     }
 
     companion object {

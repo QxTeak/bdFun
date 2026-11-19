@@ -59,7 +59,7 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
     fun logout() = api.logout()
     suspend fun recommend(freshIndex: Int = 1, web: Boolean = true) = api.recommend(freshIndex, web)
     suspend fun dislikeRecommendation(video: VideoItem, reason: RecommendationReason) = api.dislikeRecommendation(video, reason)
-    suspend fun popular(page: Int = 1) = api.popular(page)
+    suspend fun popular(page: Int = 1): com.aritxonly.bdfun.core.model.video.PopularPage = api.popular(page)
     suspend fun ranking(rid: Int = 0) = api.ranking(rid)
     suspend fun view(bvid: String) = api.view(bvid)
     suspend fun viewByAid(aid: Long) = api.viewByAid(aid)

@@ -166,7 +166,10 @@ private fun HomeSectionContent(
             loggedIn = session != null,
             topBarHeight = topBarHeight,
         )
-        2 -> HomeSectionPlaceholder(HomeSectionTitles[section], topBarHeight)
+        2 -> com.aritxonly.bdfun.presentation.popular.PopularPage(
+            state = AppGraph.popularPageState,
+            topBarHeight = topBarHeight,
+        )
         3 -> com.aritxonly.bdfun.presentation.pgc.BangumiPage(
             state = AppGraph.bangumiPageState,
             topBarHeight = topBarHeight,
