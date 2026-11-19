@@ -20,6 +20,25 @@ class VideoLinkResolverTest {
         assertEquals(bv, resolveVideoLink("prefix bv" + bv.substring(2)) { error("network must not run") })
         assertNull(resolveVideoLink("av123") { error("network must not run") })
     }
+    @Test fun fullAidUrlResolvesLocallyWithoutNetwork() {
+        assertEquals(biliAidToBvid(123), resolveVideoLink("https://www.bilibili.com/video/av123") {
+            error("network must not run")
+        })
+        assertEquals(biliAidToBvid(123), resolveVideoLink("m.bilibili.com/video/av123?spm=x") {
+            error("network must not run")
+        })
+    }
+
+    @Test fun schemeLessAndAlternateShortHostsStillFollowRedirects() {
+        val urls = mutableListOf<String>()
+        val result = resolveVideoLink("bili2233.cn/AbC") { url ->
+            urls += url.toString()
+            Connection(url, "https://www.bilibili.com/video/$bv")
+        }
+        assertEquals(bv, result)
+        assertEquals(listOf("https://bili2233.cn/AbC"), urls)
+    }
+
     @Test fun relativeRedirectsUseTheSameFourHopRulesHeadersAndTimeouts() {
         val urls = mutableListOf<String>(); val connections = mutableListOf<Connection>()
         val result = resolveVideoLink("https://b23.tv/start") { url ->

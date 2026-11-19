@@ -35,6 +35,12 @@ internal fun CommentThreadSheet(
     val connection = rememberCommentThreadCollapseConnection(page)
     val allReplies = mergeThreadReplies(input.replies, state.extra, state.deleted)
     CommentThreadEffects(runtime, input, viewport, allReplies, navigation)
+    // 展开页里的根评论、回复行共用同一个高亮目标；定位失败时也能退化到根评论。
+    androidx.compose.runtime.CompositionLocalProvider(
+        LocalCommentFlashTarget provides CommentFlashTarget(
+            runtime.transient.flashRpid, runtime.transient.flashSeq,
+        ),
+    ) {
     CommentThreadDialog(
         content = ThreadSheetContent(input.comment, allReplies, state.extra.size, input.loading, input.end,
             input.sortHot, actions.sending, actions.sendError?.messageOr("发送失败，请重试")),
@@ -44,5 +50,6 @@ internal fun CommentThreadSheet(
         callbacks = ThreadSheetCallbacks(navigation.onDismiss, navigation.onToggleSort, runtime::exitReply,
             { runtime.send(input, actions.sending) }, runtime::toggleLike),
     )
+    }
     CommentThreadMenu(runtime, input)
 }

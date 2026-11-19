@@ -6,6 +6,7 @@ import com.aritxonly.bdfun.core.domain.shortVideoUrl
 import com.aritxonly.bdfun.core.domain.recognizesVideoLink
 import com.aritxonly.bdfun.core.domain.isVideoLinkToken
 import com.aritxonly.bdfun.core.domain.directVideoBvid
+import com.aritxonly.bdfun.core.domain.normalizedShortVideoUrl
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -26,9 +27,17 @@ class VideoLinkPolicyTest {
         assertEquals(VideoTitleTarget.Bvid(bv), videoTitleTarget("bv" + bv.substring(2)))
         assertEquals(VideoTitleTarget.Bvid("bv" + bv.substring(2)), videoTitleTarget("https://www.bilibili.com/video/bv" + bv.substring(2)))
         assertEquals(VideoTitleTarget.Aid(123), videoTitleTarget("AV123"))
-        assertEquals(VideoTitleTarget.Unsupported, videoTitleTarget("https://www.bilibili.com/video/av123"))
-        assertEquals(VideoTitleTarget.Unsupported, videoTitleTarget("HTTPS://B23.TV/ABC"))
+        assertEquals(VideoTitleTarget.Aid(123), videoTitleTarget("https://www.bilibili.com/video/av123"))
+        assertEquals(VideoTitleTarget.Short("HTTPS://B23.TV/ABC"), videoTitleTarget("HTTPS://B23.TV/ABC"))
         assertEquals(VideoTitleTarget.Unsupported, videoTitleTarget("av999999999999999999999999"))
+    }
+
+    @Test fun schemeLessAndAlternateShortHostsAreRecognized() {
+        assertEquals(bv, directVideoBvid("bilibili.com/video/$bv?p=3"))
+        assertTrue(recognizesVideoLink("bilibili.com/video/$bv"))
+        assertTrue(recognizesVideoLink("https://bili2233.cn/AbC123"))
+        assertEquals("https://b23.tv/Ab12", normalizedShortVideoUrl("b23.tv/Ab12"))
+        assertEquals(VideoTitleTarget.Aid(456), videoTitleTarget("m.bilibili.com/video/av456"))
     }
     @Test fun activityRecognitionDoesNotPretendToSupportBareAidResolution() {
         assertTrue(recognizesVideoLink("x$bv"))

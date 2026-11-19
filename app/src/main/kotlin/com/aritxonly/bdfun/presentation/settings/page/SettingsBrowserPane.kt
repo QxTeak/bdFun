@@ -83,7 +83,7 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
                 if (detail != null) {
                     // 宽屏右栏可能远宽于 680dp；详情页仍按阅读宽度居中，和独立 Activity 保持一致。
                     Box(Modifier.fillMaxSize().centeredListWidth(maxWidth = 680.dp)) {
-                        SettingsDetailContent(detail, back, runtime.settings)
+                        SettingsDetailContent(detail, back)
                     }
                 } else SettingsPaneBody(local, values, localRuntime, controller, categories)
                 if (categories) SettingsLogoutDialog(session.browser, runtime.navigation.onLogout)

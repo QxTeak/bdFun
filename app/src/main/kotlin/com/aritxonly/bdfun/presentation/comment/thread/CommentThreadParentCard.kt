@@ -1,12 +1,17 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import com.aritxonly.bdfun.core.model.comment.CommentItem
 
 @Composable
 internal fun CommentThreadParentCard(comment: CommentItem, transient: CommentThreadPresentationStateHolder, callbacks: ThreadSheetCallbacks) {
     val likes = LocalVideoPageState.current.dependencies.comments.likes
     // 与主评论区结构一致：直接平铺一行评论，不再套圆角矩形背景。
+    // 定位失败时也会退化为闪这一张根评论卡片。
+    Box(Modifier.fillMaxWidth().commentFlash(comment.rpid)) {
     CommentRow(
         item = comment.copy(
             replyCount = 0,
@@ -42,4 +47,5 @@ internal fun CommentThreadParentCard(comment: CommentItem, transient: CommentThr
             onPreviewLike = { callbacks.onLike(it) },
         ),
     )
+    }
 }

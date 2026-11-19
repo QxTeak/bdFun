@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.aritxonly.bdfun.core.model.comment.CommentItem
-import com.aritxonly.teak.common.material.teakFlashIndication
 
 @Composable
 internal fun CommentThreadReplyCard(
@@ -13,12 +12,11 @@ internal fun CommentThreadReplyCard(
     transient: CommentThreadPresentationStateHolder, callbacks: ThreadSheetCallbacks,
 ) {
     val likes = LocalVideoPageState.current.dependencies.comments.likes
-    // 与主评论区一致：平铺评论行，没有圆角卡片；定位/发送成功时复用设置页按压同款灰闪。
-    val flashKey = transient.flashSeq.takeIf { it > 0 && reply.rpid == transient.flashRpid }
+    // 与主评论区一致：平铺评论行，没有圆角卡片；高亮从楼中楼共享目标里判断。
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .teakFlashIndication(flashKey),
+            .commentFlash(reply.rpid),
     ) {
         CommentRow(
             item = reply.copy(

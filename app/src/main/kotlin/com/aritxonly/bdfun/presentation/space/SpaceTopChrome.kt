@@ -27,6 +27,8 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 internal class SpaceChromeState {
     val tools = SpaceToolsUiState()
+    /** 省略号形变菜单；和收藏页共用同一套组件。 */
+    val morphMenu = com.aritxonly.teak.common.navigation.TeakMorphMenuState()
     var wide by mutableStateOf(false)
     var title by mutableStateOf("")
     var profileWidth by mutableStateOf(320.dp)
@@ -62,8 +64,10 @@ internal fun SpaceTopChrome(state: SpaceChromeState, onBack: () -> Unit) {
         TeakTopGlassButton(onClick = { state.tools.search = true }) {
             Icon(MiuixIcons.Search, contentDescription = "搜索", tint = tint, modifier = Modifier.size(20.dp))
         }
-        TeakTopGlassButton(onClick = { state.tools.menu = true }, modifier = Modifier.onGloballyPositioned { state.tools.anchor = it.boundsInWindow() }) {
-            Icon(MiuixIcons.More, contentDescription = "更多", tint = tint, modifier = Modifier.size(20.dp))
+        com.aritxonly.teak.common.navigation.TeakMorphMenuAnchor(state.morphMenu) { onClick ->
+            TeakTopGlassButton(onClick = onClick) {
+                Icon(MiuixIcons.More, contentDescription = "更多", tint = tint, modifier = Modifier.size(20.dp))
+            }
         }
     }
     val tabs: @Composable (Dp) -> Unit = { itemWidth ->

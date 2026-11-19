@@ -8,7 +8,10 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import com.aritxonly.teak.common.search.teakSearchUnderlay
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -50,6 +53,25 @@ class SpaceActivity : ComponentActivity() {
         setContent {
             val settings = AppGraph.settings
             val chrome = remember { SpaceChromeState() }
+            val runtime = rememberSpaceScreenRuntime(mid, AppGraph.session.value, page.currentState())
+            // 和设置页搜索同一套：底层内容上移 + 模糊 + 渐隐，搜索面板弹簧淡入。
+            val animations = settings.animationsEnabled
+            val searchProgress by androidx.compose.animation.core.animateFloatAsState(
+                targetValue = if (chrome.tools.search) 1f else 0f,
+                animationSpec = if (animations) {
+                    com.aritxonly.teak.common.search.TeakSearchTransitionDefaults.spec()
+                } else {
+                    androidx.compose.animation.core.tween(0)
+                },
+                label = "space-search-underlay",
+            )
+            val searchAlpha by androidx.compose.animation.core.animateFloatAsState(
+                targetValue = if (chrome.tools.search) 0f else 1f,
+                animationSpec = androidx.compose.animation.core.tween(
+                    if (animations) com.aritxonly.teak.common.search.TeakSearchTransitionDefaults.UnderlayAlphaMs else 0,
+                ),
+                label = "space-search-underlay-alpha",
+            )
             com.aritxonly.bdfun.ui.PhotoViewerRoot(animationsEnabled = settings.animationsEnabled) {
             TeakActivityScaffold(
                 settings = settings,
@@ -58,13 +80,34 @@ class SpaceActivity : ComponentActivity() {
                     showTopBar = false,
                     limitContentWidth = false,
                 ),
+                // 搜索层是整页覆盖，唱片不该浮在搜索页上。
+                disc = com.aritxonly.bdfun.ui.ActivityDiscOptions(
+                    showBackgroundDisc = !chrome.tools.search,
+                ),
                 slots = ActivityPageSlots(
-                    overlay = { SpaceTopChrome(chrome, onBack = { finish() }) },
+                    overlay = {
+                        if (searchProgress < 0.999f) {
+                            androidx.compose.foundation.layout.Box(
+                                androidx.compose.ui.Modifier
+                                    .fillMaxSize()
+                                    .teakSearchUnderlay(searchProgress, searchAlpha),
+                            ) { SpaceTopChrome(chrome, onBack = { finish() }) }
+                        }
+                        SpaceSearchOverlay(runtime, chrome)
+                        SpaceToolsDialogs(runtime, chrome)
+                    },
+                    menuOverlay = { SpaceToolsMenu(runtime, chrome) },
                 ),
             ) {
-                SpaceScreen(mid = mid, session = AppGraph.session.value, controller = page.currentState(),
-                    onTitleChange = {}, chrome = chrome,
-                    onBarBlurFractionChange = {}, onBannerDarkChange = { chrome.bannerIsDark = it })
+                androidx.compose.foundation.layout.Box(
+                    androidx.compose.ui.Modifier
+                        .fillMaxSize()
+                        .teakSearchUnderlay(searchProgress, searchAlpha),
+                ) {
+                    SpaceScreen(runtime = runtime,
+                        onTitleChange = {}, chrome = chrome,
+                        onBarBlurFractionChange = {}, onBannerDarkChange = { chrome.bannerIsDark = it })
+                }
             }
             }
         }

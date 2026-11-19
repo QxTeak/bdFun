@@ -64,6 +64,7 @@ internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Mod
             }
         }
         if (session.categories.isEmpty()) item { Text("暂无设置", Modifier.padding(24.dp)) }
+        item(key = "settings-bounce-tail") { Spacer(Modifier.height(1.dp)) }
     }
 }
 
@@ -85,6 +86,10 @@ internal fun SettingsCategoryContent(session: SettingsBrowserSession, values: Ma
     LazyColumn(modifier, state = list, contentPadding = settingsListPadding()) {
         item { TeakLargeTitle(category.name) }
         items(category.groups) { group -> SettingsIndexedGroup(group, session, values, runtime, controller) }
+        // 首页频道不再单开一页：在本分类里用一个小标题直接展开开关和顺序。
+        if (category.route == "settings/feeds") {
+            item(key = "home-channels-inline") { HomeChannelsSettingsSection(runtime.settings) }
+        }
     }
 }
 

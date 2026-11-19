@@ -13,22 +13,35 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.model.video.VideoDetail
+import top.yukonga.miuix.kmp.blur.LayerBackdrop
+import top.yukonga.miuix.kmp.blur.layerBackdrop
 
 @Composable
 fun VideoPageBody(
     layout: VideoActivityLayout, ui: VideoActivityPageStateHolder, commentsVisible: Boolean, playerBottomPx: () -> Float,
     detail: @Composable () -> Unit, comments: @Composable (VideoDetail, () -> Unit) -> Unit,
+    /** Tab 玻璃专用：只录播放器以下的渐变与内容，不含视频层。 */
+    contentBackdrop: LayerBackdrop? = null,
 ) {
     Box(modifier = Modifier.fillMaxSize().background(LocalTeakContentColors.current.background)) {
         detail()
-        if (layout.splitPanes) VideoCommentTopFade(layout)
-        VideoPageTopFade(layout, playerBottomPx)
-        if (commentsVisible) VideoCommentBottomFade(layout)
-        var current by ui.comments
-        val c = if (layout.pictureInPicture) null else current
-        if (c != null) {
-            Box(modifier = Modifier.fillMaxSize().background(LocalTeakContentColors.current.background)) {
-                comments(c) { current = null }
+        // 渐变和评论区一起录进这份底片：Tab 玻璃采样到的仍是同一张画面，
+        // 只是播放器纹理不再参与录制/合成。
+        val contentLayer = if (contentBackdrop != null) {
+            Modifier.fillMaxSize().layerBackdrop(contentBackdrop)
+        } else {
+            Modifier.fillMaxSize()
+        }
+        Box(modifier = contentLayer) {
+            if (layout.splitPanes) VideoCommentTopFade(layout)
+            VideoPageTopFade(layout, playerBottomPx)
+            if (commentsVisible) VideoCommentBottomFade(layout)
+            var current by ui.comments
+            val c = if (layout.pictureInPicture) null else current
+            if (c != null) {
+                Box(modifier = Modifier.fillMaxSize().background(LocalTeakContentColors.current.background)) {
+                    comments(c) { current = null }
+                }
             }
         }
     }

@@ -81,6 +81,10 @@ internal fun CommentListView(
         CommentListTitle(bare, title, total)
 
         Box(modifier = Modifier.fillMaxSize()) {
+            // 高亮目标只发布一次：主评论行、折叠回复行都从同一份状态里判断自己要不要闪。
+            androidx.compose.runtime.CompositionLocalProvider(
+                LocalCommentFlashTarget provides CommentFlashTarget(state.highlightRpid, state.flashSeq),
+            ) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier,
@@ -113,6 +117,7 @@ internal fun CommentListView(
                 }
 
                 commentListFooter(state, showLoading, colors.onBackgroundVariant)
+            }
             }
 
         }

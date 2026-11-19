@@ -26,7 +26,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.data.CommentItem
-import com.aritxonly.teak.common.material.teakFlashIndication
 import com.kyant.shapes.Capsule
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -137,7 +136,6 @@ internal fun CommentListCard(
 ) {
     val colors = MiuixTheme.colorScheme
     val end = state.end
-    val highlightRpid = state.highlightRpid
     val disliked = state.disliked
                     val isFirst = index == 0
                     val isLast = index == lastIndex && end
@@ -148,8 +146,6 @@ internal fun CommentListCard(
                         bottomEnd = if (isLast) 16.dp else 0.dp,
                     )
                     val classicComment = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
-                    // 跳转/发送后的定位高亮复用设置页按压同款灰闪，不再用 90ms 的硬切色块。
-                    val flashKey = state.flashSeq.takeIf { it > 0 && item.rpid == highlightRpid }
                     val baseColor = if (flatList) {
                         androidx.compose.ui.graphics.Color.Transparent
                     } else {
@@ -180,7 +176,7 @@ internal fun CommentListCard(
                                     Modifier.clip(shape).background(baseColor)
                                 },
                             )
-                            .teakFlashIndication(flashKey, flashShape),
+                            .commentFlash(item.rpid, flashShape),
                     ) {
                         CommentCardRow(item, disliked[item.rpid] == true, actions)
                     }

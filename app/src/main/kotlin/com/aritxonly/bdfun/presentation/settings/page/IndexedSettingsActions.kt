@@ -32,7 +32,6 @@ internal fun IndexedActionComponent(entry: Setting, runtime: SettingsPageRuntime
 @Composable
 private fun SettingsDestinationAction(entry: Setting, runtime: SettingsPageRuntime) {
     val destination = when (entry.prefName) {
-        "home_channels" -> SettingsDestination.HomeChannels
         "discussion" -> SettingsDestination.Discussion
         "help" -> SettingsDestination.Help
         "onboarding" -> SettingsDestination.Onboarding

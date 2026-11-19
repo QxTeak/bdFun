@@ -76,19 +76,13 @@ private fun androidx.compose.foundation.layout.BoxScope.VideoActivityReplyLayer(
                     },
             )
         }
-        val replyBarAlpha = rememberManualProgress(
-            if (VideoPageBus.commentMenuOpen) 0f else 1f,
-            180f,
+        // 长按评论弹出的下拉是独立 Dialog 窗口，层级本来就在输入栏之上；
+        // 不能再因为菜单打开把人输入栏淡出，否则用户会以为输入框被吞了。
+        slots.replyBar(
+            Modifier
+                .align(if (splitPanes) Alignment.BottomEnd else Alignment.BottomCenter)
+                .then(if (splitPanes) Modifier.width(paneLayout.detailsWidthDp.dp) else Modifier),
         )
-        if (replyBarAlpha > 0.01f) {
-            slots.replyBar(
-                Modifier
-                    .align(if (splitPanes) Alignment.BottomEnd else Alignment.BottomCenter)
-                    .then(if (splitPanes) Modifier.width(paneLayout.detailsWidthDp.dp) else Modifier)
-                    .graphicsLayer { alpha = replyBarAlpha }
-                    .blockTouches(replyBarAlpha < 0.99f),
-            )
-        }
     }
 
 }

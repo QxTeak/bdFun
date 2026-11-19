@@ -27,6 +27,7 @@ internal fun CommentPreviewRow(reply: CommentItem, actions: CommentPreviewAction
             .fillMaxWidth()
             .onGloballyPositioned { ui.bounds = it.boundsInWindow() }
             .clip(RoundedCornerShape(8.dp))
+            .commentFlash(reply.rpid, RoundedCornerShape(8.dp))
             .combinedClickable(
                 interactionSource = null,
                 indication = null,

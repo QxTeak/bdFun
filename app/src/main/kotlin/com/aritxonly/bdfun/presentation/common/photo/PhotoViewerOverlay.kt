@@ -26,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -52,8 +53,6 @@ internal fun PhotoViewerOverlay(
     view: PhotoViewerTransitionState,
     onDismiss: () -> Unit,
 ) {
-    // 底色随进度淡入；拖动时同步变透明，松手退出会自然回到页面。
-    val backgroundAlpha = (view.progress.value * (1f - view.dismissProgress)).coerceIn(0f, 1f)
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
     // 关闭时只把 visible 置 false，锚点保留：否则退场动画会瞬移到 (0,0)，
@@ -82,7 +81,12 @@ internal fun PhotoViewerOverlay(
     BackHandler { onDismiss() }
 
     Box(Modifier.fillMaxSize().photoViewerDragGestures(view, scope, onDismiss)) {
-        Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = backgroundAlpha)))
+        // 底色随进度淡入、拖动时同步变透明；在绘制阶段读取，入场动画不重组整层。
+        Box(Modifier.fillMaxSize().drawBehind {
+            val progress = view.progress.value.coerceIn(0f, 1f)
+            val dismiss = photoDismissProgress(view.dragY, view.size.height.toFloat())
+            drawRect(Color.Black.copy(alpha = (progress * (1f - dismiss)).coerceIn(0f, 1f)))
+        })
         PhotoViewerPager(request, view, onDismiss) { url, offset ->
             // 和长按评论完全同一套：菜单锚在手指按下的那个点上，位置交给共用菜单自己收边。
             menuUrl = url
@@ -145,11 +149,21 @@ private fun PhotoViewerChrome(
     view: PhotoViewerTransitionState,
     onDismiss: () -> Unit,
 ) {
-    val reveal = ((view.progress.value - 0.6f) / 0.4f).coerceIn(0f, 1f)
-    val alpha = if (view.chromeVisible) reveal else 0f
-    // alpha 为 0 时不组合：否则看不见的关闭键仍然占据左上角的点击区域。
-    if (alpha <= 0.01f) return
-    Box(Modifier.fillMaxSize().graphicsLayer { this.alpha = alpha }) {
+    // 只有跨过“该显示/该隐藏”的阈值才重组一次；alpha 在绘制阶段读取。
+    val chromeShown by remember {
+        androidx.compose.runtime.derivedStateOf {
+            view.chromeVisible && ((view.progress.value - 0.6f) / 0.4f) > 0.01f
+        }
+    }
+    // 不可见时不组合：否则看不见的关闭键仍然占据左上角的点击区域。
+    if (!chromeShown) return
+    Box(Modifier.fillMaxSize().graphicsLayer {
+        this.alpha = if (view.chromeVisible) {
+            ((view.progress.value - 0.6f) / 0.4f).coerceIn(0f, 1f)
+        } else {
+            0f
+        }
+    }) {
         Box(Modifier.align(Alignment.TopCenter).fillMaxWidth()) {
             PhotoViewerTopBar(onDismiss)
         }
@@ -214,12 +228,21 @@ private fun PhotoViewerPager(
  * 下滑关闭：镜像 Telegram 的判定——拖到半屏算走完全程，
  * 松手时看位移和速度，任一到阈值就退出。
  */
+@Composable
 private fun Modifier.photoViewerDragGestures(
     view: PhotoViewerTransitionState,
     scope: kotlinx.coroutines.CoroutineScope,
     onDismiss: () -> Unit,
-): Modifier = pointerInput(view.progress.value, view.zoom) {
-    if (view.progress.value < 0.99f || view.zoom > 1.01f) return@pointerInput
+): Modifier {
+    // 入场动画期间 progress 每帧都在变；用 threshold state 做 key，
+    // 手势识别器只在“完全展开/放大”状态切换时重建，而不是每帧重建。
+    val settled by remember {
+        androidx.compose.runtime.derivedStateOf {
+            view.progress.value >= 0.99f && view.zoom <= 1.01f
+        }
+    }
+    return pointerInput(settled) {
+    if (!settled) return@pointerInput
     var startTime = 0L
     var totalY = 0f
     fun settle() {
@@ -245,4 +268,5 @@ private fun Modifier.photoViewerDragGestures(
         },
         onDragCancel = { settle() },
     )
+    }
 }

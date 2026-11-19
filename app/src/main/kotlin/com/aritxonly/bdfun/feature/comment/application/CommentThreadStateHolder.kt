@@ -1,7 +1,5 @@
 package com.aritxonly.bdfun.feature.comment.application
 
-import com.aritxonly.bdfun.core.model.comment.CommentExtras
-
 import com.aritxonly.bdfun.core.model.comment.CommentItem
 import com.aritxonly.bdfun.core.model.user.UserProfile
 import kotlinx.coroutines.currentCoroutineContext
@@ -26,22 +24,14 @@ internal class CommentThreadStateHolder(val actions: CommentActionsStateHolder, 
         currentCoroutineContext().ensureActive()
         if (!isActive) return null
         val nowMs = clock()
-        val item = CommentItem(
-            rpid = if (result > 0) result else nowMs,
-            uname = profile?.name ?: "我",
-            avatar = profile?.face.orEmpty(),
-            message = text,
-            like = 0,
-            ctime = nowMs / 1000,
-            level = profile?.level ?: 0,
-            replyCount = 0,
-            isUp = false,
-            isTop = false,
-            extras = CommentExtras(
-                mid = profile?.mid ?: 0L,
-                root = root,
-                parent = parent,
-            ),
+        val item = localCommentItem(
+            rpid = result,
+            text = text,
+            profile = profile,
+            oid = 0L,
+            root = root,
+            parent = parent,
+            nowMs = nowMs,
         )
         // 按发送先后追加；展示层再把每条回复插到它回复的那条下面。
         mutableState.update { it.copy(extra = it.extra + item) }

@@ -1,17 +1,15 @@
 package com.aritxonly.bdfun
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
 @Composable
 internal fun SpaceScreen(
-    mid: Long, session: com.aritxonly.bdfun.core.model.user.UserProfile?,
-    controller: com.aritxonly.bdfun.feature.space.application.SpaceStateHolder, onTitleChange: (String) -> Unit, onBarBlurFractionChange: (Float) -> Unit,
+    runtime: SpaceScreenRuntime,
+    onTitleChange: (String) -> Unit, onBarBlurFractionChange: (Float) -> Unit,
     onBannerDarkChange: (Boolean) -> Unit, chrome: SpaceChromeState,
 ) {
     val context = LocalContext.current
-    val runtime = rememberSpaceScreenRuntime(mid, session, controller)
     val content = runtime.content
     val contentActions = SpaceContentActions(runtime, context)
     SpaceContentEffects(runtime, contentActions, onTitleChange, onBannerDarkChange)
@@ -25,5 +23,4 @@ internal fun SpaceScreen(
     val actions = SpaceScreenActions(context, scrollActions::selectTab, contentActions::loadCollection,
         contentActions::loadArticles, contentActions::follow, scrollActions::applyPageDrag)
     SpaceScreenBody(content, scroll.layout, actions)
-    SpaceToolsUi(runtime, chrome)
 }

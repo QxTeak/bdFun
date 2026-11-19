@@ -28,6 +28,7 @@ internal fun VideoActivityBody(
     scene: VideoActivityScene, layout: VideoActivityLayout, ui: VideoActivityPageStateHolder,
     pager: androidx.compose.foundation.pager.PagerState, scope: kotlinx.coroutines.CoroutineScope,
     host: VideoActivityHostActions,
+    contentBackdrop: top.yukonga.miuix.kmp.blur.LayerBackdrop? = null,
 ) {
     val VideoPageBus = LocalVideoPageState.current
     val PlayerUiState = VideoPageBus.playerUi
@@ -42,7 +43,8 @@ internal fun VideoActivityBody(
     val commentRequest = scene.commentRequest
     var comments by ui.comments
 
-    VideoPageBody(layout, ui, commentsVisible = pager.currentPage == 1, playerBottomPx = { VideoPageBus.playerBottomPx }, detail = {
+    VideoPageBody(layout, ui, commentsVisible = pager.currentPage == 1, playerBottomPx = { VideoPageBus.playerBottomPx },
+        contentBackdrop = contentBackdrop, detail = {
         VideoScreen(
             isLoggedIn = isLoggedIn,
             request = com.aritxonly.bdfun.ui.VideoScreenRequest(
