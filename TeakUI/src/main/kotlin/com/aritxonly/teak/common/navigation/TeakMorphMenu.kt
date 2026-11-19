@@ -136,9 +136,6 @@ fun TeakMorphMenuHost(
             onDismissRequest = { state.open = false },
             anchor = state.anchor,
             backdrop = if (TeakUiStyle.isClassic) null else backdrop,
-            // 形变弹层的面板阴影是画在面板节点上的独立一层，收起最后会被整体移除，
-            // 表现为“阴影先重后突然变轻”。这里不再画面板阴影，只保留玻璃高光和按钮自身阴影。
-            visuals = GlassPopupDefaults.visuals(shadow = null),
             anchorContent = {
                 val copy = state.triggerContent
                 Box(Modifier.fillMaxSize()) {
