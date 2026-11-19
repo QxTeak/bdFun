@@ -41,7 +41,7 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     val mineList = androidx.compose.foundation.lazy.rememberLazyListState()
     // 登录态放在进程级单例，LoginActivity 登录成功后直接写，这里立即刷新
     val session by AppGraph.session
-    val ui = rememberMainShellUi(AppGraph.settings.homeChannels)
+    val ui = rememberMainShellUi(AppGraph.settings.homeChannels, AppGraph.settings.homeChannelOrder)
     // 搜索页渐变进度：和头像/消息那两个插槽的切换速率完全一致
     val searchReveal = rememberManualProgress(if (ui.showSearch) 1f else 0f, UiSwapDurationMs)
 
@@ -145,10 +145,10 @@ private fun rememberMainMessageBadge(identity: com.aritxonly.bdfun.core.applicat
 }
 
 @Composable
-private fun rememberMainShellUi(channels: Set<String>): MainShellUiStateHolder {
+private fun rememberMainShellUi(channels: Set<String>, order: List<String>): MainShellUiStateHolder {
     val ui = remember { MainShellUiStateHolder() }
-    LaunchedEffect(channels) {
-        ui.homeSection = com.aritxonly.bdfun.core.domain.HomeChannelPolicy.selected(ui.homeSection, channels)
+    LaunchedEffect(channels, order) {
+        ui.homeSection = com.aritxonly.bdfun.core.domain.HomeChannelPolicy.selected(ui.homeSection, channels, order)
     }
     return ui
 }

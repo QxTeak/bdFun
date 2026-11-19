@@ -124,13 +124,6 @@ internal class VideoPagePresentationState(
                 consumedDismissReply = value,
             ),
         ) }
-    override var commentMenuOpen: Boolean
-        get() = snapshot.commentMenuOpen
-        set(value) = update { it.copy(
-            reply = it.reply.copy(
-                commentMenuOpen = value,
-            ),
-        ) }
     var commentThreadVisible: Boolean
         get() = snapshot.commentThreadVisible
         set(value) = update { it.copy(

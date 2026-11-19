@@ -87,6 +87,29 @@ class CommentListStateHolderTest {
         assertEquals(9, holder.state.value.total)
     }
 
+    @Test fun localPreviewReplyStaysInsideItsRootAndSurvivesPagination() = runBlocking {
+        val fake = Fake().apply { load = { _, page -> Outcome.Success(CommentPage(
+            if (page == 1) listOf(item(1), item(2)) else listOf(item(3)), page, false, 9)) } }
+        val holder = CommentListStateHolder(fake, query); holder.reset()
+        val reply = item(77).copy(extras = item(77).extras.copy(parent = 1L))
+        assertTrue(holder.addLocalPreviewReply(1L, reply))
+        val root = holder.state.value.items.first { it.rpid == 1L }
+        assertEquals(1, root.replyCount)
+        assertEquals(listOf(77L), root.previewReplies.map { it.rpid })
+        assertTrue(holder.state.value.items.first { it.rpid == 2L }.previewReplies.isEmpty())
+        holder.loadMore()
+        assertEquals(listOf(77L), holder.state.value.items.first { it.rpid == 1L }.previewReplies.map { it.rpid })
+        holder.reload()
+        assertTrue(holder.state.value.items.first { it.rpid == 1L }.previewReplies.isEmpty())
+    }
+
+    @Test fun missingRootRejectsLocalPreviewInsteadOfInventingOne() = runBlocking {
+        val fake = Fake().apply { load = { _, page -> Outcome.Success(CommentPage(listOf(item(1)), page, true, 1)) } }
+        val holder = CommentListStateHolder(fake, query); holder.reset()
+        assertFalse(holder.addLocalPreviewReply(999L, item(77)))
+        assertEquals(listOf(1L), holder.state.value.items.map { it.rpid })
+    }
+
     @Test fun likeProjectionUpdatesCollapsedPreviewAsWellAsTopLevel() = runBlocking {
         val fake = Fake().apply { load = { _, page -> Outcome.Success(CommentPage(
             listOf(item(1).let { it.copy(extras = it.extras.copy(previewReplies = listOf(item(2)))) }), page, true, 1)) } }

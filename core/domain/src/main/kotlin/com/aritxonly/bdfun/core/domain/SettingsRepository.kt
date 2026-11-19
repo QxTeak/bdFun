@@ -13,6 +13,8 @@ interface AppearanceSettings {
     var colorStyle: Int
     var interfaceStyle: Int
     var homeChannels: Set<String>
+    /** 首页频道 Tab 的显示顺序；只影响顺序，是否显示仍由 [homeChannels] 决定。 */
+    var homeChannelOrder: List<String>
     var homeCardStyle: Int
     var shadowsEnabled: Boolean
     var scrollTopEnabled: Boolean

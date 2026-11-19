@@ -72,7 +72,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        handleClipboard()
+        // 只在这次进程的第一次前台读取剪贴板：旋转重建、从视频页返回都不再重复弹跳转。
+        if (!clipboardChecked) {
+            clipboardChecked = true
+            handleClipboard()
+        }
     }
 
     private fun handleIntent(intent: Intent?) {
@@ -102,5 +106,10 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         if (::incomingLinks.isInitialized) incomingLinks.close()
         super.onDestroy()
+    }
+
+    private companion object {
+        /** 进程级：Activity 旋转重建不重复读剪贴板；进程重启后重新检查一次。 */
+        var clipboardChecked = false
     }
 }

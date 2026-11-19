@@ -36,6 +36,11 @@ open class SettingsBindings internal constructor(
     override var colorStyle: Int by projection.property("colorStyleState", { controller.colorStyle }, { controller.colorStyle = it })
     override var interfaceStyle: Int by projection.property("interfaceStyleState", { controller.interfaceStyle }, { controller.interfaceStyle = it })
     override var homeChannels: Set<String> by projection.property("homeChannelsState", { controller.homeChannels }, { controller.homeChannels = it })
+    override var homeChannelOrder: List<String> by projection.property(
+        "homeChannelOrderState",
+        { controller.homeChannelOrder },
+        { controller.homeChannelOrder = it },
+    )
     override var homeCardStyle: Int by projection.property("homeCardStyleState", { controller.homeCardStyle }, { controller.homeCardStyle = it })
     override var shadowsEnabled: Boolean by projection.property("shadowsState", { controller.shadowsEnabled }, { controller.shadowsEnabled = it })
     override var scrollTopEnabled: Boolean by projection.property("scrollTopEnabledState", { controller.scrollTopEnabled }, { controller.scrollTopEnabled = it })

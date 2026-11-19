@@ -21,10 +21,14 @@ class VideoLinkTitleRepositoryTest {
         repository.resolve("bv" + bv.substring(2)); repository.resolve("https://www.bilibili.com/video/bv" + bv.substring(2))
         assertEquals(listOf(bv, "bv" + bv.substring(2)), seen)
     }
-    @Test fun unsupportedFullAidUrlAndUppercaseShortHostDoNotRequestMetadata() = runBlocking {
-        val repository = BiliVideoLinkTitleRepository({ error("title") }, { error("aid") }, { error("short") })
-        assertEquals(Outcome.Success(null), repository.resolve("https://www.bilibili.com/video/av123"))
-        assertEquals(Outcome.Success(null), repository.resolve("HTTPS://B23.TV/AB"))
+    @Test fun fullAidUrlAndUppercaseShortHostResolveMetadata() = runBlocking {
+        val aids = mutableListOf<Long>(); val shorts = mutableListOf<String>()
+        val repository = BiliVideoLinkTitleRepository({ "标题" }, { aids += it; bv }, { shorts += it; bv })
+        assertEquals(Outcome.Success(ResolvedVideoLink(bv, "标题")),
+            repository.resolve("https://www.bilibili.com/video/av123"))
+        assertEquals(listOf(123L), aids)
+        assertEquals(Outcome.Success(ResolvedVideoLink(bv, "标题")), repository.resolve("HTTPS://B23.TV/AB"))
+        assertEquals(listOf("HTTPS://B23.TV/AB"), shorts)
     }
     @Test fun shortLinksAndBlankResultsUseOriginalFallback() = runBlocking {
         val seen = mutableListOf<String>(); val repository = BiliVideoLinkTitleRepository({ " " }, { " " }, { seen += it; bv })

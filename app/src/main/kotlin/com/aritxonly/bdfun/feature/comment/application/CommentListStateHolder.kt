@@ -104,5 +104,29 @@ internal class CommentListStateHolder(private val repository: CommentContentRepo
         }
     }
 
+    /**
+     * 主评论区里回复别人：先塞进对应根评论的折叠预览并让条数 +1。
+     * 找不到根评论（已翻页出去）时返回 false，调用方退回“重载 + 定位”。
+     */
+    fun addLocalPreviewReply(rootRpid: Long, reply: CommentItem): Boolean {
+        if (closed) return false
+        var found = false
+        mutableState.update { state ->
+            val items = state.items.map { item ->
+                if (item.rpid != rootRpid) item else {
+                    found = true
+                    item.copy(
+                        replyCount = item.replyCount + 1,
+                        extras = item.extras.copy(
+                            previewReplies = mergePreviewReplies(item.previewReplies, listOf(reply)),
+                        ),
+                    )
+                }
+            }
+            if (found) state.copy(items = items) else state
+        }
+        return found
+    }
+
     fun remove(rpid: Long) { if (closed) return; mutableState.update { it.copy(items = it.items.filterNot { item -> item.rpid == rpid }, total = (it.total - 1).coerceAtLeast(0)) } }
 }
