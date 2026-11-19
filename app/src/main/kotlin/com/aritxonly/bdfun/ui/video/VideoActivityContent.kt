@@ -32,6 +32,13 @@ internal fun VideoActivityContent(
     val immersiveStatus = settings.videoImmersiveStatusBar
     val playerTopInset = if (immersiveStatus) 0.dp else statusBarDp
     BindVideoActivityWindow(immersiveStatus, ui, host)
+    // Tab 玻璃只盖在播放器下方，采不到视频像素；单独给它一份“播放器以下内容”的底片，
+    // 避免整个视频层被卷进离屏合成。渐变遮罩仍在录制层里，模糊结果和原来一致。
+    val contentBackground = com.aritxonly.teak.common.theme.LocalTeakContentColors.current.background
+    val contentBackdrop = top.yukonga.miuix.kmp.blur.rememberLayerBackdrop {
+        drawRect(contentBackground)
+        drawContent()
+    }
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val paneLayout = resolveVideoPaneLayout(maxWidth.value, maxHeight.value)
         val layout = VideoActivityLayout(paneLayout, statusBarDp, fullscreen, pipMode, alpha, playerTopInset)
@@ -49,10 +56,11 @@ internal fun VideoActivityContent(
                 showBackgroundDisc = false,
             ),
             slots = ActivityPageSlots(
-                overlay = { VideoActivityOverlay(layout, ui, pager, scope) },
+                overlay = { VideoActivityOverlay(layout, ui, pager, scope, contentBackdrop) },
             ),
         ) {
-            VideoActivityBody(isLoggedIn, settings, VideoActivityScene(video, commentRequest), layout, ui, pager, scope, host)
+            VideoActivityBody(isLoggedIn, settings, VideoActivityScene(video, commentRequest), layout, ui, pager, scope, host,
+                contentBackdrop = contentBackdrop)
         }
     }
 }
