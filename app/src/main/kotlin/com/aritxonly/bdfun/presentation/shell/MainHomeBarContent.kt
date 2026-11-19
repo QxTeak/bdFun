@@ -20,9 +20,7 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
     val context = androidx.compose.ui.platform.LocalContext.current
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     val ui = shell.ui
-    val channels = com.aritxonly.bdfun.core.domain.HomeChannelPolicy.ordered(
-        settings.homeChannels, settings.homeChannelOrder,
-    )
+    val channels = com.aritxonly.bdfun.core.domain.HomeChannelPolicy.ordered(settings.homeChannels, settings.homeChannelOrder)
     val channelIndex = channels.indexOfFirst { it.ordinal == ui.homeSection }.coerceAtLeast(0)
     val input = shell.searchInput(bottomSearch)
     val session = shell.feeds.session
