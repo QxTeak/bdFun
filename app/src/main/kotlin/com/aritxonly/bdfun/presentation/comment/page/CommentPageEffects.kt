@@ -69,17 +69,27 @@ private fun CommentSenderEffect(runtime: CommentPageRuntime) {
                     if (!runtime.actions.isActive) return@sender false
                     runtime.flashComment(local.rpid)
                 } else {
-                    // 回复别人的评论不在主评论区平铺，仍按原行为重新拉取后定位。
-                    runtime.list.reload()
-                    currentCoroutineContext().ensureActive()
-                    if (!runtime.actions.isActive) return@sender false
-                    val index = if (result > 0) runtime.list.state.value.items.indexOfFirst { it.rpid == result } else -1
-                    runCatching {
-                        if (index >= 0) runtime.listState.animateScrollToItem(index + 1)
-                        else runtime.listState.animateScrollToItem(0)
+                    // 回复别人的评论：先直接出现在对应根评论的折叠预览里并闪灰；
+                    // 根评论已翻页翻出去时才退回原来的重载 + 定位。
+                    val local = runtime.localComment(text, result, root, parent)
+                    val attached = runtime.list.addLocalPreviewReply(root, local)
+                    if (attached) {
+                        runCatching { runtime.listState.animateScrollToItem(0) }
+                        currentCoroutineContext().ensureActive()
+                        if (!runtime.actions.isActive) return@sender false
+                        runtime.flashComment(local.rpid)
+                    } else {
+                        runtime.list.reload()
+                        currentCoroutineContext().ensureActive()
+                        if (!runtime.actions.isActive) return@sender false
+                        val index = if (result > 0) runtime.list.state.value.items.indexOfFirst { it.rpid == result } else -1
+                        runCatching {
+                            if (index >= 0) runtime.listState.animateScrollToItem(index + 1)
+                            else runtime.listState.animateScrollToItem(0)
+                        }
+                        currentCoroutineContext().ensureActive()
+                        if (!runtime.actions.isActive) return@sender false
                     }
-                    currentCoroutineContext().ensureActive()
-                    if (!runtime.actions.isActive) return@sender false
                 }
                 runtime.context.showToast("回复成功")
                 true
@@ -106,8 +116,15 @@ private fun CommentFocusEffect(runtime: CommentPageRuntime) {
             return@LaunchedEffect
         }
         ui.consumedFocusKey = key
-        runtime.listState.animateScrollToItem(rootIndex + 1)
-        runtime.flashComment(request.focusTargetRpid.takeIf { it > 0L } ?: request.focusRootRpid)
+        val flashTarget = request.focusTargetRpid.takeIf { it > 0L } ?: request.focusRootRpid
+        // 闪灰放在 finally：滚动过程中列表状态变化会取消这个 effect，
+        // 不能把“已经消费焦点”和“实际闪灰”拆成两段，否则偶发不闪。
+        try {
+            runCatching { runtime.listState.animateScrollToItem(rootIndex + 1) }
+                .getOrElse { if (it is CancellationException) throw it }
+        } finally {
+            runtime.flashComment(flashTarget)
+        }
         val target = request.focusTargetRpid
         if (target > 0L && target != request.focusRootRpid) runtime.openReplySheet(state.items[rootIndex])
     }
