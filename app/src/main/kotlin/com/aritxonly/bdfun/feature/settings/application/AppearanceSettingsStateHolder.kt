@@ -51,6 +51,22 @@ internal class AppearanceSettingsStateHolder(
             prefs.edit().putStringSet("home_channels", normalized).apply()
         }
 
+    private val homeChannelOrderState = stateCell(
+        "homeChannelOrderState",
+        HomeChannelPolicy.normalizeOrder(
+            prefs.getString("home_channel_order", null)
+                ?.split(',')?.filter { it.isNotBlank() }
+                ?: HomeChannelPolicy.defaultOrder,
+        ),
+    )
+    override var homeChannelOrder: List<String>
+        get() = homeChannelOrderState.value
+        set(value) {
+            val normalized = HomeChannelPolicy.normalizeOrder(value)
+            homeChannelOrderState.value = normalized
+            prefs.edit().putString("home_channel_order", normalized.joinToString(",")).apply()
+        }
+
     private val homeCardStyleState = stateCell("homeCardStyleState", prefs.getInt("home_card_style", 0))
 
     private val shadowsState = stateCell("shadowsState", prefs.getBoolean("shadows", true))

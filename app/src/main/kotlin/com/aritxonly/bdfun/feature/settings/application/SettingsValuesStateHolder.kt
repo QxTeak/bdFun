@@ -23,6 +23,8 @@ internal class SettingsValuesStateHolder {
             is Float -> SettingValue.Decimal(value)
             is String -> SettingValue.Text(value)
             is Set<*> -> SettingValue.TextSet(value.filterIsInstance<String>().toSet())
+            // 有序列表用逗号串投影，保留先后顺序（Set 投影会丢顺序）。
+            is List<*> -> SettingValue.Text(value.filterIsInstance<String>().joinToString(","))
             else -> error("不支持的设置类型：$key")
         }
         mutable.update { it.copy(values = it.values + (key to boxed)) }

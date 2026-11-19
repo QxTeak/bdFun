@@ -64,6 +64,8 @@ internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Mod
             }
         }
         if (session.categories.isEmpty()) item { Text("暂无设置", Modifier.padding(24.dp)) }
+        // 设置首页通常一屏放得下；补 1dp 可滚动余量，下拉时才会触发和别的页面一样的回弹。
+        item(key = "settings-bounce-tail") { Spacer(Modifier.height(1.dp)) }
     }
 }
 
