@@ -182,18 +182,28 @@ class VideoActivity : ComponentActivity() {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         pipMode = isInPictureInPictureMode
         val pages = AppGraph.pictureInPicturePages
-        if (isInPictureInPictureMode) pages.enter(this, ::closeReplacedPictureInPicture) else pages.exit(this)
+        if (isInPictureInPictureMode) {
+            pages.enter(this) { closePictureInPicturePage(removeTask = false) }
+            return
+        }
+        pages.exit(this)
+        // 离开画中画时页面已 stop：用户点了小窗的关闭（展开回全屏时页面仍是 STARTED）。
+        // 关闭小窗应当停止播放并移除小窗所在的独立任务，而不是让它在后台继续响。
+        if (lifecycle.currentState == androidx.lifecycle.Lifecycle.State.CREATED) {
+            closePictureInPicturePage(removeTask = true)
+        }
     }
 
     /**
-     * 被新视频页替换的小窗：先取消离开时登记的唱片交接并暂停，再关闭。
-     * 不取消交接的话，页面销毁时播放器会被交给唱片，旧视频的声音继续和新视频叠在一起。
+     * 关闭画中画页面：先取消离开时登记的唱片交接并暂停，再结束页面。
+     * 不取消交接的话，页面销毁时播放器会被交给唱片，声音继续（关闭小窗后仍在播 / 与新视频叠在一起）。
+     * 被新视频页替换时只 finish：新页面可能与它同任务，不能连任务一起移除。
      */
-    private fun closeReplacedPictureInPicture() {
+    private fun closePictureInPicturePage(removeTask: Boolean) {
         if (isFinishing || isDestroyed) return
         com.aritxonly.bdfun.ui.BackgroundPlayback.cancelHandOff()
         VideoPageBus.pauseFor(this)
-        finish()
+        if (removeTask) finishAndRemoveTask() else finish()
     }
 
     override fun onStop() {
