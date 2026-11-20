@@ -48,6 +48,8 @@ private fun FullscreenMoreQuickActions(actions: FullscreenActions, onClose: () -
         horizontalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         QuickAction("听视频", Modifier.weight(1f), { HeadphoneGlyph() }) {
+            // 和半屏的听视频按钮一致：进入听视频时顺便打开后台播放。
+            actions.onBackgroundPlayChanged(true)
             actions.onAudioOnlyChanged(true)
             onClose()
         }

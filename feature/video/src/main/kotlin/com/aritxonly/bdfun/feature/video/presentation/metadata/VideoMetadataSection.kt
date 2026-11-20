@@ -55,7 +55,7 @@ fun VideoMetadataSection(
         )
         Spacer(Modifier.height(4.dp))
         VideoMetadataIdentifier(content, description, descText, descProgress)
-        VideoMetadataDescription(descText, descProgress, description, slots)
+        VideoMetadataDescription(descText, description, slots)
         VideoMetadataCategory(content)
         Spacer(Modifier.height(14.dp))
         VideoMetadataInteractions(interaction, actions, appearance, slots)

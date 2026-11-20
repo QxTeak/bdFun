@@ -47,8 +47,10 @@ internal fun rememberPlayerRenderPorts(
         danmakuOverlays = { visible ->
             if (visible && !settings.danmakuBlockAdvanced && !ui.fsAudioOnly.value) {
                 SpecialVideoDanmakuOverlay(media.danmaku, playback, ui, page.aid, presentation.fullscreenInfo.currentCid)
-                DanmakuCommandOverlay(playback, page.aid, presentation.fullscreenInfo.currentCid,
-                    actions.interaction, presentation.fullscreenInfo.liked)
+                if (settings.videoInteraction) {
+                    DanmakuCommandOverlay(playback, page.aid, presentation.fullscreenInfo.currentCid,
+                        actions.interaction, presentation.fullscreenInfo.liked)
+                }
             }
             DanmakuSelectionActions(playback, presentation.fullscreenInfo.currentCid)
         },

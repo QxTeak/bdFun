@@ -148,6 +148,9 @@ private fun inlineChromeActions(
         },
         onListen = {
             touch()
+            // 点「听视频」就是为了后台听：顺手把后台播放打开，
+            // 不用再进「更多」里单独开一次「后台听视频」。
+            fsActions.onBackgroundPlayChanged(true)
             fsAudioOnly = true
         },
         onCast = { touch(); fsActions.onCast() },

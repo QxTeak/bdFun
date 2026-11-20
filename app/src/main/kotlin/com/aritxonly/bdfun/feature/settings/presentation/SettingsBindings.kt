@@ -41,6 +41,16 @@ open class SettingsBindings internal constructor(
         { controller.homeChannelOrder },
         { controller.homeChannelOrder = it },
     )
+    override var dynamicFeedTabs: Set<String> by projection.property(
+        "dynamicFeedTabsState",
+        { controller.dynamicFeedTabs },
+        { controller.dynamicFeedTabs = it },
+    )
+    override var dynamicFeedTabOrder: List<String> by projection.property(
+        "dynamicFeedTabOrderState",
+        { controller.dynamicFeedTabOrder },
+        { controller.dynamicFeedTabOrder = it },
+    )
     override var homeCardStyle: Int by projection.property("homeCardStyleState", { controller.homeCardStyle }, { controller.homeCardStyle = it })
     override var shadowsEnabled: Boolean by projection.property("shadowsState", { controller.shadowsEnabled }, { controller.shadowsEnabled = it })
     override var scrollTopEnabled: Boolean by projection.property("scrollTopEnabledState", { controller.scrollTopEnabled }, { controller.scrollTopEnabled = it })
@@ -72,6 +82,7 @@ open class SettingsBindings internal constructor(
     override var danmakuBlockCount: Boolean by projection.property("dmBlockCountState", { controller.danmakuBlockCount }, { controller.danmakuBlockCount = it })
     override var danmakuKeywordFilter: Boolean by projection.property("dmKeywordFilterState", { controller.danmakuKeywordFilter }, { controller.danmakuKeywordFilter = it })
     override var danmakuKeywords: Set<String> by projection.property("dmKeywordsState", { controller.danmakuKeywords }, { controller.danmakuKeywords = it })
+    override var videoInteraction: Boolean by projection.property("videoInteractionState", { controller.videoInteraction }, { controller.videoInteraction = it })
     override var backgroundPlay: Boolean by projection.property("backgroundPlayState", { controller.backgroundPlay }, { controller.backgroundPlay = it })
     override var stopOnVideoPageExit: Boolean by projection.property("stopOnVideoPageExitState", { controller.stopOnVideoPageExit }, { controller.stopOnVideoPageExit = it })
     override var showDiscAfterVideo: Boolean by projection.property("showDiscAfterVideoState", { controller.showDiscAfterVideo }, { controller.showDiscAfterVideo = it })

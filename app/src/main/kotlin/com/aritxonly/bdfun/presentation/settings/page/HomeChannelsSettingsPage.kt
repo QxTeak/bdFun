@@ -2,7 +2,6 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.bdfun.core.domain.DynamicFeedTab
+import com.aritxonly.bdfun.core.domain.DynamicTabPolicy
 import com.aritxonly.bdfun.core.domain.HomeChannelPolicy
 import com.aritxonly.bdfun.core.model.home.HomeChannel
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
@@ -27,53 +28,77 @@ import top.yukonga.miuix.kmp.icon.extended.ChevronForward
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
- * 首页频道设置：不再单独开页，直接作为「首页、动态与搜索」分类里的一小段，
- * 上面是显示开关，下面是同一份列表的顺序调整。
+ * 首页频道设置：显示开关和顺序放在同一张卡片里，顺序紧跟在开关后面。
+ * 不单独开一张「频道顺序」卡片，避免同一个列表被拆成两段。
  */
 @Composable
 internal fun HomeChannelsSettingsSection(settings: SettingsBindings) {
     val order = HomeChannelPolicy.normalizeOrder(settings.homeChannelOrder)
-    Column(Modifier.fillMaxWidth()) {
-        TeakSettingsCard(title = "首页频道") {
-            TeakSettingsValueRow("推荐", "始终开启")
-            HomeChannel.entries.drop(1).forEach { channel ->
-                TeakSettingsSwitchRow(
-                    title = channel.title,
-                    description = if (channel == HomeChannel.Popular) "内容即将上线" else "",
-                    checked = channel.key in settings.homeChannels,
-                    onCheckedChange = { enabled ->
-                        settings.homeChannels = if (enabled) settings.homeChannels + channel.key
-                        else settings.homeChannels - channel.key
-                    },
-                )
-            }
+    TeakSettingsCard(title = "首页频道") {
+        TeakSettingsValueRow("推荐", "始终开启")
+        HomeChannel.entries.drop(1).forEach { channel ->
+            TeakSettingsSwitchRow(
+                title = channel.title,
+                description = if (channel == HomeChannel.Popular) "内容即将上线" else "",
+                checked = channel.key in settings.homeChannels,
+                onCheckedChange = { enabled ->
+                    settings.homeChannels = if (enabled) settings.homeChannels + channel.key
+                    else settings.homeChannels - channel.key
+                },
+            )
         }
-        TeakSettingsCard(title = "频道顺序") {
-            order.forEachIndexed { index, key ->
-                val channel = HomeChannel.entries.firstOrNull { it.key == key } ?: return@forEachIndexed
-                val enabled = channel.key in settings.homeChannels
-                HomeChannelOrderRow(
-                    title = channel.title,
-                    enabled = enabled,
-                    canMoveUp = index > 0,
-                    canMoveDown = index < order.lastIndex,
-                    onMoveUp = { moveChannel(settings, order, key, -1) },
-                    onMoveDown = { moveChannel(settings, order, key, 1) },
-                )
-            }
+        order.forEachIndexed { index, key ->
+            val channel = HomeChannel.entries.firstOrNull { it.key == key } ?: return@forEachIndexed
+            OrderRow(
+                title = channel.title,
+                enabled = channel.key in settings.homeChannels,
+                canMoveUp = index > 0,
+                canMoveDown = index < order.lastIndex,
+                onMove = { delta ->
+                    settings.homeChannelOrder = movedOrder(order, key, delta)
+                },
+            )
         }
     }
 }
 
-/** 上下箭头只改顺序，是否显示仍由上面的开关决定。 */
+/** 动态页顶部的类型 Tab：开关 + 顺序同一张卡片，「全部」始终开启。 */
 @Composable
-private fun HomeChannelOrderRow(
+internal fun DynamicTabsSettingsSection(settings: SettingsBindings) {
+    val order = DynamicTabPolicy.normalizeOrder(settings.dynamicFeedTabOrder)
+    TeakSettingsCard(title = "动态类型") {
+        TeakSettingsValueRow("全部", "始终开启")
+        DynamicFeedTab.entries.drop(1).forEach { tab ->
+            TeakSettingsSwitchRow(
+                title = tab.title,
+                checked = tab.key in settings.dynamicFeedTabs,
+                onCheckedChange = { enabled ->
+                    settings.dynamicFeedTabs = if (enabled) settings.dynamicFeedTabs + tab.key
+                    else settings.dynamicFeedTabs - tab.key
+                },
+            )
+        }
+        order.forEachIndexed { index, key ->
+            val tab = DynamicFeedTab.entries.firstOrNull { it.key == key } ?: return@forEachIndexed
+            OrderRow(
+                title = tab.title,
+                enabled = tab.key in settings.dynamicFeedTabs,
+                canMoveUp = index > 0,
+                canMoveDown = index < order.lastIndex,
+                onMove = { delta -> settings.dynamicFeedTabOrder = movedOrder(order, key, delta) },
+            )
+        }
+    }
+}
+
+/** 顺序行：上下箭头只改顺序，是否显示仍由上面的开关决定。 */
+@Composable
+private fun OrderRow(
     title: String,
     enabled: Boolean,
     canMoveUp: Boolean,
     canMoveDown: Boolean,
-    onMoveUp: () -> Unit,
-    onMoveDown: () -> Unit,
+    onMove: (Int) -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
     Row(
@@ -86,9 +111,9 @@ private fun HomeChannelOrderRow(
             fontSize = 15.sp,
             modifier = Modifier.weight(1f),
         )
-        OrderArrow(up = true, enabled = enabled && canMoveUp, onClick = onMoveUp)
+        OrderArrow(up = true, enabled = enabled && canMoveUp) { onMove(-1) }
         Spacer(Modifier.width(4.dp))
-        OrderArrow(up = false, enabled = enabled && canMoveDown, onClick = onMoveDown)
+        OrderArrow(up = false, enabled = enabled && canMoveDown) { onMove(1) }
     }
 }
 
@@ -110,12 +135,13 @@ private fun OrderArrow(up: Boolean, enabled: Boolean, onClick: () -> Unit) {
     }
 }
 
-private fun moveChannel(settings: SettingsBindings, order: List<String>, key: String, delta: Int) {
+/** 把 key 在列表里上/下移一位；越界时原样返回。 */
+private fun movedOrder(order: List<String>, key: String, delta: Int): List<String> {
     val mutable = order.toMutableList()
     val index = mutable.indexOf(key)
     val target = index + delta
-    if (index < 0 || target !in mutable.indices) return
+    if (index < 0 || target !in mutable.indices) return order
     mutable.removeAt(index)
     mutable.add(target, key)
-    settings.homeChannelOrder = HomeChannelPolicy.normalizeOrder(mutable)
+    return mutable
 }

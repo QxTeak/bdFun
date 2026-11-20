@@ -1,77 +1,112 @@
 package com.aritxonly.bdfun.ui
 
-import com.aritxonly.teak.common.chrome.rememberManualProgress
-
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.teak.common.chrome.rememberManualProgress
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+/**
+ * 简介：折叠时两行 + 省略号，展开时整段显示。
+ *
+ * 正文始终按完整内容排版，只改外层裁剪高度：展开是从两行长到全文，
+ * 收起是从全文缩回两行，两个方向都是同一条高度动画，不会再出现
+ * 「文字先瞬间消失、框还在慢慢缩」的跳变。
+ */
 @Composable
 internal fun CollapsibleDescription(
     text: String,
-    progress: Float,
+    expanded: Boolean,
     color: Color,
-    backgroundColor: Color,
     onExpandableChange: () -> Unit,
     modifier: Modifier = Modifier,
     slots: VideoMetadataSlots,
 ) {
-    val density = LocalDensity.current
     val linkColor = MiuixTheme.colorScheme.primary
     val links = slots.links(text, linkColor)
-    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
-    val style = androidx.compose.ui.text.TextStyle(
+    val annotatedText = remember(text, linkColor, links.cacheKey) { links.annotate(text) }
+    val style = TextStyle(
         color = color,
         fontSize = 12.sp,
         lineHeight = 18.sp,
     )
-    val annotatedText = androidx.compose.runtime.remember(text, linkColor, links.cacheKey) {
-        links.annotate(text)
-    }
-    BoxWithConstraints(modifier) {
+    val density = LocalDensity.current
+    val measurer = androidx.compose.ui.text.rememberTextMeasurer()
+    BoxWithConstraints(modifier.fillMaxWidth()) {
         val widthPx = with(density) { maxWidth.toPx() }.toInt().coerceAtLeast(1)
-        val measured = measureVideoDescription(measurer, annotatedText, text, style, widthPx)
-        val fullPx = measured.fullPx
-        val collapsedPx = measured.collapsedPx
-        val tailText = measured.tailText
-        // 以「完整高度 > 两行高度」判定是否真的被折叠，比 hasVisualOverflow 稳
-        LaunchedEffect(fullPx, collapsedPx) {
-            if (fullPx > collapsedPx + 1f) onExpandableChange()
+        // 只量高度：不再像旧实现那样把正文切成两段分别绘制。
+        val measured = remember(annotatedText, style, widthPx) {
+            val full = measurer.measure(
+                text = annotatedText, style = style, maxLines = Int.MAX_VALUE,
+                constraints = androidx.compose.ui.unit.Constraints(maxWidth = widthPx),
+            )
+            val twoLine = measurer.measure(
+                text = annotatedText, style = style, maxLines = 2,
+                constraints = androidx.compose.ui.unit.Constraints(maxWidth = widthPx),
+            )
+            val fullPx = full.size.height.toFloat()
+            val twoPx = if (full.lineCount > 2) twoLine.size.height.toFloat() else fullPx
+            Triple(fullPx, twoPx, full.lineCount > 2)
         }
-        val p = progress.coerceIn(0f, 1f)
-        // 给前两行下面再留 2dp 安全区：即使实际渲染行高和测量值有 1~2dp 偏差，
-        // 模糊也进不到前两行
-        val safeTopPx = collapsedPx + with(density) { 2.dp.toPx() }
-        val targetPx = safeTopPx +
-            (fullPx - safeTopPx).coerceAtLeast(0f) * p
+        val fullPx = measured.first
+        val twoLinePx = measured.second
+        val hasMore = measured.third
+        LaunchedEffect(hasMore) { if (hasMore) onExpandableChange() }
+        val progress by animateFloatAsState(
+            targetValue = if (expanded) 1f else 0f,
+            animationSpec = tween(420, easing = FastOutSlowInEasing),
+            label = "description_expand",
+        )
+        val shownPx = twoLinePx + (fullPx - twoLinePx) * progress
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(with(density) { targetPx.toDp() })
+                .height(with(density) { shownPx.toDp() })
                 .clipToBounds(),
         ) {
-            val layers = VideoDescriptionLayersContent(
-                fullPx, safeTopPx, p, tailText, annotatedText, style, backgroundColor, onExpandableChange,
+            // 用无界高度测量正文：完整内容照常排版，超出外层高度的部分被裁掉，
+            // 所以收起时是“往上收”，不是文字先没了再缩框。
+            Text(
+                text = annotatedText,
+                style = style,
+                maxLines = Int.MAX_VALUE,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(Alignment.Top, unbounded = true),
             )
-            VideoDescriptionTail(layers, links.annotate)
-            VideoDescriptionFirstLines(layers)
+            // 折叠态在第二行末尾补省略号；展开过程中淡出。
+            if (hasMore) {
+                Text(
+                    text = annotatedText,
+                    style = style,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer { alpha = 1f - progress },
+                )
+            }
         }
     }
 }
@@ -93,5 +128,3 @@ fun ExpandChevron(expanded: Boolean) {
         )
     }
 }
-
-/** 多 P 分集：横向滑动查看、点一下切换。 */

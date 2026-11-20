@@ -49,7 +49,7 @@ class VideoDetailPlayerActionBindings(
                 else -> actions.leaveVideo()
             }
         },
-        onHomeClick = { actions.leaveVideo() },
+        onHomeClick = { actions.openHome() },
     ),
 )
 }

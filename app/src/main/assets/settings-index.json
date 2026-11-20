@@ -604,6 +604,13 @@
             "type": "switch",
             "title": "显示评论 IP 属地",
             "default": true
+          },
+          {
+            "pref_name": "video_interaction",
+            "type": "switch",
+            "title": "视频互动",
+            "subtitle": "播放器内的弹幕投票 / 评分 / 关注等互动卡片；关闭后不再显示",
+            "default": true
           }
         ]
       }

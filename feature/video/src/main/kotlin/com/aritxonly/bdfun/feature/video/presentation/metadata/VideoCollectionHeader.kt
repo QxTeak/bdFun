@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import com.aritxonly.teak.common.icons.AppGlyph
 import com.aritxonly.teak.common.icons.LucideIcons
@@ -45,21 +46,24 @@ internal fun VideoCollectionHeader(
                 fontSize = 13.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f, fill = false),
+                // 名称独占剩余宽度；按钮全部挪到右边，不再挤标题。
+                modifier = Modifier.weight(1f),
             )
-            // 一键回到顶部，紧贴在合集名称右边。
+            Spacer(Modifier.width(6.dp))
+            // 回顶 / 回底 / 定位当前集，排在集数左边。
             CollectionScrollButton(LucideIcons.ArrowUpToLine) { onScroll(0) }
-            // 一键到底：排在「一键到顶」右边。
             CollectionScrollButton(LucideIcons.ArrowDownToLine) { onScroll(2) }
-            // 定位到当前播放的这一集：展开合集并滚到当前集。
             CollectionScrollButton(LucideIcons.LocateFixedFilled) { onScroll(1) }
-            Spacer(Modifier.weight(1f))
             Text(
                 text = "${currentIndex + 1}/${count}",
                 color = colors.onBackgroundVariant,
                 fontSize = 11.sp,
+                // 集数多了以后「当前/总数」会变宽：只允许它往左扩张，
+                // 不能换行把标题栏撑成两行。
+                maxLines = 1,
+                softWrap = false,
                 textAlign = androidx.compose.ui.text.style.TextAlign.End,
-                modifier = Modifier.width(52.dp),
+                modifier = Modifier.widthIn(min = 52.dp),
             )
             Spacer(Modifier.width(2.dp))
             ExpandChevron(expanded = expanded)

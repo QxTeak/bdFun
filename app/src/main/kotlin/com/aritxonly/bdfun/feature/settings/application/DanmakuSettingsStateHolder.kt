@@ -55,6 +55,9 @@ internal class DanmakuSettingsStateHolder(
     )
 
     private val hotDanmakuState = stateCell("hotDanmakuState", prefs.getBoolean("hot_danmaku", true))
+    private val videoInteractionState = stateCell(
+        "videoInteractionState", prefs.getBoolean("video_interaction", true),
+    )
 
     override var danmakuEnabled: Boolean
         get() = danmakuState.value
@@ -214,6 +217,13 @@ internal class DanmakuSettingsStateHolder(
         set(value) {
             hotDanmakuState.value = value
             prefs.edit().putBoolean("hot_danmaku", value).apply()
+        }
+
+    override var videoInteraction: Boolean
+        get() = videoInteractionState.value
+        set(value) {
+            videoInteractionState.value = value
+            prefs.edit().putBoolean("video_interaction", value).apply()
         }
 
 }
