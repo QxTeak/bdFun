@@ -11,7 +11,7 @@ internal fun rememberPlayerEntryPorts(): PlayerEntryPorts {
     val dependencies = page.dependencies
     val engine = PlayerEnginePorts(page, dependencies.background, dependencies.progress,
         rememberPlayerExitHooks(), rememberPlayerDiagnostics(),
-        PlayerEngineSettings({ settings.backgroundPlay }, { settings.loudnessEq },
+        PlayerEngineSettings({ settings.backgroundPlay },
             { settings.boostDefaultSpeed }, { settings.autoPlay }, { settings.resumePlayback },
             { settings.autoPlayNext = it }))
     return PlayerEntryPorts(

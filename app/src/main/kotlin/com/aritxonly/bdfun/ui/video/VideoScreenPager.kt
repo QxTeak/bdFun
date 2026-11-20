@@ -39,10 +39,13 @@ internal fun androidx.compose.foundation.layout.BoxScope.VideoScreenPager(
 @Composable
 private fun VideoScreenComments(pane: VideoCommentPane, scrollTop: Boolean) {
     val d = pane.detail
-    // 换集后 bvid/aid 都会变；显式换 key，评论列表、滚动位置、楼中楼全部从新集重建。
-    key(d.bvid, d.aid) {
+    // PGC 评论挂在 epId 上；换集后 bvid/aid/oid 都会变，显式换 key，评论列表、滚动位置、楼中楼全部从新集重建。
+    val target = com.aritxonly.bdfun.core.domain.videoCommentTarget(d)
+    key(d.bvid, d.aid, target.oid, target.type) {
         CommentScreen(
-            request = CommentScreenRequest(aid = d.aid, upMid = d.ownerMid, title = d.title, bvid = d.bvid,
+            request = CommentScreenRequest(aid = d.aid, upMid = if (d.isPgc) 0L else d.ownerMid,
+                title = d.title, bvid = d.bvid,
+                commentOid = target.oid, commentType = target.type,
                 focusRootRpid = pane.root, focusTargetRpid = pane.target),
             onBack = {},
             layout = CommentScreenLayout(bare = true, flatList = true, topInset = pane.topInset,

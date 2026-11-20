@@ -53,6 +53,7 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
         api.pgcIndex(page, pageSize, seasonType)
     suspend fun pgcTimeline(types: Int) = api.pgcTimeline(types)
     suspend fun pgcSeason(seasonId: Long) = api.pgcSeason(seasonId)
+    suspend fun pgcVideoDetail(epId: Long, seasonId: Long = 0L) = api.pgcVideoDetail(epId, seasonId)
     suspend fun nav() = api.nav()
     suspend fun qrGenerate() = api.qrGenerate()
     suspend fun qrPoll(key: String) = api.qrPoll(key)
@@ -63,7 +64,12 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
     suspend fun ranking(rid: Int = 0) = api.ranking(rid)
     suspend fun view(bvid: String) = api.view(bvid)
     suspend fun viewByAid(aid: Long) = api.viewByAid(aid)
-    suspend fun playInfo( detail: VideoDetail, preferredQuality: Int, cid: Long = detail.cid, durationSec: Int = detail.duration, codecPreference: String = "auto", cdnService: String = "base", ) = api.playInfo(detail, preferredQuality, cid, durationSec, codecPreference, cdnService)
+    suspend fun playInfo( detail: VideoDetail, preferredQuality: Int, cid: Long = detail.cid, durationSec: Int = detail.duration, codecPreference: String = "auto", cdnService: String = "base", ) = if (detail.isPgc) {
+        // 番剧/影视走 PGC 专用 playurl；普通 /x/player/playurl 对 PGC 只给低清或直接失败。
+        api.pgcPlayInfo(detail, preferredQuality, cid, durationSec, codecPreference, cdnService)
+    } else {
+        api.playInfo(detail, preferredQuality, cid, durationSec, codecPreference, cdnService)
+    }
     suspend fun related(bvid: String) = api.related(bvid)
     suspend fun danmaku(cid: Long, durationSec: Int = 0) = api.danmaku(cid, durationSec)
     suspend fun sponsorSegments(bvid: String) = api.sponsorSegments(bvid)

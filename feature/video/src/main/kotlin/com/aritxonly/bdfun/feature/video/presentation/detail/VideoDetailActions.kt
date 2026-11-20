@@ -101,6 +101,20 @@ class VideoDetailViewActions(
         if (page.cid == currentCid) return
         // 合集里的跨 bvid 单集：在当前播放器内切换，不跳新 Activity
         val episode = d.episodes.firstOrNull { it.cid == page.cid }
+        if (d.isPgc && episode != null && episode.epId > 0L) {
+            // 番剧/影视必须按 ep_id 重取详情：评论挂在 ep_id 上，播放地址也要带它。
+            scope.launch {
+                detailController.switchPgcEpisode(
+                    episode.epId,
+                    VideoStreamRequest(d, qualityId, page.cid, page.duration,
+                        settings.codecPreference, settings.cdnService),
+                ) { loaded ->
+                    selectionController.selectPage(page.cid, loaded.bvid)
+                    host.progressMs = 0L
+                }
+            }
+            return
+        }
         if (episode != null && episode.bvid.isNotBlank() && episode.bvid != d.bvid) {
             scope.launch {
                 val switched = detailController.switchEpisode(
@@ -183,7 +197,13 @@ class VideoDetailViewActions(
     }
 
     fun shareVideo() {
-        host.share("${detail?.title ?: video.title} https://www.bilibili.com/video/${video.bvid}")
+        val d = detail
+        val url = if (d?.isPgc == true) {
+            "https://www.bilibili.com/bangumi/play/ep${d.epId}"
+        } else {
+            "https://www.bilibili.com/video/${d?.bvid ?: video.bvid}"
+        }
+        host.share("${d?.title ?: video.title} $url")
         interactionController.recordShare()
     }
 

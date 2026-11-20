@@ -14,9 +14,11 @@ import java.io.IOException
 class BiliVideoRepository(
     private val detail: suspend (String) -> VideoDetail,
     private val relatedVideos: suspend (String) -> List<VideoItem>,
+    private val pgcDetail: suspend (Long, Long) -> VideoDetail = { _, _ -> throw UnsupportedOperationException("未配置番剧数据源") },
 ) : VideoRepository {
     override suspend fun videoDetail(bvid: String) = biliOutcome { detail(bvid) }
     override suspend fun related(bvid: String) = biliOutcome { relatedVideos(bvid) }
+    override suspend fun pgcEpisode(epId: Long, seasonId: Long) = biliOutcome { pgcDetail(epId, seasonId) }
 }
 
 class BiliCommentRepository(

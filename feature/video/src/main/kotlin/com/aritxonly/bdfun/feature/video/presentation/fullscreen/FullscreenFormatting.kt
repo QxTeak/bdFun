@@ -51,8 +51,12 @@ fun trimSpeed(value: Float): String {
     return one.trimEnd('0').trimEnd('.')
 }
 
-fun clockText(): String =
-    SimpleDateFormat("HH:mm", Locale.CHINA).format(Date())
+// 全屏时钟每秒刷新一次：复用线程级 formatter，别每秒新建。
+private val clockFormatter = ThreadLocal.withInitial {
+    SimpleDateFormat("HH:mm", Locale.CHINA)
+}
+
+fun clockText(): String = clockFormatter.get()!!.format(Date())
 
 /** 字幕层：控件自动隐藏后仍然显示当前句。 */
 @Composable

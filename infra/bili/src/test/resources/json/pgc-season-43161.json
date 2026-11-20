@@ -1,0 +1,92 @@
+{
+  "code": 0,
+  "result": {
+    "season_id": 43161,
+    "season_title": "不止考古·我与三星堆",
+    "title": "不止考古·我与三星堆",
+    "type": 3,
+    "cover": "http://i0.hdslb.com/bfs/bangumi/image/cea6473bb07655ac3d76954709d7e4da756daf41.png",
+    "evaluate": "《不止考古·我与三星堆》由哔哩哔哩独家自制出品，国内首部以考古人为拍摄视角的人文纪录片。在三星堆新发现的大背景下，本片从发掘、保护、修复、研究等多个维度，真实记录一群考古人背后的故事。他们深耕田野，发掘四季；守护文物，与时间为敌；对话过去，唤醒历史的记忆……考古不止有古老的文明，璀璨的瑰宝，更有尘土之下，内心深处的仰望。",
+    "subtitle": "已观看2.4亿次",
+    "rating": {
+      "score": 9.7
+    },
+    "stat": {
+      "views": 236669553,
+      "danmakus": 138322,
+      "likes": 9136912,
+      "coins": 244166,
+      "favorite": 598786,
+      "share": 72892,
+      "reply": 59904
+    },
+    "up_info": {
+      "mid": 7584632,
+      "uname": "哔哩哔哩纪录片",
+      "avatar": "https://i2.hdslb.com/bfs/face/d655b5efeb97cb4ca5d4926bc53cddee66f429a5.jpg",
+      "is_follow": 0
+    },
+    "episodes": [
+      {
+        "aid": 901628511,
+        "badge": "限免",
+        "bvid": "BV1KN4y1w784",
+        "cid": 1146763843,
+        "cover": "http://i0.hdslb.com/bfs/archive/8fad49e17e50ba2cb79af225aa7d1f4596fb79d4.jpg",
+        "duration": 2747000,
+        "ep_id": 689147,
+        "id": 689147,
+        "long_title": "微痕之下",
+        "pub_time": 1666260000,
+        "show_title": "第1集 微痕之下",
+        "title": "1",
+        "stat": null
+      },
+      {
+        "aid": 901674248,
+        "badge": "预告",
+        "bvid": "BV1JN4y1w7ae",
+        "cid": 865105316,
+        "cover": "http://i0.hdslb.com/bfs/archive/d23c08c00a841e2440e536704f0d0d942d24adc3.jpg",
+        "duration": 45000,
+        "ep_id": 689886,
+        "id": 689886,
+        "long_title": "第一层土",
+        "pub_time": 1666260300,
+        "show_title": "第2集预告 第一层土",
+        "title": "2",
+        "stat": null
+      }
+    ],
+    "section": [
+      {
+        "title": "特别企划",
+        "type": 2,
+        "episodes": [
+          {
+            "aid": 647873818,
+            "badge": "",
+            "bvid": "BV1ie4y1p792",
+            "cid": 898038573,
+            "cover": "http://i0.hdslb.com/bfs/archive/d024dedcb0da69c883a8a299dd6fd9244f9cc66a.jpg",
+            "duration": 476000,
+            "ep_id": 703793,
+            "id": 703793,
+            "long_title": "倒卖三星堆文物该怎么判？",
+            "pub_time": 1669543200,
+            "show_title": "罗翔说刑法 倒卖三星堆文物该怎么判？",
+            "title": "罗翔说刑法",
+            "stat": {
+              "coin": 23198,
+              "danmakus": 11013,
+              "likes": 143320,
+              "play": 5272203,
+              "reply": 4100,
+              "vt": 0
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

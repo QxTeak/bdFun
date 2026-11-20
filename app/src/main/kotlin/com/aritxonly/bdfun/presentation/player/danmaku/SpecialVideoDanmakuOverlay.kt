@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.withContext
 
+private val basBvPattern = Regex("BV[A-Za-z0-9]{10}")
+
 @Composable
 internal fun SpecialVideoDanmakuOverlay(
     items: List<DanmakuItem>, playback: PlaybackController, ui: VideoPlayerUiStateHolder, aid: Long, cid: Long,
@@ -144,7 +146,7 @@ private fun activateBasVideoTarget(context: android.content.Context, playback: P
             return
         }
         is BasTarget.Video -> {
-            val id = target.bvid?.takeIf { Regex("BV[A-Za-z0-9]{10}").matches(it) }
+            val id = target.bvid?.takeIf { basBvPattern.matches(it) }
                 ?: target.aid?.takeIf { it > 0 }?.let { "av$it" } ?: return
             uri.appendPath("video").appendPath(id).appendQueryParameter("p", target.page.coerceAtLeast(1).toString())
                 .appendQueryParameter("t", (target.timeMs.coerceAtLeast(0) / 1000).toString())

@@ -389,7 +389,7 @@ Activity 外壳改为 settings/onBack/options/disc/slots/pageState/content 七�
 
 ### 2026-11-12 播放器平台接缝
 
-播放器展示通过 feature/video/presentation 的 VideoPlaybackPlatform/VideoOutput 与 core/application 的 ForegroundMediaSession 访问平台能力；Media3、PlayerView XML 绑定、响度音效、视频轨道切换与媒体会话创建由 app/playback 装配适配。接口按播放器组合实例创建，不能变成全局缓存；原 XML、resize mode、三分之一纹理截图、600mB 响度增益及 effect key/释放时机都须保持。
+播放器展示通过 feature/video/presentation 的 VideoPlaybackPlatform/VideoOutput 与 core/application 的 ForegroundMediaSession 访问平台能力；Media3、PlayerView XML 绑定、视频轨道切换与媒体会话创建由 app/playback 装配适配。接口按播放器组合实例创建，不能变成全局缓存；原 XML、resize mode、三分之一纹理截图及 effect key/释放时机都须保持。响度均衡自 2026-11-20 起改为 infra:playback 的软件 AGC（对齐 BiliPai），不再使用平台 LoudnessEnhancer 的 600mB 固定增益。
 
 ### 2026-11-12 视频读取缓存作用域
 
@@ -779,6 +779,43 @@ scrollable 默认 false，maxVisibleItems 默认 3；开启并超限时启用内
 消息页统一用 `HomePullRefreshBox`（首页同一套 `PullRefreshSession` + 小电视 + 回顶/收尾时序）；首次进入用 `MessageSkeletons` 骨架屏，不再显示小电视；`MessageSessionsEffects`/`MessageFeedEffects`/联系人/消息设置已移除 resume 时重载，从回复页等二级页返回不重新拉取。消息页 Tab 与上方快捷入口卡片的间距为 14dp。
 
 设置第一页「关于」卡片下方直接放「捐赠」入口（复用关于的图标），关于二级页里的捐赠项已删；入口走 `runtime.navigation.onAbout(SettingsDestination.Donation)`。版本默认值改为 `preview-7.0`，正式发版由 `.github/workflows/release.yml` 的 `workflow_dispatch` 传 `version=preview-7.0` 和更新日志；应用内更新日志读取 GitHub Release，发版后自动出现。
+
+### 2026-11-19 番剧/影视 PGC 集数与换集评论
+
+番剧/影视卡片只带 `season_id` 进视频页（`Route.Video.seasonId`），视频页经 `VideoRepository.pgcEpisode(epId, seasonId)` 一次 `/pgc/view/web/season` 拿整季；`openBangumi` 不再先查首集 bvid 再按普通稿件打开（柯南这类上千集的老番因此少下载一整季）。有 `ep_id` 时按 ep 查；只有 season 时优先 `user_status.progress.last_ep_id`，否则首个正片。
+
+`VideoDetailInfo` 增加 `epId/seasonId`，`VideoEpisode` 增加 `epId`；PGC 的 `pages` 必须为空，剧集只走现有合集卡片（`VideoDetailCollection` → `VideoCollectionCard`），不再有第二套选集 UI。播放源由 `BiliBackend.playInfo` 按 `detail.isPgc` 分流到 `/pgc/player/web/playurl`，清晰度/编码/CDN 仍复用 `parsePlayInfo`；番剧分享链接改为 `bangumi/play/ep{epId}`。
+
+评论身份统一走 `core:domain` 的 `videoCommentTarget`：普通稿件与 PGC 都用**当前集 aid** + `type=1`（与 PiliPlus 的 `oid = isPugv ? epId : aid` 一致；2026-11-19 实测把 `ep_id` 当 oid 请求 `/x/v2/reply/main` 会返回 0 条）。视频页两个评论入口（详情 tab 与独立评论页）都把 oid/type 放进 `key`，换集时 aid 变化，评论列表、楼中楼、滚动位置一起重建；PGC 的 `upMid` 传 0，不把出品方当 UP 主。
+
+已删除不再使用的 `PgcPlaybackRepository`/`BiliPgcPlaybackRepository`/`pgcStream`/`BangumiStream`，避免两套 PGC 播放路径并存。测试：`VideoCommentTargetTest`、`PgcPlaybackMapperTest`（真实样本 43161；注意预告花絮 key 是 `section` 不是 `sections`）、`VideoDetailStateHolderTest` 的 season-only 用例。
+
+### 2026-11-19 全仓性能与精简审计（低风险项）
+
+- 表情正则：`analyzeRichText` 按表情快照实例缓存编译结果；评论列表原来每条评论都会排序并编译一次全量表情正则。直播表情弹幕同样缓存。
+- 时间格式化：消息列表/聊天/发送记录/全屏时钟改用线程级 formatter 或不可变 `DateTimeFormatter`，去掉逐行 `SimpleDateFormat` 与双 `Calendar`。
+- 正则常量：消息 feed 解析、聊天卡片、消息跳转、BAS 目标、番剧时间线、空间数字格式等把 `Regex(...)` 提升为文件级常量，避免解析/组合时重复编译。
+- 番剧入口省一次整季请求（见上）。
+- 本轮未动（有行为或稳定性风险）：约 20 处 `delay(8)` 手动动画循环、`collectAsState` 到 lifecycle 版本的迁移、弹幕引擎内部实现、首页连续位置每帧回写 shell。要继续优化这些项，先补基准再改。
+
+### 2026-11-20 视频页 Tab 玻璃淡入卡顿（已回退）
+
+曾尝试把视频页 Tab 材质改成 `animateFloatAsState` + `TeakGlassSurface.materialAlphaState`（绘制阶段读 alpha），但该方案已按用户要求回退，当前仍保持原实现：`VideoPageTabs` 用 `rememberManualProgress(…, 300f)`，`TeakPagerTabs`/`VideoDanmakuControl` 在组合期读 `LocalTopBarButtonMaterialProgress`。不要再按回退前的 State 方案改，除非重新评估。
+
+### 2026-11-20 倍速音质与音画同步：对齐 BiliPai
+
+用户反馈倍速声音扭曲；按 A 打开 AudioTrack 系统时间伸缩后音画不同步复现。对照 BiliPai 后确认它的做法是：
+
+- 不打开 AudioTrack playback params（`setEnableAudioTrackPlaybackParams(false)`），倍速统一走 ExoPlayer 的 Sonic；
+- 每次设速都显式写 `PlaybackParameters(speed, 1.0f)`，强制自然音高；
+- 响度均衡不用平台 `LoudnessEnhancer`，而是在音频处理器链里注入软件 AGC（RMS 收敛 + 增益上下限 + 削波保护），只在设置开启时选用；
+- 高速（>1.5x）时对 Dolby/Hi-Res 这类速度敏感音轨降级；bdFun 的 `choosePlaybackAudio` 本来就只选 30216/30232/30280 标准音轨，这一点已满足。
+
+bdFun 对应调整：`Media3PlayerBuilder` 恢复 `setEnableAudioTrackPlaybackParams(false)`；`Media3PlaybackController` 用 `PlaybackParameters(speed, 1f)`；新增 `LoudnessNormalizationAudioProcessor` 与 `LoudnessAwareRenderersFactory`，按 `settings.loudnessEq` 在播放器创建时选择工厂；删除 `PlaybackAudioEffect`、`PlayerLoudnessEffects` 与平台 effect 路径。
+
+注意：响度开关在播放器创建时读取，切换设置后需重新进入视频页才生效（与 BiliPai 的工厂选择方式一致）；软件 AGC 的听感是“响度趋于一致”，不再是无条件 +6dB。测试：`LoudnessNormalizationAudioProcessorTest`（3 项，含 16-bit 削顶与 float limiter）。
+
+
 
 
 

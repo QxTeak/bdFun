@@ -11,6 +11,9 @@ data class VideoScreenRequest(
     val initialCommentRoot: Long = 0L,
     val initialCommentTarget: Long = 0L,
     val initialSeekMs: Long = 0L,
+    /** PGC 入口：直接按 ep_id 取详情/播放源，评论也用 ep_id。普通稿件为 0。 */
+    val epId: Long = 0L,
+    val seasonId: Long = 0L,
 )
 
 data class VideoScreenPresentation(

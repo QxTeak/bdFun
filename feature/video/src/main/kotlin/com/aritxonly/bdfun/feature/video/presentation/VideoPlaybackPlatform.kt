@@ -11,7 +11,6 @@ interface VideoPlaybackPlatform : PlaybackController {
     val userAgent: String
     fun createOutput(context: Context): VideoOutput
     fun setVideoEnabled(enabled: Boolean)
-    fun createLoudnessEffect(): PlaybackAudioEffect?
     fun createMediaSession(
         context: Context, title: String, artist: String, artworkUrl: String?,
         onQueueSelected: (Int) -> Unit,
@@ -23,5 +22,3 @@ interface VideoOutput {
     var resizeMode: Int
     fun captureThirdSize(): Bitmap?
 }
-
-fun interface PlaybackAudioEffect { fun release() }

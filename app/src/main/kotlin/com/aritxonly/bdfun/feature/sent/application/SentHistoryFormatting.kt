@@ -16,5 +16,10 @@ internal fun formatVideoTime(ms: Long): String {
     }
 }
 
+// 本机发送记录一次最多 500 条，逐条新建 SimpleDateFormat 在滚动时很贵。
+private val sentAtFormatter = ThreadLocal.withInitial {
+    SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+}
+
 internal fun formatSentAt(ms: Long): String =
-    SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(Date(ms))
+    sentAtFormatter.get()!!.format(Date(ms))

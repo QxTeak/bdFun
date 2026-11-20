@@ -2,7 +2,6 @@ package com.aritxonly.bdfun.ui
 
 import android.content.pm.ActivityInfo
 import com.aritxonly.bdfun.core.application.ForegroundMediaSession
-import com.aritxonly.bdfun.feature.video.presentation.PlaybackAudioEffect
 import com.aritxonly.bdfun.feature.video.presentation.VideoOutput
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -16,7 +15,6 @@ import kotlinx.coroutines.Job
 class VideoPlayerUiStateHolder(initialSpeed: Float, initialAutoPlayNext: Boolean, initialFullscreen: Boolean) {
     val danmakuHit = PlayerDanmakuHit()
     val resumeOnReturn = mutableStateOf(false)
-    val loudnessEnhancer = mutableStateOf<PlaybackAudioEffect?>(null)
     val showBuffering = mutableStateOf(false)
     val usingFallback = mutableStateOf(false)
     val usingOriginal = mutableStateOf(false)

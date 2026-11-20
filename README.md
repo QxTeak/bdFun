@@ -96,7 +96,7 @@ bdFun 使用了 / 参考了以下项目，感谢作者和社区的工作：
 - [AndroidLiquidGlass](https://github.com/Kyant0/AndroidLiquidGlass)（[@Kyant0](https://github.com/Kyant0)，Apache-2.0）：柔光玻璃组件使用了其中部分渲染管线能力，包括折射着色器的圆形透镜轮廓与圆角矩形 SDF 思路
 - [Shapes](https://github.com/Kyant0/Shapes)（[@Kyant0](https://github.com/Kyant0)，Apache-2.0）：使用 `Capsule()` 胶囊形状，用于玻璃表面、导航栏、Tab 指示器等
 - [bilibili-API-collect](https://github.com/SocialSisterYi/bilibili-API-collect)（[@SocialSisterYi](https://github.com/SocialSisterYi)）：哔哩哔哩接口资料
-- [BiliPai](https://github.com/jay3-yy/BiliPai) / [bytedance DanmakuRenderEngine](https://github.com/bytedance/DanmakuRenderEngine)：弹幕渲染模块、弹幕空降助手、弹幕计数实现移植，水滴动画
+- [BiliPai](https://github.com/jay3-yy/BiliPai) / [bytedance DanmakuRenderEngine](https://github.com/bytedance/DanmakuRenderEngine)：弹幕实现移植，倍速实现移植
 - [FodFluidRipple](https://github.com/Leaf-lsgtky)（[@Leaf-lsgtky](https://github.com/Leaf-lsgtky)）：水波纹动画
 - [Guiyuan](https://github.com/CHS-Haple/Guiyuan)（[@CHS-Haple](https://github.com/CHS-Haple)）：开始页移植
 - HyperOS 4：一镜到底动效

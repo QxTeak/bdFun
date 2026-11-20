@@ -7,6 +7,8 @@ import com.aritxonly.bdfun.core.model.message.*
 import com.aritxonly.bdfun.core.navigation.Route
 import com.aritxonly.bdfun.navigation.createRouteIntent
 
+private val toolbarTalkerPattern = Regex("/(\\d{3,})")
+
 internal fun messageMenuAction(context: Context, item: MessageMenuItem, menu: MessageSessionMenuStateHolder,
     navigate: (Route) -> Unit = { context.startActivity(createRouteIntent(context, it)) }) {
     menu.showMore = false
@@ -16,7 +18,7 @@ internal fun messageMenuAction(context: Context, item: MessageMenuItem, menu: Me
         2 -> navigate(Route.MessageTools("settings"))
         8 -> navigate(Route.MessageTools("contacts"))
         4 -> {
-            val talker = Regex("/(\\d{3,})").find(item.url)?.groupValues?.get(1)?.toLongOrNull()
+            val talker = toolbarTalkerPattern.find(item.url)?.groupValues?.get(1)?.toLongOrNull()
             if (talker != null) navigate(MessageSession("1_$talker", talker, 1, item.title, item.icon, "", 0, 0, false).chatRoute())
         }
         else -> if (item.url.startsWith("http")) context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(item.url)))

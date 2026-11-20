@@ -31,6 +31,10 @@ data class VideoDetail(
     val seasonTitle get() = info.seasonTitle
     /** 1 = 原创，2 = 转载；接口缺失时为 0。 */
     val copyright get() = info.copyright
+    /** PGC 当前集 ID；普通稿件为 0。 */
+    val epId get() = info.epId
+    val seasonId get() = info.seasonId
+    val isPgc get() = info.epId > 0L
     val isFollowed get() = interaction.isFollowed
     val liked get() = interaction.liked
     val coined get() = interaction.coined
@@ -66,6 +70,10 @@ data class VideoDetailInfo(
     val seasonTitle: String = "",
     /** 1 = 原创，2 = 转载；老缓存/缺失时为 0。 */
     val copyright: Int = 0,
+    /** PGC 当前集 ID；普通稿件为 0。 */
+    val epId: Long = 0L,
+    /** PGC 所属 season_id；普通稿件为 0。 */
+    val seasonId: Long = 0L,
 )
 
 data class VideoDetailInteraction(

@@ -3,11 +3,9 @@
 package com.aritxonly.bdfun.playback
 
 import android.content.Context
-import android.media.audiofx.LoudnessEnhancer
 import androidx.media3.common.C
 import com.aritxonly.bdfun.core.application.MediaControlsRegistry
 import com.aritxonly.bdfun.core.application.PlaybackController
-import com.aritxonly.bdfun.feature.video.presentation.PlaybackAudioEffect
 import com.aritxonly.bdfun.feature.video.presentation.VideoPlaybackPlatform
 import com.aritxonly.bdfun.infra.bili.BiliBackend
 import com.aritxonly.bdfun.infra.playback.Media3PlaybackController
@@ -26,17 +24,6 @@ internal class AndroidVideoPlaybackPlatform(
         exo.trackSelectionParameters = exo.trackSelectionParameters.buildUpon()
             .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, !enabled)
             .build()
-    }
-    override fun createLoudnessEffect(): PlaybackAudioEffect? {
-        val exo = controller.player
-        if (exo.audioSessionId <= 0) return null
-        val effect = runCatching {
-            LoudnessEnhancer(exo.audioSessionId).apply {
-                setTargetGain(600)
-                enabled = true
-            }
-        }.getOrNull() ?: return null
-        return PlaybackAudioEffect { effect.release() }
     }
     override fun createMediaSession(
         context: Context, title: String, artist: String, artworkUrl: String?,

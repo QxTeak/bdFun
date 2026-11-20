@@ -106,6 +106,16 @@ private data class MessageFeedTarget(
     val seekSeconds: Long,
 )
 
+private val uriAidPatterns = listOf(
+    Regex("bilibili://video/(\\d+)"),
+    Regex("bilibili://video/[aA][vV](\\d+)"),
+    Regex("bilibili\\.com/video/[aA][vV](\\d+)"),
+)
+private val uriBvidPattern = Regex("BV[0-9A-Za-z]{10}")
+private val uriRootRpidPattern = Regex("[?&]comment_root_id=(\\d+)")
+private val uriSecondRpidPattern = Regex("[?&]comment_secondary_id=(\\d+)")
+private val uriSeekPattern = Regex("[?&#](?:t|start|time)=([0-9]+)")
+
 private fun MessageFeedItemDto.target(): MessageFeedTarget {
     val subjectId = (detail?.l("subject_id") ?: 0L)
         .takeIf { it > 0L }
@@ -115,17 +125,13 @@ private fun MessageFeedItemDto.target(): MessageFeedTarget {
         .ifBlank { item.s("native_uri").orEmpty() }
     // 消息接口最可靠的是 native_uri：bilibili://video/{aid}/?comment_root_id=..&comment_secondary_id=..
     // 之前只看 bvid / subject_id，回复消息里这两项经常为空或是别的东西，导致跳过去是空的。
-    val uriAid = listOf(
-        "bilibili://video/(\\d+)",
-        "bilibili://video/[aA][vV](\\d+)",
-        "bilibili\\.com/video/[aA][vV](\\d+)",
-    ).firstNotNullOfOrNull { pattern ->
-        Regex(pattern).find(nativeUri)?.groupValues?.getOrNull(1)?.toLongOrNull()
+    val uriAid = uriAidPatterns.firstNotNullOfOrNull { pattern ->
+        pattern.find(nativeUri)?.groupValues?.getOrNull(1)?.toLongOrNull()
     }
-    val uriBvid = Regex("BV[0-9A-Za-z]{10}").find(nativeUri)?.value.orEmpty()
-    val uriRootRpid = Regex("[?&]comment_root_id=(\\d+)")
+    val uriBvid = uriBvidPattern.find(nativeUri)?.value.orEmpty()
+    val uriRootRpid = uriRootRpidPattern
         .find(nativeUri)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0L
-    val uriSecondRpid = Regex("[?&]comment_secondary_id=(\\d+)")
+    val uriSecondRpid = uriSecondRpidPattern
         .find(nativeUri)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0L
     val bvid = uriBvid.ifBlank {
         detail?.s("bvid").orEmpty()
@@ -136,7 +142,7 @@ private fun MessageFeedItemDto.target(): MessageFeedTarget {
         else -> (detail?.l("oid") ?: 0L).takeIf { it > 0L }
             ?: (item.l("oid") ?: 0L)
     }
-    val seekSeconds = Regex("[?&#](?:t|start|time)=([0-9]+)")
+    val seekSeconds = uriSeekPattern
         .find(nativeUri)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0L
     return MessageFeedTarget(aid, bvid, nativeUri, uriRootRpid, uriSecondRpid, seekSeconds)
 }

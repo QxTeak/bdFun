@@ -83,7 +83,7 @@ internal class AppContainer(
     val playbackProgress: PlaybackProgressRepository = com.aritxonly.bdfun.infra.storage.AndroidPlaybackProgressRepository(context)
     val playbackTrackingRepository = com.aritxonly.bdfun.infra.bili.BiliPlaybackTrackingRepository(api)
     val videoEntryRepository: VideoEntryRepository = com.aritxonly.bdfun.infra.bili.BiliVideoEntryRepository(api::view, api::viewByAid)
-    val videoRepository: VideoRepository = BiliVideoRepository(api::view, api::related)
+    val videoRepository: VideoRepository = BiliVideoRepository(api::view, api::related, api::pgcVideoDetail)
     val videoMetadataRepository: VideoMetadataRepository = com.aritxonly.bdfun.infra.bili.BiliVideoMetadataRepository(api)
     val videoActionsRepository: VideoActionsRepository = com.aritxonly.bdfun.infra.bili.BiliVideoActionsRepository(api)
     val videoPlaybackRepository: VideoPlaybackRepository = com.aritxonly.bdfun.infra.bili.BiliVideoPlaybackRepository(
@@ -100,6 +100,7 @@ internal class AppContainer(
             com.aritxonly.bdfun.infra.playback.Media3PlaybackController(context.applicationContext, decoderMode,
                 com.aritxonly.bdfun.core.domain.buffering.BufferSession(bufferHistory),
                 { (sessionController.identity.mid?.takeIf { it > 0 }?.toString().orEmpty()) to settings.adaptiveBuffering },
+                settings.loudnessEq,
                 if (BuildConfig.DEBUG) { message -> LogCollector.record("PLAYBACK_TRACE", message) } else null), mediaControls)
     val recommendationOptimizer = createRecommendationOptimizer(context, presentationScope) {
         val identity = sessionController.identity
@@ -205,14 +206,6 @@ internal class AppContainer(
             com.aritxonly.bdfun.infra.bili.BiliPgcRankRepository(api),
             com.aritxonly.bdfun.core.model.pgc.BangumiRankTab(rankId, title, oid))
 
-    /** 番剧播放走视频详情页：这里只负责把 season 解析成首集的 bvid。 */
-    suspend fun bangumiFirstEpisode(seasonId: Long): com.aritxonly.bdfun.core.model.pgc.BangumiEpisode? =
-        when (val result = com.aritxonly.bdfun.infra.bili.BiliPgcPlaybackRepository(api).season(seasonId)) {
-            is com.aritxonly.bdfun.core.common.Outcome.Success ->
-                result.value.episodes.firstOrNull { it.sectionTitle == "正片" && it.bvid.isNotBlank() }
-                    ?: result.value.episodes.firstOrNull { it.bvid.isNotBlank() }
-            is com.aritxonly.bdfun.core.common.Outcome.Failure -> null
-        }
     private val dynamicRepository by lazy {
         BiliFeedPageRepository({ type, offset, mid -> api.dynamicPage(type, offset, mid) }, api::dynamicPortal, api::dynamicUpList, api::likeFeed)
     }

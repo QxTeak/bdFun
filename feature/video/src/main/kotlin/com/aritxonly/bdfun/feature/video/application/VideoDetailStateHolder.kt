@@ -68,13 +68,17 @@ class VideoDetailStateHolder(
         onPartSelected: (Long) -> Unit,
         onReady: (Long) -> Unit,
         requestedCid: Long = 0L,
+        epId: Long = 0L,
+        seasonId: Long = 0L,
     ) = coroutineScope {
         val request = ++revision
         val stream = ++streamRevision
         val commentsVersion = ++danmakuRevision
         mutableState.update { it.copy(loading = true, error = null, playError = null) }
         try {
-            val result = repository.videoDetail(bvid)
+            // PGC 只能按 ep_id/season_id 取详情：既要 64 位新 aid，也要拿整季剧集供合集列表使用。
+            val result = if (epId > 0L || seasonId > 0L) repository.pgcEpisode(epId, seasonId)
+            else repository.videoDetail(bvid)
             if (request != revision) return@coroutineScope false
             if (result is Outcome.Failure) {
                 mutableState.update { it.copy(error = result.error) }
@@ -87,7 +91,7 @@ class VideoDetailStateHolder(
             val shouldResume = resume()
             val play = async { playback.playInfo(VideoStreamRequest(part, quality, codecPreference = codec, cdnService = cdn)) }
             val danmaku = async { playback.danmaku(part.cid, part.duration).valueOr(emptyList()) }
-            val related = async { fetchRelated(bvid) }
+            val related = async { if (detail.bvid.isBlank()) emptyList() else fetchRelated(detail.bvid) }
             val progress = async { if (shouldResume) resumePosition(part) else 0L }
             val source = play.await()
             val position = progress.await()
@@ -138,6 +142,32 @@ class VideoDetailStateHolder(
         if (!switchStream(request.copy(detail = detail), reloadDanmaku = true)) return false
         val stream = streamRevision
         val related = fetchRelated(bvid)
+        if (selection != revision || stream != streamRevision) return false
+        restoreRelated(related)
+        return true
+    }
+
+    /**
+     * 番剧/影视换集：按 ep_id 重新取详情、播放源与弹幕；评论区由详情里的 epId 驱动重建。
+     *
+     * 与 UGC 合集的区别只在读取入口（ep_id 而非 bvid），换集后的时序保持一致。
+     */
+    suspend fun switchPgcEpisode(
+        epId: Long,
+        request: VideoStreamRequest,
+        onDetail: (VideoDetail) -> Unit,
+    ): Boolean {
+        val selection = ++revision
+        streamRevision++
+        danmakuRevision++
+        val result = repository.pgcEpisode(epId)
+        if (selection != revision || result !is Outcome.Success) return false
+        val detail = result.value
+        restoreDetail(detail)
+        onDetail(detail)
+        if (!switchStream(request.copy(detail = detail), reloadDanmaku = true)) return false
+        val stream = streamRevision
+        val related = if (detail.bvid.isBlank()) emptyList() else fetchRelated(detail.bvid)
         if (selection != revision || stream != streamRevision) return false
         restoreRelated(related)
         return true

@@ -100,13 +100,13 @@ internal fun BangumiPage(
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
         item(key = "pgc-banner", span = { GridItemSpan(maxLineSpan) }) {
-            BangumiBanner(bannerItems) { seasonId -> openBangumi(context, seasonId, scope) }
+            BangumiBanner(bannerItems) { seasonId -> openBangumi(context, seasonId) }
         }
         bangumiFollowSection(state, context, startPadding, followingSectionTitle)
         bangumiRankSections(
             sections = rankUi.sections,
             holder = rankState,
-            onOpenSeason = { seasonId -> openBangumi(context, seasonId, scope) },
+            onOpenSeason = { seasonId -> openBangumi(context, seasonId) },
             onOpenBoard = { section ->
                 section.tabs.firstOrNull()?.let { tab ->
                     com.aritxonly.bdfun.BangumiRankBoardActivity.open(context, tab, section.title)
@@ -121,7 +121,7 @@ internal fun BangumiPage(
             }
         }
         items(state.cards, key = { it.seasonId }) { item ->
-            BangumiCardItem(item) { openBangumi(context, item.seasonId, scope) }
+            BangumiCardItem(item) { openBangumi(context, item.seasonId) }
         }
         bangumiPageStateItems(state, scope)
     }

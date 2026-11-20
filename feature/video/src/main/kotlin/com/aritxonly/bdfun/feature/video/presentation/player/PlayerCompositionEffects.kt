@@ -32,7 +32,6 @@ fun BindPlayerInitialEffects(
                 "qualities=${info?.qualities?.size ?: 0}",
         )
     }
-    BindPlayerLoudness(playback, ui, ports.settings.loudnessEq)
 }
 
 @Composable
