@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import com.aritxonly.teak.common.skeleton.TeakSkeletonVideoCard
 import com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep
 import androidx.compose.ui.Alignment
@@ -54,7 +53,6 @@ internal fun LazyGridScope.bangumiFollowSection(
     title: String = "最近追番",
 ) {
     item(key = "pgc-follow", span = { GridItemSpan(maxLineSpan) }) {
-        val openScope = rememberCoroutineScope()
         Column {
             BangumiSectionTitle(title)
             if (state.following.isNotEmpty()) {
@@ -65,7 +63,7 @@ internal fun LazyGridScope.bangumiFollowSection(
                 ) {
                     items(state.following, key = { it.seasonId }) { item ->
                         Box(Modifier.width(104.dp)) {
-                            BangumiCardItem(item) { openBangumi(context, item.seasonId, openScope) }
+                            BangumiCardItem(item) { openBangumi(context, item.seasonId) }
                         }
                     }
                 }
@@ -209,40 +207,49 @@ private fun bangumiBadgeColor(text: String): Color = when {
     else -> Color(0xFF00897B)
 }
 
-/** 解析首集后进视频详情页（复用它的播放/评论/交互），失败才退回网页。 */
-internal fun openBangumi(context: android.content.Context, seasonId: Long, scope: kotlinx.coroutines.CoroutineScope) {
+/**
+ * 打开番剧/影视：只带 season_id 进视频详情页。
+ *
+ * 详情页自己按季拉一次 `/pgc/view/web/season`，再按 ep_id 选首播/续看集；
+ * 这里如果先把 season 拉一遍只为取首集 bvid，老番（上千集）会白白多下载一整季。
+ */
+internal fun openBangumi(context: android.content.Context, seasonId: Long) {
     if (seasonId <= 0L) return
-    scope.launch {
-        val bvid = runCatching { com.aritxonly.bdfun.AppGraph.bangumiFirstEpisode(seasonId) }
-            .getOrNull()?.bvid.orEmpty()
-        if (bvid.isNotBlank()) {
-            val opened = runCatching {
-                context.startActivity(
-                    android.content.Intent(context, com.aritxonly.bdfun.VideoActivity::class.java)
-                        .putExtra("bvid", bvid),
-                )
-            }.isSuccess
-            if (opened) return@launch
-        }
-        runCatching {
-            context.startActivity(
-                android.content.Intent(
-                    android.content.Intent.ACTION_VIEW,
-                    android.net.Uri.parse("https://www.bilibili.com/bangumi/play/ss$seasonId"),
+    // 快照只用来占位入口标识；标题/封面/剧集在详情返回后替换。
+    val snapshot = com.aritxonly.bdfun.core.model.video.VideoItem(
+        bvid = "",
+        aid = 0L,
+        title = "",
+        cover = "",
+        ownerName = "",
+        ownerFace = "",
+        ownerMid = 0L,
+        play = 0L,
+        danmaku = 0L,
+        duration = 0,
+        pubdate = 0L,
+    )
+    runCatching {
+        context.startActivity(
+            com.aritxonly.bdfun.navigation.createRouteIntent(
+                context,
+                com.aritxonly.bdfun.core.navigation.Route.Video(
+                    bvid = "",
+                    aid = 0L,
+                    snapshot = snapshot,
+                    seasonId = seasonId,
                 ),
-            )
-        }.onFailure {
-            android.widget.Toast.makeText(context, "无法打开番剧", android.widget.Toast.LENGTH_SHORT).show()
-        }
+            ),
+        )
+    }.onFailure {
+        android.widget.Toast.makeText(context, "无法打开番剧", android.widget.Toast.LENGTH_SHORT).show()
     }
 }
 
 
-/** 番剧打开动作：解析首集要发请求，所以绑定调用方的协程作用域。 */
+/** 番剧打开动作：不再需要请求首集，直接带 seasonId 进详情页。 */
 @androidx.compose.runtime.Composable
-internal fun rememberBangumiOpener(context: android.content.Context): (Long) -> Unit {
-    val scope = androidx.compose.runtime.rememberCoroutineScope()
-    return androidx.compose.runtime.remember(context, scope) {
-        { seasonId: Long -> openBangumi(context, seasonId, scope) }
+internal fun rememberBangumiOpener(context: android.content.Context): (Long) -> Unit =
+    androidx.compose.runtime.remember(context) {
+        { seasonId: Long -> openBangumi(context, seasonId) }
     }
-}

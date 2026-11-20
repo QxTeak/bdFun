@@ -5,6 +5,8 @@ import com.aritxonly.bdfun.core.model.pgc.BangumiCard
 import org.json.JSONArray
 import org.json.JSONObject
 
+private val pgcTitlePunctuation = Regex("[\\s（）()【】\\[\\]·:：,，.。\\-—_/]")
+
 /**
  * 番剧时间表 `/pgc/web/timeline` 的 `result` 数组 → 头图卡片。
  *
@@ -56,7 +58,7 @@ internal fun normalizeSeriesTitle(title: String): String {
     )) {
         value = value.replace(suffix, "")
     }
-    return value.replace(Regex("[\\s（）()【】\\[\\]·:：,，.。\\-—_/]"), "")
+    return value.replace(pgcTitlePunctuation, "")
 }
 
 /** 单天数组的便捷入口，便于测试边界。 */

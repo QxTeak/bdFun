@@ -31,8 +31,6 @@ object AppGraph {
     internal val bangumiRankState get() = checkNotNull(container) { "AppGraph 尚未初始化" }.bangumiRankState
     internal fun bangumiRankBoardState(rankId: Long, oid: String, title: String) =
         checkNotNull(container) { "AppGraph 尚未初始化" }.bangumiRankBoardState(rankId, oid, title)
-    internal suspend fun bangumiFirstEpisode(seasonId: Long) =
-        checkNotNull(container) { "AppGraph 尚未初始化" }.bangumiFirstEpisode(seasonId)
     internal fun onboardingStateHolder(scope: kotlinx.coroutines.CoroutineScope, step: Int) =
         checkNotNull(container) { "AppGraph 尚未初始化" }.onboardingStateHolder(scope, step)
     internal fun inlineVideoStateHolder(bvid: String) =

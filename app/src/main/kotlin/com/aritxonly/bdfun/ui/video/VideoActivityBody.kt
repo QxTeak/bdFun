@@ -54,6 +54,8 @@ internal fun VideoActivityBody(
                 initialCommentRoot = commentRequest.first,
                 initialCommentTarget = commentRequest.second,
                 initialSeekMs = commentRequest.third,
+                epId = scene.epId,
+                seasonId = scene.seasonId,
             ),
             presentation = com.aritxonly.bdfun.ui.VideoScreenPresentation(
                 paneLayout = paneLayout,
@@ -73,9 +75,12 @@ internal fun VideoActivityBody(
             pager = pager,
         )
     }, comments = { c, onBack ->
-        key(c.bvid, c.aid) {
+        val target = com.aritxonly.bdfun.core.domain.videoCommentTarget(c)
+        key(c.bvid, c.aid, target.oid, target.type) {
             CommentScreen(
-                request = CommentScreenRequest(aid = c.aid, upMid = c.ownerMid, title = c.title, bvid = c.bvid),
+                request = CommentScreenRequest(aid = c.aid, upMid = if (c.isPgc) 0L else c.ownerMid,
+                    title = c.title, bvid = c.bvid,
+                    commentOid = target.oid, commentType = target.type),
                 onBack = onBack,
                 layout = CommentScreenLayout(flatList = true, scrollTop = true),
             )

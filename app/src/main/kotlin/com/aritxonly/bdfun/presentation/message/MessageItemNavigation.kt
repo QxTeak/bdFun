@@ -9,6 +9,8 @@ import kotlinx.coroutines.launch
 import com.aritxonly.bdfun.feature.message.application.MessageOpenTarget
 import com.aritxonly.bdfun.feature.message.application.messageOpenTarget
 
+private val messageDynamicIdPattern = Regex("(?:dynamic|opus)/([0-9]+)")
+
 internal fun openMessageItem(
     item: MessageItem, kind: MessageFeedKind,
     controller: com.aritxonly.bdfun.feature.message.application.MessageFeedStateHolder,
@@ -22,7 +24,7 @@ internal fun openMessageItem(
     )
     val target = messageOpenTarget(item, kind)
     if (target == MessageOpenTarget.Feed) {
-        val id = Regex("(?:dynamic|opus)/([0-9]+)").find(item.nativeUri)?.groupValues?.get(1)
+        val id = messageDynamicIdPattern.find(item.nativeUri)?.groupValues?.get(1)
             ?: android.net.Uri.parse(item.nativeUri).getQueryParameter("dynamic_id")
         if (!id.isNullOrBlank()) scope.launch {
             try {

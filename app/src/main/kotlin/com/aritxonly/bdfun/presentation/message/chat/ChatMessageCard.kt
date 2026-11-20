@@ -31,10 +31,13 @@ internal fun ChatMessageCardContent(card: ChatMessageCard) {
     }
 }
 
+private val chatBvPattern = Regex("BV[0-9A-Za-z]{10}")
+private val chatAvPattern = Regex("/video/av(\\d+)")
+
 private fun openChatCard(context: android.content.Context, url: String) {
     val uri = Uri.parse(url)
-    val bvid = Regex("BV[0-9A-Za-z]{10}").find(url)?.value
-    val aid = Regex("/video/av(\\d+)").find(url)?.groupValues?.get(1)?.toLongOrNull()
+    val bvid = chatBvPattern.find(url)?.value
+    val aid = chatAvPattern.find(url)?.groupValues?.get(1)?.toLongOrNull()
     when {
         bvid != null -> navigateToVideoByBvid(context, bvid)
         aid != null -> navigateToVideoAtComment(context, aid = aid, bvid = "", title = "", rootRpid = 0, targetRpid = 0)

@@ -37,7 +37,7 @@ fun BindVideoDetailEffects(
             else -> actions.leaveVideo()
         }
     }
-    LoadInitialVideo(request.video, request.defaultQuality, controllers, ui, load)
+    LoadInitialVideo(request.video, request.defaultQuality, request.epId, request.seasonId, controllers, ui, load)
     BindVideoPageMetadata(detail, currentCid, content.loggedIn, holders.metadata, controllers.interaction, ui)
     RegisterVideoDanmakuSender(detail, currentCid, holders.metadata, controllers.detail, ports)
     BindVideoFullscreenState(ui, ports.publishFullscreen, autoRotate)

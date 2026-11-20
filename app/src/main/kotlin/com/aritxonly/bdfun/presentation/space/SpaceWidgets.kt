@@ -31,9 +31,11 @@ import top.yukonga.miuix.kmp.icon.basic.*
 import top.yukonga.miuix.kmp.icon.extended.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+private val decimalSuffixPattern = Regex("\\.\\d+\\s*")
+
 internal fun formatCountNoDecimal(value: Long): String =
     formatCount(value)
-        .replace(Regex("\\.\\d+\\s*"), "")
+        .replace(decimalSuffixPattern, "")
         .replace(" ", "")
 
 @Composable

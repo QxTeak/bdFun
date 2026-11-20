@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.infra.playback
 import com.aritxonly.bdfun.core.application.reducePlaybackSnapshot
 import android.content.Context
 import androidx.media3.common.MediaItem
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.PlaybackException
 import androidx.media3.datasource.DefaultDataSource
@@ -24,10 +25,11 @@ class Media3PlaybackController(
     decoderMode: Int,
     private val buffering: com.aritxonly.bdfun.core.domain.buffering.BufferSession,
     private val bufferOptions: () -> Pair<String, Boolean>,
+    loudnessEq: Boolean,
     diagnosticLog: ((String) -> Unit)? = null,
 ) : PlaybackController {
     private val appContext = context.applicationContext
-    val player: ExoPlayer = buildPlayer(appContext, decoderMode, buffering, diagnosticLog)
+    val player: ExoPlayer = buildPlayer(appContext, decoderMode, buffering, loudnessEq, diagnosticLog)
     private val diagnostics = diagnosticLog?.let { PlaybackDiagnostics(appContext, it) }
     private val mutableState = MutableStateFlow(PlaybackSnapshot())
     override val state = mutableState.asStateFlow()
@@ -107,7 +109,8 @@ class Media3PlaybackController(
         player.setMediaSource(media, continued.resumePositionMs.coerceAtLeast(0))
         player.prepare()
         player.playWhenReady = continued.autoPlay
-        player.setPlaybackSpeed(continued.speed)
+        // 与 BiliPai 一致：显式给 pitch=1.0，避免某些设备/Sonic 组合把音高带偏。
+        player.playbackParameters = PlaybackParameters(continued.speed.coerceAtLeast(0.1f), 1f)
         refresh()
     }
     private fun retryNetworkFailure(failure: PlaybackFailure): Boolean {
@@ -130,7 +133,12 @@ class Media3PlaybackController(
     override fun play() { if (!released) { player.play(); refresh() } }
     override fun pause() { if (!released) { player.pause(); refresh() } }
     override fun seekTo(positionMs: Long) { if (!released) { player.seekTo(positionMs); refresh() } }
-    override fun setSpeed(speed: Float) { if (!released) { player.setPlaybackSpeed(speed); refresh() } }
+    override fun setSpeed(speed: Float) {
+        if (!released) {
+            player.playbackParameters = PlaybackParameters(speed.coerceAtLeast(0.1f), 1f)
+            refresh()
+        }
+    }
     override fun acknowledgeEnd() { mutableState.value = mutableState.value.copy(ended = false) }
     override fun addListener(listener: PlaybackController.Listener) { listeners.addIfAbsent(listener) }
     override fun removeListener(listener: PlaybackController.Listener) { listeners.remove(listener) }

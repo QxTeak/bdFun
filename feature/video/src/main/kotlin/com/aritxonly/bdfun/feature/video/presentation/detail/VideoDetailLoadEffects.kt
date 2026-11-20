@@ -10,14 +10,15 @@ import com.aritxonly.bdfun.feature.video.application.forPlaybackPart
 
 @Composable
 fun LoadInitialVideo(
-    video: VideoItem, defaultQuality: Int, controllers: VideoDetailControllers, ui: VideoDetailUiStateHolder,
+    video: VideoItem, defaultQuality: Int, epId: Long, seasonId: Long,
+    controllers: VideoDetailControllers, ui: VideoDetailUiStateHolder,
     ports: VideoDetailLoadPorts,
 ) {
     val settings = ports.settings
     val readCache = controllers.readCache
     val detailController = controllers.detail
     val selectionController = controllers.selection
-    LaunchedEffect(video.bvid) {
+    LaunchedEffect(video.bvid, epId, seasonId) {
         ui.metaReady.value = false
         // 离线缓存优先：直接从本地视频轨 + 音轨起播，不再请求播放地址。
         val offline = ports.downloads().findPlayable(video.bvid, video.cid)
@@ -53,27 +54,33 @@ fun LoadInitialVideo(
         val loadedSuccessfully = detailController.load(
             video.bvid, defaultQuality, settings.codecPreference, settings.cdnService,
             resume = { settings.resumePlayback && selectionController.state.value.resumePositionMs <= 0L },
-            onPartSelected = { selectionController.restoreCid(it, video.cid) },
+            onPartSelected = { partCid ->
+                // 只带 seasonId 进页面时初始 bvid 为空，详情回来后才把它补进页面标识。
+                selectionController.restoreCid(partCid, video.cid,
+                    detailController.state.value.detail?.bvid.orEmpty())
+            },
             requestedCid = video.cid,
             onReady = { position ->
                 selectionController.offerCloudResume(position)
                 val ready = detailController.state.value
                 ports.log(
                     "VIDEO",
-                    "source=network bvid=${video.bvid} hasInfo=${ready.playInfo != null} " +
+                    "source=network bvid=${video.bvid} epId=$epId hasInfo=${ready.playInfo != null} " +
                         "qualities=${ready.playInfo?.qualities?.size} audio=${ready.playInfo?.audioUrl != null} " +
                         "err=${ready.playError}",
                 )
             },
+            epId = epId,
+            seasonId = seasonId,
         )
         if (!loadedSuccessfully) return@LaunchedEffect
         val loaded = detailController.state.value
         loaded.detail?.let { d ->
-            if (loaded.related.isNotEmpty()) readCache.putRelated(video.bvid, loaded.related)
+            if (loaded.related.isNotEmpty() && d.bvid.isNotBlank()) readCache.putRelated(d.bvid, loaded.related)
             val part = d.forPlaybackPart(video.cid)
             val selected = selectionController.state.value
-            if (selected.bvid == video.bvid && selected.cid == part.cid) {
-                readCache.putVideo(video.bvid, VideoCacheEntry(d, loaded.playInfo, loaded.danmaku, loaded.related, part.cid))
+            if (d.bvid.isNotBlank() && selected.bvid == d.bvid && selected.cid == part.cid) {
+                readCache.putVideo(d.bvid, VideoCacheEntry(d, loaded.playInfo, loaded.danmaku, loaded.related, part.cid))
             }
         }
     }

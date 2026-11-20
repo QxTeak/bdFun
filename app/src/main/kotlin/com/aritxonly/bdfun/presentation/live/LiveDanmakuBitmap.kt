@@ -106,19 +106,36 @@ private suspend fun loadLiveEmoteBitmap(context: Context, url: String, targetHei
     }.getOrNull()
 }
 
-private fun splitLiveEmotes(text: String, emotes: Map<String, String>): List<LiveDmSegment> {
-    val keys = emotes
-        .filter { it.key.isNotEmpty() && it.value.isNotBlank() }
-        .keys
-    if (keys.isEmpty()) return listOf(LiveDmSegment.Text(text))
-    if (text in keys) return listOf(LiveDmSegment.Emote(text, emotes.getValue(text)))
+/**
+ * 表情弹幕的正则按「当前直播间表情快照」缓存：每条弹幕都重新排序 + 编译
+ * 在刷屏直播间里是实打实的卡顿来源；快照替换（换房间/刷新表情）时自然失效。
+ */
+private class CompiledLiveEmotes(
+    val source: Map<String, String>,
+    val keys: Set<String>,
+    val pattern: Regex,
+)
+private var compiledLiveEmotes: CompiledLiveEmotes? = null
+
+@Synchronized
+private fun liveEmoteMatcher(emotes: Map<String, String>): CompiledLiveEmotes {
+    compiledLiveEmotes?.let { if (it.source === emotes) return it }
+    val keys = emotes.filter { it.key.isNotEmpty() && it.value.isNotBlank() }.keys
     val pattern = Regex(
         (keys.sortedByDescending { it.length }.map { Regex.escape(it) } + "\\[(.*?)\\]")
             .joinToString("|"),
     )
+    return CompiledLiveEmotes(emotes, keys, pattern).also { compiledLiveEmotes = it }
+}
+
+private fun splitLiveEmotes(text: String, emotes: Map<String, String>): List<LiveDmSegment> {
+    val compiled = liveEmoteMatcher(emotes)
+    val keys = compiled.keys
+    if (keys.isEmpty()) return listOf(LiveDmSegment.Text(text))
+    if (text in keys) return listOf(LiveDmSegment.Emote(text, emotes.getValue(text)))
     val result = mutableListOf<LiveDmSegment>()
     var offset = 0
-    pattern.findAll(text).forEach { match ->
+    compiled.pattern.findAll(text).forEach { match ->
         if (match.range.first > offset) {
             result += LiveDmSegment.Text(text.substring(offset, match.range.first))
         }

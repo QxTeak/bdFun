@@ -59,7 +59,9 @@ internal fun VideoActivityContent(
                 overlay = { VideoActivityOverlay(layout, ui, pager, scope, contentBackdrop) },
             ),
         ) {
-            VideoActivityBody(isLoggedIn, settings, VideoActivityScene(video, commentRequest), layout, ui, pager, scope, host,
+            VideoActivityBody(isLoggedIn, settings,
+                VideoActivityScene(video, commentRequest, route?.epId ?: 0L, route?.seasonId ?: 0L),
+                layout, ui, pager, scope, host,
                 contentBackdrop = contentBackdrop)
         }
     }

@@ -36,6 +36,7 @@ class RouteJsonCodec {
                 put("snapshot", route.snapshot?.let(::video))
                 put("fromVideoPage", route.fromVideoPage); put("commentRoot", route.commentRoot)
                 put("commentTarget", route.commentTarget); put("seekMs", route.seekMs)
+                put("epId", route.epId); put("seasonId", route.seasonId)
             }
             is Route.Feed -> {
                 put("type", "dynamic"); put("id", route.id); put("snapshot", route.snapshot?.let(::dynamic))
@@ -54,7 +55,8 @@ class RouteJsonCodec {
                 value.optString("name"), value.optString("avatar"), value.optInt("unread"), value.optLong("maxSeqno"))
             "video" -> Route.Video(value.optString("bvid"), value.optLong("aid"),
                 value.optJSONObject("snapshot")?.let(::readVideo), value.optBoolean("fromVideoPage"),
-                value.optLong("commentRoot"), value.optLong("commentTarget"), value.optLong("seekMs"))
+                value.optLong("commentRoot"), value.optLong("commentTarget"), value.optLong("seekMs"),
+                value.optLong("epId"), value.optLong("seasonId"))
             "dynamic" -> Route.Feed(value.getString("id"), value.optJSONObject("snapshot")?.let(::readFeed))
             else -> null
         }

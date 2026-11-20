@@ -6,7 +6,7 @@ import com.aritxonly.bdfun.core.domain.PlaybackProgressRepository
 import com.aritxonly.bdfun.feature.video.presentation.VideoPlaybackPlatform
 
 class PlayerEngineSettings(
-    val backgroundPlay: () -> Boolean, val loudnessEq: () -> Boolean,
+    val backgroundPlay: () -> Boolean,
     val boostDefaultSpeed: () -> Float, val autoPlay: () -> Boolean,
     val resumePlayback: () -> Boolean, val autoPlayNextChanged: (Boolean) -> Unit,
 )

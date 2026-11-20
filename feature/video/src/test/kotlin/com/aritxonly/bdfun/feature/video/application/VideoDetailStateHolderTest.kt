@@ -25,8 +25,10 @@ class VideoDetailStateHolderTest {
     private class Fake : VideoRepository {
         var relatedResult: Outcome<List<VideoItem>> = Outcome.Success(emptyList())
         var detailResult: Outcome<VideoDetail> = Outcome.Failure(AppError.Network("offline"))
+        var pgcResult: Outcome<VideoDetail> = Outcome.Failure(AppError.Network("offline"))
         var cancel = false
         val requests = mutableListOf<String>()
+        val pgcRequests = mutableListOf<Pair<Long, Long>>()
         override suspend fun videoDetail(bvid: String): Outcome<VideoDetail> {
             requests += bvid
             if (cancel) throw CancellationException()
@@ -36,6 +38,11 @@ class VideoDetailStateHolderTest {
             requests += bvid
             if (cancel) throw CancellationException()
             return relatedResult
+        }
+        override suspend fun pgcEpisode(epId: Long, seasonId: Long): Outcome<VideoDetail> {
+            pgcRequests += epId to seasonId
+            if (cancel) throw CancellationException()
+            return pgcResult
         }
     }
 
@@ -114,5 +121,31 @@ class VideoDetailStateHolderTest {
         val holder = holder(Fake().apply { cancel = true })
         try { holder.fetchDetail("one"); fail("取消必须传播") } catch (_: CancellationException) { }
         try { holder.fetchRelated("one"); fail("取消必须传播") } catch (_: CancellationException) { }
+    }
+
+    /** 番剧卡片只带 season_id 进页面：必须走 PGC 读取，而不是拿空 bvid 查普通稿件。 */
+    @Test fun seasonOnlyEntryLoadsPgcDetailAndPublishesEpisodeCid() = runBlocking {
+        val detail = VideoDetail(
+            bvid = "BV1KN4y1w784",
+            aid = 901628511L,
+            title = "不止考古",
+            cover = "",
+            desc = "",
+            owner = VideoDetailOwner("UP", "", 7, ""),
+            counts = VideoDetailCounts(0, 0, 0, 0, 0, 0, 0),
+            info = VideoDetailInfo(1_666_260_000L, 2747, 1_146_763_843L, "纪录片",
+                pages = emptyList(), epId = 689147L, seasonId = 43161L),
+        )
+        val repository = Fake().apply { pgcResult = Outcome.Success(detail) }
+        val selected = mutableListOf<Long>()
+        val holder = holder(repository)
+        val ok = holder.load("", 80, "auto", "base", resume = { false },
+            onPartSelected = { selected += it }, onReady = {}, seasonId = 43161L)
+        assertTrue(ok)
+        assertEquals(listOf(0L to 43161L), repository.pgcRequests)
+        assertEquals(listOf(1_146_763_843L), selected)
+        assertEquals(detail, holder.state.value.detail)
+        // 详情本身有 bvid，仍会补一次相关推荐；不应再按空 bvid 查详情。
+        assertEquals(listOf(detail.bvid), repository.requests)
     }
 }

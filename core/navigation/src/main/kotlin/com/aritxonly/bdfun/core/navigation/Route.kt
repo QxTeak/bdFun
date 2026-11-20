@@ -11,6 +11,8 @@ sealed interface Route {
         val bvid: String, val aid: Long = 0, val snapshot: VideoItem? = null,
         val fromVideoPage: Boolean = false,
         val commentRoot: Long = 0, val commentTarget: Long = 0, val seekMs: Long = 0,
+        /** PGC 入口：ep_id 决定播放源与评论区身份；普通稿件为 0。 */
+        val epId: Long = 0, val seasonId: Long = 0,
     ) : Route
     data class Space(val mid: Long) : Route
     data class Feed(val id: String, val snapshot: FeedItem? = null) : Route
