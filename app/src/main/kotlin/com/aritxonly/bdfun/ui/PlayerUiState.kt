@@ -173,6 +173,13 @@ internal class VideoPagePresentationState(
                 replyName = value,
             ),
         ) }
+    var replyMid: Long
+        get() = snapshot.replyMid
+        set(value) = update { it.copy(
+            reply = it.reply.copy(
+                replyMid = value,
+            ),
+        ) }
     var replyRoot: Long
         get() = snapshot.replyRoot
         set(value) = update { it.copy(
@@ -217,16 +224,20 @@ internal class VideoPagePresentationState(
         var name: String?
             get() = page.replyName
             set(value) { page.replyName = value }
+        var mid: Long
+            get() = page.replyMid
+            set(value) { page.replyMid = value }
         var root: Long
             get() = page.replyRoot
             set(value) { page.replyRoot = value }
         var parent: Long
             get() = page.replyParent
             set(value) { page.replyParent = value }
-        fun set(name: String, root: Long, parent: Long) {
+        fun set(name: String, mid: Long, root: Long, parent: Long) {
             page.update { it.copy(
                 reply = it.reply.copy(
                     replyName = name,
+                    replyMid = mid,
                     replyRoot = root,
                     replyParent = parent,
                 ),
@@ -235,6 +246,7 @@ internal class VideoPagePresentationState(
         fun clear() { page.update { it.copy(
             reply = it.reply.copy(
                 replyName = null,
+                replyMid = 0L,
                 replyRoot = 0L,
                 replyParent = 0L,
             ),

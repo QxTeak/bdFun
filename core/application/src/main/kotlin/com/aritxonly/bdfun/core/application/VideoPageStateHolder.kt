@@ -31,6 +31,7 @@ data class VideoPageState(
     val danmakuInteract get() = requests.danmakuInteract
     val orientationLocked get() = player.orientationLocked
     val replyName get() = reply.replyName
+    val replyMid get() = reply.replyMid
     val replyRoot get() = reply.replyRoot
     val replyParent get() = reply.replyParent
 }
@@ -66,6 +67,8 @@ data class VideoPageReplyState(
     val replyEditing: Boolean = false,
     val commentThreadVisible: Boolean = false,
     val replyName: String? = null,
+    /** 被回复人的 mid：回复楼里某人时用来登记真正的 @ 提及。 */
+    val replyMid: Long = 0L,
     val replyRoot: Long = 0L,
     val replyParent: Long = 0L,
 )

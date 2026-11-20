@@ -8,7 +8,10 @@ class BiliCommentContentRepository(private val backend: BiliBackend) : CommentCo
         else backend.commentsByOid(query.oid, query.type, page, query.upMid, if (query.sortHot) 2 else 0)
     }
     override suspend fun post(post: CommentPost) = biliOutcome {
-        backend.addCommentByOid(post.query.oid, post.query.type, post.text, post.root, post.parent, post.pictures)
+        backend.addCommentByOid(
+            post.query.oid, post.query.type, post.text, post.root, post.parent,
+            post.pictures, post.atNameToMid,
+        )
     }
     override suspend fun like(query: CommentQuery, rpid: Long, liked: Boolean) = biliOutcome {
         backend.likeCommentByOid(query.oid, query.type, rpid, liked); Unit

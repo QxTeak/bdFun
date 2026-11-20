@@ -2,6 +2,7 @@ package com.aritxonly.bdfun.feature.comment.application
 
 import com.aritxonly.bdfun.core.model.comment.CommentExtras
 import com.aritxonly.bdfun.core.model.comment.CommentItem
+import com.aritxonly.bdfun.core.model.comment.CommentMention
 import com.aritxonly.bdfun.core.model.user.UserProfile
 
 /**
@@ -18,6 +19,8 @@ internal fun localCommentItem(
     root: Long,
     parent: Long,
     nowMs: Long,
+    /** 回复楼里某人时，本地条目也要带上提及，否则刚发出去的 @ 点不开。 */
+    mentions: List<CommentMention> = emptyList(),
 ): CommentItem = CommentItem(
     rpid = if (rpid > 0) rpid else nowMs,
     uname = profile?.name ?: "我",
@@ -34,6 +37,7 @@ internal fun localCommentItem(
         oid = oid,
         root = root,
         parent = parent,
+        mentions = mentions,
     ),
 )
 

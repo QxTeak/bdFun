@@ -34,6 +34,15 @@ class CommentThreadStateHolderTest {
         assertEquals(55L, item.rpid); assertEquals(10L, item.root); assertEquals(20L, item.parent)
         assertEquals("我", item.uname); assertEquals(9L, item.ctime)
     }
+    @Test fun replyToAnotherReplierCarriesMentionMappingAndLocalMention() = runBlocking {
+        val fake = Fake(); val holder = holder(fake)
+        val target = mapOf("路人甲" to 77L)
+        assertEquals(55L, holder.send(" 回复 @路人甲 : 内容", 20, null, target) { 9000L })
+        assertEquals(target, fake.sent?.atNameToMid)
+        // 本地先显示的那条也要带上提及，否则刚发出去的 @ 点不开。
+        assertEquals(listOf(77L to "路人甲"), holder.state.value.extra.single().mentions.map { it.mid to it.name })
+    }
+
     @Test fun nullPostDoesNotCreatePhantomReply() = runBlocking {
         val fake = Fake().apply { postResult = Outcome.Success(null) }
         val holder = holder(fake)

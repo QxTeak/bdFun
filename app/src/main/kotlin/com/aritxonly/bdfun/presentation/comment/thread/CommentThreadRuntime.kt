@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.SoftwareKeyboardController
 import com.aritxonly.bdfun.core.domain.CommentQuery
 import com.aritxonly.bdfun.core.model.comment.CommentItem
 import com.aritxonly.bdfun.feature.comment.application.CommentThreadStateHolder
+import com.aritxonly.bdfun.feature.comment.application.threadReplyMessage
 import kotlinx.coroutines.*
 
 internal class CommentThreadRuntime(
@@ -39,8 +40,20 @@ internal class CommentThreadRuntime(
         val target = transient.replyTarget ?: return
         val text = transient.draft.trim()
         if (text.isEmpty() || sending) return
+        // 回复楼里的某个人（不是楼主）时，正文带上对象：
+        // 服务端只按根楼归档，不写的话发出去看起来就是直接回复楼主。
+        val message = threadReplyMessage(text, target.uname, target.rpid, input.comment.rpid)
+        // 同一个 @ 还要登记成真正的提及，否则对方收不到 @ 通知、文字也点不进主页。
+        val atNameToMid = if (target.rpid != input.comment.rpid && target.mid > 0L) {
+            mapOf(target.uname to target.mid)
+        } else {
+            emptyMap()
+        }
         scope.launch {
-            val result = controller.send(text, target.rpid, dependencies.comments.session.value, System::currentTimeMillis)
+            val result = controller.send(
+                message, target.rpid, dependencies.comments.session.value,
+                atNameToMid, System::currentTimeMillis,
+            )
             currentCoroutineContext().ensureActive()
             if (!controller.isActive) return@launch
             if (result != null) {

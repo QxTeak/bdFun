@@ -16,6 +16,7 @@ import com.aritxonly.teak.common.material.LocalTeakBackdrop
 import com.aritxonly.teak.common.material.LocalTeakMaterialSpec
 import com.aritxonly.teak.common.material.TeakGlassRecipes
 import com.aritxonly.teak.common.material.TeakGlassSurface
+import com.aritxonly.teak.common.material.teakGlassControlShadow
 import com.kyant.shapes.Capsule
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -46,26 +47,34 @@ private fun CommentThreadComposerField(
     focusRequester: FocusRequester, sending: Boolean, onSend: () -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
-    TeakGlassSurface(
-        modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp, max = 160.dp),
-        shape = Capsule(),
-        recipe = TeakGlassRecipes.floatingNavigation(LocalTeakMaterialSpec.current.fineTuning),
-        backdrop = LocalTeakBackdrop.current,
-        contentAlignment = Alignment.CenterStart,
+    val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
+    // 楼中楼输入框和主评论区输入框共用同一套玻璃 + 外置阴影，避免这里看起来是平贴的。
+    Box(
+        modifier = Modifier.fillMaxWidth().then(
+            if (classic) Modifier else Modifier.teakGlassControlShadow(Capsule()),
+        ),
     ) {
-        Box(Modifier.fillMaxWidth()) {
-            Box(
-                Modifier.fillMaxWidth().padding(start = 16.dp, end = if (sending) 76.dp else 44.dp,
-                    top = 12.dp, bottom = 12.dp),
-                contentAlignment = Alignment.CenterStart,
-            ) { CommentThreadTextField(transient, target, focusRequester) }
-            Box(Modifier.align(Alignment.CenterEnd).padding(end = 8.dp)) {
-                if (sending) androidx.compose.material3.Text("发送中…")
-                else ComposerIconButton(
-                    kind = ComposerIcon.Send,
-                    tint = if (transient.draft.isNotBlank()) BrandPink else colors.outline,
-                    onClick = onSend,
-                )
+        TeakGlassSurface(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 44.dp, max = 160.dp),
+            shape = Capsule(),
+            recipe = TeakGlassRecipes.floatingNavigation(LocalTeakMaterialSpec.current.fineTuning),
+            backdrop = LocalTeakBackdrop.current,
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Box(Modifier.fillMaxWidth()) {
+                Box(
+                    Modifier.fillMaxWidth().padding(start = 16.dp, end = if (sending) 76.dp else 44.dp,
+                        top = 12.dp, bottom = 12.dp),
+                    contentAlignment = Alignment.CenterStart,
+                ) { CommentThreadTextField(transient, target, focusRequester) }
+                Box(Modifier.align(Alignment.CenterEnd).padding(end = 8.dp)) {
+                    if (sending) androidx.compose.material3.Text("发送中…")
+                    else ComposerIconButton(
+                        kind = ComposerIcon.Send,
+                        tint = if (transient.draft.isNotBlank()) BrandPink else colors.outline,
+                        onClick = onSend,
+                    )
+                }
             }
         }
     }
