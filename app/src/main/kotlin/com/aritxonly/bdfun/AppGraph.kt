@@ -70,6 +70,7 @@ object AppGraph {
     internal val mediaControls get() = checkNotNull(container) { "AppGraph 尚未初始化" }.mediaControls
     internal val discDependencies get() = checkNotNull(container) { "AppGraph 尚未初始化" }.discDependencies
     internal val backgroundPlayback get() = checkNotNull(container) { "AppGraph 尚未初始化" }.backgroundPlayback
+    internal val pictureInPicturePages get() = checkNotNull(container) { "AppGraph 尚未初始化" }.pictureInPicturePages
     internal fun videoPageState(scope: kotlinx.coroutines.CoroutineScope) =
         checkNotNull(container) { "AppGraph 尚未初始化" }.let {
             com.aritxonly.bdfun.ui.VideoPagePresentationState(scope, it.playbackPauses,

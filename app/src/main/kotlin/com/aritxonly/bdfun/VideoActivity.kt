@@ -181,6 +181,19 @@ class VideoActivity : ComponentActivity() {
     override fun onPictureInPictureModeChanged(isInPictureInPictureMode: Boolean, newConfig: android.content.res.Configuration) {
         super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
         pipMode = isInPictureInPictureMode
+        val pages = AppGraph.pictureInPicturePages
+        if (isInPictureInPictureMode) pages.enter(this, ::closeReplacedPictureInPicture) else pages.exit(this)
+    }
+
+    /**
+     * 被新视频页替换的小窗：先取消离开时登记的唱片交接并暂停，再关闭。
+     * 不取消交接的话，页面销毁时播放器会被交给唱片，旧视频的声音继续和新视频叠在一起。
+     */
+    private fun closeReplacedPictureInPicture() {
+        if (isFinishing || isDestroyed) return
+        com.aritxonly.bdfun.ui.BackgroundPlayback.cancelHandOff()
+        VideoPageBus.pauseFor(this)
+        finish()
     }
 
     override fun onStop() {
@@ -194,6 +207,7 @@ class VideoActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        AppGraph.pictureInPicturePages.exit(this)
         // 只有真正退出这个视频页才清相关推荐；从相关推荐进另一个视频时
         // 这个 Activity 只是 stop、不会 finish，所以返回时不会重载。
         pageState.readCache.close(if (isFinishing) VideoPageBus.currentBvid else null)
@@ -252,6 +266,8 @@ class VideoActivity : ComponentActivity() {
         AppGraph.ensure(applicationContext)
         // 任何方式新开视频页，都先停掉后台播放器，避免两路声音。
         com.aritxonly.bdfun.ui.BackgroundPlayback.stopDetached()
+        // 同理：旧视频页若还在画中画小窗里，新视频页打开时把它关掉。
+        AppGraph.pictureInPicturePages.closeOthers(this)
         applyStatusBarStyle(AppGraph.settings.videoImmersiveStatusBar)
         if (android.os.Build.VERSION.SDK_INT >= 33 && !AppGraph.settings.notifAsked) {
             val granted = checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) ==
