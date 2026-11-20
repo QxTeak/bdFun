@@ -1,12 +1,14 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -60,39 +62,42 @@ internal fun VideoRelatedMetadata(
     item: VideoItem, metaLabel: String?, coverHeight: androidx.compose.ui.unit.Dp, modifier: Modifier,
 ) {
     val colors = MiuixTheme.colorScheme
+    // 右列高度只给下限：字号放大或两行标题时能撑高，UP 行不会被挤出容器裁掉。
     Column(
-        modifier = modifier.height(coverHeight),
+        modifier = modifier.heightIn(min = coverHeight),
+        verticalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(
-            text = item.title,
-            color = colors.onBackground,
-            fontSize = 13.sp,
-            lineHeight = 17.sp,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Spacer(Modifier.height(3.dp))
-        Row(
-            modifier = Modifier.padding(start = 1.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MetricGlyph(play = true, color = colors.onBackgroundVariant, size = 11.dp)
-            Spacer(Modifier.width(2.dp))
+        Column {
             Text(
-                text = formatCount(item.play),
-                color = colors.onBackgroundVariant,
-                fontSize = 10.sp,
+                text = item.title,
+                color = colors.onBackground,
+                fontSize = 13.sp,
+                lineHeight = 17.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.width(6.dp))
-            MetricGlyph(play = false, color = colors.onBackgroundVariant, size = 11.dp)
-            Spacer(Modifier.width(2.dp))
-            Text(
-                text = formatCount(item.danmaku),
-                color = colors.onBackgroundVariant,
-                fontSize = 10.sp,
-            )
+            Spacer(Modifier.height(3.dp))
+            Row(
+                modifier = Modifier.padding(start = 1.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MetricGlyph(play = true, color = colors.onBackgroundVariant, size = 11.dp)
+                Spacer(Modifier.width(2.dp))
+                Text(
+                    text = formatCount(item.play),
+                    color = colors.onBackgroundVariant,
+                    fontSize = 10.sp,
+                )
+                Spacer(Modifier.width(6.dp))
+                MetricGlyph(play = false, color = colors.onBackgroundVariant, size = 11.dp)
+                Spacer(Modifier.width(2.dp))
+                Text(
+                    text = formatCount(item.danmaku),
+                    color = colors.onBackgroundVariant,
+                    fontSize = 10.sp,
+                )
+            }
         }
-        Spacer(Modifier.weight(1f))
         if (metaLabel != null) {
             Text(
                 text = metaLabel,
