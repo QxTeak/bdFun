@@ -9,7 +9,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -29,9 +33,17 @@ fun FeedTopBar(
     val settings = LocalSettingsBindings.current
     val tabs = DynamicTabPolicy.ordered(settings.dynamicFeedTabs, settings.dynamicFeedTabOrder)
     val keys = tabs.map { it.key }
-    // 设置里关掉当前 Tab 后，回到第一个仍可见的 Tab。
+    // 排序的第一项就是打开动态页时的默认类型（#111）；之后只有当前类型被关掉才回落。
+    var defaultApplied by rememberSaveable { mutableStateOf(false) }
     LaunchedEffect(keys, state.type) {
-        if (keys.isNotEmpty() && state.type !in keys) {
+        if (keys.isEmpty()) return@LaunchedEffect
+        if (!defaultApplied) {
+            defaultApplied = true
+            val first = keys.first()
+            if (state.type != first) state.switchTo(first, loggedIn)
+            return@LaunchedEffect
+        }
+        if (state.type !in keys) {
             state.switchTo(DynamicTabPolicy.fallbackKey(settings.dynamicFeedTabs, settings.dynamicFeedTabOrder, state.type), loggedIn)
         }
     }
