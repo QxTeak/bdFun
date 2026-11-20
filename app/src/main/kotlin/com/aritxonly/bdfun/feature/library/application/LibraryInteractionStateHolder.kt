@@ -32,9 +32,10 @@ internal class LibraryInteractionStateHolder(
     fun closeSearch() { update { it.copy(searching = false, query = "") } }
     fun dismissTransfer() { update { it.copy(transferMode = null) } }
     fun selectFolder() { update { it.copy(selected = emptySet()) } }
-    fun toggleSelected(id: String) { update {
-        it.copy(selected = if (id in it.selected) it.selected - id else it.selected + id)
+    fun toggleSelected(id: String) { update {        it.copy(selected = if (id in it.selected) it.selected - id else it.selected + id)
     } }
+    /** 长按面板里的单项操作：只选中这一条，复用批量管理的删除/移动/复制。 */
+    fun selectOnly(id: String) { update { it.copy(selected = setOf(id)) } }
     fun back(): Boolean {
         if (closed) return false
         val current = mutable.value
@@ -88,6 +89,8 @@ internal class LibraryInteractionStateHolder(
             }
             "move" -> if (mode == 0) update { it.copy(transferMode = 1) }
             "copy" -> if (mode == 0) update { it.copy(transferMode = 2) }
+            // 批量面板上的「取消」：直接退出批量管理，和返回键效果一致。
+            "cancel" -> update { it.copy(batchMode = false, selected = emptySet(), transferMode = null) }
         }
         return null
     }

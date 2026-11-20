@@ -79,8 +79,23 @@ internal class LibraryStateHolder(
         } finally { loading(0, false) }
     }
 
-    suspend fun loadFolder(index: Int) {
-        if (!isActive || mutable.value.busy) return
+    /** 移动/复制/删除只影响收藏夹数量：只换收藏夹列表，不动当前列表与滚动位置。 */
+    suspend fun refreshFolderCounts() {
+        if (!isActive) return
+        when (val result = request { repository.folders() }) {
+            is Outcome.Success -> mutable.update { state ->
+                val current = state.favorites
+                val currentId = current.folders.getOrNull(current.index)?.id
+                val index = result.value.indexOfFirst { it.id == currentId }
+                    .takeIf { it >= 0 }
+                    ?: current.index.coerceIn(0, (result.value.size - 1).coerceAtLeast(0))
+                state.copy(favorites = current.copy(folders = result.value, index = index))
+            }
+            is Outcome.Failure -> Unit
+        }
+    }
+
+    suspend fun loadFolder(index: Int) {        if (!isActive || mutable.value.busy) return
         val initial = mutable.value.favorites
         val folder = initial.folders.getOrNull(index) ?: return
         val revision = initial.revision + 1

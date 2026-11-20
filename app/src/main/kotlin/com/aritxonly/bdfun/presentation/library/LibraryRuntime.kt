@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import com.aritxonly.bdfun.core.model.library.FavoriteFolder
+import com.aritxonly.bdfun.core.model.video.VideoItem
 import com.aritxonly.bdfun.feature.library.application.*
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -32,11 +33,28 @@ internal class LibraryRuntime(
     fun selectFolder(index: Int) { interaction.selectFolder(); scope.launch { data.loadFolder(index) } }
     fun batchAction(key: String) {
         val selected = interaction.batchAction(key, currentMode, data.state.value) ?: return
-        scope.launch { data.deleteSelected(selected.mode, selected.ids)?.let { context.showToast(it) } }
+        scope.launch {
+            data.deleteSelected(selected.mode, selected.ids)?.let { context.showToast(it) }
+            // 删除会改变当前收藏夹的数量，顶部的收藏夹栏要跟着更新。
+            data.refreshFolderCounts()
+        }
+    }
+    /** 长按视频：打开和首页同款的底部操作面板。 */
+    fun openSheet(video: VideoItem) { presentation.sheetVideo = video }
+    fun dismissSheet() { presentation.sheetVideo = null }
+    /** 面板里的选项直接复用批量管理：只选中这一条再走原来的删除/移动/复制流程。 */
+    fun sheetAction(kind: String, video: VideoItem) {
+        presentation.sheetVideo = null
+        interaction.selectOnly(video.bvid)
+        batchAction(kind)
     }
     fun transfer(kind: Int, target: FavoriteFolder) {
         val selected = interaction.beginTransfer(kind) ?: return
-        scope.launch { data.transferSelected(selected.moving, target, selected.ids)?.let { context.showToast(it) } }
+        scope.launch {
+            data.transferSelected(selected.moving, target, selected.ids)?.let { context.showToast(it) }
+            // 移动/复制后来源和目标收藏夹的数量都会变，刷新顶部收藏夹栏。
+            data.refreshFolderCounts()
+        }
     }
 }
 
