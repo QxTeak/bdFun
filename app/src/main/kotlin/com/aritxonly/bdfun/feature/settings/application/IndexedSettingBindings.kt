@@ -112,6 +112,8 @@ private fun otherBindings(repository: SettingsRepository) = mapOf(
         { repository.message.showIpLocation = (it as SettingValue.Flag).value }),
     "hot_danmaku" to IndexedSettingBinding({ SettingValue.Flag(repository.danmaku.hotDanmakuEnabled) },
         { repository.danmaku.hotDanmakuEnabled = (it as SettingValue.Flag).value }),
+    "video_interaction" to IndexedSettingBinding({ SettingValue.Flag(repository.danmaku.videoInteraction) },
+        { repository.danmaku.videoInteraction = (it as SettingValue.Flag).value }),
     "dm_low_refresh" to IndexedSettingBinding({ SettingValue.Flag(repository.danmaku.danmakuLowRefresh) },
         { repository.danmaku.danmakuLowRefresh = (it as SettingValue.Flag).value }),
     "show_hot_search" to IndexedSettingBinding({ SettingValue.Flag(repository.general.showHotSearch) },

@@ -5,18 +5,6 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class LibraryPresentationPoliciesTest {
-    @Test fun entranceIsOncePerKeyAcrossScreensUntilBoundedEviction() {
-        val registry=LibraryEntranceRegistry(2)
-        assertTrue(registry.mark("0-BV1")); assertFalse(registry.mark("0-BV1"))
-        assertTrue(registry.mark("1-BV1")); assertTrue(registry.mark("2-BV1"))
-        assertTrue(registry.mark("0-BV1"))
-    }
-    @Test fun repeatedEntranceDoesNotChangeOldestInsertionOrder() {
-        val registry=LibraryEntranceRegistry(2)
-        registry.mark("A"); registry.mark("B"); assertFalse(registry.mark("A"))
-        registry.mark("C"); assertFalse(registry.mark("B")); assertTrue(registry.mark("A"))
-    }
-    @Test(expected=IllegalArgumentException::class) fun entranceCapacityMustBePositive() { LibraryEntranceRegistry(0) }
     @Test fun searchDraftDoesNotCommitUntilSubmitAndSubmitReturnsUntrimmedText() {
         val h=LibrarySearchStateHolder(); h.changeDraft("  CAT  ")
         assertFalse(h.state.value.committed); assertEquals("  CAT  ",h.submit()); assertTrue(h.state.value.committed)

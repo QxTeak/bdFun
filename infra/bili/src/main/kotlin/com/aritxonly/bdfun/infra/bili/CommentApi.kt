@@ -126,7 +126,8 @@ internal suspend fun BiliApiContext.addComment(
     root: Long = 0,
     parent: Long = 0,
     pictures: String? = null,
-): Long? = addCommentByOid(aid.toString(), 1, message, root, parent, pictures)
+    atNameToMid: Map<String, Long> = emptyMap(),
+): Long? = addCommentByOid(aid.toString(), 1, message, root, parent, pictures, atNameToMid)
 
 internal suspend fun BiliApiContext.addCommentByOid(
     oid: String,
@@ -135,6 +136,7 @@ internal suspend fun BiliApiContext.addCommentByOid(
     root: Long = 0,
     parent: Long = 0,
     pictures: String? = null,
+    atNameToMid: Map<String, Long> = emptyMap(),
 ): Long? = withContext(Dispatchers.IO) {
     val params = mutableMapOf(
         "oid" to oid,
@@ -146,6 +148,11 @@ internal suspend fun BiliApiContext.addCommentByOid(
     if (root > 0) params["root"] = root.toString()
     if (parent > 0) params["parent"] = parent.toString()
     if (!pictures.isNullOrBlank()) params["pictures"] = pictures
+    // 回复楼里的某个人时，让正文里的「@某人」变成真正的提及：对方会收到 @ 通知，
+    // 客户端里这段文字也能点进对方主页。官方网页和 PiliPlus 都带这个字段。
+    if (atNameToMid.isNotEmpty()) {
+        params["at_name_to_mid"] = JSONObject(atNameToMid.filterValues { it > 0L }).toString()
+    }
     val data = postRequest("/x/v2/reply/add", params, tolerateEmptyBody = false)
     data.l("rpid").takeIf { it > 0 }
         ?: data.optJSONObject("reply")?.l("rpid")?.takeIf { it > 0 }

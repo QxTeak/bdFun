@@ -80,10 +80,15 @@ fun TeakGlassMenu(
             }
             Box(modifier = Modifier.fillMaxSize()) {
                 var origin by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+                androidx.compose.runtime.SideEffect {
+                    // 锚点用屏幕坐标（楼中楼窗口不在 (0,0)），这里换算成 Dialog 窗口坐标。
+                    val location = IntArray(2).also { view.getLocationOnScreen(it) }
+                    origin = androidx.compose.ui.geometry.Offset(location[0].toFloat(), location[1].toFloat())
+                }
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .onGloballyPositioned { origin = it.positionInWindow() },
+                        .onGloballyPositioned { if (origin == androidx.compose.ui.geometry.Offset.Zero) origin = it.positionInWindow() },
                 ) {
                     val anchor = Rect(
                         left = anchorInWindow.left - origin.x,

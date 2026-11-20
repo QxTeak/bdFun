@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import com.aritxonly.bdfun.core.domain.CommentQuery
 import com.aritxonly.bdfun.core.model.comment.CommentItem
+import com.aritxonly.bdfun.core.model.comment.CommentMention
 import com.aritxonly.bdfun.feature.comment.application.CommentListStateHolder
 import com.aritxonly.bdfun.feature.comment.application.localCommentItem
 import com.aritxonly.bdfun.feature.comment.application.CommentActionsStateHolder
@@ -25,7 +26,10 @@ internal class CommentPageRuntime(
     val context: Context,
 ) {
     /** 刚发出的评论/回复先按本地内容显示；刷新后由 API 结果取代。 */
-    fun localComment(text: String, rpid: Long, root: Long = 0L, parent: Long = 0L): CommentItem =
+    fun localComment(
+        text: String, rpid: Long, root: Long = 0L, parent: Long = 0L,
+        mentions: List<CommentMention> = emptyList(),
+    ): CommentItem =
         localCommentItem(
             rpid = rpid,
             text = text,
@@ -34,6 +38,7 @@ internal class CommentPageRuntime(
             root = root,
             parent = parent,
             nowMs = System.currentTimeMillis(),
+            mentions = mentions,
         )
 
     /** 定位/发送成功后闪一下灰：与设置页按压同款，900ms 后清掉高亮。 */
@@ -49,7 +54,7 @@ internal class CommentPageRuntime(
     fun startReply(target: CommentItem) {
         if (!actions.isActive) return
         val root = if (target.root > 0) target.root else target.rpid
-        page.replyTarget.set(target.uname, root, target.rpid)
+        page.replyTarget.set(target.uname, target.mid, root, target.rpid)
         page.requestReplyFocus++
     }
     fun toggleLike(target: CommentItem) {
@@ -94,7 +99,7 @@ internal fun rememberCommentPageRuntime(request: CommentScreenRequest): CommentP
         CommentMenuStateHolder(context, scope, actions, request.bvid, reply@ { target ->
             if (!actions.isActive) return@reply
             val root = if (target.root > 0) target.root else target.rpid
-            page.replyTarget.set(target.uname, root, target.rpid)
+            page.replyTarget.set(target.uname, target.mid, root, target.rpid)
             page.requestReplyFocus++
         }, list::remove)
     }

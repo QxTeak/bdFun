@@ -87,6 +87,7 @@ fun LibraryBatchOverlay() {
                         ),
                     )
                 }
+                add(TeakBatchAction("cancel", "取消"))
             },
             onAction = { LibraryPageBus.sendBatchAction(it.key) },
             modifier = Modifier

@@ -36,11 +36,21 @@ internal fun CommentRow(item: CommentItem, disliked: Boolean, actions: CommentRo
     // combinedClickable 的 onLongClick 不给坐标，这里单独记一下按下的位置，
     // 菜单就会弹在手指按下的地方，而不是固定贴在这一行的省略号上。
     var pressPosition by remember { mutableStateOf(Offset.Zero) }
+    val view = androidx.compose.ui.platform.LocalView.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .onGloballyPositioned {
-                ui.bounds = it.boundsInWindow()
+            .onGloballyPositioned { coordinates ->
+                // 评论菜单是独立的 Dialog 窗口：锚点必须用屏幕坐标。
+                // 楼中楼窗口本身不贴屏幕顶部（平板上更明显），用窗口内坐标会整体错位。
+                val location = IntArray(2).also { view.getLocationOnScreen(it) }
+                val bounds = coordinates.boundsInWindow()
+                ui.bounds = Rect(
+                    left = bounds.left + location[0],
+                    top = bounds.top + location[1],
+                    right = bounds.right + location[0],
+                    bottom = bounds.bottom + location[1],
+                )
             }
             // 只旁听指针位置，不消费任何事件：长按由 combinedClickable 判定，
             // 我们只是把「按下的坐标」记下来，好让菜单弹在手指处。

@@ -15,6 +15,10 @@ interface AppearanceSettings {
     var homeChannels: Set<String>
     /** 首页频道 Tab 的显示顺序；只影响顺序，是否显示仍由 [homeChannels] 决定。 */
     var homeChannelOrder: List<String>
+    /** 动态页顶部 Tab 的显示开关；「全部」始终开启。 */
+    var dynamicFeedTabs: Set<String>
+    /** 动态页顶部 Tab 的顺序。 */
+    var dynamicFeedTabOrder: List<String>
     var homeCardStyle: Int
     var shadowsEnabled: Boolean
     var scrollTopEnabled: Boolean
@@ -91,6 +95,8 @@ interface DanmakuSettings {
     var danmakuKeywordFilter: Boolean
     var danmakuKeywords: Set<String>
     var hotDanmakuEnabled: Boolean
+    /** 视频互动（弹幕投票/评分/关注等指令卡片）：关闭后播放器不再显示这些浮层。 */
+    var videoInteraction: Boolean
 }
 
 interface MessageSettings {

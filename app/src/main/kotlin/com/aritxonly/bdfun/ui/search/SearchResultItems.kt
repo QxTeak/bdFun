@@ -57,17 +57,29 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows
     videos: List<com.aritxonly.bdfun.data.VideoItem>,
     keyPrefix: String,
     onOpenVideo: (com.aritxonly.bdfun.data.VideoItem) -> Unit,
+    onLongPressVideo: ((com.aritxonly.bdfun.data.VideoItem) -> Unit)? = null,
+    showSelection: Boolean = false,
+    selectedIds: Set<String> = emptySet(),
+    enableOneTake: Boolean = true,
 ) {
     items(items = videos, key = { keyPrefix + it.bvid }) { video ->
         val oneTake = rememberOneTakeAnchor()
         val itemContext = LocalContext.current
         val cardRadiusPx = with(LocalDensity.current) { 10.dp.toPx() }
         val open = {
-            oneTake.open(itemContext, video, cardRadiusPx) {
+            if (enableOneTake) {
+                oneTake.open(itemContext, video, cardRadiusPx) { onOpenVideo(video) }
+            } else {
                 onOpenVideo(video)
             }
         }
-        SearchResultRow(video, open, oneTake.modifier)
+        SearchResultRow(
+            video = video,
+            onClick = open,
+            modifier = if (enableOneTake) oneTake.modifier else Modifier,
+            onLongClick = onLongPressVideo?.let { longPress -> { longPress(video) } },
+            selection = if (showSelection) video.bvid in selectedIds else null,
+        )
     }
 }
 

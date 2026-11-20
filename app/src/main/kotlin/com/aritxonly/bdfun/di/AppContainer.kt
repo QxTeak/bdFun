@@ -305,7 +305,7 @@ internal class AppContainer(
             com.aritxonly.bdfun.feature.library.application.LibraryInteractionStateHolder(
                 settings.repository.general, settings.state.map { Unit }, scope,
             )
-        }, com.aritxonly.bdfun.feature.library.application.LibraryEntranceRegistry(), playbackQueue)
+        }, playbackQueue)
     }
     fun libraryStateHolder(): com.aritxonly.bdfun.feature.library.application.LibraryStateHolder {
         val identity = sessionController.identity

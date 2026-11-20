@@ -2,6 +2,7 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -20,6 +21,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.aritxonly.bdfun.data.SearchUser
 import com.aritxonly.bdfun.data.VideoItem
+import top.yukonga.miuix.kmp.basic.Checkbox
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -78,67 +82,100 @@ internal fun SearchUserRow(user: SearchUser, onClick: () -> Unit) {
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun SearchResultRow(
     video: VideoItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    /** 收藏/历史/稍后再看复用这一行时，长按弹同款操作面板。 */
+    onLongClick: (() -> Unit)? = null,
+    /** 批量管理：null 表示不显示勾选，true/false 表示已选/未选。 */
+    selection: Boolean? = null,
 ) {
-    val colors = MiuixTheme.colorScheme
     val coverWidth = 150.dp
     val coverHeight = coverWidth * 9f / 16f
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(interactionSource = null, indication = null, onClick = onClick)
+            .then(
+                if (onLongClick == null) {
+                    Modifier.clickable(interactionSource = null, indication = null, onClick = onClick)
+                } else {
+                    Modifier.combinedClickable(
+                        interactionSource = null,
+                        indication = null,
+                        onClick = onClick,
+                        onLongClick = onLongClick,
+                    )
+                },
+            )
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.Top,
     ) {
         SearchVideoCover(video, coverWidth, coverHeight)
         Spacer(Modifier.width(10.dp))
-        Column(modifier = Modifier.weight(1f).height(coverHeight)) {
+        SearchResultInfo(video, Modifier.weight(1f).height(coverHeight))
+        // 批量管理勾选直接复用 Miuix 的 Checkbox（和选收藏夹的面板同款）。
+        if (selection != null) {
+            Checkbox(
+                state = if (selection) ToggleableState.On else ToggleableState.Off,
+                onClick = null,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .padding(start = 8.dp)
+                    .clearAndSetSemantics {},
+            )
+        }
+    }
+}
+
+/** 标题 + 播放/弹幕 + UP：和封面同高的一列。 */
+@Composable
+private fun SearchResultInfo(video: VideoItem, modifier: Modifier = Modifier) {
+    val colors = MiuixTheme.colorScheme
+    Column(modifier = modifier) {
+        Text(
+            text = video.title,
+            color = colors.onBackground,
+            fontSize = 13.sp,
+            lineHeight = 17.sp,
+            fontWeight = FontWeight.Normal,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.height(3.dp))
+        Row(
+            modifier = Modifier.padding(start = 1.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            MetricGlyph(play = true, color = colors.onBackgroundVariant, size = 11.dp)
+            Spacer(Modifier.width(2.dp))
             Text(
-                text = video.title,
-                color = colors.onBackground,
-                fontSize = 13.sp,
-                lineHeight = 17.sp,
-                fontWeight = FontWeight.Normal,
-                maxLines = 2,
+                text = formatCount(video.play),
+                color = colors.onBackgroundVariant,
+                fontSize = 10.sp,
+            )
+            Spacer(Modifier.width(6.dp))
+            MetricGlyph(play = false, color = colors.onBackgroundVariant, size = 11.dp)
+            Spacer(Modifier.width(2.dp))
+            Text(
+                text = formatCount(video.danmaku),
+                color = colors.onBackgroundVariant,
+                fontSize = 10.sp,
+            )
+        }
+        Spacer(Modifier.weight(1f))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            UpBadge()
+            Spacer(Modifier.width(5.dp))
+            Text(
+                text = video.ownerName,
+                color = colors.onBackgroundVariant,
+                fontSize = 11.sp,
+                maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.height(3.dp))
-            Row(
-                modifier = Modifier.padding(start = 1.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                MetricGlyph(play = true, color = colors.onBackgroundVariant, size = 11.dp)
-                Spacer(Modifier.width(2.dp))
-                Text(
-                    text = formatCount(video.play),
-                    color = colors.onBackgroundVariant,
-                    fontSize = 10.sp,
-                )
-                Spacer(Modifier.width(6.dp))
-                MetricGlyph(play = false, color = colors.onBackgroundVariant, size = 11.dp)
-                Spacer(Modifier.width(2.dp))
-                Text(
-                    text = formatCount(video.danmaku),
-                    color = colors.onBackgroundVariant,
-                    fontSize = 10.sp,
-                )
-            }
-            Spacer(Modifier.weight(1f))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                UpBadge()
-                Spacer(Modifier.width(5.dp))
-                Text(
-                    text = video.ownerName,
-                    color = colors.onBackgroundVariant,
-                    fontSize = 11.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
         }
     }
 }

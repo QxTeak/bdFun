@@ -1,6 +1,8 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.*
+import com.aritxonly.bdfun.core.model.comment.CommentMention
+import com.aritxonly.bdfun.feature.comment.application.threadReplyMessage
 import kotlinx.coroutines.*
 
 @Composable
@@ -44,7 +46,18 @@ private fun CommentSenderEffect(runtime: CommentPageRuntime) {
         val sender: suspend (String, String?) -> Boolean = sender@ { text, pictures ->
             val root = page.replyTarget.root
             val parent = page.replyTarget.parent
-            val result = runtime.actions.post(text, root, parent, pictures)
+            val targetName = page.replyTarget.name
+            val targetMid = page.replyTarget.mid
+            // 回复楼里的某个人而不是楼主时，正文明确写出对象，否则服务端只会显示成回复楼主。
+            val message = threadReplyMessage(text, targetName, parent, root)
+            // 同时登记成真正的提及：对方能收到 @ 通知，正文里的 @ 也能点进主页。
+            val atNameToMid = if (parent > 0L && parent != root && targetMid > 0L && !targetName.isNullOrBlank()) {
+                mapOf(targetName to targetMid)
+            } else {
+                emptyMap()
+            }
+            val mentions = atNameToMid.map { (name, mid) -> CommentMention(mid, name) }
+            val result = runtime.actions.post(message, root, parent, pictures, atNameToMid)
             if (result == null) false else {
                 page.dependencies.sentHistory.record("comment", text, request.bvid, request.title)
                 page.replyTarget.clear()
@@ -53,7 +66,7 @@ private fun CommentSenderEffect(runtime: CommentPageRuntime) {
                 if (root <= 0L && parent <= 0L) {
                     // 新主评论不立刻整页重载：先本地钉在主评论区第一条并闪灰，
                     // 等下一次刷新/重置才回到 API 的正常排序位置。
-                    val local = runtime.localComment(text, result)
+                    val local = runtime.localComment(message, result, mentions = mentions)
                     runtime.list.prependLocal(local)
                     // 主评论区不在顶端时先回到顶端，不然新评论还在屏幕外。
                     runCatching { runtime.listState.animateScrollToItem(0) }
@@ -63,7 +76,7 @@ private fun CommentSenderEffect(runtime: CommentPageRuntime) {
                 } else {
                     // 回复别人的评论：先直接出现在对应根评论的折叠预览里并闪灰；
                     // 根评论已翻页翻出去时才退回原来的重载 + 定位。
-                    val local = runtime.localComment(text, result, root, parent)
+                    val local = runtime.localComment(message, result, root, parent, mentions)
                     val attached = runtime.list.addLocalPreviewReply(root, local)
                     if (attached) {
                         runCatching { runtime.listState.animateScrollToItem(0) }

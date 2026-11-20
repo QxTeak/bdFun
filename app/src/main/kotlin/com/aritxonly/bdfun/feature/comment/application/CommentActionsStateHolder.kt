@@ -70,12 +70,15 @@ internal class CommentActionsStateHolder(
         }
     }
 
-    suspend fun post(text: String, root: Long, parent: Long, pictures: String? = null): Long? {
+    suspend fun post(
+        text: String, root: Long, parent: Long, pictures: String? = null,
+        atNameToMid: Map<String, Long> = emptyMap(),
+    ): Long? {
         if (!isActive || mutableState.value.sending) return null
         mutableState.update { it.copy(sending = true, sendError = null) }
         try {
             val result = kotlinx.coroutines.withTimeoutOrNull(sendTimeoutMs) {
-                repository.post(CommentPost(query, text, root, parent, pictures))
+                repository.post(CommentPost(query, text, root, parent, pictures, atNameToMid))
             } ?: Outcome.Failure(AppError.Network("发送超时，请检查评论是否已发出再重试"))
             currentCoroutineContext().ensureActive()
             if (!isActive) return null

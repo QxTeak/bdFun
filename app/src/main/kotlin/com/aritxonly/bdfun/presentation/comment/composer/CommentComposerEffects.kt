@@ -22,5 +22,9 @@ internal fun CommentComposerEffects(
         page.consumedDismissReply = tick
         actions.dismiss()
     }
+    // 返回键和「点空白处」走同一条收起路径：清焦点、收键盘、退出编辑态，
+    // 草稿为空时连回复目标一起清掉。以前这里没人接返回，按一下只是把键盘收下去，
+    // 输入框还停在编辑态，还能继续打字。
+    androidx.activity.compose.BackHandler(enabled = page.replyEditing) { actions.dismiss() }
     DisposableEffect(controller, page) { onDispose { page.replyEditing = false } }
 }

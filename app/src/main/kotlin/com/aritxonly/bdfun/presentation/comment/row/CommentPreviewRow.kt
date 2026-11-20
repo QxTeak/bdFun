@@ -22,10 +22,19 @@ import androidx.compose.runtime.getValue
 internal fun CommentPreviewRow(reply: CommentItem, actions: CommentPreviewActions) {
     val likes = LocalVideoPageState.current.dependencies.comments.likes
     val ui = remember(reply.rpid) { CommentRowPresentationStateHolder() }
+    val view = androidx.compose.ui.platform.LocalView.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .onGloballyPositioned { ui.bounds = it.boundsInWindow() }
+            .onGloballyPositioned { coordinates ->
+                // 和主评论行一致：菜单是另一个 Dialog 窗口，锚点用屏幕坐标。
+                val location = IntArray(2).also { view.getLocationOnScreen(it) }
+                val bounds = coordinates.boundsInWindow()
+                ui.bounds = androidx.compose.ui.geometry.Rect(
+                    bounds.left + location[0], bounds.top + location[1],
+                    bounds.right + location[0], bounds.bottom + location[1],
+                )
+            }
             .clip(RoundedCornerShape(8.dp))
             .commentFlash(reply.rpid, RoundedCornerShape(8.dp))
             .combinedClickable(

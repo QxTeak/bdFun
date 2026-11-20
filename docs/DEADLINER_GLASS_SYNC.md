@@ -97,3 +97,12 @@ Run `:app:assembleDebug :app:testDebugUnitTest :TeakUI:testDebugUnitTest`. Host 
 ### 2026-11-14 · issue #16 单项宽度细调
 
 单个 Tab 最大宽度由 80dp 调整为 78dp，整体胶囊上限保持 320dp。
+
+### 2026-11-20 · 评论区输入框补上外置玻璃阴影
+
+- 主评论区输入胶囊和楼中楼回复胶囊都改为「外层 Box 画阴影、内层 TeakGlassSurface 画玻璃」，
+  与底栏 `MiuixFloatingTabBar`、顶栏圆钮 `TeakGlassIconButton`、后台唱片同一套结构。
+- 阴影统一走 `teakGlassControlShadow(Capsule())`：视频页有控件强调时用 ContentControl，
+  其它页面回落到 Standard，不再各自维护一套 shadow 修饰符。
+- 原因：阴影修饰符和玻璃的 `clip` 挂在同一个节点上时会被裁掉，实际观感就是「没有加深阴影」；
+  经典样式保持原来的平面底，不加阴影。

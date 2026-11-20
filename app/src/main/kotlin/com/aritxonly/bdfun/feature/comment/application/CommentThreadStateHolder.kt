@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.feature.comment.application
 
 import com.aritxonly.bdfun.core.model.comment.CommentItem
+import com.aritxonly.bdfun.core.model.comment.CommentMention
 import com.aritxonly.bdfun.core.model.user.UserProfile
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -18,9 +19,12 @@ internal class CommentThreadStateHolder(val actions: CommentActionsStateHolder, 
     val isActive get() = !closed && actions.isActive
     fun close() { closed = true }
 
-    suspend fun send(text: String, parent: Long, profile: UserProfile?, clock: () -> Long): Long? {
+    suspend fun send(
+        text: String, parent: Long, profile: UserProfile?,
+        atNameToMid: Map<String, Long> = emptyMap(), clock: () -> Long,
+    ): Long? {
         if (!isActive) return null
-        val result = actions.post(text, root, parent) ?: return null
+        val result = actions.post(text, root, parent, atNameToMid = atNameToMid) ?: return null
         currentCoroutineContext().ensureActive()
         if (!isActive) return null
         val nowMs = clock()
@@ -32,6 +36,7 @@ internal class CommentThreadStateHolder(val actions: CommentActionsStateHolder, 
             root = root,
             parent = parent,
             nowMs = nowMs,
+            mentions = atNameToMid.filterValues { it > 0L }.map { (name, mid) -> CommentMention(mid, name) },
         )
         // 按发送先后追加；展示层再把每条回复插到它回复的那条下面。
         mutableState.update { it.copy(extra = it.extra + item) }

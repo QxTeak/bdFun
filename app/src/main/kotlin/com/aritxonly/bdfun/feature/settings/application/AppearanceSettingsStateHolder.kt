@@ -67,6 +67,37 @@ internal class AppearanceSettingsStateHolder(
             prefs.edit().putString("home_channel_order", normalized.joinToString(",")).apply()
         }
 
+    private val dynamicFeedTabsState = stateCell(
+        "dynamicFeedTabsState",
+        DynamicTabPolicy.normalize(
+            prefs.getStringSet("dynamic_feed_tabs", null)
+                ?: DynamicTabPolicy.defaults,
+        ),
+    )
+    override var dynamicFeedTabs: Set<String>
+        get() = dynamicFeedTabsState.value
+        set(value) {
+            val normalized = DynamicTabPolicy.normalize(value)
+            dynamicFeedTabsState.value = normalized
+            prefs.edit().putStringSet("dynamic_feed_tabs", normalized).apply()
+        }
+
+    private val dynamicFeedTabOrderState = stateCell(
+        "dynamicFeedTabOrderState",
+        DynamicTabPolicy.normalizeOrder(
+            prefs.getString("dynamic_feed_tab_order", null)
+                ?.split(',')?.filter { it.isNotBlank() }
+                ?: DynamicTabPolicy.defaultOrder,
+        ),
+    )
+    override var dynamicFeedTabOrder: List<String>
+        get() = dynamicFeedTabOrderState.value
+        set(value) {
+            val normalized = DynamicTabPolicy.normalizeOrder(value)
+            dynamicFeedTabOrderState.value = normalized
+            prefs.edit().putString("dynamic_feed_tab_order", normalized.joinToString(",")).apply()
+        }
+
     private val homeCardStyleState = stateCell("homeCardStyleState", prefs.getInt("home_card_style", 0))
 
     private val shadowsState = stateCell("shadowsState", prefs.getBoolean("shadows", true))

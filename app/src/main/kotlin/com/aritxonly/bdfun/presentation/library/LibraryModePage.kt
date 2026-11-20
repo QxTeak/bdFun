@@ -12,15 +12,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -53,34 +48,53 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
     gridState: androidx.compose.foundation.lazy.grid.LazyGridState) {
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        // 宽屏参照首页：卡片宽度限制在 280..560dp，多出来的空间自动加列，不再把两列卡片拉长。
+        // 和热门页/搜索结果完全同一套：一列视频行，宽屏用有界网格；
+        // 骨架、分页尾巴也直接复用那两份实现，不再单独维护一套卡片。
         val wide = maxWidth >= 600.dp
         LazyVerticalGrid(
             state = gridState,
-            columns = if (wide) BoundedVideoGridCells(RecommendedCardMinWidth.dp, RecommendedCardMaxWidth.dp) else GridCells.Fixed(2),
-            contentPadding = PaddingValues(start = TeakChromeDefaults.ContentHorizontalPadding,
-                end = TeakChromeDefaults.ContentHorizontalPadding, top = statusBarTop + TeakChromeDefaults.ContentTopPadding,
+            columns = if (wide) BoundedVideoGridCells(280.dp, 420.dp) else GridCells.Fixed(1),
+            contentPadding = PaddingValues(start = 12.dp, end = 12.dp,
+                top = statusBarTop + TeakChromeDefaults.ContentTopPadding,
                 bottom = if (content.batchMode) 92.dp else TeakChromeDefaults.ContentBottomPadding),
-            horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
             libraryGridHeader(content, layout, actions)
-            val emptyFirstLoad = content.loading && content.folderVideos.isEmpty() &&
-                content.historyEntries.isEmpty() && content.watchLaterEntries.isEmpty()
-            if (emptyFirstLoad) {
-                items(count = 6, key = { "library-skeleton-$it" }) {
-                    com.aritxonly.teak.common.skeleton.TeakSkeletonVideoCard(
-                        progress = com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep(),
-                    )
-                }
+            val rows = when (layout.mode) {
+                0 -> content.folderVideos
+                1 -> content.historyEntries.map { it.toVideoItem() }
+                else -> content.watchLaterEntries.map { it.toVideoItem() }
             }
-            if (layout.mode == 0) {
-                itemsIndexed(items = content.folderVideos, key = { _, video -> video.bvid }) { index, video ->
-                    LibraryFavoriteCard(video, index, content, layout, actions)
-                }
-            } else {
-                val entries = if (layout.mode == 1) content.historyEntries else content.watchLaterEntries
-                itemsIndexed(items = entries, key = { _, entry -> entry.bvid }) { index, entry ->
-                    LibraryHistoryCard(entry, index, content, layout, actions)
+            val emptyFirstLoad = content.loading && rows.isEmpty()
+            if (emptyFirstLoad) {
+                videoResultSkeleton(keyPrefix = "library-skeleton-${layout.mode}")
+            }
+            videoResultRows(
+                videos = rows,
+                keyPrefix = "library-${layout.mode}-",
+                onOpenVideo = { video ->
+                    if (content.batchMode) {
+                        actions.onToggleSelected(video.bvid)
+                    } else {
+                        // 和原来一样先把当前列表放进播放队列，连播才不会丢。
+                        actions.onPrepareQueue(rows, video.bvid)
+                        actions.onOpenVideo(video)
+                    }
+                },
+                onLongPressVideo = if (content.batchMode) null else actions.onLongPressVideo,
+                showSelection = content.batchMode,
+                selectedIds = content.selected,
+                // 批量勾选时不要一镜到底放大动画。
+                enableOneTake = !content.batchMode,
+            )
+            if (!emptyFirstLoad && rows.isEmpty() && !content.loading && content.error == null) {
+                item(key = "library-empty", span = { GridItemSpan(maxLineSpan) }) {
+                    Text(
+                        text = if (layout.mode == 0) "这个收藏夹还没有视频" else "暂时没有内容",
+                        color = MiuixTheme.colorScheme.onBackgroundVariant,
+                        fontSize = 13.sp,
+                        modifier = Modifier.padding(top = 24.dp),
+                    )
                 }
             }
             libraryGridFooter(content, layout, actions)

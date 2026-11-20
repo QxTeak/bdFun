@@ -8,11 +8,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.unit.dp
+import com.aritxonly.bdfun.core.domain.DynamicTabPolicy
+import com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings
 import com.aritxonly.teak.common.chrome.teakClassicBarGlass
 import kotlinx.coroutines.launch
 
@@ -24,6 +30,23 @@ fun FeedTopBar(
 ) {
     val scope = rememberCoroutineScope()
     val statusTop = rememberStatusBarTop()
+    val settings = LocalSettingsBindings.current
+    val tabs = DynamicTabPolicy.ordered(settings.dynamicFeedTabs, settings.dynamicFeedTabOrder)
+    val keys = tabs.map { it.key }
+    // 排序的第一项就是打开动态页时的默认类型（#111）；之后只有当前类型被关掉才回落。
+    var defaultApplied by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(keys, state.type) {
+        if (keys.isEmpty()) return@LaunchedEffect
+        if (!defaultApplied) {
+            defaultApplied = true
+            val first = keys.first()
+            if (state.type != first) state.switchTo(first, loggedIn)
+            return@LaunchedEffect
+        }
+        if (state.type !in keys) {
+            state.switchTo(DynamicTabPolicy.fallbackKey(settings.dynamicFeedTabs, settings.dynamicFeedTabOrder, state.type), loggedIn)
+        }
+    }
 
     Box(
         modifier = modifier
@@ -56,13 +79,13 @@ fun FeedTopBar(
                 .padding(vertical = 8.dp),
         ) {
             TeakSegmentedBar(
-                options = listOf("全部", "视频", "番剧"),
-                selected = listOf("all", "video", "pgc").indexOf(state.type).coerceAtLeast(0),
+                options = tabs.map { it.title },
+                selected = keys.indexOf(state.type).coerceAtLeast(0),
                 itemWidth = 64.dp,
                 materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
                 onSelect = { index ->
-                    scope.launch {
-                        state.switchTo(listOf("all", "video", "pgc")[index], loggedIn)
+                    keys.getOrNull(index)?.let { key ->
+                        scope.launch { state.switchTo(key, loggedIn) }
                     }
                 },
                 modifier = Modifier.align(Alignment.CenterHorizontally),
