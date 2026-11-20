@@ -43,14 +43,14 @@ import androidx.compose.runtime.setValue
 
 
 @Composable
-internal fun BoxScope.FullscreenChromeMasks(appearance: FullscreenAppearance) {
-    val edge = 42.dp
+internal fun BoxScope.FullscreenChromeMasks(appearance: FullscreenAppearance, compact: Boolean = false) {
+    val edge = if (compact) 20.dp else 42.dp
     // 顶部 / 底部压暗，保证白字在亮画面上仍可读（参考图一有同款渐层）
     Box(
         modifier = Modifier
             .align(Alignment.TopCenter)
             .fillMaxWidth()
-            .height(190.dp)
+            .height(if (compact) 150.dp else 190.dp)
             .background(
                 Brush.verticalGradient(
                     0f to Color.Black.copy(alpha = 0.62f),
@@ -63,7 +63,7 @@ internal fun BoxScope.FullscreenChromeMasks(appearance: FullscreenAppearance) {
         modifier = Modifier
             .align(Alignment.BottomCenter)
             .fillMaxWidth()
-            .height(235.dp)
+            .height(if (compact) 200.dp else 235.dp)
             .background(
                 Brush.verticalGradient(
                     0f to Color.Transparent,
@@ -85,13 +85,13 @@ internal fun BoxScope.FullscreenChromeMasks(appearance: FullscreenAppearance) {
 }
 
 @Composable
-internal fun FullscreenHeader(info: FullscreenPlayerInfo, actions: FullscreenActions, onPanelChanged: (FullscreenPanel) -> Unit, appearance: FullscreenAppearance) {
+internal fun FullscreenHeader(info: FullscreenPlayerInfo, actions: FullscreenActions, onPanelChanged: (FullscreenPanel) -> Unit, appearance: FullscreenAppearance, compact: Boolean = false) {
     // 顶部操作行：返回 / 标题 / 点赞 / 评论 / 收藏 / 分享 / 更多
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(start = 36.dp, end = 24.dp, top = 12.dp)
-            .height(46.dp),
+            .padding(start = if (compact) 14.dp else 36.dp, end = if (compact) 12.dp else 24.dp, top = 12.dp)
+            .height(if (compact) 40.dp else 46.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
@@ -181,13 +181,13 @@ internal fun FullscreenHeaderActions(info: FullscreenPlayerInfo, actions: Fullsc
 }
 
 @Composable
-internal fun BoxScope.FullscreenAuthor(info: FullscreenPlayerInfo, actions: FullscreenActions, appearance: FullscreenAppearance, slots: FullscreenChromeSlots) {
+internal fun BoxScope.FullscreenAuthor(info: FullscreenPlayerInfo, actions: FullscreenActions, appearance: FullscreenAppearance, slots: FullscreenChromeSlots, compact: Boolean = false) {
     val colors = MiuixTheme.colorScheme
     // 观看人数 + UP 头像 / 昵称
     Column(
         modifier = Modifier
             .align(Alignment.TopStart)
-            .padding(start = 50.dp, top = 55.dp),
+            .padding(start = if (compact) 20.dp else 50.dp, top = if (compact) 50.dp else 55.dp),
     ) {
         if (appearance.showViewerCount) {
             Row(
@@ -242,8 +242,8 @@ internal fun BoxScope.FullscreenAuthor(info: FullscreenPlayerInfo, actions: Full
 }
 
 @Composable
-internal fun BoxScope.FullscreenTimeline(playback: FullscreenPlaybackState, actions: FullscreenActions, scrub: FullscreenScrubActions) {
-    val edge = 42.dp
+internal fun BoxScope.FullscreenTimeline(playback: FullscreenPlaybackState, actions: FullscreenActions, scrub: FullscreenScrubActions, compact: Boolean = false) {
+    val edge = if (compact) 20.dp else 42.dp
     // 进度：时长在上，进度条紧贴在下
     Box(
         modifier = Modifier

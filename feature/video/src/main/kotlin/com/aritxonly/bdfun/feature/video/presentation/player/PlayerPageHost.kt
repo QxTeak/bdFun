@@ -10,6 +10,9 @@ interface PlayerPageHost {
     var danmakuPanelOpen: Boolean
     val danmakuInteract: Int
     var orientationLocked: Boolean
+
+    /** 当前视频宽高比（宽/高），接口未给宽高时为空；画中画按它取窗口比例。 */
+    var videoAspectRatio: Float?
     fun registerPause(owner: Any?, hook: (Boolean) -> Unit)
     fun unregisterPause(hook: (Boolean) -> Unit)
 }

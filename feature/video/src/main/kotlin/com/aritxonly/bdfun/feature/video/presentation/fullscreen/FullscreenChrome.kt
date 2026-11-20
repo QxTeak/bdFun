@@ -71,12 +71,14 @@ fun FullscreenPlayerChrome(
                     alpha = if (!panelVisible && !scrubOnly) 1f else 0f
                 },
         ) {
-        FullscreenChromeMasks(appearance)
-        FullscreenHeader(info, actions, onPanelChanged, appearance)
-        FullscreenAuthor(info, actions, appearance, slots)
-        FullscreenTimeline(playback, actions, scrub)
+        // 竖屏视频全屏时屏幕是窄的，控件整体收缩并收起次要文字按钮，避免挤成一团
+        val compact = com.aritxonly.bdfun.core.domain.isVerticalVideoAspect(info.videoAspectRatio)
+        FullscreenChromeMasks(appearance, compact)
+        FullscreenHeader(info, actions, onPanelChanged, appearance, compact)
+        FullscreenAuthor(info, actions, appearance, slots, compact)
+        FullscreenTimeline(playback, actions, scrub, compact)
 
-        FullscreenBottomControls(info, playback, actions, onPanelChanged, appearance)
+        FullscreenBottomControls(info, playback, actions, onPanelChanged, appearance, compact)
         }
 
         // 二级面板：统一右侧渐变遮罩

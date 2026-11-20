@@ -159,9 +159,11 @@ internal class VideoFullscreenActionBindings(
     private val onPictureInPicture: () -> Unit = {
         runCatching {
             if (android.os.Build.VERSION.SDK_INT >= 26) {
+                // 竖屏视频按 9:16 之类比例开小窗，避免被压成 16:9 的大黑边
+                val (num, den) = com.aritxonly.bdfun.core.domain.pipAspectPair(fullscreenInfo.videoAspectRatio)
                 activity?.enterPictureInPictureMode(
                     PictureInPictureParams.Builder()
-                        .setAspectRatio(Rational(16, 9))
+                        .setAspectRatio(Rational(num, den))
                         .build(),
                 )
             }

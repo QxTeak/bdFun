@@ -166,6 +166,13 @@ internal class VideoPagePresentationState(
                 orientationLocked = value,
             ),
         ) }
+    override var videoAspectRatio: Float?
+        get() = snapshot.videoAspectRatio
+        set(value) = update { it.copy(
+            player = it.player.copy(
+                videoAspectRatio = value,
+            ),
+        ) }
     var replyName: String?
         get() = snapshot.replyName
         set(value) = update { it.copy(

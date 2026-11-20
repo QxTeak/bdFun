@@ -29,13 +29,18 @@ internal fun androidx.compose.foundation.layout.BoxScope.FullscreenBottomControl
     info: FullscreenPlayerInfo, playback: FullscreenPlaybackState, actions: FullscreenActions,
     onPanelChanged: (FullscreenPanel) -> Unit,
     appearance: FullscreenAppearance,
+    compact: Boolean = false,
 ) {
         val hasNext = hasNextPage(info)
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(start = 42.dp, end = 28.dp, bottom = 6.dp)
+                .padding(
+                    start = if (compact) 14.dp else 42.dp,
+                    end = if (compact) 12.dp else 28.dp,
+                    bottom = 6.dp,
+                )
                 .height(42.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -46,14 +51,14 @@ internal fun androidx.compose.foundation.layout.BoxScope.FullscreenBottomControl
                     PlayGlyph(appearance.icons.play)
                 }
             }
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(if (compact) 8.dp else 12.dp))
             PlayerIconButton(
                 onClick = actions.onNext,
                 size = 32.dp,
             ) {
                 NextGlyph(appearance.icons.next, enabled = hasNext)
             }
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(if (compact) 8.dp else 12.dp))
             Box(
                 modifier = Modifier
                     .size(32.dp)
@@ -72,34 +77,37 @@ internal fun androidx.compose.foundation.layout.BoxScope.FullscreenBottomControl
             ) {
                 SlidersGlyph(appearance.icons.danmakuSettings)
             }
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(if (compact) 8.dp else 12.dp))
             FullscreenSendDanmakuAction(actions.onSendDanmaku)
-            Spacer(Modifier.width(14.dp))
-            PlayerTextAction(
-                accentColor = appearance.accentColor,
-                text = if (info.selectedSubtitle != null) "字幕·开" else "字幕",
-                active = info.selectedSubtitle != null,
-                onClick = { onPanelChanged(FullscreenPanel.Subtitles) },
-            )
-            Spacer(Modifier.width(18.dp))
-            PlayerTextAction(
-                accentColor = appearance.accentColor,
-                text = "选集",
-                muted = info.pages.size <= 1,
-                onClick = actions.onEpisodes,
-            )
-            Spacer(Modifier.width(18.dp))
-            PlayerTextAction(
-                accentColor = appearance.accentColor,
-                text = "倍速",
-                onClick = { onPanelChanged(FullscreenPanel.Speed) },
-            )
-            Spacer(Modifier.width(16.dp))
+            // 窄屏（竖屏全屏）放不下全部文字按钮，只保留画质，其余从二级面板进入
+            if (!compact) {
+                Spacer(Modifier.width(14.dp))
+                PlayerTextAction(
+                    accentColor = appearance.accentColor,
+                    text = if (info.selectedSubtitle != null) "字幕·开" else "字幕",
+                    active = info.selectedSubtitle != null,
+                    onClick = { onPanelChanged(FullscreenPanel.Subtitles) },
+                )
+                Spacer(Modifier.width(18.dp))
+                PlayerTextAction(
+                    accentColor = appearance.accentColor,
+                    text = "选集",
+                    muted = info.pages.size <= 1,
+                    onClick = actions.onEpisodes,
+                )
+                Spacer(Modifier.width(18.dp))
+                PlayerTextAction(
+                    accentColor = appearance.accentColor,
+                    text = "倍速",
+                    onClick = { onPanelChanged(FullscreenPanel.Speed) },
+                )
+            }
+            Spacer(Modifier.width(if (compact) 10.dp else 16.dp))
             QualityAction(
                 label = info.qualityLabel,
                 onClick = { onPanelChanged(FullscreenPanel.Quality) },
             )
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(if (compact) 8.dp else 12.dp))
         }
 }
 

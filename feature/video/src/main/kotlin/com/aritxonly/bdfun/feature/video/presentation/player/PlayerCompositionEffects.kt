@@ -42,8 +42,13 @@ fun BindPlayerPresentationSetup(
     val bvid = media.bvid
     val fullscreenInfo = presentation.fullscreenInfo
     val fullscreen = presentation.fullscreen
+    val isVertical = com.aritxonly.bdfun.core.domain.isVerticalVideoAspect(fullscreenInfo.videoAspectRatio)
+    // 把当前视频宽高比投影到页面状态，供退出时的画中画按比例取窗口
+    LaunchedEffect(bvid, fullscreenInfo.videoAspectRatio) {
+        ports.page.videoAspectRatio = fullscreenInfo.videoAspectRatio
+    }
     // 全屏新 UI 的本地状态：二级面板、听视频、镜像、循环、画面尺寸、定时关闭等
-    BindPlayerOrientation(fullscreen, ui, ports.page)
+    BindPlayerOrientation(fullscreen, isVertical, ui, ports.page)
     var fsAutoPlayNext by ui.fsAutoPlayNext
     LaunchedEffect(fsAutoPlayNext) {
         ports.settings.autoPlayNextChanged(fsAutoPlayNext)

@@ -49,6 +49,7 @@ data class FullscreenPlayerInfo(
     val selectedSubtitle get() = media.selectedSubtitle
     val subtitleCues get() = media.subtitleCues
     val danmakuItems get() = media.danmakuItems
+    val videoAspectRatio get() = media.videoAspectRatio
 }
 
 data class FullscreenVideoInfo(
@@ -81,6 +82,8 @@ data class FullscreenMediaInfo(
     val selectedSubtitle: SubtitleTrack?,
     val subtitleCues: List<SubtitleCue>,
     val danmakuItems: List<DanmakuItem> = emptyList(),
+    // 视频宽高比（宽/高）；接口没给宽高时为空，按横屏处理。
+    val videoAspectRatio: Float? = null,
 )
 
 

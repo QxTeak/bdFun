@@ -32,7 +32,8 @@ fun VideoPlayerEntry(
     val playing by observed.playing
     BindPlayerHotDanmaku(playback, danmakuVisible, ui)
     BindPlayerDanmakuClock(playback, playing, danmakuVisible, ui)
-    BindPlayerSystemBars(presentation.fullscreen, presentation.immersiveStatusBar, ui)
+    val isVertical = com.aritxonly.bdfun.core.domain.isVerticalVideoAspect(presentation.fullscreenInfo.videoAspectRatio)
+    BindPlayerSystemBars(presentation.fullscreen, isVertical, presentation.immersiveStatusBar, ui)
     BindPlayerHdrWindow(media.quality, presentation.fullscreen)
     VideoPlayerLayout(playback, observed, media, presentation, actions, ui, danmakuVisible, latencyMs, sponsor, modifier,
         ports.render(playback, media, presentation, actions, ui))

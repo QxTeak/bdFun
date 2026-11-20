@@ -30,6 +30,7 @@ data class VideoPageState(
     val danmakuPanelOpen get() = player.danmakuPanelOpen
     val danmakuInteract get() = requests.danmakuInteract
     val orientationLocked get() = player.orientationLocked
+    val videoAspectRatio get() = player.videoAspectRatio
     val replyName get() = reply.replyName
     val replyMid get() = reply.replyMid
     val replyRoot get() = reply.replyRoot
@@ -61,6 +62,7 @@ data class VideoPagePlayerState(
     val controlsVisible: Boolean = false,
     val danmakuPanelOpen: Boolean = false,
     val orientationLocked: Boolean = false,
+    val videoAspectRatio: Float? = null,
 )
 
 data class VideoPageReplyState(

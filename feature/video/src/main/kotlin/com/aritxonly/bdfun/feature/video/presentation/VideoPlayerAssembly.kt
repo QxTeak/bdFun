@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.bdfun.core.domain.videoAspectRatio
 import com.aritxonly.bdfun.core.domain.videoPlaybackPages
 import com.aritxonly.bdfun.ui.FullscreenVideoInfo
 import com.aritxonly.bdfun.ui.FullscreenMediaInfo
@@ -62,6 +63,7 @@ private fun fullscreenPlayerInfo(content: VideoPlayerContent): FullscreenPlayerI
             selectedSubtitle = metadata.selectedSubtitle,
             subtitleCues = metadata.subtitleCues,
             danmakuItems = content.danmaku,
+            videoAspectRatio = content.quality?.let { videoAspectRatio(it.width, it.height) },
         ),
     )
 }

@@ -168,8 +168,10 @@ class VideoActivity : ComponentActivity() {
         }
         if (s.showDiscAfterVideo && s.exitVideoControl == 0) {
             val ok = runCatching {
+                // 竖屏视频按视频比例开小窗，横屏仍走 16:9
+                val (num, den) = com.aritxonly.bdfun.core.domain.pipAspectPair(pageState.videoAspectRatio)
                 val params = android.app.PictureInPictureParams.Builder()
-                    .setAspectRatio(android.util.Rational(16, 9))
+                    .setAspectRatio(android.util.Rational(num, den))
                     .build()
                 enterPictureInPictureMode(params)
             }.getOrDefault(false)

@@ -15,14 +15,22 @@ import com.aritxonly.bdfun.core.model.video.Quality
 @Composable
 fun BindPlayerSystemBars(
     fullscreen: Boolean,
+    isVertical: Boolean,
     immersiveStatusBar: Boolean,
     ui: VideoPlayerUiStateHolder,
 ) {
     val activity = LocalContext.current as? Activity
     var inlineOrientation by ui.inlineOrientation
-    DisposableEffect(fullscreen, immersiveStatusBar) {
+    DisposableEffect(fullscreen, isVertical, immersiveStatusBar) {
         val window = activity?.window
         val controller = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
+        // 记住本次进入全屏时设置的方向；退出时只在没有被传感器/用户改过的情况下还原，
+        // 这样竖屏视频锁 PORTRAIT 后退出也能正确回到进入前的方向。
+        val fullscreenOrientation = if (isVertical) {
+            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        } else {
+            ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+        }
         if (fullscreen) {
             inlineOrientation = activity?.requestedOrientation ?: ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             controller?.apply {
@@ -30,7 +38,7 @@ fun BindPlayerSystemBars(
                     WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 hide(WindowInsetsCompat.Type.systemBars())
             }
-            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            activity?.requestedOrientation = fullscreenOrientation
         } else {
             if (immersiveStatusBar) {
                 // 沉浸模式：半屏也不显示状态栏时间等信息，把状态栏一起藏掉；
@@ -47,12 +55,9 @@ fun BindPlayerSystemBars(
         }
         onDispose {
             controller?.show(WindowInsetsCompat.Type.systemBars())
-            if (fullscreen && activity?.requestedOrientation !in listOf(
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
-                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
-                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
-                )) {
-                activity?.requestedOrientation = inlineOrientation
+            val current = activity?.requestedOrientation
+            if (fullscreen && activity != null && current == fullscreenOrientation) {
+                activity.requestedOrientation = inlineOrientation
             }
         }
     }

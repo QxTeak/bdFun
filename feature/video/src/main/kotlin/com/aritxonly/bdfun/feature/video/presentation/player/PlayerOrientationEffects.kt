@@ -11,7 +11,9 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 
 @Composable
-fun BindPlayerOrientation(fullscreen: Boolean, ui: VideoPlayerUiStateHolder, page: PlayerPageHost) {
+fun BindPlayerOrientation(
+    fullscreen: Boolean, isVertical: Boolean, ui: VideoPlayerUiStateHolder, page: PlayerPageHost,
+) {
     val activity = LocalContext.current as? Activity
     var fsLockHint by ui.fsLockHint
     val fsLocked by ui.fsLocked
@@ -21,10 +23,14 @@ fun BindPlayerOrientation(fullscreen: Boolean, ui: VideoPlayerUiStateHolder, pag
             fsLockHint = false
         }
     }
-    LaunchedEffect(fsLocked, fullscreen) {
-        page.orientationLocked = fsLocked && fullscreen
+    LaunchedEffect(fsLocked, fullscreen, isVertical) {
+        // 竖屏视频全屏保持竖屏：锁方向同时也挡住 Activity 的传感器转屏监听器。
+        val verticalFullscreen = fullscreen && isVertical
+        page.orientationLocked = (fsLocked && fullscreen) || verticalFullscreen
         if (fsLocked && fullscreen) {
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
+        } else if (verticalFullscreen) {
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         } else if (fullscreen) {
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
         }
