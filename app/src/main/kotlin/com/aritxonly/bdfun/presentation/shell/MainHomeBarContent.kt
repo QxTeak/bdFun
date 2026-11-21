@@ -78,9 +78,9 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
             input.changeSubmitted(null)
         },
             onOpenSearchPage = {
-            // 结果页再点搜索框：回到搜索首页（历史/联想），不要直接改当前结果。
+            // 结果页再点搜索框：回到搜索首页继续编辑，保留已输入的关键词（与官方客户端一致），
+            // 联想按当前关键词展示；清空只走右侧清除按钮。
             input.changeSubmitted(null)
-            input.changeQuery("")
             keyboard?.show()
         },
             onOpenMessages = { haptics.tap(); navigateToMessages(context) },
