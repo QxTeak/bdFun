@@ -4,6 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.BrandPink
+import com.aritxonly.bdfun.cast.CastDialog
+import com.aritxonly.bdfun.cast.CastRequestState
 import com.aritxonly.bdfun.feature.video.presentation.VideoPlaybackPlatform
 
 /** 平台动作/资源按原页面装配；各getter与slot保留原条件分支中的读取时机。 */
@@ -17,6 +19,9 @@ internal fun rememberPlayerRenderPorts(
     val settings = page.settings
     val viewer = com.aritxonly.bdfun.AppGraph.session.value
     val fsActions = VideoFullscreenActionBindings(context, playback, presentation.fullscreenInfo, actions, ui, page).create()
+    // 全屏/半屏共用 onCast 写请求状态，这里统一挂一个投屏面板，避免复制第二份入口。
+    val castUrl = CastRequestState.url
+    CastDialog(visible = castUrl != null, url = castUrl, onDismiss = CastRequestState::clear)
     return PlayerRenderPorts(
         page = page,
         gestures = PlayerGestureOptions({ settings.gestureBrightnessVolume }, { settings.boostDefaultSpeed },

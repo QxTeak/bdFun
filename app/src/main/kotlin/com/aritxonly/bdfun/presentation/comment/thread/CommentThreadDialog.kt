@@ -15,6 +15,7 @@ internal fun CommentThreadDialog(
     listState: androidx.compose.foundation.lazy.LazyListState,
     playerCollapseConnection: androidx.compose.ui.input.nestedscroll.NestedScrollConnection,
     focusRequester: FocusRequester, callbacks: ThreadSheetCallbacks,
+    animationsEnabled: Boolean = true,
 ) {
     val render = CommentThreadRender(content, layout, transient, listState, playerCollapseConnection, focusRequester, callbacks)
     Dialog(
@@ -22,9 +23,12 @@ internal fun CommentThreadDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false, dismissOnClickOutside = false),
     ) {
         ConfigureCommentThreadWindow(layout.playerBottomDp, layout.minTopPx, layout.paneWidth)
-        Box(modifier = Modifier.fillMaxSize()) {
-            CommentThreadContent(render)
-            CommentThreadComposer(transient, layout.imeVisible, layout.navBottom, focusRequester, content.sending, content.sendError, callbacks.onSend)
+        // 楼中楼是独立窗口：查看器宿主放在这里，才能盖住弹窗本身而不是跑到 Activity 后面。
+        PhotoViewerRoot(animationsEnabled = animationsEnabled) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                CommentThreadContent(render)
+                CommentThreadComposer(transient, layout.imeVisible, layout.navBottom, focusRequester, content.sending, content.sendError, callbacks.onSend)
+            }
         }
     }
 }

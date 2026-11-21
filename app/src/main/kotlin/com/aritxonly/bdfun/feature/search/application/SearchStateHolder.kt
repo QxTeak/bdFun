@@ -6,16 +6,28 @@ import com.aritxonly.bdfun.core.common.messageOr
 import com.aritxonly.bdfun.core.domain.SearchFilterState
 import com.aritxonly.bdfun.core.domain.SearchRepository
 import com.aritxonly.bdfun.core.domain.SearchRequest
+import com.aritxonly.bdfun.core.model.pgc.SearchPgcItem
 import com.aritxonly.bdfun.core.model.user.SearchUser
 import com.aritxonly.bdfun.core.model.video.VideoItem
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 
+internal data class SearchPgcState(
+    val bangumi: List<SearchPgcItem> = emptyList(),
+    val films: List<SearchPgcItem> = emptyList(),
+    val loading: Boolean = false,
+    val loadedOnce: Boolean = false,
+)
+
 internal data class SearchUiState(
     val hotKeywords: List<String> = emptyList(), val results: List<VideoItem> = emptyList(),
     val users: List<SearchUser> = emptyList(), val suggestions: List<String> = emptyList(),
+    /** 番剧 / 影视 Tab 的结果；与视频/用户同时请求，互不阻塞。 */
+    val pgc: SearchPgcState = SearchPgcState(),
     val loading: Boolean = false, val loadedOnce: Boolean = false, val error: String? = null,
     /** 往下翻页中的状态；与首屏 loading 分开，列表不会被清空。 */
     val loadingMore: Boolean = false,
@@ -66,13 +78,14 @@ internal class SearchStateHolder(
         if (submitted == null) {
             lastUserKeyword = null
             lastRequest = null
-            mutable.update { it.copy(results = emptyList(), users = emptyList(), error = null,
-                loadedOnce = false, loading = false, loadingMore = false, end = false) }
+            mutable.update { it.copy(results = emptyList(), users = emptyList(), pgc = SearchPgcState(),
+                error = null, loadedOnce = false, loading = false, loadingMore = false, end = false) }
             return
         }
         lastRequest = null
-        mutable.update { it.copy(loading = true, loadedOnce = false, error = null,
-            loadingMore = false, end = false) }
+        mutable.update { it.copy(loading = true, loadedOnce = false,
+            pgc = it.pgc.copy(loading = true, loadedOnce = false),
+            error = null, loadingMore = false, end = false) }
         try {
             wait(if (lastUserKeyword != submitted) 90 else 180)
             if (revision != searchRevision) return
@@ -104,8 +117,27 @@ internal class SearchStateHolder(
                     else -> error.messageOr("搜索失败")
                 }, loadedOnce = true)
             } }
+            if (revision != searchRevision) return
+            // 番剧/影视与视频结果并行请求，切 Tab 时不需要再等一次网络。
+            val (bangumi, films) = coroutineScope {
+                val bangumiAsync = async { repository.pgc(submitted, bangumi = true) }
+                val filmsAsync = async { repository.pgc(submitted, bangumi = false) }
+                bangumiAsync.await() to filmsAsync.await()
+            }
+            if (revision != searchRevision) return
+            mutable.update {
+                it.copy(
+                    pgc = it.pgc.copy(
+                        bangumi = if (bangumi is Outcome.Success) bangumi.value else emptyList(),
+                        films = if (films is Outcome.Success) films.value else emptyList(),
+                        loadedOnce = true,
+                    ),
+                )
+            }
         } finally {
-            if (revision == searchRevision) mutable.update { it.copy(loading = false) }
+            if (revision == searchRevision) {
+                mutable.update { it.copy(loading = false, pgc = it.pgc.copy(loading = false)) }
+            }
         }
     }
 

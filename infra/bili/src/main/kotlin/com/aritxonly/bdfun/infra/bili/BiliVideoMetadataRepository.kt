@@ -23,6 +23,7 @@ class BiliVideoMetadataRepository(private val backend: BiliBackend) : VideoMetad
     override suspend fun danmakuCommands(aid: Long, cid: Long) = biliOutcome { backend.api.danmakuCommands(aid, cid) }
     override suspend fun submitDanmakuCommand(selection: com.aritxonly.bdfun.core.domain.DanmakuCommandSelection) =
         biliOutcome { backend.api.submitDanmakuCommand(selection) }
+    override suspend fun danmakuVoteCounts(voteId: Long) = biliOutcome { backend.api.danmakuVoteCounts(voteId) }
     override suspend fun danmakuRules() = biliOutcome { backend.api.danmakuRules() }
     override suspend fun addDanmakuRule(kind: com.aritxonly.bdfun.core.domain.DanmakuRuleKind, value: String) =
         biliOutcome { backend.api.addDanmakuRule(kind, value) }

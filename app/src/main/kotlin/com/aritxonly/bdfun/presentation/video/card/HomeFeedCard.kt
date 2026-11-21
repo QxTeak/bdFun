@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -10,7 +11,13 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /** 共享卡片保持原anchor与绘制；首页模块只传入打开/长按动作。 */
 @Composable
-internal fun HomeFeedCard(video: VideoItem, largeCards: Boolean, onOpen: () -> Unit, onLongClick: () -> Unit) {
+internal fun HomeFeedCard(
+    video: VideoItem,
+    largeCards: Boolean,
+    onOpen: () -> Unit,
+    onLongClick: (Rect) -> Unit,
+    onMoreClick: (Rect) -> Unit,
+) {
     val density = LocalDensity.current
     val context = LocalContext.current
     val colors = MiuixTheme.colorScheme
@@ -26,8 +33,10 @@ internal fun HomeFeedCard(video: VideoItem, largeCards: Boolean, onOpen: () -> U
         ) { onOpen() }
     }
     if (largeCards) {
-        VideoLargeCard(video = video, modifier = oneTake.modifier, onClick = openCard, onLongClick = onLongClick)
+        VideoLargeCard(video = video, modifier = oneTake.modifier, onClick = openCard,
+            onLongPressRect = onLongClick, onMoreClick = onMoreClick)
     } else {
-        VideoGridCard(video = video, modifier = oneTake.modifier, onClick = openCard, onLongClick = onLongClick)
+        VideoGridCard(video = video, modifier = oneTake.modifier, onClick = openCard,
+            onLongPressRect = onLongClick, onMoreClick = onMoreClick)
     }
 }

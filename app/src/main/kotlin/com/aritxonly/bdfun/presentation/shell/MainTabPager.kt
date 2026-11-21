@@ -30,18 +30,25 @@ import com.aritxonly.bdfun.ui.FeedScreen
 import com.aritxonly.bdfun.ui.MineScreen
 import com.aritxonly.bdfun.ui.homeTopBarHeight
 
+@androidx.compose.runtime.Stable
+internal data class DynamicTabPagerBindings(
+    val tab: String = "all",
+    val onTabChange: (String) -> Unit = {},
+    val onPositionChange: (Float) -> Unit = {},
+)
+
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun MainTabPager(
     pager: androidx.compose.foundation.pager.PagerState,
     homeFeed: com.aritxonly.bdfun.feature.home.presentation.HomeFeedState,
-    dynamicFeed: com.aritxonly.bdfun.feature.feed.presentation.FeedState,
     session: UserProfile?, settings: SettingsBindings, dynamicRefreshTick: Int,
     mineList: androidx.compose.foundation.lazy.LazyListState,
     homeSection: Int = 0,
     homeInteractive: Boolean = true,
     onHomeSectionChange: (Int) -> Unit = {},
     onHomeSectionPositionChange: (Float) -> Unit = {},
+    dynamic: DynamicTabPagerBindings = DynamicTabPagerBindings(),
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val topBarHeight = homeTopBarHeight(settings.interfaceStyle)
@@ -72,12 +79,14 @@ internal fun MainTabPager(
                 ) }
 
                 1 -> FeedScreen(
-                    state = dynamicFeed,
                     loggedIn = session != null,
                     onNeedLogin = { navigateToLogin(context) },
                     onOpenVideo = { navigateToVideo(context, it) },
                     onOpenFeed = { navigateToFeed(context, it) },
                     refreshTick = dynamicRefreshTick,
+                    initialTab = dynamic.tab,
+                    onTabChange = dynamic.onTabChange,
+                    onTabPositionChange = dynamic.onPositionChange,
                 )
 
                 else -> MainMineTab(session, settings, mineList)

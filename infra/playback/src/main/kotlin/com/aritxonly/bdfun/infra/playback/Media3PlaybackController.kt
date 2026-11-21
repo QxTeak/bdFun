@@ -33,6 +33,9 @@ class Media3PlaybackController(
     private val diagnostics = diagnosticLog?.let { PlaybackDiagnostics(appContext, it) }
     private val mutableState = MutableStateFlow(PlaybackSnapshot())
     override val state = mutableState.asStateFlow()
+    override val currentMediaUrl: String?
+        get() = lastSource?.let { it.castUrl?.takeIf(String::isNotBlank) ?: it.videoUrl }
+            ?.takeIf { it.isNotBlank() }
     private val listeners = CopyOnWriteArrayList<PlaybackController.Listener>()
     private var released = false
     private var lastSource: PlaybackSource? = null
@@ -77,10 +80,11 @@ class Media3PlaybackController(
         buffering.configure(owner, enabled)
         buffering.sample(android.os.SystemClock.elapsedRealtime(), player.isPlaying,
             phase == PlaybackPhase.Buffering, phase == PlaybackPhase.Ended)
+        val videoSize = player.videoSize
         mutableState.value = reducePlaybackSnapshot(mutableState.value,
             phase, player.isPlaying, player.playWhenReady, player.currentPosition,
             player.bufferedPosition, player.duration, player.playbackParameters.speed,
-        )
+        ).copy(videoWidth = videoSize.width.coerceAtLeast(0), videoHeight = videoSize.height.coerceAtLeast(0))
         return mutableState.value
     }
 

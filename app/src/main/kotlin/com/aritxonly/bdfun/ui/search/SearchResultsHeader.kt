@@ -41,10 +41,10 @@ internal fun ResultsTabHeader(
         modifier = modifier.height(42.dp),
     ) {
         TeakPagerTabs(
-            options = listOf("视频", "用户"),
+            options = listOf("视频", "番剧", "影视", "用户"),
             selected = tab,
             onSelect = onTabChange,
-            itemWidth = 64.dp,
+            itemWidth = 58.dp,
             position = position,
             modifier = Modifier.align(if (wide) Alignment.CenterEnd else Alignment.Center)
                 .padding(end = if (wide) 64.dp else 0.dp),

@@ -27,8 +27,15 @@ internal data class FeedUiState(
 )
 
 /** 每个分类和作者独立游标；generation 防止迟到响应覆盖新选择。 */
-internal class FeedStateHolder(private val repository: FeedPageRepository) {
-    private val mutable = MutableStateFlow(FeedUiState())
+internal class FeedStateHolder(
+    private val repository: FeedPageRepository,
+    initialType: String = "all",
+    /** 只有「全部」分类拉 UP/直播 portal；其它分类共享同一份，避免切 Tab 重复请求。 */
+    private val loadPortal: Boolean = true,
+) {
+    private val mutable = MutableStateFlow(
+        FeedUiState(feed = FeedListUiState(type = initialType.takeIf { it in dynamicFeedTypes } ?: "all")),
+    )
     val state: StateFlow<FeedUiState> = mutable.asStateFlow()
     private var closed = false
     fun close() {
@@ -102,9 +109,15 @@ internal class FeedStateHolder(private val repository: FeedPageRepository) {
     suspend fun ensureLoaded(loggedIn: Boolean) {
         if (closed || !loggedIn) return
         coroutineScope {
-            if (!portalLoaded && !authorsLoading) launch { refreshAuthors() }
+            if (loadPortal && !portalLoaded && !authorsLoading) launch { refreshAuthors() }
             if (!started && !refreshing) fetch(reset = true)
         }
+    }
+
+    /** 非「全部」分类只共享 portal 展示，不自己发起加载。 */
+    suspend fun ensurePortalLoaded(loggedIn: Boolean) {
+        if (!loadPortal || closed || !loggedIn) return
+        if (!portalLoaded && !authorsLoading) refreshAuthors()
     }
 
     suspend fun switchTo(next: String, loggedIn: Boolean) {
@@ -147,7 +160,7 @@ internal class FeedStateHolder(private val repository: FeedPageRepository) {
     suspend fun refresh(loggedIn: Boolean) {
         if (closed || !loggedIn) return
         coroutineScope {
-            launch { refreshAuthors() }
+            if (loadPortal) launch { refreshAuthors() }
             fetch(reset = true)
         }
     }
@@ -208,7 +221,7 @@ internal class FeedStateHolder(private val repository: FeedPageRepository) {
     }
 
     suspend fun refreshAuthors() {
-        if (closed) return
+        if (!loadPortal || closed) return
         val ticket = ++portalGeneration
         authorsLoading = true
         authorsError = null
@@ -237,7 +250,7 @@ internal class FeedStateHolder(private val repository: FeedPageRepository) {
     }
 
     suspend fun loadMoreAuthors() {
-        if (closed || authorsLoading || !authorsHasMore) return
+        if (!loadPortal || closed || authorsLoading || !authorsHasMore) return
         val ticket = portalGeneration
         val cursor = authorsOffset
         authorsLoading = true

@@ -186,6 +186,11 @@ private fun CoinPayLayout(
             .fillMaxSize()
             // 黑色遮罩 60%，比原来的 50% 更能压住背景。
             .background(Color(0x99000000))
+            // 遮罩本身也接收点击：点空白处关闭（与 PiliPlus 一致），控件内部点击会先消费事件。
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null,
+            ) { if (!state.paying) onDismiss() }
             .pointerInput(state.paying, maxIndex) {
                 if (state.paying) return@pointerInput
                 detectHorizontalDragGestures(

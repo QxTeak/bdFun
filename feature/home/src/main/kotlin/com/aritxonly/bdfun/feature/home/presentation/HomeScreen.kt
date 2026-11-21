@@ -48,7 +48,13 @@ fun HomeScreen(state: HomeFeedState, onOpenVideo: (VideoItem) -> Unit, cardStyle
         HomeVideoGrid(state, cardStyle == 1, maxWidth, statusBarTop, ui, refreshConnection, scope, onOpenVideo, host)
         HomeFeedStatus(state, scope, host)
     }
-    HomeVideoActions(video = ui.actionVideo, state = state, onDismiss = { ui.actionVideo = null }, onMessage = host.onMessage)
+    HomeVideoActions(
+        video = ui.actionVideo,
+        anchor = ui.actionAnchor,
+        state = state,
+        onDismiss = { ui.actionVideo = null },
+        onMessage = host.onMessage,
+    )
 }
 
 @Composable

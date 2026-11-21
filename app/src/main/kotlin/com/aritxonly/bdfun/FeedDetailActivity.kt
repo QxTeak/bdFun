@@ -15,7 +15,7 @@ import com.aritxonly.bdfun.ui.syncSystemBarIcons
  * 动态详情：设置页同款外壳（大标题 / 折叠小标题 / 顶部渐进式模糊 / 玻璃返回键），
  * 正文是动态卡片，下面是和视频评论区完全同源的评论列表；底部复用视频评论页的回复栏。
  */
-class FeedDetailActivity : ComponentActivity() {
+class FeedDetailActivity : OneTakeExitActivity() {
     /** 状态栏背景是页面本身（浅色/深色），图标明暗必须跟着实际页面底色走。 */
     private fun syncStatusBarIcons() {
         val systemDark = (resources.configuration.uiMode and

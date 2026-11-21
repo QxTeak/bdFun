@@ -25,6 +25,24 @@ internal suspend fun BiliApiContext.danmakuView(aid: Long, cid: Long): DanmakuPr
     return DanmakuProto.parseWebViewReply(bytes)
 }
 
+/**
+ * 互动投票的实时票数。命令弹幕本身只带选项文案，比例要投完票后从 vote_info 取。
+ * 字段对齐 PiliPlus `VoteInfo`：`vote_info.options[].opt_idx/cnt`。
+ */
+internal suspend fun BiliApiContext.danmakuVoteCounts(voteId: Long): Map<Int, Long> = withContext(Dispatchers.IO) {
+    if (voteId <= 0) return@withContext emptyMap()
+    val data = dataRequest("/x/vote/vote_info", mapOf("vote_id" to voteId.toString()))
+    val options = data.optJSONObject("vote_info")?.optJSONArray("options") ?: return@withContext emptyMap()
+    buildMap {
+        for (index in 0 until options.length()) {
+            val row = options.optJSONObject(index) ?: continue
+            val value = row.optInt("opt_idx", index + 1)
+            val count = row.optLong("cnt", 0L)
+            if (value > 0) put(value, count.coerceAtLeast(0L))
+        }
+    }
+}
+
 internal suspend fun BiliApiContext.submitDanmakuCommand(selection: DanmakuCommandSelection): Unit = withContext(Dispatchers.IO) {
     require(selection.valid)
     val command = selection.command
@@ -111,7 +129,11 @@ private fun mapDanmakuCommandOptions(raw: Any?, grade: Boolean): List<DanmakuCom
                     val label = listOf("title", "name", "text", "label", "desc", "opt_desc")
                         .firstNotNullOfOrNull { option.optString(it).takeIf(String::isNotBlank) }
                         ?: if (grade) (value / 2).toString() else return@mapNotNull null
-                    DanmakuCommandOption(value, label)
+                    // 少数下发的命令已带票数；没有时投完票再走 vote_info 补全。
+                    val count = listOf("cnt", "count", "votes").firstNotNullOfOrNull {
+                        option.optLong(it, -1L).takeIf { value -> value >= 0 }
+                    } ?: 0L
+                    DanmakuCommandOption(value, label, count)
                 }
                 is String -> if (!grade) DanmakuCommandOption(i + 1, option) else null
                 else -> null

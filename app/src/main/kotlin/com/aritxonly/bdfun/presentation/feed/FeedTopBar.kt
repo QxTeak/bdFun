@@ -8,46 +8,28 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.aritxonly.bdfun.core.domain.DynamicTabPolicy
-import com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings
+import com.aritxonly.bdfun.core.domain.DynamicFeedTab
 import com.aritxonly.teak.common.chrome.teakClassicBarGlass
-import kotlinx.coroutines.launch
 
+/**
+ * 动态页固定顶栏：只画「全部 / 视频 / 番剧」玻璃分段栏。
+ *
+ * 选中态由 pager 所在的 shell 持有（和首页分段同一套结构），这里只负责显示与点选，
+ * 不再自己 switchTo，避免顶栏和页面各改一份分类状态。
+ */
 @Composable
 fun FeedTopBar(
-    state: FeedState,
-    loggedIn: Boolean,
+    tabs: List<DynamicFeedTab>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    /** 跟手的连续位置（和首页同一套胶囊指示器）；null 时只按选中项动画。 */
+    position: androidx.compose.runtime.State<Float>? = null,
 ) {
-    val scope = rememberCoroutineScope()
     val statusTop = rememberStatusBarTop()
-    val settings = LocalSettingsBindings.current
-    val tabs = DynamicTabPolicy.ordered(settings.dynamicFeedTabs, settings.dynamicFeedTabOrder)
-    val keys = tabs.map { it.key }
-    // 排序的第一项就是打开动态页时的默认类型（#111）；之后只有当前类型被关掉才回落。
-    var defaultApplied by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(keys, state.type) {
-        if (keys.isEmpty()) return@LaunchedEffect
-        if (!defaultApplied) {
-            defaultApplied = true
-            val first = keys.first()
-            if (state.type != first) state.switchTo(first, loggedIn)
-            return@LaunchedEffect
-        }
-        if (state.type !in keys) {
-            state.switchTo(DynamicTabPolicy.fallbackKey(settings.dynamicFeedTabs, settings.dynamicFeedTabOrder, state.type), loggedIn)
-        }
-    }
-
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -80,14 +62,11 @@ fun FeedTopBar(
         ) {
             TeakSegmentedBar(
                 options = tabs.map { it.title },
-                selected = keys.indexOf(state.type).coerceAtLeast(0),
+                selected = selectedIndex.coerceIn(0, (tabs.size - 1).coerceAtLeast(0)),
                 itemWidth = 64.dp,
                 materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
-                onSelect = { index ->
-                    keys.getOrNull(index)?.let { key ->
-                        scope.launch { state.switchTo(key, loggedIn) }
-                    }
-                },
+                position = position,
+                onSelect = onSelect,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
             )
         }

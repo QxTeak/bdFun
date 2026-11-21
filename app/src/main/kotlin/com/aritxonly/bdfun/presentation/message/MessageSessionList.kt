@@ -80,9 +80,9 @@ internal fun MessageSessionList(
                     items(count = 8, key = { "session-skeleton-$it" }) { MessageSessionSkeletonRow() }
                 }
                 itemsIndexed(visibleSessions, key = { _, session -> session.id }) { _, session ->
-                    var anchor by remember { mutableStateOf(Rect.Zero) }
+                    val anchor = remember { CardBoundsHolder() }
                     Box(Modifier.padding(bottom = 4.dp)
-                        .onGloballyPositioned { anchor = it.boundsInWindow() }
+                        .onGloballyPositioned { anchor.value = it.boundsInWindow() }
                         .clip(
                             if (classic) androidx.compose.ui.graphics.RectangleShape
                             else com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(18.dp),
@@ -97,8 +97,8 @@ internal fun MessageSessionList(
                                 else -> context.showToast("该类型会话暂不支持打开")
                             }
                         }, onLongClick = {
-                            if (anchor != Rect.Zero && !snapshot.busy && !snapshot.loading) {
-                                menu.openSession(session, anchor)
+                            if (anchor.value != Rect.Zero && !snapshot.busy && !snapshot.loading) {
+                                menu.openSession(session, anchor.value)
                             }
                         })
                     }

@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.infra.bili.mapper
 
+import com.aritxonly.bdfun.core.model.pgc.SearchPgcItem
 import com.aritxonly.bdfun.core.model.video.*
 import com.aritxonly.bdfun.core.model.library.*
 import com.aritxonly.bdfun.core.model.user.*
@@ -70,11 +71,32 @@ internal fun mapSearchUsers(data: JSONObject, cleanHtml: (String) -> String): Li
         SearchUser(
             mid = mid,
             name = cleanHtml(item.s("uname")),
-            face = image(item.s("upic"), 160),
+            // 头像必须按 1:1 裁切；沿用视频封面的 16:9 @..._1c 会把头像上下切掉。
+            face = avatar(item.s("upic"), 160),
             sign = cleanHtml(item.s("usign")),
             fans = item.s("fans").toLongOrNull() ?: 0,
             videos = item.s("videos").toLongOrNull() ?: 0,
             level = item.optInt("level", 0),
+        )
+    }
+
+/** 番剧/影视搜索：`data.result[]` 是 PGC 卡片，不是 VideoItem。 */
+internal fun mapSearchPgc(data: JSONObject, cleanHtml: (String) -> String): List<SearchPgcItem> =
+    data.optJSONArray("result").objects().mapNotNull { item ->
+        val seasonId = item.l("season_id")
+        if (seasonId <= 0L) return@mapNotNull null
+        val score = item.optJSONObject("media_score")?.optString("score").orEmpty()
+        SearchPgcItem(
+            seasonId = seasonId,
+            title = cleanHtml(item.s("title")),
+            cover = image(item.s("cover"), 360),
+            typeName = item.s("season_type_name"),
+            areas = item.s("areas"),
+            styles = item.s("styles"),
+            indexShow = item.s("index_show"),
+            score = score,
+            pubdate = item.l("pubtime"),
+            desc = cleanHtml(item.s("desc")),
         )
     }
 

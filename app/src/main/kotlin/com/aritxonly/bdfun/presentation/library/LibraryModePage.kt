@@ -81,7 +81,7 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
                         actions.onOpenVideo(video)
                     }
                 },
-                onLongPressVideo = if (content.batchMode) null else actions.onLongPressVideo,
+                onVideoMenu = if (content.batchMode) null else actions.onVideoMenu,
                 showSelection = content.batchMode,
                 selectedIds = content.selected,
                 // 批量勾选时不要一镜到底放大动画。

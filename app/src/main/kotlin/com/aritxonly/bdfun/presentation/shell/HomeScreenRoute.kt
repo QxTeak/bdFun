@@ -23,7 +23,7 @@ internal fun HomeScreenRoute(
         HomePresentationHost(
             topBarHeight = topBarHeight,
             gridCells = { min, max -> BoundedVideoGridCells(min, max) },
-            card = { video, large, onOpen, onLongClick -> HomeFeedCard(video, large, onOpen, onLongClick) },
+            card = { video, large, onOpen, onLongClick, onMore -> HomeFeedCard(video, large, onOpen, onLongClick, onMore) },
             loading = { color, size -> TeakLoading(color = color, size = size) },
             onMessage = { context.showToast(it) },
             onEnter = { if (BuildConfig.DEBUG) com.aritxonly.bdfun.data.LiveCounters.homeInstances++ },

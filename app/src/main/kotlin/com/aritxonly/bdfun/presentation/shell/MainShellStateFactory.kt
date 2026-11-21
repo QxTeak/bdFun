@@ -63,7 +63,8 @@ internal fun rememberMainShellState(background: Color): MainShellState {
     }
     // 首页数据放在 App 层：进视频/搜索/设置再返回时不会重新拉取，滚动位置也保留。
     val homeFeed = AppGraph.homeFeedState
-    val dynamicFeed = AppGraph.dynamicFeedState
+    // 动态页每个分类独立状态；顶栏和滚动跟踪跟随当前分类。
+    val dynamicFeed = rememberDynamicTabState(ui).feed
     // 首页三段各自注册回到顶部；动态页注册自己的列表。
     when (selected) {
         0 -> when (ui.homeSection) {
@@ -104,6 +105,24 @@ internal fun rememberMainShellState(background: Color): MainShellState {
         bottom, { AppGraph.searchStateHolder() },
     )
 }
+
+@Composable
+private fun rememberDynamicTabState(ui: MainShellUiStateHolder): DynamicTabState {
+    val tabs = com.aritxonly.bdfun.core.domain.DynamicTabPolicy.ordered(
+        AppGraph.settings.dynamicFeedTabs, AppGraph.settings.dynamicFeedTabOrder,
+    )
+    LaunchedEffect(tabs) {
+        if (tabs.isNotEmpty() && tabs.none { it.key == ui.dynamicTab }) {
+            ui.dynamicTab = tabs.first().key
+        }
+    }
+    return DynamicTabState(tabs, AppGraph.dynamicFeedStateFor(ui.dynamicTab))
+}
+
+internal class DynamicTabState(
+    val tabs: List<com.aritxonly.bdfun.core.domain.DynamicFeedTab>,
+    val feed: com.aritxonly.bdfun.feature.feed.presentation.FeedState,
+)
 
 /** 首页各段 / 动态 / 我的各自绑定滚动进度；拆出来让主函数保持在尺寸门槛内。 */
 @Composable

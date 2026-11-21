@@ -9,7 +9,11 @@ fun biliImageUrl(url: String, width: Int = 0): String {
         else -> url
     }
     if (width > 0 && !result.contains("@")) {
-        result += "@${width}w_${(width * 9 / 16)}h_1c.webp"
+        // B 站图片的 @尺寸 必须放在路径末尾、查询串之前；直接拼在 ? 后面会得到 404。
+        val query = result.indexOf('?').takeIf { it >= 0 }
+        val base = if (query != null) result.substring(0, query) else result
+        val suffix = if (query != null) result.substring(query) else ""
+        result = "$base@${width}w_${(width * 9 / 16)}h_1c.webp$suffix"
     }
     return result
 }
@@ -33,5 +37,8 @@ fun biliImageThumbUrl(url: String, width: Int): String {
         else -> url
     }
     if (width <= 0 || normalized.contains("@")) return normalized
-    return "$normalized@${width}w.webp"
+    val query = normalized.indexOf('?').takeIf { it >= 0 }
+    val base = if (query != null) normalized.substring(0, query) else normalized
+    val suffix = if (query != null) normalized.substring(query) else ""
+    return "$base@${width}w.webp$suffix"
 }

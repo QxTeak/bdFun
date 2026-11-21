@@ -16,11 +16,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -29,10 +32,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.bdfun.AppGraph
 import com.aritxonly.bdfun.navigateToVideo
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullUi
 import com.aritxonly.bdfun.ui.BoundedVideoGridCells
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
+import com.aritxonly.bdfun.ui.VideoActionMenu
+import com.aritxonly.bdfun.ui.VideoMenuItem
+import com.aritxonly.bdfun.ui.showToast
 import com.aritxonly.bdfun.ui.videoResultFooter
 import com.aritxonly.bdfun.ui.videoResultRows
 import com.aritxonly.bdfun.ui.videoResultSkeleton
@@ -56,6 +63,10 @@ internal fun PopularPage(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var actionVideo by remember { mutableStateOf<com.aritxonly.bdfun.core.model.video.VideoItem?>(null) }
+    // 菜单项要活到收起动画结束：actionVideo 关掉后仍用最后一次的视频数据渲染 items。
+    var menuVideo by remember { mutableStateOf<com.aritxonly.bdfun.core.model.video.VideoItem?>(null) }
+    var actionAnchor by remember { mutableStateOf(Rect.Zero) }
     val colors = MiuixTheme.colorScheme
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val wide = LocalConfiguration.current.screenWidthDp >= 600
@@ -93,31 +104,96 @@ internal fun PopularPage(
             error?.let { message ->
                 if (videos.isEmpty()) {
                     item(key = "popular-error", span = { GridItemSpan(maxLineSpan) }) {
-                        Text(
-                            text = "$message · 点击重试",
-                            color = colors.onBackgroundVariant,
-                            fontSize = 13.sp,
-                            modifier = Modifier
-                                .padding(top = 24.dp)
-                                .clickable { scope.launch { state.retry() } },
-                        )
+                        PopularStatus("$message · 点击重试", colors.onBackgroundVariant) {
+                            scope.launch { state.retry() }
+                        }
                     }
                 }
             }
-            videoResultRows(videos, "popular-", onOpenVideo = { navigateToVideo(context, it) })
+            videoResultRows(
+                videos, "popular-",
+                onOpenVideo = { navigateToVideo(context, it) },
+                onVideoMenu = { video, rect ->
+                    actionAnchor = rect
+                    menuVideo = video
+                    actionVideo = video
+                },
+            )
             if (loadedOnce && !loading && videos.isEmpty() && error == null) {
                 item(key = "popular-empty", span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        text = "暂时没有热门内容",
-                        color = colors.onBackgroundVariant,
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(top = 24.dp),
-                    )
+                    PopularStatus("暂时没有热门内容", colors.onBackgroundVariant)
                 }
             }
             videoResultFooter(loadingMore = loadingMore, end = end, colors = colors)
         }
     }
+    // 保持菜单常驻：visible=false 时 Miuix 才能播完收起动画。以前用 actionVideo?.let
+    // 包住，关闭时会立刻解除组合，动画被直接截断。
+    PopularVideoMenu(
+        video = menuVideo,
+        visible = actionVideo != null,
+        anchor = actionAnchor,
+        onDismiss = { actionVideo = null },
+        scope = scope,
+        context = context,
+    )
+}
+
+@Composable
+private fun PopularStatus(
+    text: String,
+    color: androidx.compose.ui.graphics.Color,
+    onClick: (() -> Unit)? = null,
+) {
+    Text(
+        text = text,
+        color = color,
+        fontSize = 13.sp,
+        modifier = Modifier
+            .padding(top = 24.dp)
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
+    )
+}
+
+@Composable
+private fun PopularVideoMenu(
+    video: com.aritxonly.bdfun.core.model.video.VideoItem?,
+    visible: Boolean,
+    anchor: Rect,
+    onDismiss: () -> Unit,
+    scope: kotlinx.coroutines.CoroutineScope,
+    context: android.content.Context,
+) {
+    VideoActionMenu(
+        visible = visible,
+        anchor = anchor,
+        onDismiss = onDismiss,
+        items = video?.let { item ->
+            listOf(
+                VideoMenuItem("添加至稍后再看") {
+                    onDismiss()
+                    scope.launch {
+                        val result = AppGraph.videoActions.watchLater(item.aid)
+                        if (result is com.aritxonly.bdfun.core.common.Outcome.Failure) {
+                            context.showToast("添加失败，请稍后重试")
+                        } else {
+                            context.showToast("已添加至稍后再看")
+                        }
+                    }
+                },
+                VideoMenuItem("分享") {
+                    onDismiss()
+                    runCatching {
+                        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(android.content.Intent.EXTRA_TEXT, "${item.title}\nhttps://www.bilibili.com/video/${item.bvid}")
+                        }
+                        context.startActivity(android.content.Intent.createChooser(intent, "分享视频"))
+                    }
+                },
+            )
+        }.orEmpty(),
+    )
 }
 
 @Composable

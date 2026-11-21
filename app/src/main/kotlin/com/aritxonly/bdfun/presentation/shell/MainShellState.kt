@@ -18,6 +18,10 @@ internal class MainShellUiStateHolder {
     var homeSection by mutableIntStateOf(0)
     /** 首页内部分页的连续位置（0.0 推荐，1.0 直播，2.0 番剧）；顶栏指示器跟手指走。 */
     val homeSectionPosition = mutableFloatStateOf(0f)
+    // 动态页顶部分类：shell 顶栏和 pager 内容同样分属两层，状态放这里。
+    // 空串表示尚未初始化，由 shell 按用户排序落到第一个可见分类。
+    var dynamicTab by mutableStateOf("")
+    val dynamicTabPosition = mutableFloatStateOf(0f)
 
     fun closeSearch() { showSearch = false; searchQuery = ""; searchSubmitted = null }
 }

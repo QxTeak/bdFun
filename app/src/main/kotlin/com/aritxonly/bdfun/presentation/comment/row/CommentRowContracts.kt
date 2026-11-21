@@ -19,5 +19,6 @@ internal data class CommentPreviewActions(
     val onPreviewLike: (CommentItem) -> Unit,
 )
 internal class CommentRowPresentationStateHolder {
-    var bounds by mutableStateOf(androidx.compose.ui.geometry.Rect.Zero)
+    /** 只在长按事件里读取；滚动时每帧写 State 会让整行反复失效，这里用普通字段。 */
+    var bounds: androidx.compose.ui.geometry.Rect = androidx.compose.ui.geometry.Rect.Zero
 }

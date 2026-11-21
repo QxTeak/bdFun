@@ -25,6 +25,8 @@ class SearchStateHolderTest {
         override suspend fun videos(request: SearchRequest): Outcome<List<VideoItem>> {
             calls += "videos:${request.keyword}"; requests += request; return videos.invoke(request)
         }
+        override suspend fun pgc(keyword: String, bangumi: Boolean, page: Int) =
+            Outcome.Success(emptyList<com.aritxonly.bdfun.core.model.pgc.SearchPgcItem>())
     }
 
     @Test fun hotListLoadsOnlyWhenEnabledAndEmpty() = runBlocking {
