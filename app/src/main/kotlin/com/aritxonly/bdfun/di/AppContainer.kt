@@ -122,6 +122,7 @@ internal class AppContainer(
     val playbackQueue = com.aritxonly.bdfun.core.application.PlaybackQueueStateHolder()
     val mediaControls = com.aritxonly.bdfun.core.application.MediaControlsRegistry()
     val playbackPauses = com.aritxonly.bdfun.core.application.PlaybackPauseRegistry()
+    val pictureInPicturePages = com.aritxonly.bdfun.core.application.PictureInPicturePageRegistry()
     private val emoteImages by lazy { context?.let(::createEmoteImageLoader) }
     private val emoteStore = com.aritxonly.bdfun.core.application.EmoteStore(
         com.aritxonly.bdfun.infra.bili.BiliEmoteRepository(api),
