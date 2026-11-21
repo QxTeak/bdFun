@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -115,7 +117,8 @@ internal fun SearchResultRow(
     ) {
         SearchVideoCover(video, coverWidth, coverHeight)
         Spacer(Modifier.width(10.dp))
-        SearchResultInfo(video, Modifier.weight(1f).height(coverHeight))
+        // 高度只给下限：字号放大、两行标题时右列可撑高，UP 行不会被挤出容器裁掉。
+        SearchResultInfo(video, Modifier.weight(1f).heightIn(min = coverHeight))
         // 批量管理勾选直接复用 Miuix 的 Checkbox（和选收藏夹的面板同款）。
         if (selection != null) {
             Checkbox(
@@ -130,42 +133,45 @@ internal fun SearchResultRow(
     }
 }
 
-/** 标题 + 播放/弹幕 + UP：和封面同高的一列。 */
+/** 标题 + 播放/弹幕 + UP：右列高度不低于封面，标题与数据贴顶、UP 贴底。 */
 @Composable
 private fun SearchResultInfo(video: VideoItem, modifier: Modifier = Modifier) {
     val colors = MiuixTheme.colorScheme
-    Column(modifier = modifier) {
-        Text(
-            text = video.title,
-            color = colors.onBackground,
-            fontSize = 13.sp,
-            lineHeight = 17.sp,
-            fontWeight = FontWeight.Normal,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Spacer(Modifier.height(3.dp))
-        Row(
-            modifier = Modifier.padding(start = 1.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            MetricGlyph(play = true, color = colors.onBackgroundVariant, size = 11.dp)
-            Spacer(Modifier.width(2.dp))
+    // 只给下限而不是写死高度：字号放大或两行标题时右列能自己撑高，
+    // 剩余空白交给 SpaceBetween 全落在数据行与 UP 行之间，避免 UP 行被挤出容器裁掉。
+    Column(modifier = modifier, verticalArrangement = Arrangement.SpaceBetween) {
+        Column {
             Text(
-                text = formatCount(video.play),
-                color = colors.onBackgroundVariant,
-                fontSize = 10.sp,
+                text = video.title,
+                color = colors.onBackground,
+                fontSize = 13.sp,
+                lineHeight = 17.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
-            Spacer(Modifier.width(6.dp))
-            MetricGlyph(play = false, color = colors.onBackgroundVariant, size = 11.dp)
-            Spacer(Modifier.width(2.dp))
-            Text(
-                text = formatCount(video.danmaku),
-                color = colors.onBackgroundVariant,
-                fontSize = 10.sp,
-            )
+            Spacer(Modifier.height(3.dp))
+            Row(
+                modifier = Modifier.padding(start = 1.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MetricGlyph(play = true, color = colors.onBackgroundVariant, size = 11.dp)
+                Spacer(Modifier.width(2.dp))
+                Text(
+                    text = formatCount(video.play),
+                    color = colors.onBackgroundVariant,
+                    fontSize = 10.sp,
+                )
+                Spacer(Modifier.width(6.dp))
+                MetricGlyph(play = false, color = colors.onBackgroundVariant, size = 11.dp)
+                Spacer(Modifier.width(2.dp))
+                Text(
+                    text = formatCount(video.danmaku),
+                    color = colors.onBackgroundVariant,
+                    fontSize = 10.sp,
+                )
+            }
         }
-        Spacer(Modifier.weight(1f))
         Row(verticalAlignment = Alignment.CenterVertically) {
             UpBadge()
             Spacer(Modifier.width(5.dp))
