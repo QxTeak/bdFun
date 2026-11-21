@@ -108,10 +108,10 @@ private fun MessageFeedCard(
     actions: MessageFeedActions,
     openMenu: (Rect) -> Unit,
 ) {
-    var anchor by remember { mutableStateOf(Rect.Zero) }
-    val onMenu = { if (anchor != Rect.Zero) openMenu(anchor) }
+    val anchor = remember { CardBoundsHolder() }
+    val onMenu = { if (anchor.value != Rect.Zero) openMenu(anchor.value) }
     Box(Modifier.padding(bottom = TeakUiStyle.design.contentInset(8.dp))
-        .onGloballyPositioned { anchor = it.boundsInWindow() }) {
+        .onGloballyPositioned { anchor.value = it.boundsInWindow() }) {
         MessageRowSurface(true, true) {
             when (kind) {
                 MessageFeedKind.Reply -> ReplyRow(item, onClick = { actions.open(item) }, onMore = onMenu)

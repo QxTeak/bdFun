@@ -802,6 +802,16 @@ scrollable 默认 false，maxVisibleItems 默认 3；开启并超限时启用内
 
 曾尝试把视频页 Tab 材质改成 `animateFloatAsState` + `TeakGlassSurface.materialAlphaState`（绘制阶段读 alpha），但该方案已按用户要求回退，当前仍保持原实现：`VideoPageTabs` 用 `rememberManualProgress(…, 300f)`，`TeakPagerTabs`/`VideoDanmakuControl` 在组合期读 `LocalTopBarButtonMaterialProgress`。不要再按回退前的 State 方案改，除非重新评估。
 
+### 2026-11-21 本轮 UI 批处理与投屏
+
+同步 origin/main 到 d40f364 后处理一批体验问题：投币整页浮层的空白遮罩可点击关闭；弹幕互动浮层的坐标改为按解码画面矩形而非播放器 View 计算，并按实际卡片高度做边界收口；互动投票每个选项独占一行，投完票从 `/x/vote/vote_info` 读 `options[].cnt` 显示比例条。搜索新增「番剧 / 影视」Tab（`search_type=media_bangumi/media_ft`，`SearchPgcItem`，点击只带 season_id 进详情），用户 Tab 改为无卡片底的平铺行并给头像留 2dp 外圈。Coil 统一 ImageLoader 补 `Referer: https://www.bilibili.com/`，`biliImageUrl` 的 `@尺寸` 改到查询串之前。
+
+视频卡片的操作菜单统一为 TeakUI `TeakVideoActionMenu`（评论区同款 Miuix 玻璃下拉），首页/热门/收藏历史随后看共用；卡片右下角 `VideoCardMoreButton` 与长按走同一锚点。首页把长按回调从无参改为带卡片 `Rect`，`HomePresentationHost.card` 随之扩展。收藏/历史/稍后再看复用 `videoResultRows` 的 `onSwipeDelete`，由 `SwipeToDeleteVideo` 左右滑动删除。
+
+投屏新增 `app/cast/DlnaCaster`（SSDP + UPnP AVTransport，无新增依赖）与 `CastDialog`；`PlaybackSource.castUrl` 优先使用可带声音的 durl，`PlaybackController.currentMediaUrl` 供全屏/半屏共用入口读取。注意：DASH-only 视频没有 durl 时电视端可能只有画面；Android 17 局域网运行时权限尚未接入。
+
+后续修正：取消收藏页左右滑动删除（红色背景在透明行上会整行透出，且容易误触）；视频卡省略号移进 UP 行并缩小；搜索用户头像改用 1:1 `@160w_160h_1c` 而非 16:9 封面裁切；搜索列表 key 带 index，避免接口重复 bvid 触发 LazyGrid 崩溃；搜索 Tab 的 pager 只认 `settledPage`，不能再在 effect 启动时用当前页和 tab 比较（会把刚点的 Tab 改回去并停在两页之间）；投票选项改胶囊、比例条透明粉。视频页 Tab 与一镜到底本轮的尝试全部回退到 main，不保留自制退出动画。
+
 ### 2026-11-20 倍速音质与音画同步：对齐 BiliPai
 
 用户反馈倍速声音扭曲；按 A 打开 AudioTrack 系统时间伸缩后音画不同步复现。对照 BiliPai 后确认它的做法是：
@@ -814,6 +824,28 @@ scrollable 默认 false，maxVisibleItems 默认 3；开启并超限时启用内
 bdFun 对应调整：`Media3PlayerBuilder` 恢复 `setEnableAudioTrackPlaybackParams(false)`；`Media3PlaybackController` 用 `PlaybackParameters(speed, 1f)`；新增 `LoudnessNormalizationAudioProcessor` 与 `LoudnessAwareRenderersFactory`，按 `settings.loudnessEq` 在播放器创建时选择工厂；删除 `PlaybackAudioEffect`、`PlayerLoudnessEffects` 与平台 effect 路径。
 
 注意：响度开关在播放器创建时读取，切换设置后需重新进入视频页才生效（与 BiliPai 的工厂选择方式一致）；软件 AGC 的听感是“响度趋于一致”，不再是无条件 +6dB。测试：`LoudnessNormalizationAudioProcessorTest`（3 项，含 16-bit 削顶与 float limiter）。
+
+### 2026-11-21 非小米退出动画 / 动态分页 / 查看器与列表性能
+
+非小米机型的「一镜到底」退出补齐：`TeakOneTake` 在公开缩略图路径把起飞矩形/源 Activity/屏幕与旋转写入 Intent；`OneTakeExit` 在视频页/动态详情 `finish()` 前用 PixelCopy 抓整屏，交给源 Activity 在 resume 时按系统同一组参数（336ms、PathInterpolator(0.3,0,0.1,1)、后半程 LinearOutSlowIn 淡出、设备圆角等比缩放）缩回卡片。视频页与动态详情统一继承 `OneTakeExitActivity`，相关推荐（源是上一个 VideoActivity）也走同一交接。小米机型不写 extra，系统原生退出动画不受影响；Android 14+ 必须用 `overrideActivityTransition` 关系统关闭转场，`overridePendingTransition` 已无效。
+
+动态页改为和首页同一套 `HorizontalPager`：每个分类独立 `FeedState`（`AppContainer.dynamicFeedStateFor`，按账号/分类复用），顶栏只读 shell 的 `dynamicTab`，滑动与点选共用 pager；`FeedTopBar` 不再自己 `switchTo`。删除了 `FeedTopBar` 里旧的默认分类副作用。
+
+图片查看器：入场进度/拖动位移只在 `graphicsLayer`/`drawWithContent` 读取，组合期只依赖宽高比；去掉开场前等 320ms 宽高比的阻塞；玻璃采样只在长按菜单打开时挂 `layerBackdrop`（常驻会让整张原图每帧多录一遍）。列表滚动时的 `onGloballyPositioned` 不再写 Compose State（`CardBoundsHolder`、普通 Map/数组），避免可见卡片逐帧重组。热门页菜单保持常驻到收起动画结束；`?` 不能再用 `?.let` 整体包住菜单。
+
+尺寸门槛：新增代码已拆到 80 行内、单函数参数 12 个内；`reportKotlinSizes` 里仍有 `CastDialog`、`DanmakuCommandOverlay`、`SearchUiState` 三处历史超标，未在本轮一并处理。
+
+### 2026-11-21 尺寸门槛清零与互动面板拆分
+
+`checkLayering` 现已通过（Kotlin PSI 0 violations）。投屏面板拆出 `CastSheet`/`CastLifecycleEffect`；`SearchUiState` 的番剧/影视四字段收成 `SearchPgcState`；弹幕互动从 `DanmakuCommandOverlay` 拆成 `Session`（拉取/提交）、`Host`（画面矩形与卡片定位）、`Card`（头部/投票/评分/关注）与 `Controls`（投票行、胶囊按钮），提交时序、票数刷新和 `pending` 占位保持原样。不要为了拆文件改变投票/评分的先后顺序。
+
+动态页 portal 共享在 `di/DynamicFeedSlots.kt`：只有「全部」分类请求 UP/直播 portal，其它分类订阅同一 StateFlow；账号切换会让非「全部」槽重建。Miuix 下拉菜单外壳统一在 `TeakUI` 的 `TeakAnchoredGlassMenu`，`TeakGlassMenu` 与 `TeakVideoActionMenu` 都只是薄封装；热门页菜单必须常驻到收起动画结束，不能再被 `?.let` 整块卸载。
+
+`PopularPageScreen` 不再直接 `AppGraph.api.addWatchLater`，走 `AppGraph.videoActions` 的仓储接口，避免表现层直接依赖基础设施。
+
+### 2026-11-22 图片查看器改为 Telegram 式窗口内单 Bitmap 转场
+
+查看器不再用 Dialog：`PhotoViewerRoot` 直接画在当前窗口最上层，楼中楼在自己的 Dialog 内容里再包一层宿主。入场/退场由 `PhotoMorphView`（一个自定义 View + 一个 ValueAnimator）用列表已缓存的缩略图 bitmap 跑 200ms AccelerateDecelerate；动画期间不组合 pager、不解码原图。动画结束后缩略图继续盖住查看器，等 `fullAlpha` 真正到 1 再淡出盖层（`markCoverReady`），避免原图首次加载时闪一帧；超时 4s 兜底。列表缩略图在 `PhotoThumbCache` 里按原始 URL 缓存（LruCache 上限 64MB，sizeOf 单位是 KB）。不要改回 Dialog 或“先显示 pager 再等原图”。
 
 
 

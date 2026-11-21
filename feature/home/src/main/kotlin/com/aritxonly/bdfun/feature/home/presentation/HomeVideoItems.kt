@@ -16,7 +16,12 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.homeVideoItems(
     onOpenVideo: (VideoItem) -> Unit, host: HomePresentationHost,
 ) {
     items(items = state.videos, key = { it.bvid }) { video ->
-        host.card(video, largeCards, { state.open(video); onOpenVideo(video) }, { ui.actionVideo = video })
+        // 长按与省略号共用同一份锚点与菜单状态。
+        val openMenu: (androidx.compose.ui.geometry.Rect) -> Unit = { anchor ->
+            ui.actionAnchor = anchor
+            ui.actionVideo = video
+        }
+        host.card(video, largeCards, { state.open(video); onOpenVideo(video) }, openMenu, openMenu)
     }
 
 }

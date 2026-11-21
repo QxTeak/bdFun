@@ -1,40 +1,38 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationSpec
-import androidx.compose.animation.core.CubicBezierEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.viewinterop.AndroidView
+import android.graphics.Bitmap
+import android.graphics.Rect
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
-import kotlinx.coroutines.flow.first
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 
 /**
- * 窗口级图片查看器宿主。
+ * 当前窗口内的图片查看器宿主。
  *
- * 为什么必须挂在 Activity 的最外层：Telegram 的 PhotoViewer 是整个窗口的最上层，
- * 打开后盖住底栏、顶栏和状态栏。挂在页面里的话，任何画在页面之上的组件都会压住它，
- * 拖动关闭时"背后页面缩到 0.9"也只会缩那一页，不是整窗。
+ * 和 Telegram 的 PhotoViewer 一样直接画在窗口最上层，不创建 Dialog；入场/退场用
+ * 列表里已经缓存的缩略图 bitmap 跑一次 [PhotoMorphView]，期间不组合 pager、不解码原图。
+ * 动画结束后才显示可交互的 Compose 查看器并加载原图。
  *
- * 页面只需要 `LocalPhotoViewer.current.open(...)`，不需要自己创建状态或渲染覆盖层。
- * 动效开关由 Activity 装配层显式传入，展示层不直接读全局设置。
+ * 楼中楼这类独立 Dialog 会在自己的内容里再包一层本宿主，查看器画在弹窗自己的窗口里。
  */
 @Composable
 internal fun PhotoViewerRoot(
@@ -44,23 +42,56 @@ internal fun PhotoViewerRoot(
     val state = remember { PhotoViewerStateHolder() }
     val view = remember { PhotoViewerTransitionState() }
     val incoming = state.request
-    val spec: AnimationSpec<Float> = rememberPhotoAnimationSpec(animationsEnabled)
-    // 只在查看器可见时录制；黑底先铺一层，玻璃采样到的就是"黑底 + 大图"。
+    val durationMs = if (animationsEnabled) PhotoViewerDurationMs else 0L
     val viewerBackdrop = rememberLayerBackdrop {
-        drawRect(Color.Black)
+        drawRect(androidx.compose.ui.graphics.Color.Black)
         drawContent()
     }
+    var morphViewRef by remember { mutableStateOf<PhotoMorphView?>(null) }
 
     LaunchedEffect(incoming) {
+        val request = incoming
+        val current = view.displayed
         when {
-            incoming != null -> view.show(incoming, spec)
-            view.displayed != null -> view.hide(spec)
+            request != null && current == null -> {
+                view.displayed = request
+                view.pageIndex = request.index
+                view.settled = false
+                view.progress.floatValue = 0f
+                view.startMorph(request, request.index, open = true, durationMs)
+            }
+            request == null && current != null -> {
+                view.settled = false
+                view.startMorph(current, view.pageIndex, open = false, durationMs)
+            }
+        }
+    }
+    // 原图/缩略图迟迟没画出来时，缩略图不能永远盖着；超时后露出 Compose 层。
+    LaunchedEffect(view.settled, view.morphCovering) {
+        if (view.settled && view.morphCovering) {
+            kotlinx.coroutines.delay(4000)
+            if (view.morphCovering) {
+                morphViewRef?.fadeOut { view.morphCovering = false } ?: run { view.morphCovering = false }
+            }
+        }
+    }
+    // Compose 层说图已经能画了：等它真正画出一两帧后再淡出盖层，杜绝中间闪一帧。
+    LaunchedEffect(view.settled, view.coverReadyToken) {
+        if (view.settled && view.morphCovering && view.coverReadyToken > 0) {
+            kotlinx.coroutines.delay(120)
+            if (!view.morphCovering) return@LaunchedEffect
+            val overlay = morphViewRef
+            if (overlay != null) {
+                overlay.fadeOut { view.morphCovering = false }
+            } else {
+                view.morphCovering = false
+            }
         }
     }
 
     Box(Modifier.fillMaxSize().onSizeChanged { view.size = it }) {
         // 底层页面：打开时随进度放大一点点，关闭时按同样倍数缩回；
-        // 跟手拖动时再缩到 0.9。返回键的拦截放在覆盖层里（后注册才优先）。
+        // 跟手拖动时再缩到 0.9。
         Box(
             modifier = Modifier.fillMaxSize().graphicsLayer {
                 val scale = photoBackdropScaleAt(view.progress.value, view.dismissProgress)
@@ -71,92 +102,148 @@ internal fun PhotoViewerRoot(
             CompositionLocalProvider(LocalPhotoViewer provides state) { content() }
         }
         view.displayed?.let { request ->
-
-            // 楼中楼使用独立窗口；预览也必须开在窗口层，才能覆盖横竖屏弹窗。
-            androidx.compose.ui.window.Dialog(
-                onDismissRequest = state::close,
-                properties = androidx.compose.ui.window.DialogProperties(
-                    usePlatformDefaultWidth = false, decorFitsSystemWindows = false,
-                ),
-            ) {
-                val host = androidx.compose.ui.platform.LocalView.current
-                androidx.compose.runtime.SideEffect {
-                    (host.parent as? androidx.compose.ui.window.DialogWindowProvider)?.window?.apply {
-                        setDimAmount(0f)
-                        setWindowAnimations(0)
-                    }
-                }
-                CompositionLocalProvider(LocalTeakBackdrop provides viewerBackdrop) {
-                    Box(Modifier.fillMaxSize().layerBackdrop(viewerBackdrop)) {
-                        PhotoViewerOverlay(request = request, view = view, onDismiss = state::close)
-                    }
-                }
-
+            if (view.settled) {
+                PhotoViewerSettledLayer(request, view, state, viewerBackdrop)
+            }
+            // 动画结束后缩略图仍盖在最上面，直到 Compose 层真正把原图/缩略图画出来。
+            if ((!view.settled || view.morphCovering) && view.morphParams != null) {
+                PhotoMorphLayer(view, state) { morphViewRef = it }
             }
         }
     }
 }
 
-/** Telegram 的入场/退场是 250ms 的 decelerate，没有回弹、没有过冲。 */
 @Composable
-private fun rememberPhotoAnimationSpec(animationsEnabled: Boolean): AnimationSpec<Float> =
-    remember(animationsEnabled) {
-        tween(
-            durationMillis = if (animationsEnabled) PhotoViewerDurationMs else 0,
-            easing = CubicBezierEasing(0f, 0f, 0.2f, 1f),
+private fun PhotoViewerSettledLayer(
+    request: PhotoViewerRequest,
+    view: PhotoViewerTransitionState,
+    state: PhotoViewerStateHolder,
+    viewerBackdrop: top.yukonga.miuix.kmp.blur.LayerBackdrop,
+) {
+    // 和 Telegram 一样画在同一个窗口里；楼中楼有自己的一层宿主。
+    CompositionLocalProvider(LocalTeakBackdrop provides viewerBackdrop) {
+        Box(
+            Modifier.fillMaxSize().then(
+                if (view.menuVisible) Modifier.layerBackdrop(viewerBackdrop) else Modifier,
+            ),
+        ) {
+            PhotoViewerOverlay(
+                request = request,
+                view = view,
+                onDismiss = state::close,
+                onPageChanged = { view.pageIndex = it },
+            )
+        }
+    }
+}
+
+@Composable
+private fun PhotoMorphLayer(
+    view: PhotoViewerTransitionState,
+    state: PhotoViewerStateHolder,
+    onView: (PhotoMorphView?) -> Unit,
+) {
+    val params = view.morphParams ?: return
+    key(view.morphSession) {
+        AndroidView(
+            factory = { context ->
+                PhotoMorphView(context).apply {
+                    onView(this)
+                    onProgress = { view.progress.floatValue = it }
+                    onFinished = {
+                        if (state.request == null) {
+                            view.displayed = null
+                            view.progress.floatValue = 0f
+                            view.morphParams = null
+                            view.morphCovering = false
+                        } else {
+                            view.settled = true
+                            view.progress.floatValue = 1f
+                        }
+                    }
+                    start(params.bitmap, params.origin, params.radius, params.open, durationMs = params.duration)
+                }
+            },
+            modifier = Modifier.fillMaxSize(),
         )
     }
+}
 
-internal const val PhotoViewerDurationMs = 250
+/** Telegram 的入场/退场是 200ms 的 AccelerateDecelerate，没有回弹、没有过冲。 */
+internal const val PhotoViewerDurationMs = 200L
 
 /**
  * 一次打开/关闭过程中的全部瞬时状态。
  *
- * 放在一个持有类里而不是散在 composable 中，是为了让宿主函数保持在 80 行以内，
- * 同时让"进入/退出是同一条时间线"这件事在代码上只有一个来源。
+ * 入场/退场由 [PhotoMorphView] 的单个 ValueAnimator 驱动；progress 只是给底层页面
+ * 缩放和 Compose 层读取的镜像，不再用 Compose 动画逐帧重组查看器。
  */
 internal class PhotoViewerTransitionState {
     var displayed by mutableStateOf<PhotoViewerRequest?>(null)
-    val progress = Animatable(0f)
+    var settled by mutableStateOf(false)
+    var pageIndex by mutableIntStateOf(0)
+    val progress = mutableFloatStateOf(0f)
     var dragY by mutableFloatStateOf(0f)
     var zoom by mutableFloatStateOf(1f)
     var chromeVisible by mutableStateOf(true)
     var size by mutableStateOf(IntSize.Zero)
-    /**
-     * 首页那一页是否已经知道原图真实宽高比。
-     *
-     * 入场动画必须等它：缩略图是 16:9 裁切、原图可能是 3:4，
-     * 如果动画先按 16:9 跑、加载完再改比例，几何会中途重算——看起来就是"从中间弹出来"。
-     */
-    var contentReady by mutableStateOf(false)
+    var menuVisible by mutableStateOf(false)
+    var morphParams by mutableStateOf<PhotoMorphParams?>(null)
+    var morphSession by mutableIntStateOf(0)
+    /** 缩略图继续盖在查看器上，直到原图/缩略图真正画出来，避免中间闪一帧空。 */
+    var morphCovering by mutableStateOf(false)
+    /** Compose 层报告“图已经能画了”的代数；Root 收到后先淡出盖层再移除。 */
+    var coverReadyToken by mutableIntStateOf(0)
+    /** 入场缩略图的真实宽高比：交接给 Compose 页时先用它，避免落位瞬间按 16:9 重排。 */
+    var openAspect by mutableFloatStateOf(0f)
 
     val dismissProgress: Float
         get() = photoDismissProgress(dragY, size.height.toFloat())
 
-    suspend fun show(request: PhotoViewerRequest, spec: AnimationSpec<Float>) {
-        // 已经打开时只换内容，不重播入场——Telegram 里左右翻页就是这个行为。
-        if (displayed != null && progress.value > 0.99f) {
-            displayed = request
-            contentReady = true
-            return
-        }
-        displayed = request
-        contentReady = false
-        progress.snapTo(0f)
-        dragY = 0f
-        zoom = 1f
-        chromeVisible = true
-        // 等原图报出真实宽高比再开始动画；最多等 320ms，慢网也不会卡住页面。
-        kotlinx.coroutines.withTimeoutOrNull(320) {
-            snapshotFlow { contentReady }.first { it }
-        }
-        progress.animateTo(1f, spec)
+    fun markCoverReady() {
+        coverReadyToken++
     }
 
-    suspend fun hide(spec: AnimationSpec<Float>) {
-        progress.animateTo(0f, spec)
-        displayed = null
-        dragY = 0f
-        zoom = 1f
+    fun startMorph(
+        request: PhotoViewerRequest,
+        index: Int,
+        open: Boolean,
+        durationMs: Long,
+    ) {
+        val bitmap = PhotoThumbCache.get(request.images.getOrNull(index).orEmpty())
+        val origin = request.originFor(index)
+        if (bitmap == null || origin == null || durationMs <= 0L) {
+            // 没有缩略图缓存时退回直接显示，至少不要空白或卡在半空。
+            morphParams = null
+            morphCovering = false
+            settled = true
+            progress.floatValue = if (open) 1f else 0f
+            if (!open) displayed = null
+            return
+        }
+        morphSession++
+        openAspect = if (bitmap.height > 0) bitmap.width.toFloat() / bitmap.height else 0f
+        morphCovering = true
+        coverReadyToken = 0
+        morphParams = PhotoMorphParams(
+            bitmap = bitmap,
+            origin = Rect(
+                origin.left.toInt(),
+                origin.top.toInt(),
+                origin.right.toInt(),
+                origin.bottom.toInt(),
+            ),
+            radius = request.originRadiusPx,
+            open = open,
+            duration = durationMs,
+        )
     }
 }
+
+internal data class PhotoMorphParams(
+    val bitmap: Bitmap,
+    val origin: Rect,
+    val radius: Float,
+    val open: Boolean,
+    val duration: Long,
+)

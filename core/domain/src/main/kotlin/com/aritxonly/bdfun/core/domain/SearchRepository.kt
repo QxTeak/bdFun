@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.core.domain
 
 import com.aritxonly.bdfun.core.common.Outcome
+import com.aritxonly.bdfun.core.model.pgc.SearchPgcItem
 import com.aritxonly.bdfun.core.model.user.SearchUser
 import com.aritxonly.bdfun.core.model.video.VideoItem
 
@@ -16,4 +17,6 @@ interface SearchRepository {
     suspend fun suggestions(query: String): Outcome<List<String>>
     suspend fun users(keyword: String): Outcome<List<SearchUser>>
     suspend fun videos(request: SearchRequest): Outcome<List<VideoItem>>
+    /** 番剧/影视搜索；[bangumi] 为 true 用 media_bangumi，否则 media_ft。 */
+    suspend fun pgc(keyword: String, bangumi: Boolean, page: Int = 1): Outcome<List<SearchPgcItem>>
 }

@@ -62,6 +62,8 @@ fun BindPlayerSource(
             videoUrl = url, audioUrl = audioUrl, mediaKey = mediaKey,
             headers = mapOf("Referer" to "https://www.bilibili.com/video/$bvid/"), userAgent = playback.userAgent,
             resumePositionMs = if (resumePositionMs > 0L) resumePositionMs else localResume, autoPlay = autoPlay(), speed = speed,
+            // DASH 的音视频是分开的；投屏给电视一个文件地址，优先用能带声音的 durl。
+            castUrl = info?.fallbackUrl?.takeIf { it.isNotBlank() },
         ))
     }
 

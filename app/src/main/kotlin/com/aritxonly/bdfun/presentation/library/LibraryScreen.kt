@@ -40,9 +40,9 @@ private fun LibraryContent(runtime: LibraryRuntime) {
         if (interaction.searching) LibrarySearchOverlay(runtime, data, interaction)
         LibraryTransferSheet(runtime, data, interaction)
         // 长按视频：和首页同款底部操作面板，选项复用批量管理。
-        LibraryVideoSheet(
+        LibraryVideoMenu(
             show = runtime.presentation.sheetVideo != null,
-            video = runtime.presentation.sheetVideo,
+            anchor = runtime.presentation.sheetAnchor,
             allowTransfer = runtime.currentMode == 0,
             onDismiss = runtime::dismissSheet,
             onAction = { kind -> runtime.presentation.sheetVideo?.let { runtime.sheetAction(kind, it) } },
@@ -60,7 +60,7 @@ internal fun LibraryPagerPage(
             mode == runtime.currentMode, progress, runtime.presentation.scrollTopTick),
         actions = LibraryModeActions(runtime.data, runtime::selectMode, runtime.interaction::toggleSelected,
             runtime::selectFolder, runtime.navigation.onOpenVideo, { runtime.loadMore(mode) }, runtime.dependencies.playbackQueue::set,
-            onLongPressVideo = runtime::openSheet),
+            onVideoMenu = runtime::openSheet),
     )
 }
 internal fun libraryModeContent(

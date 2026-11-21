@@ -17,7 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 
 /** 视频详情：独立 Activity；评论页留在本 Activity 内，避免播放器被销毁。 */
-class VideoActivity : ComponentActivity() {
+class VideoActivity : OneTakeExitActivity() {
     private val pageState by lazy { AppGraph.videoPageState(lifecycleScope) }
     private val VideoPageBus get() = pageState
     private val PlayerUiState get() = pageState.playerUi

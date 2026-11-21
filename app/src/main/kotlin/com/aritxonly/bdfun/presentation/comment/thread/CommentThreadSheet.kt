@@ -12,6 +12,7 @@ internal fun CommentThreadSheet(
     input: CommentThreadInput, viewport: CommentThreadViewport, navigation: CommentThreadNavigation,
     /** 和主评论区同一套左右留白：视频详情是平铺列表（4dp），其它入口 12dp。 */
     flatList: Boolean = false,
+    animationsEnabled: Boolean = true,
 ) {
     val runtime = rememberCommentThreadRuntime(input)
     val state by key(runtime.controller) { runtime.controller.state.collectAsState() }
@@ -49,6 +50,7 @@ internal fun CommentThreadSheet(
         focusRequester = runtime.focusRequester,
         callbacks = ThreadSheetCallbacks(navigation.onDismiss, navigation.onToggleSort, runtime::exitReply,
             { runtime.send(input, actions.sending) }, runtime::toggleLike),
+        animationsEnabled = animationsEnabled,
     )
     }
     CommentThreadMenu(runtime, input)

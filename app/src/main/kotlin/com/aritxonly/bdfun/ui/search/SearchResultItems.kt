@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.ui.Alignment
@@ -19,6 +20,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.data.SearchUser
 import com.aritxonly.bdfun.data.VideoItem
+import com.aritxonly.bdfun.core.model.pgc.SearchPgcItem
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
+import coil.compose.AsyncImage
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 import com.aritxonly.teak.common.skeleton.TeakSkeletonBlock
 import com.aritxonly.teak.common.skeleton.TeakSkeletonVideoRow
 import com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep
@@ -58,11 +69,14 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows
     keyPrefix: String,
     onOpenVideo: (com.aritxonly.bdfun.data.VideoItem) -> Unit,
     onLongPressVideo: ((com.aritxonly.bdfun.data.VideoItem) -> Unit)? = null,
+    /** 长按/省略号统一传入窗口坐标，菜单锚定在卡片上。 */
+    onVideoMenu: ((com.aritxonly.bdfun.data.VideoItem, androidx.compose.ui.geometry.Rect) -> Unit)? = null,
     showSelection: Boolean = false,
     selectedIds: Set<String> = emptySet(),
     enableOneTake: Boolean = true,
 ) {
-    items(items = videos, key = { keyPrefix + it.bvid }) { video ->
+    // 搜索/热门接口会返回重复 bvid（同一稿件多个入口），只用 bvid 当 key 会直接崩 LazyGrid。
+    itemsIndexed(items = videos, key = { index, video -> keyPrefix + index + "-" + video.bvid }) { _, video ->
         val oneTake = rememberOneTakeAnchor()
         val itemContext = LocalContext.current
         val cardRadiusPx = with(LocalDensity.current) { 10.dp.toPx() }
@@ -78,6 +92,8 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows
             onClick = open,
             modifier = if (enableOneTake) oneTake.modifier else Modifier,
             onLongClick = onLongPressVideo?.let { longPress -> { longPress(video) } },
+            onLongPressRect = onVideoMenu?.let { menu -> { rect -> menu(video, rect) } },
+            onMoreClick = onVideoMenu?.let { menu -> { rect -> menu(video, rect) } },
             selection = if (showSelection) video.bvid in selectedIds else null,
         )
     }
@@ -168,7 +184,7 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchUserResul
             SearchUserSkeletonRow()
         }
     }
-    items(items = users, key = { "u" + it.mid }) { user ->
+    itemsIndexed(items = users, key = { index, user -> "u$index-" + user.mid }) { _, user ->
         SearchUserRow(user = user, onClick = { onOpenUser(user) })
     }
     if (loadedOnce && !loading && users.isEmpty() && error == null) {
@@ -181,6 +197,105 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchUserResul
             )
         }
     }
+}
+
+/** 番剧 / 影视搜索结果：封面 + 标题 + 类型/评分/地区。 */
+internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchPgcResultItems(
+    items: List<SearchPgcItem>,
+    content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
+    pageColors: top.yukonga.miuix.kmp.theme.Colors,
+    label: String,
+) {
+    val loading = content.pgc.loading
+    val loadedOnce = content.pgc.loadedOnce
+    if (loading && items.isEmpty()) {
+        videoResultSkeleton(count = 5, keyPrefix = "pgc-skeleton-$label")
+    }
+    itemsIndexed(items = items, key = { index, item -> "pgc-$label-$index-" + item.seasonId }) { _, item ->
+        SearchPgcRow(item)
+    }
+    if (loadedOnce && !loading && items.isEmpty()) {
+        item(key = "empty-pgc-$label", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+            Text(
+                text = "没有找到相关$label",
+                color = pageColors.onBackgroundVariant,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(top = 24.dp),
+            )
+        }
+    }
+}
+
+@androidx.compose.runtime.Composable
+private fun SearchPgcRow(item: SearchPgcItem) {
+    val context = LocalContext.current
+    val colors = MiuixTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(colors.surfaceContainer)
+            .padding(8.dp)
+            .clickable { openPgc(context, item.seasonId) },
+        verticalAlignment = Alignment.Top,
+    ) {
+        AsyncImage(
+            model = rememberImageRequest(item.cover),
+            contentDescription = item.title,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .width(100.dp)
+                .aspectRatio(3f / 4f)
+                .clip(RoundedCornerShape(8.dp))
+                .background(colors.surfaceContainerHigh),
+        )
+        Spacer(Modifier.width(12.dp))
+        androidx.compose.foundation.layout.Column(Modifier.weight(1f)) {
+            Text(
+                text = item.title,
+                color = colors.onBackground,
+                fontSize = 14.sp,
+                lineHeight = 19.sp,
+                fontWeight = FontWeight.Medium,
+                maxLines = 2,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            )
+            Spacer(Modifier.height(6.dp))
+            val meta = listOfNotNull(
+                item.typeName.takeIf { it.isNotBlank() },
+                item.score.takeIf { it.isNotBlank() }?.let { "评分 $it" },
+                item.areas.takeIf { it.isNotBlank() },
+            ).joinToString(" · ")
+            if (meta.isNotBlank()) {
+                Text(
+                    text = meta,
+                    color = colors.onBackgroundVariant,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+            }
+            val extra = listOfNotNull(
+                item.styles.takeIf { it.isNotBlank() },
+                item.indexShow.takeIf { it.isNotBlank() },
+            ).joinToString(" · ")
+            if (extra.isNotBlank()) {
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    text = extra,
+                    color = colors.onBackgroundVariant,
+                    fontSize = 12.sp,
+                    maxLines = 2,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
+/** 番剧/影视卡片只带 season_id 进详情页，避免为找首集多拉一整季。 */
+private fun openPgc(context: android.content.Context, seasonId: Long) {
+    com.aritxonly.bdfun.presentation.pgc.openBangumi(context, seasonId)
 }
 
 /** 搜索结果首屏：和 SearchResultRow 同尺寸的骨架行。 */

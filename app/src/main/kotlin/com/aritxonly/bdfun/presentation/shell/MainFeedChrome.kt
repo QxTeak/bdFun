@@ -1,6 +1,8 @@
 package com.aritxonly.bdfun
 
 import androidx.compose.runtime.Composable
+import com.aritxonly.bdfun.core.domain.DynamicTabPolicy
+import com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings
 import com.aritxonly.bdfun.ui.FeedTopBar
 
 /**
@@ -15,7 +17,9 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainFeedChrome(
     pageFloat: Float,
 ) {
     val session = shell.feeds.session ?: return
-    val dynamicFeed = shell.feeds.dynamic
+    val settings = LocalSettingsBindings.current
+    val tabs = DynamicTabPolicy.ordered(settings.dynamicFeedTabs, settings.dynamicFeedTabOrder)
+    val selected = tabs.indexOfFirst { it.key == shell.ui.dynamicTab }.coerceAtLeast(0)
     MainTopBarChrome(
         shell = shell,
         pageIndex = 1,
@@ -25,9 +29,13 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainFeedChrome(
         fadesWhenSearchOpens = true,
     ) {
         FeedTopBar(
-            state = dynamicFeed,
-            loggedIn = session != null,
+            tabs = tabs,
+            selectedIndex = selected,
+            onSelect = { index ->
+                tabs.getOrNull(index)?.let { shell.ui.dynamicTab = it.key }
+            },
             modifier = androidx.compose.ui.Modifier,
+            position = shell.ui.dynamicTabPosition,
         )
     }
 }

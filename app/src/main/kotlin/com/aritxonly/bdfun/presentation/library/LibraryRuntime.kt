@@ -39,8 +39,11 @@ internal class LibraryRuntime(
             data.refreshFolderCounts()
         }
     }
-    /** 长按视频：打开和首页同款的底部操作面板。 */
-    fun openSheet(video: VideoItem) { presentation.sheetVideo = video }
+    /** 长按/省略号：打开和首页同款的锚定下拉菜单。 */
+    fun openSheet(video: VideoItem, anchor: androidx.compose.ui.geometry.Rect) {
+        presentation.sheetAnchor = anchor
+        presentation.sheetVideo = video
+    }
     fun dismissSheet() { presentation.sheetVideo = null }
     /** 面板里的选项直接复用批量管理：只选中这一条再走原来的删除/移动/复制流程。 */
     fun sheetAction(kind: String, video: VideoItem) {

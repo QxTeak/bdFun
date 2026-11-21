@@ -140,6 +140,7 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
     suspend fun hotKeywords() = api.hotKeywords()
     suspend fun search( keyword: String, page: Int = 1, /** totalrank 默认 / click 播放多 / pubdate 新发布 / dm 弹幕多 */ order: String = "totalrank", /** 0 不限 / 1 0-10 分钟 / 2 10-30 / 3 30-60 / 4 60 以上 */ duration: Int = 0, pubtimeBegin: Long? = null, pubtimeEnd: Long? = null, ) = api.search(keyword, page, order, duration, pubtimeBegin, pubtimeEnd)
     suspend fun searchUsers(keyword: String, page: Int = 1) = api.searchUsers(keyword, page)
+    suspend fun searchPgc(keyword: String, bangumi: Boolean, page: Int = 1) = api.searchPgc(keyword, bangumi, page)
     suspend fun hotSearch() = api.hotSearch()
     suspend fun messages(type: Int, page: Int = 1) = api.messages(type, page)
     suspend fun messagesPage(type: Int, cursor: MessageCursor? = null) = api.messagesPage(type, cursor)

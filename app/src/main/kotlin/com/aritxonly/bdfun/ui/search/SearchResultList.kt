@@ -30,7 +30,7 @@ internal fun SearchResultList(
 ) {
     val wide = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600
     val pageColors = MiuixTheme.colorScheme
-    val listState = if (page == 0) presentation.videos else presentation.users
+    val listState = presentation.listStates[page.coerceIn(0, presentation.listStates.lastIndex)]
     // 只有视频 Tab 有分页：滑到接近底部就拉下一页；drop(1) 忽略进入页面时的首次布局。
     // 结果数量用 rememberUpdatedState 读最新值，否则 effect 会一直拿第一次的 20 条判断阈值。
     val resultsSize by androidx.compose.runtime.rememberUpdatedState(content.results.size)
@@ -61,11 +61,14 @@ internal fun SearchResultList(
         horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
     ) {
         searchResultStatusItems(content, pageColors)
-        if (page == 0) {
-            searchVideoResultItems(content, pageColors, onOpenVideo)
-            searchVideoPageFooter(content, pageColors)
-        } else {
-            searchUserResultItems(content, pageColors, onOpenUser)
+        when (page) {
+            0 -> {
+                searchVideoResultItems(content, pageColors, onOpenVideo)
+                searchVideoPageFooter(content, pageColors)
+            }
+            1 -> searchPgcResultItems(content.pgc.bangumi, content, pageColors, "番剧")
+            2 -> searchPgcResultItems(content.pgc.films, content, pageColors, "影视")
+            else -> searchUserResultItems(content, pageColors, onOpenUser)
         }
 
     }

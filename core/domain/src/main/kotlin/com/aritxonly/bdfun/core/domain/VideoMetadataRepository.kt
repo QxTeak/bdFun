@@ -27,6 +27,8 @@ interface VideoMetadataRepository {
     suspend fun specialDanmaku(aid: Long, cid: Long): Outcome<SpecialDanmakuPlayback>
     suspend fun danmakuCommands(aid: Long, cid: Long): Outcome<List<DanmakuCommand>>
     suspend fun submitDanmakuCommand(selection: DanmakuCommandSelection): Outcome<Unit>
+    /** 互动投票实时候选票数（选项值 -> 票数）；普通评分命令返回空。 */
+    suspend fun danmakuVoteCounts(voteId: Long): Outcome<Map<Int, Long>>
     suspend fun danmakuRules(): Outcome<List<DanmakuCloudRule>>
     suspend fun addDanmakuRule(kind: DanmakuRuleKind, value: String): Outcome<DanmakuCloudRule>
     suspend fun syncDanmakuConfig(config: DanmakuCloudConfig): Outcome<Unit>

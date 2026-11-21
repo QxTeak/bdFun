@@ -27,6 +27,8 @@ internal class LibraryModeActions(
     val owner: Any, val onSelectMode: (Int) -> Unit, val onToggleSelected: (String) -> Unit,
     val onFolderSelect: (Int) -> Unit, val onOpenVideo: (VideoItem) -> Unit, val onLoadMore: () -> Unit,
     val onPrepareQueue: (List<VideoItem>, String) -> Unit,
-    /** 长按视频：弹出和首页同款的底部操作面板（选项取批量管理的功能）。 */
+    /** 长按视频：弹出和首页同款的锚定下拉菜单（选项取批量管理的功能）。 */
     val onLongPressVideo: (VideoItem) -> Unit = {},
+    /** 省略号与长按共用同一菜单；坐标用于锚定。 */
+    val onVideoMenu: (VideoItem, androidx.compose.ui.geometry.Rect) -> Unit = { _, _ -> },
 )

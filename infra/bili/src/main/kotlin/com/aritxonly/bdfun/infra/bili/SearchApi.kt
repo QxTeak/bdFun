@@ -40,6 +40,7 @@ import com.aritxonly.bdfun.core.model.user.*
 import com.aritxonly.bdfun.core.model.feed.*
 import com.aritxonly.bdfun.core.model.message.*
 import com.aritxonly.bdfun.core.model.library.*
+import com.aritxonly.bdfun.core.model.pgc.*
 import com.aritxonly.bdfun.infra.bili.mapper.*
 import com.aritxonly.bdfun.infra.bili.BILI_API as API
 import com.aritxonly.bdfun.infra.bili.BILI_APP_API as APP_API
@@ -149,6 +150,25 @@ internal suspend fun BiliApiContext.searchUsers(keyword: String, page: Int = 1):
         )
         mapSearchUsers(data, ::cleanHtml)
     }
+
+/** 番剧 / 影视搜索；类型由 B 站搜索接口的 search_type 决定。 */
+internal suspend fun BiliApiContext.searchPgc(
+    keyword: String,
+    bangumi: Boolean,
+    page: Int = 1,
+): List<SearchPgcItem> = withContext(Dispatchers.IO) {
+    val data = dataRequest(
+        "/x/web-interface/wbi/search/type",
+        mapOf(
+            "search_type" to if (bangumi) "media_bangumi" else "media_ft",
+            "keyword" to keyword,
+            "page" to page.toString(),
+            "page_size" to "20",
+        ),
+        signed = true,
+    )
+    mapSearchPgc(data, ::cleanHtml)
+}
 
 internal suspend fun BiliApiContext.hotSearch(): List<String> = withContext(Dispatchers.IO) {
     val data = cancellableCatching {

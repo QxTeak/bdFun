@@ -2,7 +2,12 @@ package com.aritxonly.bdfun.core.model.video
 
 enum class DanmakuCommandKind { Notice, Link, Follow, Vote, Grade }
 
-data class DanmakuCommandOption(val value: Int, val label: String)
+data class DanmakuCommandOption(
+    val value: Int,
+    val label: String,
+    /** 该选项当前票数；命令下发时通常为 0，投完票再请求统计补全。 */
+    val count: Long = 0,
+)
 
 data class DanmakuCommand(
     val id: Long,

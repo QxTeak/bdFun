@@ -210,13 +210,17 @@ internal class AppContainer(
     private val dynamicRepository by lazy {
         BiliFeedPageRepository({ type, offset, mid -> api.dynamicPage(type, offset, mid) }, api::dynamicPortal, api::dynamicUpList, api::likeFeed)
     }
-    private data class FeedSlot(val job: Job, val view: FeedState)
-    private val dynamicSlot = SessionResourceSlot({ sessionController.identity }, {
-        val job = SupervisorJob(presentationScope.coroutineContext[Job])
-        val scope = CoroutineScope(presentationScope.coroutineContext + job)
-        FeedSlot(job, FeedState(FeedStateHolder(dynamicRepository), scope))
-    }, { it.view.close(); it.job.cancel() })
-    val dynamicFeedState: FeedState get() = dynamicSlot.get().view
+    private val dynamicFeedSlots by lazy {
+        DynamicFeedSlots(
+            dynamicRepository,
+            { sessionController.identity },
+            { sessionController.identity.mid != null },
+            presentationScope,
+        )
+    }
+    /** 动态页每个 Tab 独立列表状态；UP/直播 portal 只在「全部」加载后共享。 */
+    fun dynamicFeedStateFor(type: String): FeedState = dynamicFeedSlots.stateFor(type)
+    val dynamicFeedState: FeedState get() = dynamicFeedSlots.stateFor("all")
     private val commentImageRepository by lazy { com.aritxonly.bdfun.infra.bili.BiliCommentImageRepository(api) }
     private val inlineVideoRepository by lazy {
         com.aritxonly.bdfun.infra.bili.BiliInlineVideoRepository(api::view) { detail, preferences ->
@@ -332,7 +336,7 @@ internal class AppContainer(
                     commentContentRepository, commentImageRepository, commentLikesStore),
                 session, commentLikes, commentLikesStore.generationState))
     }
-    fun close() { closed = true; homeSlot.close(); dynamicSlot.close(); videoReadCache.close(); settings.close(); presentationScope.cancel() }
+    fun close() { closed = true; homeSlot.close(); dynamicFeedSlots.close(); videoReadCache.close(); settings.close(); presentationScope.cancel() }
     val sentHistory: SentHistoryStore? = context?.let { SentHistoryStore(it.applicationContext) }
 
     init {
@@ -348,7 +352,7 @@ internal class AppContainer(
                     emoteStore.clear()
                     linkTitles.clear()
                     playbackQueue.clear()
-                    dynamicSlot.clearStale()
+                    dynamicFeedSlots.clearStale()
                     homeSlot.clearStale()
                     previousIdentity = state.identity
                 }

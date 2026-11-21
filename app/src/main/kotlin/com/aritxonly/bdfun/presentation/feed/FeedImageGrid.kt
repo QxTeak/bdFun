@@ -40,6 +40,7 @@ internal fun FeedImageGrid(
             model = rememberImageRequest(biliImageGridUrl(url)),
             contentDescription = null,
             contentScale = ContentScale.Crop,
+            onSuccess = { PhotoThumbCache.put(url, it.result.drawable.toPhotoBitmapOrNull()) },
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
@@ -62,6 +63,7 @@ internal fun FeedImageGrid(
                     model = rememberImageRequest(biliImageGridUrl(url)),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
+                    onSuccess = { PhotoThumbCache.put(url, it.result.drawable.toPhotoBitmapOrNull()) },
                     modifier = Modifier
                         .weight(1f)
                         .aspectRatio(1f)

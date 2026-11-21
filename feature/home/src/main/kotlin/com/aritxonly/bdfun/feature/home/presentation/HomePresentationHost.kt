@@ -3,6 +3,7 @@ package com.aritxonly.bdfun.feature.home.presentation
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import com.aritxonly.bdfun.core.model.video.VideoItem
@@ -12,7 +13,7 @@ import com.aritxonly.bdfun.core.model.video.VideoItem
 class HomePresentationHost(
     val topBarHeight: Dp,
     val gridCells: (Dp, Dp) -> GridCells,
-    val card: @Composable (VideoItem, Boolean, () -> Unit, () -> Unit) -> Unit,
+    val card: @Composable (VideoItem, Boolean, () -> Unit, (Rect) -> Unit, (Rect) -> Unit) -> Unit,
     val loading: @Composable (Color, Dp) -> Unit,
     val onMessage: (String) -> Unit,
     val onEnter: () -> Unit,

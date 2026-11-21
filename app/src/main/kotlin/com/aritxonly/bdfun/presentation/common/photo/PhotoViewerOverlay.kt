@@ -18,11 +18,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,12 +54,12 @@ internal fun PhotoViewerOverlay(
     request: PhotoViewerRequest,
     view: PhotoViewerTransitionState,
     onDismiss: () -> Unit,
+    onPageChanged: (Int) -> Unit = {},
 ) {
     val scope = rememberCoroutineScope()
     val context = androidx.compose.ui.platform.LocalContext.current
     // 关闭时只把 visible 置 false，锚点保留：否则退场动画会瞬移到 (0,0)，
     // 看起来就是"点空白后菜单乱跳一下"。
-    var menuVisible by remember { mutableStateOf(false) }
     var menuAnchor by remember { mutableStateOf(Rect.Zero) }
     var menuUrl by remember { mutableStateOf("") }
     val menuScope = rememberCoroutineScope()
@@ -87,20 +89,20 @@ internal fun PhotoViewerOverlay(
             val dismiss = photoDismissProgress(view.dragY, view.size.height.toFloat())
             drawRect(Color.Black.copy(alpha = (progress * (1f - dismiss)).coerceIn(0f, 1f)))
         })
-        PhotoViewerPager(request, view, onDismiss) { url, offset ->
+        PhotoViewerPager(request, view, onDismiss, onPageChanged) { url, offset ->
             // 和长按评论完全同一套：菜单锚在手指按下的那个点上，位置交给共用菜单自己收边。
             menuUrl = url
             menuAnchor = Rect(offset.x, offset.y, offset.x, offset.y)
-            menuVisible = true
+            view.menuVisible = true
         }
         PhotoViewerChrome(request, view, onDismiss)
     }
 
     val images = request.images
     PhotoImageMenu(
-        visible = menuVisible,
+        visible = view.menuVisible,
         anchor = menuAnchor,
-        onDismiss = { menuVisible = false },
+        onDismiss = { view.menuVisible = false },
         onSaveCurrent = { save(listOf(menuUrl)) },
         onSaveAll = { save(images) },
         // 图片举报接口还没接，先如实提示，不做假成功。
@@ -203,12 +205,16 @@ private fun PhotoViewerPager(
     request: PhotoViewerRequest,
     view: PhotoViewerTransitionState,
     onDismiss: () -> Unit,
+    onPageChanged: (Int) -> Unit,
     onLongPress: (String, androidx.compose.ui.geometry.Offset) -> Unit,
 ) {
     val pager = rememberPagerState(
         initialPage = request.index.coerceIn(0, request.images.lastIndex),
         pageCount = { request.images.size },
     )
+    LaunchedEffect(pager) {
+        snapshotFlow { pager.currentPage }.collect { onPageChanged(it) }
+    }
     HorizontalPager(state = pager, modifier = Modifier.fillMaxSize()) { page ->
         // 每一页用自己的缩略图矩形收拢：滑到第二张再退出，就落到第二张的位置。
         val origin = request.originFor(page)

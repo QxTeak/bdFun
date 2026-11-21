@@ -14,6 +14,7 @@ import android.content.Context
 import android.util.Rational
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import com.aritxonly.bdfun.cast.CastRequestState
 import com.aritxonly.bdfun.core.application.PlaybackController
 import com.aritxonly.bdfun.data.Quality
 import com.aritxonly.bdfun.data.VideoPage
@@ -169,7 +170,12 @@ internal class VideoFullscreenActionBindings(
     }
 
     private val onCast: () -> Unit = {
-        context.showToast("当前没有可用的投屏设备")
+        val mediaUrl = playback.currentMediaUrl
+        if (mediaUrl.isNullOrBlank()) {
+            context.showToast("当前没有可投屏的视频")
+        } else {
+            CastRequestState.request(mediaUrl)
+        }
     }
 
     private val onAudioOnlyChanged: (Boolean) -> Unit = { enabled ->

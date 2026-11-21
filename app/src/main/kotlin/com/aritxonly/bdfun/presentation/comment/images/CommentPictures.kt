@@ -39,6 +39,7 @@ internal fun CommentPictures(urls: List<String>, onOpen: (Int, Rect, Float, List
                 ),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
+                onSuccess = { PhotoThumbCache.put(url, it.result.drawable.toPhotoBitmapOrNull()) },
                 modifier = Modifier
                     .size(96.dp)
                     .clip(RoundedCornerShape(CommentPictureRadius))

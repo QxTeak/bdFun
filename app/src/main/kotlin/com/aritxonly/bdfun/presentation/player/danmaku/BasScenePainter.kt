@@ -21,6 +21,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.tan
 
+private val BAS_VIEWBOX_SPLIT = Regex("[\\s,]+")
+
 /** Native retained scene: geometry and text layouts survive frame updates and seeks. */
 internal class BasScenePainter(val item: BasDanmaku) : BasMeasurer {
     private val timeline = BasTimeline(item.program)
@@ -74,7 +76,7 @@ internal class BasScenePainter(val item: BasDanmaku) : BasMeasurer {
             catch (_: RuntimeException) { null }
         } else null
         val viewBox: FloatArray? = state.element.attributes.text("viewBox").trim()
-            .split(Regex("[\\s,]+")) .mapNotNull { it.toFloatOrNull() }
+            .split(BAS_VIEWBOX_SPLIT) .mapNotNull { it.toFloatOrNull() }
             .takeIf { it.size == 4 && it.all(Float::isFinite) && it[2] > 0f && it[3] > 0f }
             ?.toFloatArray()
         var worldReady = false

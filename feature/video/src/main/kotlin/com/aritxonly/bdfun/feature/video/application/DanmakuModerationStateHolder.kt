@@ -26,6 +26,9 @@ class DanmakuModerationStateHolder(private val repository: VideoMetadataReposito
     suspend fun commands(aid: Long, cid: Long): List<com.aritxonly.bdfun.core.model.video.DanmakuCommand> =
         (repository.danmakuCommands(aid, cid) as? Outcome.Success)?.value.orEmpty()
 
+    suspend fun voteCounts(voteId: Long): Map<Int, Long> =
+        (repository.danmakuVoteCounts(voteId) as? Outcome.Success)?.value.orEmpty()
+
     suspend fun submitCommand(selection: DanmakuCommandSelection): Boolean {
         if (!selection.valid) return false
         val key = Triple(selection.aid, selection.cid, selection.command.id)

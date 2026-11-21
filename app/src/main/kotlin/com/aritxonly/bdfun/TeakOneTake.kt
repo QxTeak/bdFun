@@ -62,11 +62,17 @@ object TeakOneTake {
             val intent = createRouteIntent(activity,
                 com.aritxonly.bdfun.core.navigation.Route.Video(video.bvid, video.aid, video,
                     fromVideoPage = activity is VideoActivity))
+            // 非小米机型走的是公开缩略图放大，系统不会反着收回去；
+            // 把起飞点写进 Intent，退出时由 OneTakeExit 按同一组参数倒放。
+            val handoff = resolveMethod() == null && anchor != null
+            if (handoff) {
+                OneTakeExit.putExtras(intent, activity, anchor)
+            }
             val options = opts.toBundle()
             trace(
                 "launch mode=route-intent source=${activity.javaClass.simpleName} target=VideoActivity " +
                     "animType=${options.getInt("android:activity.animType", -1)} " +
-                    "flags=${intent.flags} anchor=$anchor " +
+                    "flags=${intent.flags} anchor=$anchor exitHandoff=$handoff " +
                     "orientation=${activity.resources.configuration.orientation} " +
                     "smallestWidth=${activity.resources.configuration.smallestScreenWidthDp} " +
                     "requestedOrientation=${activity.requestedOrientation} " +
@@ -86,11 +92,12 @@ object TeakOneTake {
         fallback: () -> Unit,
     ) {
         openWith(context, anchor, radiusPx, foregroundColor, fallback) { activity, opts ->
-            activity.startActivity(
-                createRouteIntent(activity,
-                    com.aritxonly.bdfun.core.navigation.Route.Feed(dynamic.id, dynamic)),
-                opts.toBundle(),
-            )
+            val intent = createRouteIntent(activity,
+                com.aritxonly.bdfun.core.navigation.Route.Feed(dynamic.id, dynamic))
+            if (resolveMethod() == null && anchor != null) {
+                OneTakeExit.putExtras(intent, activity, anchor)
+            }
+            activity.startActivity(intent, opts.toBundle())
         }
     }
 

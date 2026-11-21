@@ -44,6 +44,7 @@ internal fun CommentPageThread(runtime: CommentPageRuntime, layout: CommentScree
                 },
             ),
             flatList = layout.flatList,
+            animationsEnabled = com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings.current.animationsEnabled,
         )
     }
 }
