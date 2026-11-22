@@ -65,14 +65,12 @@ internal fun LazyGridScope.liveFollowSection(state: LivePageStateHolder, onOpenR
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(ContinuousCornerShape(18.dp))
-                    .background(MiuixTheme.colorScheme.surfaceContainer)
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                    .background(MiuixTheme.colorScheme.surfaceContainer),
             ) {
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    // 雷达圈会扩散到头像外约 8dp；给 LazyRow 留同样的内边距，
-                    // 否则圆圈会在行首/行顶被滚动视口裁成直边。
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 10.dp),
+                    // 和动态页顶部圆角卡内一致：14dp 内边距 + 12dp 头像间距。
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(14.dp),
                 ) {
                     items(state.followers, key = { it.roomId }) { user ->
                         LiveAvatar(name = user.name, face = user.face, onClick = { onOpenRoom(user.roomId) })
@@ -123,8 +121,8 @@ internal fun LazyGridScope.livePageStateItems(
     loggedIn: Boolean,
 ) {
     if (state.cards.isEmpty() && state.loading) {
-        items(count = 6, key = { "live-skeleton-$it" }) {
-            TeakSkeletonVideoCard(progress = rememberTeakSkeletonSweep())
+        item(key = "live-loading", span = { GridItemSpan(maxLineSpan) }) {
+            com.aritxonly.teak.common.chrome.TeakLoadingArea()
         }
     }
     state.error?.let { message ->

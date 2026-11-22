@@ -1,7 +1,6 @@
 package com.aritxonly.bdfun
 
 import com.aritxonly.bdfun.navigation.createRouteIntent
-import com.aritxonly.bdfun.core.model.settings.AUTO_CDN_ID
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -11,7 +10,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.lifecycle.lifecycleScope
 import com.aritxonly.bdfun.data.SettingsStore
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -45,12 +43,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-        // 自动 CDN 在冷启动先沿用上次结果，同时在后台重新测速；不阻塞首屏和播放。
-        if (settings.cdnService == AUTO_CDN_ID) {
-            lifecycleScope.launch(Dispatchers.IO) {
-                AppGraph.refreshAutomaticCdn()
-            }
-        }
+        // 自动 CDN 测速只在用户打开 CDN 选择框时进行（与 PiliPlus 一致），
+        // 冷启动不再静默下载十几个节点的测速样本。
         if (savedInstanceState == null) checkUpdateOnStartup()
         handleIntent(intent)
         setContent {

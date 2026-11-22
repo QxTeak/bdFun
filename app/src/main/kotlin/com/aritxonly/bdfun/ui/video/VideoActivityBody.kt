@@ -62,6 +62,8 @@ internal fun VideoActivityBody(
                 pictureInPicture = pipMode,
                 autoRotate = settings.autoRotate,
                 immersiveStatusBar = settings.videoImmersiveStatusBar,
+                // 半屏播放限制到 720P，全屏恢复原档位。
+                fullscreen = pageFullscreen,
                 // 从 Activity 根部读到的状态栏高度，避免页面内部读成 0。
                 statusBarTop = statusBarDp,
             ),

@@ -76,6 +76,8 @@ data class VideoPageReplyState(
 
 /** 每个详情页独占一份跨层状态，页面叠开时不覆盖旧页面的浮层与回复目标。 */
 class VideoPageStateHolder {
+    /** 明细页共享的分段弹幕窗口；由 AppContainer 装配，未登录/预览页可以为 null。 */
+    var danmakuFeed: DanmakuSegmentFeed? = null
     private val mutableState = MutableStateFlow(VideoPageState())
     val state = mutableState.asStateFlow()
     fun update(transform: (VideoPageState) -> VideoPageState) { mutableState.update(transform) }

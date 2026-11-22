@@ -79,7 +79,8 @@ class JsonSettingsIndexCodecTest {
         assertTrue(result.toString(), result is SettingsIndexImport.Success)
         val index = SettingsIndex((result as SettingsIndexImport.Success).categories)
         // 索引项总数：在早期67项上增加自适应缓冲、独立后台播放入口、预测性返回等；空降助手仍占一项（改为三档下拉）。
-        assertEquals(72, index.settings.size)
+        // 2026-11-22：同日新增的设置项 + 贡献者 maochenyu-me，总数更新为 74。
+        assertEquals(74, index.settings.size)
         assertEquals("switch", index.settings.getValue("adaptive_buffering").type)
     }
 }

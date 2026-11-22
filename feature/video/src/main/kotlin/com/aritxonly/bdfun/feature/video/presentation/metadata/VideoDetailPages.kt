@@ -11,9 +11,8 @@ import com.aritxonly.bdfun.core.model.video.VideoPage
 internal fun androidx.compose.foundation.lazy.LazyListScope.videoDetailPages(
     detail: VideoDetail?, metaReady: Boolean, currentCid: Long, onPage: (VideoPage) -> Unit,
 ) {
-    // 首屏还没拿到详情时先摆分 P 骨架，数据到了直接原位替换，不做上浮。
+    // 首屏还没拿到详情：整页只保留元信息区那一个加载图标，这里不重复占位。
     if (detail == null || !metaReady) {
-        item(key = "pages-skeleton") { VideoPagesSkeleton() }
         return
     }
     if (detail.pages.size > 1) {

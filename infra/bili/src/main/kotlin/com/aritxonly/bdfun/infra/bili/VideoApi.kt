@@ -176,33 +176,53 @@ internal suspend fun BiliApiContext.related(bvid: String): List<VideoItem> = wit
 }
 
 /**
- * 拉弹幕：与 BiliPai 一致走 protobuf 分段接口 seg.so，拿到 like / count 字段，
- * 这样热门弹幕条才能按「点赞数」显示 ×N，而不是本地统计相同文字。
- * 分段弹幕失败时退回旧的 XML 接口，保证至少还有弹幕可看。
+ * 拉弹幕：与 BiliPai 一致走 protobuf 分段接口 seg.so，按播放位置只取「当前段 ±1」。
+ *
+ * 首次进视频只加载第 1、2 段；后续分段由 [BiliApiContext.danmakuSegment] 随播放位置补齐。
+ * 分段弹幕全部为空（UP 关闭 / 服务端没有弹幕）时才退回旧 XML 接口，并只保留窗口内的数据。
  */
 
-internal suspend fun BiliApiContext.danmaku(cid: Long, durationSec: Int = 0): List<DanmakuItem> = withContext(Dispatchers.IO) {
-    val segItems = cancellableCatching { danmakuSegments(cid, durationSec) }.getOrDefault(emptyList())
-    if (segItems.isNotEmpty()) return@withContext segItems
-    danmakuXml(cid)
-}
+internal suspend fun BiliApiContext.danmaku(cid: Long, durationSec: Int = 0): List<DanmakuItem> =
+    danmakuWindow(cid, danmakuSegmentWindow(0L, danmakuSegmentCount(durationSec)))
 
-internal suspend fun BiliApiContext.danmakuSegments(cid: Long, durationSec: Int): List<DanmakuItem> {
-    if (cid <= 0L) return emptyList()
-    // 每段 6 分钟；拿不到时长时先只取第一段。
-    val segments = if (durationSec > 0) {
-        ((durationSec + 359) / 360).coerceIn(1, 40)
-    } else {
-        1
-    }
+/** 并发拉取指定分段（带进程内缓存），返回合并后的弹幕。 */
+internal suspend fun BiliApiContext.danmakuWindow(cid: Long, indices: List<Int>): List<DanmakuItem> {
+    if (cid <= 0L || indices.isEmpty()) return emptyList()
     val parsed = kotlinx.coroutines.coroutineScope {
-        (1..segments).map { index ->
-            async {
-                cancellableCatching { fetchDanmakuSegment(cid, index) }.getOrNull()
-            }
+        indices.distinct().map { index ->
+            async { danmakuSegmentOrNull(cid, index)?.takeIf { it.isNotEmpty() } }
         }.awaitAll()
     }.filterNotNull()
-    return mapDanmakuSegments(parsed, danmakuUserHash(mid))
+    if (parsed.isNotEmpty()) return parsed.flatten()
+    return danmakuXmlForWindow(cid, indices)
+}
+
+/** 单段弹幕；空分段与失败都返回 null，交由调用方决定是否回退。 */
+internal suspend fun BiliApiContext.danmakuSegmentOrNull(cid: Long, index: Int): List<DanmakuItem>? {
+    if (cid <= 0L || index <= 0) return null
+    danmakuSegmentCache.get(cid, index)?.let { return it }
+    val bytes = cancellableCatching { fetchDanmakuSegment(cid, index) }.getOrNull()
+        ?: return null
+    val items = cancellableCatching {
+        mapDanmakuSegments(listOf(bytes), danmakuUserHash(mid))
+    }.getOrNull() ?: return null
+    danmakuSegmentCache.put(cid, index, items)
+    return items
+}
+
+/** 公共入口：单段请求只返回该段（不再整支视频重下）。 */
+internal suspend fun BiliApiContext.danmakuSegment(cid: Long, index: Int): List<DanmakuItem> =
+    danmakuSegmentOrNull(cid, index).orEmpty()
+
+/** XML 兜底：只保留窗口内的时间段，避免为了 6 分钟弹幕拉整支视频。 */
+private suspend fun BiliApiContext.danmakuXmlForWindow(cid: Long, indices: List<Int>): List<DanmakuItem> {
+    val all = danmakuXml(cid)
+    if (all.isEmpty()) return emptyList()
+    val ranges = indices.distinct().map { index ->
+        val start = (index - 1) * DANMAKU_SEGMENT_MS
+        start..(start + DANMAKU_SEGMENT_MS)
+    }
+    return all.filter { item -> ranges.any { item.timeMs in it } }
 }
 
 internal suspend fun BiliApiContext.fetchDanmakuSegment(cid: Long, index: Int): ByteArray? {

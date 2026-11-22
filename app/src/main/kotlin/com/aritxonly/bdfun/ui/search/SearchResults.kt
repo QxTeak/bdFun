@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.padding
 import com.aritxonly.bdfun.core.domain.SearchFilterState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.data.SearchUser
 import com.aritxonly.bdfun.data.VideoItem
@@ -32,6 +34,13 @@ internal fun SearchResults(
     // 应用筛选要写回 appliedFilters：搜索 effect 只观察它，写 filters 不会触发重新搜索。
     val onApplyFilters: (SearchFilterState) -> Unit = { ui.appliedFilters = it }
     val presentation = rememberSearchResultsPresentation(tab, onTabChange)
+    // Tab 栏跟随手指方向收起/露出：往上滑隐藏，往下滑重新出现，减少对内容的遮挡。
+    val pageState = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current
+    val tabsAway by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (wideResultsBar == null) pageState.scrollAway else 0f,
+        animationSpec = androidx.compose.animation.core.tween(220),
+        label = "searchTabsAway",
+    )
     Box(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
@@ -56,7 +65,12 @@ internal fun SearchResults(
                     .align(Alignment.TopCenter)
                     .fillMaxWidth()
                     .then(if (wideResultsBar == null) Modifier.statusBarsPadding() else Modifier)
-                    .padding(top = if (wideResultsBar == null) HomeTopBarHeight + 6.dp else 0.dp),
+                    .padding(top = if (wideResultsBar == null) HomeTopBarHeight + 6.dp else 0.dp)
+                    .graphicsLayer {
+                        // 整条滑到顶栏后面：42dp 的 tab 高度 + 6dp 间距。
+                        translationY = -48.dp.toPx() * tabsAway
+                        alpha = 1f - tabsAway
+                    },
             ) }
             if (wideResultsBar != null) {
                 com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial() {

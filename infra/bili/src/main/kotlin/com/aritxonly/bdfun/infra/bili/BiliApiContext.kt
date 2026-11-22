@@ -155,6 +155,29 @@ internal class BiliApiContext(
     internal fun cdnServiceById(id: String) = cdnResolver(id)
     internal val messageUsers = MessageUserCache()
     internal val sponsorSegments = SponsorSegmentCache()
+
+    /**
+     * 分段弹幕缓存：cid + 段号 -> 该段已解析的弹幕。
+     *
+     * 只保留最近 12 段（约一支两小时视频的大半），和 BiliPai 的缓存策略一致；
+     * 来回拖动进度条时不会重复下载同一段。
+     */
+    internal val danmakuSegmentCache = DanmakuSegmentCache()
 }
 
-internal data class MessageVideoBrief(val cover: String, val ownerMid: Long)
+/** cid+段号 的分段弹幕 LRU。 */
+internal class DanmakuSegmentCache : LinkedHashMap<Pair<Long, Int>, List<DanmakuItem>>(16, 0.75f, true) {
+    override fun removeEldestEntry(
+        eldest: MutableMap.MutableEntry<Pair<Long, Int>, List<DanmakuItem>>?,
+    ): Boolean = size > 12
+
+    @Synchronized
+    fun get(cid: Long, index: Int): List<DanmakuItem>? = this[cid to index]
+
+    @Synchronized
+    fun put(cid: Long, index: Int, items: List<DanmakuItem>) {
+        this[cid to index] = items
+    }
+}
+
+internal data class MessageVideoBrief(val cover: String, val ownerMid: Long, val bvid: String = "")

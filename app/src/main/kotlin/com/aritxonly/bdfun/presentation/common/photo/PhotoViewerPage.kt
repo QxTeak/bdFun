@@ -199,17 +199,17 @@ private fun PhotoViewerLayers(
             },
         )
     }
-    if (spec.showFull) {
-        PhotoMorphImage(
-            model = url,
-            spec = spec,
-            view = view,
-            zoom = { page.zoom },
-            pan = { page.pan },
-            alpha = spec.fullAlpha,
-            onLoaded = onFullLoaded,
-        )
-    }
+    // 原图在打开时就发起请求（alpha=0 也会触发 Coil），动画结束才淡入；
+    // 否则要等 200ms 进场跑完才开始下载，用户会明显感觉"原图很慢"。
+    PhotoMorphImage(
+        model = url,
+        spec = spec,
+        view = view,
+        zoom = { page.zoom },
+        pan = { page.pan },
+        alpha = if (spec.showFull) spec.fullAlpha else 0f,
+        onLoaded = onFullLoaded,
+    )
 }
 
 /** 和列表一致的缩略图宽度；宽度决定裁切尺寸，必须和 FeedImageGrid 保持同步。 */

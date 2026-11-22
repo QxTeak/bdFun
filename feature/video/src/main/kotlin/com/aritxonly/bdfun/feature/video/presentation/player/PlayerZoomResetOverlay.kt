@@ -32,8 +32,10 @@ fun BoxScope.PlayerZoomResetOverlay(ui: VideoPlayerUiStateHolder, fullscreen: Bo
     var videoScale by ui.videoScale
     var videoRotation by ui.videoRotation
     var videoOffset by ui.videoOffset
+    // 跟随播放控件一起显隐：控件收起时提示也收起，不常驻遮挡画面。
+    val controlsVisible by ui.controlsVisible
     // 全屏：完整复刻官方横屏 UI（顶部状态/互动，底部控制）
-    if (videoScale > 1.01f || videoScale < 0.99f || kotlin.math.abs(videoRotation) > 0.5f) {
+    if (controlsVisible && (videoScale > 1.01f || videoScale < 0.99f || kotlin.math.abs(videoRotation) > 0.5f)) {
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

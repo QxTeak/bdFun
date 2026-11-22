@@ -7,8 +7,10 @@ data class LiveChatMessage(
     /** 发送者昵称；系统消息为空。 */
     val uname: String = "",
     val text: String = "",
-    /** 粉丝牌等前缀，可为空。 */
-    val medal: String? = null,
+    /** 粉丝牌：名称 / 等级 / 颜色（0 表示未取到，用主题粉）。 */
+    val medalName: String? = null,
+    val medalLevel: Int = 0,
+    val medalColor: Int = 0,
     /** 昵称颜色（0xRRGGBB），null 表示用默认色。 */
     val nameColor: Long? = null,
     /** 超级留言的金额文字，例如「￥30」。 */

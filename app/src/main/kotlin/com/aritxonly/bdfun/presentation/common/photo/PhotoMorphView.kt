@@ -32,6 +32,8 @@ internal class PhotoMorphView(context: Context) : View(context) {
     private var originRadius = 0f
     private var imageAspect = 1f
     private var progress = 0f
+    private var startOffsetY = 0f
+    private var startDim = 1f
     private var animator: ValueAnimator? = null
     private var pendingStart: (() -> Unit)? = null
 
@@ -42,7 +44,7 @@ internal class PhotoMorphView(context: Context) : View(context) {
     init {
         setLayerType(LAYER_TYPE_HARDWARE, null)
         importantForAccessibility = IMPORTANT_FOR_ACCESSIBILITY_NO
-        isClickable = true
+        isClickable = false
     }
 
     fun start(
@@ -52,6 +54,10 @@ internal class PhotoMorphView(context: Context) : View(context) {
         open: Boolean,
         startFrom: Float = if (open) 0f else 1f,
         durationMs: Long = 200L,
+        /** 跟手拖动后再关闭：起始帧要带上这段位移，否则会从手指位置"跳"回屏幕中心。 */
+        dragOffsetY: Float = 0f,
+        /** 关闭时黑底从拖动后的透明度接着淡出，避免先闪回全黑。 */
+        startDim: Float = 1f,
     ) {
         animator?.cancel()
         animate().cancel()
@@ -60,6 +66,8 @@ internal class PhotoMorphView(context: Context) : View(context) {
         this.bitmap = bitmap
         this.origin.set(origin)
         this.originRadius = originRadiusPx
+        this.startOffsetY = dragOffsetY
+        this.startDim = startDim.coerceIn(0f, 1f)
         this.imageAspect = if (bitmap.height > 0) bitmap.width.toFloat() / bitmap.height else 1f
         progress = startFrom
         invalidate()
@@ -128,8 +136,8 @@ internal class PhotoMorphView(context: Context) : View(context) {
         val height = height.toFloat()
         if (width <= 0f || height <= 0f) return
 
-        // 黑底随进度淡入/淡出；展开到全屏时正好铺满，缩回时露出下面的页面。
-        val dim = (progress * 255f).toInt().coerceIn(0, 255)
+        // 黑底随进度淡入/淡出；关闭时从拖动后的透明度接着走，避免瞬间闪回全黑。
+        val dim = (progress.coerceIn(0f, 1f) * startDim * 255f).toInt().coerceIn(0, 255)
         if (dim > 0) canvas.drawColor(Color.argb(dim, 0, 0, 0))
 
         val morph = photoMorphFrame(
@@ -144,12 +152,14 @@ internal class PhotoMorphView(context: Context) : View(context) {
             originRadius = originRadius,
         )
         clipPath.reset()
+        // 关闭动画从手指拖到的位置开始：位移随进度线性收回，末帧正好落回缩略图。
+        val dragOffset = startOffsetY * progress.coerceIn(0f, 1f)
         clipPath.addRoundRect(
             RectF(
                 morph.clipLeft,
-                morph.clipTop,
+                morph.clipTop + dragOffset,
                 morph.clipLeft + morph.clipWidth,
-                morph.clipTop + morph.clipHeight,
+                morph.clipTop + morph.clipHeight + dragOffset,
             ),
             morph.cornerRadius,
             morph.cornerRadius,
@@ -161,9 +171,9 @@ internal class PhotoMorphView(context: Context) : View(context) {
         val drawHeight = morph.imageHeight * morph.imageScale
         imageRect.set(
             morph.imageCenterX - drawWidth / 2f,
-            morph.imageCenterY - drawHeight / 2f,
+            morph.imageCenterY - drawHeight / 2f + dragOffset,
             morph.imageCenterX + drawWidth / 2f,
-            morph.imageCenterY + drawHeight / 2f,
+            morph.imageCenterY + drawHeight / 2f + dragOffset,
         )
         srcRect.set(0, 0, source.width, source.height)
         canvas.drawBitmap(source, srcRect, imageRect, paint)

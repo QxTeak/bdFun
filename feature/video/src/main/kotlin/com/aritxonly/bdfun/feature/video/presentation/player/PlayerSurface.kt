@@ -47,14 +47,19 @@ fun PlayerSurface(
     val boostSpeed by ui.boostSpeed
     val speed by ui.speed
     Box(
-        modifier = playerPictureTransform(ui),
+        modifier = Modifier.fillMaxSize()
+            .playerPictureGestures(ui)
+            .drawColorAssist(ui),
     ) {
-        AndroidView(
-            factory = { ctx ->
-                playback.createOutput(ctx).also { playerViewRef = it }.view
-            },
-            modifier = Modifier.fillMaxSize(),
-        )
+        // 只缩放视频画面本身：弹幕、进度条、赞助提示都不跟着变大变小。
+        Box(modifier = Modifier.fillMaxSize().playerPictureTransform(ui)) {
+            AndroidView(
+                factory = { ctx ->
+                    playback.createOutput(ctx).also { playerViewRef = it }.view
+                },
+                modifier = Modifier.fillMaxSize(),
+            )
+        }
 
         if (danmakuVisible) {
             val hot = if (picture.hotDanmakuEnabled && !ui.fsAudioOnly.value) ui.danmakuHit.hotPresentation.value
@@ -75,13 +80,12 @@ fun PlayerSurface(
 
 }
 
-private fun playerPictureTransform(ui: VideoPlayerUiStateHolder): Modifier {
+private fun Modifier.playerPictureTransform(ui: VideoPlayerUiStateHolder): Modifier {
     val fsMirror by ui.fsMirror
     var videoScale by ui.videoScale
     var videoRotation by ui.videoRotation
     var videoOffset by ui.videoOffset
-    val fsColorAssist by ui.fsColorAssist
-    return Modifier
+    return this
         .fillMaxSize()
         .graphicsLayer {
             scaleX = (if (fsMirror) -1f else 1f) * videoScale
@@ -90,6 +94,15 @@ private fun playerPictureTransform(ui: VideoPlayerUiStateHolder): Modifier {
             translationX = videoOffset.x
             translationY = videoOffset.y
         }
+}
+
+/** 双指缩放/旋转/平移只改视频画面；手势层仍铺满整个播放器，弹幕大小不受影响。 */
+private fun Modifier.playerPictureGestures(ui: VideoPlayerUiStateHolder): Modifier {
+    var videoScale by ui.videoScale
+    var videoRotation by ui.videoRotation
+    var videoOffset by ui.videoOffset
+    return this
+        .fillMaxSize()
         .pointerInput(Unit) {
             awaitEachGesture {
                 awaitFirstDown(requireUnconsumed = false)
@@ -108,11 +121,15 @@ private fun playerPictureTransform(ui: VideoPlayerUiStateHolder): Modifier {
                 }
             }
         }
-        .drawWithContent {
-            drawContent()
-            when (fsColorAssist) {
-                1 -> drawRect(Color.Gray, blendMode = BlendMode.Saturation)
-                2 -> drawRect(Color(0x3300A8FF), blendMode = BlendMode.Color)
-            }
+}
+
+private fun Modifier.drawColorAssist(ui: VideoPlayerUiStateHolder): Modifier {
+    val fsColorAssist by ui.fsColorAssist
+    return this.drawWithContent {
+        drawContent()
+        when (fsColorAssist) {
+            1 -> drawRect(Color.Gray, blendMode = BlendMode.Saturation)
+            2 -> drawRect(Color(0x3300A8FF), blendMode = BlendMode.Color)
         }
+    }
 }

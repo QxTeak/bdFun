@@ -11,9 +11,8 @@ import com.aritxonly.bdfun.core.model.video.VideoPage
 internal fun androidx.compose.foundation.lazy.LazyListScope.videoDetailCollection(
     detail: VideoDetail?, metaReady: Boolean, currentCid: Long, onPage: (VideoPage) -> Unit, slots: VideoDetailTailSlots,
 ) {
-    // 首屏先摆合集骨架；数据到了直接换内容，不再整卡上浮。
+    // 首屏加载统一由元信息区的一个加载图标承担，这里不再重复出现。
     if (detail == null || !metaReady) {
-        item(key = "collection-skeleton") { VideoCollectionSkeleton() }
         return
     }
     if (detail.episodes.size > 1) {

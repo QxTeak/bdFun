@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.application.PlaybackController
+import kotlin.math.roundToInt
 
 @Composable
 internal fun playerInteractionModifier(
@@ -174,9 +175,14 @@ private class VideoPlayerGestureBindings(
 
     private val onBoostSwipe: (Float) -> Unit = { fraction ->
         val base = options.boostDefaultSpeed()
-        val next = (base + fraction * 6f).coerceIn(1f, 5f)
-        boostSpeed = next
-        playback.setSpeed(next)
+        // 每改一次倍速，ExoPlayer 都要把音频管线 drain + flush 一遍并重建 Sonic；
+        // 无极调节等于每个 touch move 重建一次，手指一滑就是几十次。
+        // 量化到 0.1 倍，并在值没变时直接丢弃，避免这种重建风暴。
+        val next = (((base + fraction * 6f) * 10f).roundToInt() / 10f).coerceIn(1f, 5f)
+        if (next != boostSpeed) {
+            boostSpeed = next
+            playback.setSpeed(next)
+        }
     }
 
     fun create(): GestureCallbacks = GestureCallbacks(

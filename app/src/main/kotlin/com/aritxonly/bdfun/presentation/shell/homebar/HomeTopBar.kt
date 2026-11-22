@@ -76,8 +76,9 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
     // 搜索展开时让出高度：结果页从顶栏下沿开始，不会被分段条盖住。
     val visibleTabs = tabs.takeUnless { search.active }
     val tabsBelowSearch = visibleTabs?.belowSearch == true && !singleRowSearchTabs
-    val tabsHeight = HomeTopBarTabsHeight * (1f - tabsCollapseProgress.coerceIn(0f, 1f))
-    val totalHeight = HomeTopBarHeight + if (tabsBelowSearch) tabsHeight else 0.dp
+    // 分段条高度固定，收起只做淡出+轻微上移：高度收缩 + clipToBounds 会在顶栏底部留下一条硬切线。
+    val tabsAway = tabsCollapseProgress.coerceIn(0f, 1f)
+    val totalHeight = HomeTopBarHeight + if (tabsBelowSearch) HomeTopBarTabsHeight else 0.dp
     Box(modifier = modifier.fillMaxWidth().height(totalHeight + statusBarTop)) {
         HomeTopBarBackground(classic)
         Column(modifier = Modifier.fillMaxWidth().statusBarsPadding()) {
@@ -93,11 +94,15 @@ internal fun HomeTopBar(content: HomeTopBarContent, search: HomeTopBarSearch, ac
                 HomeTopBarMainRow(content, search, actions, visibleTabs, material, wide, tabsBelowSearch)
             }
             if (visibleTabs != null && tabsBelowSearch) {
-                Box(Modifier.fillMaxWidth().height(tabsHeight).clipToBounds()) {
-                    Box(Modifier.wrapContentHeight(Alignment.Top, unbounded = true).graphicsLayer {
-                        translationY = (tabsHeight - HomeTopBarTabsHeight).toPx()
-                    }) { HomeTopBarTabsBelow(visibleTabs) }
-                }
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .height(HomeTopBarTabsHeight)
+                        .graphicsLayer {
+                            translationY = -12.dp.toPx() * tabsAway
+                            alpha = 1f - tabsAway
+                        },
+                ) { HomeTopBarTabsBelow(visibleTabs) }
             }
         }
     }

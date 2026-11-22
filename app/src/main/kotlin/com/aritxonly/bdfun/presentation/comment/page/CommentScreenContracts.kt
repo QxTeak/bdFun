@@ -19,6 +19,8 @@ internal data class CommentScreenLayout(
     val compactHeaderSpacing: Boolean = false,
     /** 评论区作为独立可见页面时注册「回到顶部」；视频详情双栏/评论 tab 由调用方按可见性传。 */
     val scrollTop: Boolean = false,
+    /** 动态详情这类沉浸页：列表滚到状态栏后面，而不是被状态栏高度截断。 */
+    val immersiveStatusBar: Boolean = false,
 )
 internal typealias CommentScreenHeader = LazyListScope.() -> Unit
 

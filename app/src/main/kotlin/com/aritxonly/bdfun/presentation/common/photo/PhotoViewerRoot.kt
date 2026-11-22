@@ -15,6 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
@@ -54,6 +56,8 @@ internal fun PhotoViewerRoot(
         val current = view.displayed
         when {
             request != null && current == null -> {
+                // 上一次拖动关闭可能留下位移/缩放；不重置会让再次打开时位置和背景都不对。
+                view.resetTransient()
                 view.displayed = request
                 view.pageIndex = request.index
                 view.settled = false
@@ -69,27 +73,24 @@ internal fun PhotoViewerRoot(
     // 原图/缩略图迟迟没画出来时，缩略图不能永远盖着；超时后露出 Compose 层。
     LaunchedEffect(view.settled, view.morphCovering) {
         if (view.settled && view.morphCovering) {
-            kotlinx.coroutines.delay(4000)
+            kotlinx.coroutines.delay(600)
             if (view.morphCovering) {
                 morphViewRef?.fadeOut { view.morphCovering = false } ?: run { view.morphCovering = false }
             }
         }
     }
     // Compose 层说图已经能画了：等它真正画出一两帧后再淡出盖层，杜绝中间闪一帧。
-    LaunchedEffect(view.settled, view.coverReadyToken) {
-        if (view.settled && view.morphCovering && view.coverReadyToken > 0) {
-            kotlinx.coroutines.delay(120)
-            if (!view.morphCovering) return@LaunchedEffect
-            val overlay = morphViewRef
-            if (overlay != null) {
-                overlay.fadeOut { view.morphCovering = false }
-            } else {
-                view.morphCovering = false
-            }
-        }
-    }
+    PhotoCoverReadyEffect(view) { morphViewRef }
 
-    Box(Modifier.fillMaxSize().onSizeChanged { view.size = it }) {
+    // 入场动画/缩略图盖层期间点击也要能立刻关闭，不能等原图加载完。
+    val dismissOnTap = view.displayed != null && (!view.settled || view.morphCovering)
+    Box(
+        Modifier.fillMaxSize()
+            .onSizeChanged { view.size = it }
+            .then(if (dismissOnTap) Modifier.pointerInput(Unit) {
+                detectTapGestures { state.close() }
+            } else Modifier),
+    ) {
         // 底层页面：打开时随进度放大一点点，关闭时按同样倍数缩回；
         // 跟手拖动时再缩到 0.9。
         Box(
@@ -108,6 +109,25 @@ internal fun PhotoViewerRoot(
             // 动画结束后缩略图仍盖在最上面，直到 Compose 层真正把原图/缩略图画出来。
             if ((!view.settled || view.morphCovering) && view.morphParams != null) {
                 PhotoMorphLayer(view, state) { morphViewRef = it }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PhotoCoverReadyEffect(
+    view: PhotoViewerTransitionState,
+    overlay: () -> PhotoMorphView?,
+) {
+    LaunchedEffect(view.settled, view.coverReadyToken) {
+        if (view.settled && view.morphCovering && view.coverReadyToken > 0) {
+            kotlinx.coroutines.delay(120)
+            if (!view.morphCovering) return@LaunchedEffect
+            val target = overlay()
+            if (target != null) {
+                target.fadeOut { view.morphCovering = false }
+            } else {
+                view.morphCovering = false
             }
         }
     }
@@ -156,12 +176,15 @@ private fun PhotoMorphLayer(
                             view.progress.floatValue = 0f
                             view.morphParams = null
                             view.morphCovering = false
+                            // 关闭动画结束后清掉手势残留，下一次打开从干净状态开始。
+                            view.resetTransient()
                         } else {
                             view.settled = true
                             view.progress.floatValue = 1f
                         }
                     }
-                    start(params.bitmap, params.origin, params.radius, params.open, durationMs = params.duration)
+                    start(params.bitmap, params.origin, params.radius, params.open,
+                        durationMs = params.duration, dragOffsetY = params.dragOffsetY, startDim = params.startDim)
                 }
             },
             modifier = Modifier.fillMaxSize(),
@@ -200,6 +223,14 @@ internal class PhotoViewerTransitionState {
     val dismissProgress: Float
         get() = photoDismissProgress(dragY, size.height.toFloat())
 
+    /** 打开/关闭一次结束后复位手势态，避免下一次打开沿用上次的位移和缩放。 */
+    fun resetTransient() {
+        dragY = 0f
+        zoom = 1f
+        chromeVisible = true
+        menuVisible = false
+    }
+
     fun markCoverReady() {
         coverReadyToken++
     }
@@ -236,6 +267,10 @@ internal class PhotoViewerTransitionState {
             radius = request.originRadiusPx,
             open = open,
             duration = durationMs,
+            // 关闭时把当前拖动位移交给缩略图动画，避免从手指位置跳回屏幕中心再缩回。
+            dragOffsetY = if (open) 0f else dragY,
+            // 拖动时黑底已经变淡，关闭动画接着这个透明度走，否则会先闪回全黑。
+            startDim = if (open) 1f else 1f - dismissProgress,
         )
     }
 }
@@ -246,4 +281,6 @@ internal data class PhotoMorphParams(
     val radius: Float,
     val open: Boolean,
     val duration: Long,
+    val dragOffsetY: Float = 0f,
+    val startDim: Float = 1f,
 )

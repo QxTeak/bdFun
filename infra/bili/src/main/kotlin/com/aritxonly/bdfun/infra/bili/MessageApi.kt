@@ -94,37 +94,46 @@ internal suspend fun BiliApiContext.enrichMessageVideos(
     items: List<MessageItem>,
 ): List<MessageItem> {
     if (items.isEmpty()) return items
-    fun resolvedBvid(item: MessageItem): String = messageVideoCoverTarget(item)
+    data class Target(val bvid: String, val aid: Long) {
+        val key: String get() = if (bvid.isNotBlank()) "bv:$bvid" else "av:$aid"
+        val valid: Boolean get() = bvid.isNotBlank() || aid > 0L
+    }
+    fun targetOf(item: MessageItem) = Target(
+        bvid = messageVideoExplicitBvid(item),
+        aid = messageVideoCoverAid(item),
+    )
     val targets = items
-        .filter { resolvedBvid(it).isNotBlank() }
-        .distinctBy { resolvedBvid(it) }
+        .map(::targetOf)
+        .filter { it.valid }
+        .distinctBy { it.key }
 
     if (targets.isEmpty()) return items
     val briefs = withContext(Dispatchers.IO) {
         kotlinx.coroutines.coroutineScope {
             val limit = Semaphore(4)
-            targets.map { item ->
+            targets.map { target ->
                 async { limit.withPermit {
-                    val bvid = resolvedBvid(item)
-                    val cached = synchronized(messageVideoCache) { messageVideoCache[bvid] }
+                    val cached = synchronized(messageVideoCache) { messageVideoCache[target.key] }
                     val brief = cached ?: cancellableCatching {
-                        val detail = view(bvid)
-                        MessageVideoBrief(detail.cover, detail.ownerMid).also {
+                        // 只有消息里明确带了 BV 才走 view；64 位新 av 号必须让服务器换 BV，
+                        // 本地按旧公式算出来的 BV 是错的，会静默补不到封面。
+                        val detail = if (target.bvid.isNotBlank()) view(target.bvid) else viewByAid(target.aid)
+                        MessageVideoBrief(detail.cover, detail.ownerMid, detail.bvid).also {
                             synchronized(messageVideoCache) {
-                                messageVideoCache[bvid] = it
+                                messageVideoCache[target.key] = it
                             }
                         }
                     }.getOrNull()
-                    bvid to brief
+                    target.key to brief
                 } }
             }.awaitAll()
         }
     }.filter { it.second != null }.associate { it.first to it.second!! }
     if (briefs.isEmpty()) return items
     return items.map { item ->
-        val bvid = resolvedBvid(item)
-        val brief = briefs[bvid] ?: return@map item
-        applyMessageVideoBrief(item, bvid, brief.cover, brief.ownerMid)
+        val target = targetOf(item)
+        val brief = briefs[target.key] ?: return@map item
+        applyMessageVideoBrief(item, brief.bvid.ifBlank { target.bvid }, brief.cover, brief.ownerMid)
     }
 }
 

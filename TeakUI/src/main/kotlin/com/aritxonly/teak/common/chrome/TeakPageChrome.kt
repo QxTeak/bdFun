@@ -39,11 +39,24 @@ class TeakPageScrollState {
     var materialProgress by mutableFloatStateOf(0f)
         private set
 
+    /**
+     * 手指上滑收起、下滑重新出现的进度：0 = 完全显示，1 = 已收起。
+     *
+     * 和 [materialProgress] 的区别是它看的是「这一次滑动的方向」，不是滚了多远：
+     * 只要往上滑就收起且保持收起，往下滑一点就重新露出，避免 tab 栏长期挡住内容。
+     */
+    var scrollAway by mutableFloatStateOf(0f)
+        private set
+
+    private var lastScrollPosition = Long.MIN_VALUE
+
     fun reset() {
         materialProgress = 0f
         backRevealed = false
         collapse = 0f
         titleOffsetPx = 0f
+        scrollAway = 0f
+        lastScrollPosition = Long.MIN_VALUE
     }
 
     /**
@@ -68,6 +81,15 @@ class TeakPageScrollState {
         }
         // 第一项已经滚出屏幕时，标题早就淡出；用一个大值把固定标题推出画面即可。
         titleOffsetPx = if (firstVisibleItemIndex > 0) 10_000f else offsetPx
+        // 方向判定：往上滑（索引/偏移变大）整条收起，往下滑一点就重新露出来；回到顶部永远显示。
+        val position = firstVisibleItemIndex.toLong() * 1_000_000L + offsetPx.toLong()
+        if (firstVisibleItemIndex == 0 && offsetPx < 4f) {
+            scrollAway = 0f
+        } else if (lastScrollPosition != Long.MIN_VALUE) {
+            val delta = position - lastScrollPosition
+            if (delta > 6L) scrollAway = 1f else if (delta < -6L) scrollAway = 0f
+        }
+        lastScrollPosition = position
     }
 
     companion object {

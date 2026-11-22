@@ -7,6 +7,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import com.aritxonly.bdfun.core.domain.hotDanmakuReservationLeadMs
 import com.aritxonly.bdfun.core.domain.DanmakuRuleMatcher
 import com.aritxonly.bdfun.feature.video.application.DanmakuModerationState
@@ -36,8 +38,25 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
     }
     LaunchedEffect(renderView, ownerHash) { renderView.engine.upOwnerUserHash = ownerHash }
     val matcher = remember(moderation.rules) { DanmakuRuleMatcher(moderation.rules) }
-    val filtered = remember(items, options.filters, matcher, moderation.recalled, page.cid) {
-        filterDanmaku(items.filterNot { matcher.blocks(it) || (page.cid to it.id) in moderation.recalled }, options.filters)
+    // 分段弹幕：详情只带回前两段，播放推进到新的一段时由这里补齐当前段前后。
+    val feed = page.danmakuFeed
+    val feedRevision = if (feed != null) feed.revision.collectAsState().value else 0L
+    val cid = page.cid
+    LaunchedEffect(cid, items, feed) { feed?.seed(cid, items) }
+    LaunchedEffect(cid, feed) {
+        if (feed != null) {
+            snapshotFlow { positionMs().coerceAtLeast(0L) }
+                .distinctUntilChanged { old, new -> old / 10_000L == new / 10_000L }
+                .collect { feed.ensure(cid, it) }
+        }
+    }
+    val merged = remember(items, feedRevision, cid, feed) {
+        if (feed == null) items else (feed.items(cid) + items)
+            .distinctBy { if (it.id > 0L) "id:${it.id}" else "${it.timeMs}:${it.mode}:${it.text}" }
+            .sortedBy { it.timeMs }
+    }
+    val filtered = remember(merged, options.filters, matcher, moderation.recalled, page.cid) {
+        filterDanmaku(merged.filterNot { matcher.blocks(it) || (page.cid to it.id) in moderation.recalled }, options.filters)
     }
     LaunchedEffect(hit, filtered) { hit.filteredSnapshot.value = filtered }
     DisposableEffect(hit) { onDispose { hit.filteredSnapshot.value = emptyList() } }

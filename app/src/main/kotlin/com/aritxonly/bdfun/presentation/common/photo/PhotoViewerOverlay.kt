@@ -251,15 +251,21 @@ private fun Modifier.photoViewerDragGestures(
     if (!settled) return@pointerInput
     var startTime = 0L
     var totalY = 0f
+    // 回弹用的弹簧要能被下一次按下打断，否则和新的拖动同时改 dragY，画面会抽。
+    var settleJob: kotlinx.coroutines.Job? = null
     fun settle() {
-        scope.launch {
+        settleJob?.cancel()
+        settleJob = scope.launch {
             animate(view.dragY, 0f, animationSpec = spring()) { value, _ -> view.dragY = value }
+            settleJob = null
         }
     }
     detectVerticalDragGestures(
         onDragStart = {
+            settleJob?.cancel()
+            settleJob = null
             startTime = System.currentTimeMillis()
-            totalY = 0f
+            totalY = view.dragY
         },
         onVerticalDrag = { change, dragAmount ->
             change.consume()

@@ -59,10 +59,13 @@ private fun IndexedDropdown(entry: Setting, value: SettingValue, runtime: Settin
 
 @Composable
 private fun CdnIndexedDropdown(entry: Setting, runtime: SettingsPageRuntime) {
+    val scope = rememberCoroutineScope()
     TeakSettingsDropdownRow(title = entry.title, description = entry.subtitle.orEmpty(),
         options = runtime.cdnState.labels,
         closedValue = runtime.cdn.services[runtime.cdn.selectedIndex(runtime.settings.cdnService)].label,
         selected = runtime.cdn.selectedIndex(runtime.settings.cdnService), panelWidth = 300.dp,
+        // 只有用户主动展开选择框时才测速：一次探测要下载多个节点的 1MB 样本。
+        onOpen = { scope.launch { runtime.cdn.probe() } },
         onSelected = { runtime.settings.cdnService = runtime.cdn.services[it].id },
     )
 }

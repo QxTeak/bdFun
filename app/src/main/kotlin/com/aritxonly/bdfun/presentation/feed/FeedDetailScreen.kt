@@ -26,7 +26,8 @@ internal fun FeedDetailScreen(dynamic: FeedItem, onBack: () -> Unit) {
     CommentScreen(
             request = CommentScreenRequest(
                 aid = detail.id.toLongOrNull() ?: 0L,
-                upMid = 0L,
+                // 动态作者就是评论区的 UP 主：和视频页一样按 mid 打 UP 标识。
+                upMid = detail.mid,
                 title = detail.name,
                 bvid = "",
                 commentOid = detail.commentOid.ifBlank { detail.id },
@@ -42,6 +43,8 @@ internal fun FeedDetailScreen(dynamic: FeedItem, onBack: () -> Unit) {
                 flatList = true,
                 compactHeaderSpacing = true,
                 scrollTop = true,
+                // 动态详情要沉浸：列表滚到状态栏下面，不留下一条挡住内容的空白。
+                immersiveStatusBar = true,
             ),
             header = { dynamicDetailHeader(snapshot, actions) },
         )
