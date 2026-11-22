@@ -26,6 +26,7 @@ data class FeedItem(
     val orig get() = attachments.orig
     val authorVip get() = author.authorVip
     val isCollection get() = attachments.isCollection
+    val isCharge get() = attachments.isCharge
     val pgcCover get() = attachments.pgcCover
     val pgcTitle get() = attachments.pgcTitle
     val pgcLabel get() = attachments.pgcLabel
@@ -60,6 +61,8 @@ data class FeedAttachments(
     val orig: FeedItem? = null,
     /** 合集 / UGC 合集视频，封面上显示「合集」小胶囊。 */
     val isCollection: Boolean = false,
+    /** 包月充电专属视频，封面上显示黄色「充电」小胶囊。 */
+    val isCharge: Boolean = false,
     /** 番剧 / 电影 / 纪录片等 PGC 内容（动态 PGC 卡）。 */
     val pgcCover: String = "",
     val pgcTitle: String = "",

@@ -110,6 +110,7 @@ class RouteJsonCodec {
         put("like", d.like); put("comment", d.comment); put("forward", d.forward); put("liked", d.liked)
         put("commentOid", d.commentOid); put("commentType", d.commentType); put("title", d.title)
         put("orig", d.orig?.let(::dynamic)); put("authorVip", d.authorVip); put("isCollection", d.isCollection)
+        put("isCharge", d.isCharge)
         put("pgcCover", d.pgcCover); put("pgcTitle", d.pgcTitle); put("pgcLabel", d.pgcLabel)
         put("moduleTag", d.moduleTag); put("ipLocation", d.ipLocation)
         put("liveRecommendation", d.liveRecommendation?.let {
@@ -143,6 +144,7 @@ class RouteJsonCodec {
             title = d.optString("title"),
             orig = d.optJSONObject("orig")?.let(::readFeed),
             isCollection = d.optBoolean("isCollection"),
+            isCharge = d.optBoolean("isCharge"),
             pgcCover = d.optString("pgcCover"),
             pgcTitle = d.optString("pgcTitle"),
             pgcLabel = d.optString("pgcLabel"),

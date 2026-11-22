@@ -72,6 +72,7 @@ internal fun ForwardedFeedBlock(
             FeedVideoCard(
                 video = video,
                 isCollection = item.isCollection,
+                isCharge = item.isCharge,
                 autoPlay = autoPlay,
                 muted = muted,
                 onOpenVideo = onOpenVideo,

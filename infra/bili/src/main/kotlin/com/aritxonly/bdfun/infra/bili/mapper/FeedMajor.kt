@@ -11,6 +11,9 @@ import com.aritxonly.bdfun.infra.bili.cancellableCatching
 
 internal class FeedMajor(val value: JSONObject?) {
     val archive = value?.optJSONObject("archive")
+
+    /** 稿件角标文案：B 站用 `充电专属` 标记包月充电视频。 */
+    val archiveBadge = archive?.optJSONObject("badge")?.optString("text").orEmpty()
     val opus = value?.optJSONObject("opus")
     val article = value?.optJSONObject("article")
     val common = value?.optJSONObject("common")

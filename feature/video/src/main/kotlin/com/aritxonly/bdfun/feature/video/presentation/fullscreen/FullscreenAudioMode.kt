@@ -2,6 +2,10 @@ package com.aritxonly.bdfun.ui
 
 import com.aritxonly.teak.common.player.PlayGlyph
 import com.aritxonly.teak.common.player.PauseGlyph
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.ChevronBackward
+import top.yukonga.miuix.kmp.icon.extended.ChevronForward
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -44,14 +48,19 @@ internal fun FullscreenAudioMode(
     onBack: () -> Unit,
     onPlayPause: () -> Unit,
     onSeek: (Long) -> Unit,
-    onSeekRelative: (Long) -> Unit,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    hasPrevious: Boolean,
+    hasNext: Boolean,
     modifier: Modifier = Modifier,
     appearance: FullscreenAppearance,
     slots: FullscreenChromeSlots,
 ) {
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
-        val actions = FullscreenAudioActions(onBack, onPlayPause, onSeek, onSeekRelative)
+        val actions = FullscreenAudioActions(
+            onBack, onPlayPause, onSeek, onPrevious, onNext, hasPrevious, hasNext,
+        )
         FullscreenAudioBackground(info.cover, slots.cover)
         FullscreenAudioBody(info, playback, actions, appearance, slots)
         FullscreenAudioTopBar(info.title, onBack)
@@ -60,8 +69,13 @@ internal fun FullscreenAudioMode(
 }
 
 private class FullscreenAudioActions(
-    val onBack: () -> Unit, val onPlayPause: () -> Unit,
-    val onSeek: (Long) -> Unit, val onSeekRelative: (Long) -> Unit,
+    val onBack: () -> Unit,
+    val onPlayPause: () -> Unit,
+    val onSeek: (Long) -> Unit,
+    val onPrevious: () -> Unit,
+    val onNext: () -> Unit,
+    val hasPrevious: Boolean,
+    val hasNext: Boolean,
 )
 
 @Composable
@@ -175,18 +189,12 @@ private fun FullscreenAudioTransport(playback: FullscreenPlaybackState, actions:
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(18.dp),
     ) {
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.13f))
-                .clickable(interactionSource = null, indication = null) {
-                    actions.onSeekRelative(-10_000L)
-                },
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("-10s", color = Color.White, fontSize = 10.sp)
-        }
+        AudioStepButton(
+            icon = MiuixIcons.ChevronBackward,
+            description = "上一集",
+            enabled = actions.hasPrevious,
+            onClick = actions.onPrevious,
+        )
         Box(
             modifier = Modifier
                 .size(58.dp)
@@ -197,18 +205,12 @@ private fun FullscreenAudioTransport(playback: FullscreenPlaybackState, actions:
         ) {
             if (playback.playing) PauseGlyph(Color.Black) else PlayGlyph(playIcon, Color.Black, 26.dp)
         }
-        Box(
-            modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.13f))
-                .clickable(interactionSource = null, indication = null) {
-                    actions.onSeekRelative(10_000L)
-                },
-            contentAlignment = Alignment.Center,
-        ) {
-            Text("+10s", color = Color.White, fontSize = 10.sp)
-        }
+        AudioStepButton(
+            icon = MiuixIcons.ChevronForward,
+            description = "下一集",
+            enabled = actions.hasNext,
+            onClick = actions.onNext,
+        )
         Spacer(Modifier.width(14.dp))
         Box(
             modifier = Modifier
@@ -221,6 +223,31 @@ private fun FullscreenAudioTransport(playback: FullscreenPlaybackState, actions:
         ) {
             Text("退出听视频", color = Color.White, fontSize = 12.sp)
         }
+    }
+}
+
+/** 上一集 / 下一集：没有相邻分 P 时变暗且不可点。 */
+@Composable
+private fun AudioStepButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    description: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .size(38.dp)
+            .clip(CircleShape)
+            .background(Color.White.copy(alpha = if (enabled) 0.13f else 0.06f))
+            .clickable(interactionSource = null, indication = null, enabled = enabled, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        AppGlyph(
+            icon = icon,
+            tint = Color.White.copy(alpha = if (enabled) 0.9f else 0.3f),
+            size = 20.dp,
+            contentDescription = description,
+        )
     }
 }
 

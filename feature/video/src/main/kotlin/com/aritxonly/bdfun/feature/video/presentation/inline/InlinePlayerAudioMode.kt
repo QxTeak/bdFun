@@ -2,6 +2,10 @@ package com.aritxonly.bdfun.ui
 
 import com.aritxonly.teak.common.player.PlayGlyph
 import com.aritxonly.teak.common.player.PauseGlyph
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.ChevronBackward
+import top.yukonga.miuix.kmp.icon.extended.ChevronForward
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -33,6 +37,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/** 半屏听视频的选集动作：上一集 / 下一集以及是否可点。 */
+class HalfAudioEpisodes(
+    val onPrevious: () -> Unit,
+    val onNext: () -> Unit,
+    val hasPrevious: Boolean,
+    val hasNext: Boolean,
+)
+
 @Composable
 fun HalfScreenAudioMode(
     title: String,
@@ -43,7 +55,7 @@ fun HalfScreenAudioMode(
     durationMs: Long,
     onExit: () -> Unit,
     onPlayPause: () -> Unit,
-    onSeekRelative: (Long) -> Unit,
+    episodes: HalfAudioEpisodes,
     appearance: InlinePlayerAppearance, coverImage: @Composable (String, Modifier) -> Unit,
 ) {
 
@@ -55,7 +67,7 @@ fun HalfScreenAudioMode(
         HalfAudioBackground(cover, coverImage)
         HalfAudioMetadata(title, author, cover, appearance.accentColor, coverImage)
         HalfAudioExit(onExit)
-        HalfAudioControls(playing, positionMs, durationMs, onPlayPause, onSeekRelative, appearance.playIcon)
+        HalfAudioControls(playing, positionMs, durationMs, onPlayPause, episodes, appearance.playIcon)
     }
 }
 
@@ -131,60 +143,91 @@ private fun BoxScope.HalfAudioExit(onExit: () -> Unit) {
 }
 
 @Composable
-private fun BoxScope.HalfAudioControls(playing: Boolean, positionMs: Long, durationMs: Long, onPlayPause: () -> Unit, onSeekRelative: (Long) -> Unit, playIcon: Int) {
-    Row(
+private fun BoxScope.HalfAudioControls(
+    playing: Boolean,
+    positionMs: Long,
+    durationMs: Long,
+    onPlayPause: () -> Unit,
+    episodes: HalfAudioEpisodes,
+    playIcon: Int,
+) {
+    Column(
         modifier = Modifier
             .align(Alignment.BottomCenter)
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
             .padding(bottom = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = formatPlayTime(positionMs),
-            color = Color.White.copy(alpha = 0.62f),
-            fontSize = 10.sp,
-        )
-        Spacer(Modifier.weight(1f))
-        Text(
-            text = "-10s",
-            color = Color.White.copy(alpha = 0.85f),
-            fontSize = 12.sp,
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable(interactionSource = null, indication = null) {
-                    onSeekRelative(-10_000L)
-                }
-                .padding(8.dp),
-        )
-        Spacer(Modifier.width(6.dp))
+        val fraction = if (durationMs > 0L) {
+            (positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
+        } else {
+            0f
+        }
         Box(
             modifier = Modifier
-                .size(38.dp)
+                .fillMaxWidth()
+                .height(3.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.16f))
-                .clickable(interactionSource = null, indication = null, onClick = onPlayPause),
-            contentAlignment = Alignment.Center,
+                .background(Color.White.copy(alpha = 0.18f)),
         ) {
-            if (playing) PauseGlyph() else PlayGlyph(playIcon)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(fraction)
+                    .height(3.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.9f)),
+            )
         }
-        Spacer(Modifier.width(6.dp))
-        Text(
-            text = "+10s",
-            color = Color.White.copy(alpha = 0.85f),
-            fontSize = 12.sp,
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable(interactionSource = null, indication = null) {
-                    onSeekRelative(10_000L)
-                }
-                .padding(8.dp),
-        )
-        Spacer(Modifier.weight(1f))
-        Text(
-            text = formatPlayTime(durationMs),
-            color = Color.White.copy(alpha = 0.62f),
-            fontSize = 10.sp,
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = formatPlayTime(positionMs),
+                color = Color.White.copy(alpha = 0.62f),
+                fontSize = 10.sp,
+            )
+            Spacer(Modifier.weight(1f))
+            HalfAudioStep(MiuixIcons.ChevronBackward, "上一集", episodes.hasPrevious, episodes.onPrevious)
+            Spacer(Modifier.width(6.dp))
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.16f))
+                    .clickable(interactionSource = null, indication = null, onClick = onPlayPause),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (playing) PauseGlyph() else PlayGlyph(playIcon)
+            }
+            Spacer(Modifier.width(6.dp))
+            HalfAudioStep(MiuixIcons.ChevronForward, "下一集", episodes.hasNext, episodes.onNext)
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = formatPlayTime(durationMs),
+                color = Color.White.copy(alpha = 0.62f),
+                fontSize = 10.sp,
+            )
+        }
+    }
+}
+
+@Composable
+private fun HalfAudioStep(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    description: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .clickable(interactionSource = null, indication = null, enabled = enabled, onClick = onClick)
+            .padding(8.dp),
+    ) {
+        AppGlyph(
+            icon = icon,
+            tint = Color.White.copy(alpha = if (enabled) 0.85f else 0.28f),
+            size = 18.dp,
+            contentDescription = description,
         )
     }
 }

@@ -27,7 +27,6 @@ internal fun SpeedPanel(
     onClose: () -> Unit,
     accentColor: Color,
 ) {
-
     PanelCard(title = "倍速") {
         Column(
             modifier = Modifier
@@ -47,13 +46,13 @@ internal fun SpeedPanel(
                             actions.onSpeedSelected(speed)
                             onClose()
                         }
-                        .padding(horizontal = 12.dp, vertical = 13.dp),
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = "${trimSpeed(speed)}x",
                         color = if (active) accentColor else Color.White,
-                        fontSize = 15.sp,
+                        fontSize = 13.sp,
                         fontWeight = if (active) FontWeight.Medium else FontWeight.Normal,
                     )
                     Spacer(Modifier.weight(1f))

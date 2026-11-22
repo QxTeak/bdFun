@@ -28,6 +28,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun FeedVideoCard(
     video: VideoItem,
     isCollection: Boolean,
+    isCharge: Boolean = false,
     autoPlay: Boolean,
     muted: Boolean,
     onOpenVideo: (VideoItem) -> Unit,
@@ -55,7 +56,7 @@ internal fun FeedVideoCard(
                 modifier = Modifier.fillMaxSize(),
             )
         }
-        FeedVideoCollectionBadge(isCollection)
+        FeedVideoBadges(isCollection = isCollection, isCharge = isCharge)
         Box(
             modifier = Modifier
                 .align(Alignment.BottomCenter)

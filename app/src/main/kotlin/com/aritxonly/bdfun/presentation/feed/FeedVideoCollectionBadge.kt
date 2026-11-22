@@ -1,9 +1,11 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -16,27 +18,52 @@ import androidx.compose.ui.unit.sp
 import com.kyant.shapes.Capsule
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+/** 视频卡右上角的小胶囊：充电专属（黄）与合集（主题色）。 */
 @Composable
-internal fun androidx.compose.foundation.layout.BoxScope.FeedVideoCollectionBadge(isCollection: Boolean) {
+internal fun BoxScope.FeedVideoBadges(isCollection: Boolean, isCharge: Boolean) {
+    if (!isCollection && !isCharge) return
     val colors = MiuixTheme.colorScheme
-    if (isCollection) {
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 8.dp, end = 8.dp)
-                .width(42.dp)
-                .clip(Capsule())
-                .background(colors.primary.copy(alpha = 0.92f))
-                .padding(horizontal = 7.dp, vertical = 2.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
+    Row(
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(top = 8.dp, end = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        if (isCharge) {
+            FeedBadge(
+                text = "充电",
+                background = ChargeBadgeYellow,
+                content = Color(0xFF3D2E00),
+            )
+        }
+        if (isCollection) {
+            FeedBadge(
                 text = "合集",
-                color = Color.White,
-                fontSize = 9.sp,
-                lineHeight = 10.sp,
-                fontWeight = FontWeight.Normal,
+                background = colors.primary.copy(alpha = 0.92f),
+                content = Color.White,
             )
         }
     }
 }
+
+@Composable
+private fun FeedBadge(text: String, background: Color, content: Color) {
+    Box(
+        modifier = Modifier
+            .clip(Capsule())
+            .background(background)
+            .padding(horizontal = 7.dp, vertical = 2.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text = text,
+            color = content,
+            fontSize = 9.sp,
+            lineHeight = 10.sp,
+            fontWeight = FontWeight.Normal,
+        )
+    }
+}
+
+/** 充电专属的黄色底：和合集一样带一点透明，压在封面上不突兀。 */
+private val ChargeBadgeYellow = Color(0xFFFFC107).copy(alpha = 0.92f)

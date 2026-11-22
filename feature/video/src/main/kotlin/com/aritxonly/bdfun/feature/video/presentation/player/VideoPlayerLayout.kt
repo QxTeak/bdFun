@@ -75,7 +75,7 @@ fun VideoPlayerLayout(
         PlayerSubtitleLayer(fullscreenInfo, fullscreen, ui, positionMs)
 
         PlayerInlineControls(playback, observed, presentation, actions, fsActions, ui, ports)
-        PlayerInlineAudio(playback, observed, presentation, ui, ports)
+        PlayerInlineAudio(playback, observed, presentation, fsActions, ui, ports)
 
         PlayerDanmakuInputOverlay(fullscreen, danmaku, ui, ports.danmakuComposer)
 
