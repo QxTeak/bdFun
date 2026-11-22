@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,6 +52,8 @@ internal data class CommentListViewLayout(
     val flatList: Boolean = false,
     /** 视频详情竖屏主评论区用更紧的标题上下留白。 */
     val compactHeaderSpacing: Boolean = false,
+    /** 沉浸页：状态栏高度并入列表 contentPadding，内容可以滚到状态栏下面。 */
+    val immersiveStatusBar: Boolean = false,
 )
 internal class CommentListViewActions(
     val onSort: () -> Unit, val onLike: (CommentItem) -> Unit, val onDislike: (CommentItem) -> Unit,
@@ -73,10 +77,15 @@ internal fun CommentListView(
     val bottomPadding = layout.bottomPadding
     val showLoading = layout.showLoading
     val header = layout.header
+    val immersive = layout.immersiveStatusBar
+    val statusInset = if (immersive) {
+        androidx.compose.foundation.layout.WindowInsets.statusBars
+            .asPaddingValues().calculateTopPadding()
+    } else 0.dp
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .statusBarsPadding(),
+            .then(if (immersive) Modifier else Modifier.statusBarsPadding()),
     ) {
         CommentListTitle(bare, title, total)
 
@@ -85,9 +94,16 @@ internal fun CommentListView(
             androidx.compose.runtime.CompositionLocalProvider(
                 LocalCommentFlashTarget provides CommentFlashTarget(state.highlightRpid, state.flashSeq),
             ) {
+            // 还有下一页时禁用触底回弹：继续下拉直接触发加载，而不是先弹一下再加载。
+            val overscroll = if (state.end) {
+                androidx.compose.foundation.rememberOverscrollEffect()
+            } else {
+                null
+            }
             LazyColumn(
                 state = listState,
                 modifier = Modifier,
+                overscrollEffect = overscroll,
                 contentPadding = PaddingValues(
                     start = if (layout.flatList) {
                         if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 10.dp else 4.dp
@@ -95,7 +111,7 @@ internal fun CommentListView(
                     end = if (layout.flatList) {
                         if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 10.dp else 4.dp
                     } else if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 2.dp else 12.dp,
-                    top = 4.dp + topInset,
+                    top = statusInset + 4.dp + topInset,
                     bottom = bottomPadding,
                 ),
             ) {

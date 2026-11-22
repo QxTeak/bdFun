@@ -790,6 +790,32 @@
         ]
       },
       {
+        "title": "贡献者",
+        "settings": [
+          {
+            "pref_name": "contributor_xubu",
+            "type": "developer",
+            "title": "xu-bu",
+            "storage": "none",
+            "default": ""
+          },
+          {
+            "pref_name": "contributor_moretti",
+            "type": "developer",
+            "title": "Moretti815",
+            "storage": "none",
+            "default": ""
+          },
+          {
+            "pref_name": "contributor_maochenyu",
+            "type": "developer",
+            "title": "maochenyu-me",
+            "storage": "none",
+            "default": ""
+          }
+        ]
+      },
+      {
         "title": "版本信息",
         "settings": [
           {

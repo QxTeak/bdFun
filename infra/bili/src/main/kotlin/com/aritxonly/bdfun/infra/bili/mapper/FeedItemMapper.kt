@@ -75,8 +75,31 @@ internal fun parseFeedItem(item: JSONObject, allowOrig: Boolean = true): FeedIte
             5 -> "电视剧"
             else -> "剧集"
         },
+            pgcSeasonId = pgcId(pgc, "season_id", "seasonId", "season"),
+            pgcEpId = pgcId(pgc, "epid", "ep_id", "epId", "ep"),
             moduleTag = modules.optJSONObject("module_tag")?.s("text").orEmpty(),
             liveRecommendation = liveRecommendation,
         ),
     )
+}
+
+/**
+ * 动态 PGC 卡的季/集 id：优先用接口字段，缺失时从 `uri` 里取。
+ * 字段名在不同版本会变，这里只是兜底，不改变其它字段的读取顺序。
+ */
+private fun pgcId(pgc: JSONObject?, vararg keys: String): Long {
+    if (pgc == null) return 0L
+    for (key in keys) {
+        val value = pgc.optLong(key, 0L)
+        if (value > 0L) return value
+    }
+    val uri = pgc.s("uri").ifBlank { pgc.s("jump_url") }
+    if (uri.isBlank()) return 0L
+    val pattern = when (keys.first()) {
+        "season_id" -> Regex("season/(\\d+)").find(uri)
+            ?: Regex("[?&](?:season_id|seasonId)=(\\d+)").find(uri)
+        else -> Regex("(?:ep|epid|episode)/(\\d+)").find(uri)
+            ?: Regex("[?&](?:ep_id|epid)=(\\d+)").find(uri)
+    }
+    return pattern?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0L
 }

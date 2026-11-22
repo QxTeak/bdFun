@@ -72,6 +72,9 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
     }
     suspend fun related(bvid: String) = api.related(bvid)
     suspend fun danmaku(cid: Long, durationSec: Int = 0) = api.danmaku(cid, durationSec)
+
+    /** 单段弹幕：播放到新的一段时按需补齐（带 LRU 缓存）。 */
+    suspend fun danmakuSegment(cid: Long, index: Int) = api.danmakuSegment(cid, index)
     suspend fun sponsorSegments(bvid: String) = api.sponsorSegments(bvid)
     suspend fun comments( aid: Long, page: Int, upMid: Long = 0, sort: Int = 2, ) = api.comments(aid, page, upMid, sort)
     suspend fun commentsByOid( oid: String, type: Int, page: Int, upMid: Long = 0, sort: Int = 2, ) = api.commentsByOid(oid, type, page, upMid, sort)

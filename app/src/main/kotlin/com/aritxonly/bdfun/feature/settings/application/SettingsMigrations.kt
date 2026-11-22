@@ -1,6 +1,6 @@
 package com.aritxonly.bdfun.feature.settings.application
 
-import com.aritxonly.bdfun.core.model.settings.AUTO_CDN_ID
+import com.aritxonly.bdfun.core.model.settings.BASE_CDN_ID
 import com.aritxonly.bdfun.core.domain.SettingsPreferences
 
 internal fun migrateSettings0(prefs: SettingsPreferences) {
@@ -50,10 +50,11 @@ internal fun migrateSettings0(prefs: SettingsPreferences) {
                 .putBoolean("recommend_app_v2", true)
                 .apply()
         }
-        // preview-3.9.5：重新提供「自动」选项；新安装默认自动，已有手动选择保持不变。
+        // preview-3.9.5：重新提供「自动」选项；已有手动选择保持不变。
+        // 新安装默认「原地址」：自动测速会下载多个节点的样本，不能默认跑。
         if (!prefs.getBoolean("cdn_auto_v2", false)) {
             if (!prefs.contains("cdn_service")) {
-                prefs.edit().putString("cdn_service", AUTO_CDN_ID).apply()
+                prefs.edit().putString("cdn_service", BASE_CDN_ID).apply()
             }
             prefs.edit().putBoolean("cdn_auto_v2", true).apply()
         }

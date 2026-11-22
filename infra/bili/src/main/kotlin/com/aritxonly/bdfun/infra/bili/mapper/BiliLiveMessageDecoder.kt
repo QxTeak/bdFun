@@ -57,16 +57,63 @@ class BiliLiveMessageDecoder : LiveMessageDecoder {
             }
         }
 
+        // 粉丝牌：新版协议在 info[0][15].user.medal，老版协议在 info[3] 数组。
+        val medal = parseMedal(meta, info)
+
         return LiveChatMessage(
             id = id,
             kind = LiveChatKind.DANMAKU,
             uname = uname,
             text = text,
+            medalName = medal?.name,
+            medalLevel = medal?.level ?: 0,
+            medalColor = medal?.color ?: 0,
             nameColor = if (color > 0) color.toLong() else null,
             emoteUrl = directEmote.ifBlank { null },
             emotes = emotes,
             emoteHeights = emoteHeights,
         )
+    }
+
+    private data class LiveMedal(val name: String, val level: Int, val color: Int)
+
+    /**
+     * 参考 PiliPlus / BiliPai 的直播弹幕解析：新协议 `info[0][15].user.medal`
+     * （name / level / v2_medal_color_start，只显示已点亮的牌子），
+     * 旧协议回退到 `info[3]` 数组（level / name / color 在 [0]/[1]/[4]）。
+     */
+    private fun parseMedal(meta: org.json.JSONArray?, info: org.json.JSONArray): LiveMedal? {
+        val modern = meta?.optJSONObject(15)
+            ?.optJSONObject("user")
+            ?.optJSONObject("medal")
+        if (modern != null) {
+            // is_light=1 才是已点亮的牌子；灰牌和老协议才走下面的数组。
+            if (modern.optInt("is_light", 0) != 1) return null
+            val name = modern.optString("name").ifBlank { modern.optString("medal_name") }
+            val level = modern.optInt("level", 0).takeIf { it > 0 }
+                ?: modern.optInt("medal_level", 0)
+            if (name.isBlank() || level <= 0) return null
+            return LiveMedal(name, level, parseMedalHexColor(modern.optString("v2_medal_color_start")))
+        }
+        val legacy = info.optJSONArray(3) ?: return null
+        if (legacy.length() < 2) return null
+        val name = legacy.optString(1)
+        val level = legacy.optInt(0, 0)
+        if (name.isBlank() || level <= 0) return null
+        return LiveMedal(name, level, legacy.optInt(4, 0))
+    }
+
+    /** `#RRGGBB` / `#RRGGBBAA` → 0xRRGGBB；解析不了返回 0（界面用主题粉）。 */
+    private fun parseMedalHexColor(raw: String): Int {
+        if (!raw.startsWith("#")) return raw.toIntOrNull() ?: 0
+        val hex = raw.removePrefix("#")
+        val value = hex.toLongOrNull(16) ?: return 0
+        return when (hex.length) {
+            6 -> (value or 0xFF000000L).toInt()
+            // 8 位是 RGBA，换成 ARGB。
+            8 -> ((value ushr 8) or ((value and 0xFFL) shl 24)).toInt()
+            else -> 0
+        }
     }
 
     private fun parseGift(json: JSONObject, id: Long): LiveChatMessage? {

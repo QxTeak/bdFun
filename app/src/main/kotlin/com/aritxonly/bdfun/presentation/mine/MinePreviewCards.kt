@@ -84,7 +84,7 @@ private fun MinePreviewBody(kind: MinePreviewKind, section: MinePreviewSection, 
                 !section.loaded && section.error != null -> Text("加载失败，点击重试",
                     Modifier.clickable(onClick = retry).padding(12.dp),
                     color = MiuixTheme.colorScheme.primary, fontSize = 13.sp)
-                !section.loaded -> MinePreviewSkeleton(kind, videoWidth, folderRow)
+                !section.loaded -> MiuixLoadingRow(verticalPadding = 0.dp)
                 kind == MinePreviewKind.Favorites -> Column(Modifier.fillMaxSize(),
                     verticalArrangement = Arrangement.spacedBy(14.dp)) { MineFolderPreviews(section, openAll) }
                 section.entries.isEmpty() -> MinePreviewMessage(

@@ -99,13 +99,13 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows
     }
 }
 
-/** 首屏骨架：和 [videoResultRows] 的行同尺寸。 */
+/** 首屏加载：统一用 Miuix 加载动画（骨架屏组件保留但不再挂载）。 */
 internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultSkeleton(
     count: Int = 6,
     keyPrefix: String = "video-skeleton",
 ) {
-    items(count = count, key = { "$keyPrefix-$it" }) {
-        SearchVideoSkeletonRow()
+    item(key = keyPrefix, span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+        com.aritxonly.teak.common.chrome.TeakLoadingArea()
     }
 }
 
@@ -180,8 +180,8 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchUserResul
     val loadedOnce = content.loadedOnce
     val error = content.error
     if (loading && users.isEmpty()) {
-        items(count = 5, key = { "search-user-skeleton-$it" }) {
-            SearchUserSkeletonRow()
+        item(key = "search-user-loading", span = { androidx.compose.foundation.lazy.grid.GridItemSpan(maxLineSpan) }) {
+            com.aritxonly.teak.common.chrome.TeakLoadingArea()
         }
     }
     itemsIndexed(items = users, key = { index, user -> "u$index-" + user.mid }) { _, user ->

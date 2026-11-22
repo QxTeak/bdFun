@@ -18,8 +18,13 @@ internal class VideoPagePresentationState(
     val automaticQuality: com.aritxonly.bdfun.core.domain.AutomaticVideoQualitySelector,
     val settings: com.aritxonly.bdfun.core.domain.SettingsRepository,
     val dependencies: VideoPageDependencies,
-    private val holder: VideoPageStateHolder = VideoPageStateHolder(),
+    private val holder: VideoPageStateHolder = VideoPageStateHolder().also {
+        it.danmakuFeed = dependencies.danmakuFeed
+    },
 ) : PlayerPageHost, VideoDetailDanmakuHost, VideoPageOverlayHost {
+    /** 分段弹幕窗口：播放到新的一段时由播放器补齐。 */
+    val danmakuFeed: com.aritxonly.bdfun.core.application.DanmakuSegmentFeed?
+        get() = holder.danmakuFeed
     private var snapshot by mutableStateOf(holder.state.value)
     init { scope.launch(start = CoroutineStart.UNDISPATCHED) { holder.state.collect { snapshot = holder.state.value } } }
     private fun update(transform: (com.aritxonly.bdfun.core.application.VideoPageState) -> com.aritxonly.bdfun.core.application.VideoPageState) {

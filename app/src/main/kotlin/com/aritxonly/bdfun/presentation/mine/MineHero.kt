@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -16,8 +17,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.SpaceBanner
 import com.aritxonly.bdfun.core.model.user.UserProfile
-import com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep
-import com.aritxonly.teak.common.skeleton.teakSkeleton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun MineHero(profile: UserProfile?, navigation: MineNavigation, wide: Boolean = false) {
@@ -40,9 +40,14 @@ internal fun MineHero(profile: UserProfile?, navigation: MineNavigation, wide: B
                 // 套到通栏头图上只会显示图片的一个角。
                 val bannerLoading = banner.bitmap == null && !profile?.banner.isNullOrBlank()
                 if (bannerLoading) {
-                    // 网络头图没回来之前用扫光骨架占位，避免先露一块纯色再跳图。
-                    val sweep = rememberTeakSkeletonSweep()
-                    Box(Modifier.fillMaxWidth().aspectRatio(bannerAspect).teakSkeleton(sweep, RoundedCornerShape(0.dp)))
+                    // 头图还没回来：纯色底 + Miuix 默认加载动画，不再用扫光骨架。
+                    Box(
+                        Modifier.fillMaxWidth().aspectRatio(bannerAspect)
+                            .background(MiuixTheme.colorScheme.surfaceContainerHigh),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        MiuixLoadingRow(verticalPadding = 0.dp)
+                    }
                 } else {
                     SpaceBanner(banner.bitmap, aspect = bannerAspect)
                 }

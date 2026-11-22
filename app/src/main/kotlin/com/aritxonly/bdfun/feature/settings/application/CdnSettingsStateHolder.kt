@@ -10,7 +10,12 @@ import kotlinx.coroutines.flow.asStateFlow
 
 internal data class CdnSettingsUiState(val speeds: Map<String, Double>, val labels: List<String>)
 
-/** 仍按原 400ms 观察进程测速；Map 未变时保持原 remember 的选项采样时机。 */
+/**
+ * CDN 选项与测速状态。
+ *
+ * 测速只在用户主动打开 CDN 选择框时触发（[probe]），设置页打开本身不再探测：
+ * 一次探测要下载十几个节点、每个节点两轮 1MB 样本，不能作为页面加载的副作用。
+ */
 internal class CdnSettingsStateHolder(private val source: CdnSettingsSource) {
     val services = source.services
     private val initial = source.speeds()
@@ -18,21 +23,29 @@ internal class CdnSettingsStateHolder(private val source: CdnSettingsSource) {
     val state = mutable.asStateFlow()
     private var closed = false
     private var loading = false
+    private var probing = false
     fun close() { closed = true }
     fun selectedIndex(id: String) = services.indexOfFirst { it.id == id }.let { if (it < 0) 0 else it }
+
+    /** 只读取当前已有的缓存分数，不发网络请求。 */
     suspend fun load() {
         if (closed || loading) return
         loading = true
+        try { sample() } finally { loading = false }
+    }
+
+    /** 用户打开选择框时才测速；一小时内已有结果直接复用。 */
+    suspend fun probe() {
+        if (closed || probing) return
+        probing = true
         try {
-            checkActive()
-            if (!source.isFresh() || mutable.value.speeds.isEmpty()) {
-                source.refresh(force = mutable.value.speeds.isEmpty())
-            }
+            if (!source.isFresh()) source.refresh(force = false)
             sample()
             while (source.isProbing()) { sample(); delay(400); checkActive() }
             sample()
-        } finally { loading = false }
+        } finally { probing = false }
     }
+
     private suspend fun sample() {
         checkActive()
         val speeds = source.speeds()

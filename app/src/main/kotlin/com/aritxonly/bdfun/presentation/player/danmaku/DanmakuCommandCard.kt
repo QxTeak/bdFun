@@ -41,16 +41,18 @@ internal fun DanmakuCommandCard(
 ) {
     val shape = RoundedCornerShape(14.dp)
     val contentColor = Color.White
+    // 投票卡按官方样式给更大的内边距和标题字号。
+    val vote = command.kind == DanmakuCommandKind.Vote
     Column(
         modifier = modifier
             .clip(shape)
             .background(Color.Black.copy(alpha = 0.68f))
             .border(0.5.dp, Color.White.copy(alpha = 0.22f), shape)
-            .padding(10.dp)
+            .padding(if (vote) 14.dp else 10.dp)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(if (vote) 8.dp else 6.dp),
     ) {
-        CommandCardHeader(command, contentColor, onDismiss)
+        CommandCardHeader(command, contentColor, onDismiss, if (vote) 15.sp else 12.sp)
         CommandCardBody(
             command, selected, busy, actions, videoLiked, voteCounts, showVoteRatio, onLink, onSubmit,
         )
@@ -58,13 +60,13 @@ internal fun DanmakuCommandCard(
 }
 
 @Composable
-private fun CommandCardHeader(command: DanmakuCommand, contentColor: Color, onDismiss: () -> Unit) {
+private fun CommandCardHeader(command: DanmakuCommand, contentColor: Color, onDismiss: () -> Unit, titleSize: androidx.compose.ui.unit.TextUnit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = command.text,
             color = contentColor,
-            fontSize = 12.sp,
-            lineHeight = 16.sp,
+            fontSize = titleSize,
+            lineHeight = titleSize,
             modifier = Modifier.weight(1f),
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,

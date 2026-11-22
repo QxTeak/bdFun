@@ -78,11 +78,8 @@ internal fun LazyGridScope.bangumiPageStateItems(
     scope: kotlinx.coroutines.CoroutineScope,
 ) {
     if (state.cards.isEmpty() && state.loading) {
-        items(count = 9, key = { "pgc-skeleton-$it" }) {
-            TeakSkeletonVideoCard(
-                progress = rememberTeakSkeletonSweep(),
-                coverAspectRatio = 3f / 4f,
-            )
+        item(key = "pgc-loading", span = { GridItemSpan(maxLineSpan) }) {
+            com.aritxonly.teak.common.chrome.TeakLoadingArea()
         }
     }
     state.error?.let { message ->

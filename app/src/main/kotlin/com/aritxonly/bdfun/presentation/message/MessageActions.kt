@@ -43,9 +43,8 @@ internal class MessageFeedActions(
     fun load(tab: Int) { scope.launch { controller.loadPage(tab) } }
     fun loadFooter(tab: Int) { scope.launch { controller.loadFooter(tab) } }
     fun open(item: MessageItem) {
-        if (controller.kind == MessageFeedKind.Like && item.likeCount > 1) {
-            navigate(com.aritxonly.bdfun.core.navigation.Route.MessageTools("likes", item.id, count = item.likeCount, navigation = item.navigation))
-        } else openMessageItem(item, controller.kind, controller, scope, context)
+        // 收到的喜欢：和回复页一样直接回到视频并定位到被赞的评论。
+        openMessageItem(item, controller.kind, controller, scope, context)
     }
     fun toggleFollow(item: MessageItem) {
         scope.launch { controller.toggleFollow(item)?.let { context.showToast(it) } }

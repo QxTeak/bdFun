@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -38,47 +40,46 @@ internal fun VoteOptionRow(
     enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    // 投票选项统一胶囊形状；比例条也用同一胶囊，按真实票数占比填充。
-    val shape = Capsule()
+    // 投票选项：参考官方投票弹幕——圆角矩形、左标题右百分比，选中项用主题粉底。
+    val shape = RoundedCornerShape(8.dp)
+    val accent = MiuixTheme.colorScheme.primary
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 40.dp)
             .clip(shape)
-            .background(Color.White.copy(alpha = if (selected) 0.16f else 0.07f))
-            .border(
-                width = if (selected) 1.dp else 0.5.dp,
-                color = Color.White.copy(alpha = if (selected) 0.9f else 0.3f),
-                shape = shape,
-            )
-            .clickable(enabled = enabled, interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp),
+            .background(if (selected) accent.copy(alpha = 0.30f) else Color.White.copy(alpha = 0.08f))
+            .clickable(enabled = enabled, interactionSource = null, indication = null, onClick = onClick),
     ) {
         if (showRatio && ratio > 0f) {
             Box(
                 Modifier
                     .matchParentSize()
-                    .padding(1.dp)
                     .clip(shape)
                     .fillMaxWidth(ratio)
-                    // 透明粉：Miuix 主题粉 + 低不透明度，不抢白色文字。
-                    .background(MiuixTheme.colorScheme.primary.copy(alpha = 0.32f)),
+                    // 比例条用更淡的一层，不抢文字和选中态的对比。
+                    .background(Color.White.copy(alpha = 0.07f)),
             )
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Text(
                 text = if (selected) "✓ $label" else label,
-                color = Color.White.copy(alpha = if (enabled || selected) 0.95f else 0.6f),
-                fontSize = 12.sp,
+                color = Color.White.copy(alpha = if (enabled || selected) 0.95f else 0.72f),
+                fontSize = 14.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
             )
             if (showRatio) {
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(10.dp))
                 Text(
                     text = "${(ratio * 100).roundToInt()}%",
-                    color = Color.White.copy(alpha = 0.85f),
-                    fontSize = 11.sp,
+                    color = Color.White.copy(alpha = 0.82f),
+                    fontSize = 13.sp,
+                    maxLines = 1,
                 )
             }
         }

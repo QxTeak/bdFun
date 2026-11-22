@@ -19,6 +19,8 @@ internal class VideoPageDependencies(
     val createPlayback: (Context, Int) -> VideoPlaybackPlatform,
     val log: (String, String) -> Unit,
     val comments: CommentDependencies,
+    /** 分段弹幕窗口：播放推进时按需补齐当前段前后。 */
+    val danmakuFeed: com.aritxonly.bdfun.core.application.DanmakuSegmentFeed,
 ) {
     val downloads get() = downloadsProvider()
     val sentHistory get() = sentHistoryProvider()

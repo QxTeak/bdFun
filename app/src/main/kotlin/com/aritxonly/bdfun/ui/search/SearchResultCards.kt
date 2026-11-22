@@ -206,7 +206,7 @@ private fun SearchResultInfo(video: VideoItem, modifier: Modifier = Modifier) {
             )
             Spacer(Modifier.height(3.dp))
             Row(
-                modifier = Modifier.padding(start = 1.dp),
+                modifier = Modifier.fillMaxWidth().padding(start = 1.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 MetricGlyph(play = true, color = colors.onBackgroundVariant, size = 11.dp)
@@ -224,6 +224,16 @@ private fun SearchResultInfo(video: VideoItem, modifier: Modifier = Modifier) {
                     color = colors.onBackgroundVariant,
                     fontSize = 10.sp,
                 )
+                // 发布时间跟着播放量行一起排：不额外占一行，UP 行位置保持原样。
+                if (video.pubdate > 0L) {
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = formatDate(video.pubdate),
+                        color = colors.onBackgroundVariant,
+                        fontSize = 10.sp,
+                        maxLines = 1,
+                    )
+                }
             }
         }
         Row(verticalAlignment = Alignment.CenterVertically) {

@@ -22,10 +22,13 @@ import com.aritxonly.teak.common.skeleton.TeakSkeletonBlock
 import com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** 动态首屏骨架：和动态卡片同构（头像/昵称 + 正文 + 图片块）。 */
+/** 动态首屏加载：统一改用 Miuix 加载动画（骨架卡片代码保留，不再挂到列表上）。 */
 internal fun LazyStaggeredGridScope.dynamicFeedSkeletonItems() {
-    items(count = 3, key = { "feed-skeleton-$it" }) {
-        FeedCardSkeleton()
+    item(
+        key = "feed-loading",
+        span = androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan.FullLine,
+    ) {
+        MiuixLoadingRow()
     }
 }
 

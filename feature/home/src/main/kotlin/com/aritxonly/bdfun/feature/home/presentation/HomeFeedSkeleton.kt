@@ -1,22 +1,14 @@
 package com.aritxonly.bdfun.feature.home.presentation
 
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyGridScope
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.runtime.Composable
-import com.aritxonly.teak.common.skeleton.TeakSkeletonVideoCard
-import com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep
+import com.aritxonly.teak.common.chrome.TeakLoadingArea
 
 /**
- * 首页/推荐首屏骨架：按真实双列视频卡的尺寸摆 8 张。
- * 骨架直接进网格，数据到了原位替换，不会先出现一个转圈再整页跳一下。
+ * 首页/推荐首屏加载：Miuix 加载动画放在顶栏以下内容区域的正中。
  */
 internal fun LazyGridScope.homeFeedSkeletonItems() {
-    items(count = 8, key = { "home-skeleton-$it" }) {
-        HomeFeedSkeletonCard()
+    item(key = "home-loading", span = { GridItemSpan(maxLineSpan) }) {
+        TeakLoadingArea()
     }
-}
-
-@Composable
-private fun HomeFeedSkeletonCard() {
-    TeakSkeletonVideoCard(progress = rememberTeakSkeletonSweep())
 }

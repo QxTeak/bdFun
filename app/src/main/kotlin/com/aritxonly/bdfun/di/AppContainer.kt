@@ -78,8 +78,10 @@ internal class AppContainer(
             com.aritxonly.bdfun.feature.video.application.VideoReadCacheOwner(it.user?.mid, it.revision)
         }
     }
-    val automaticVideoQuality = AutomaticVideoQualitySelector(
-        com.aritxonly.bdfun.infra.playback.AndroidNetworkBandwidthSource(context))
+    val automaticVideoQuality = run {
+        val network = com.aritxonly.bdfun.infra.playback.AndroidNetworkBandwidthSource(context)
+        AutomaticVideoQualitySelector(network, network)
+    }
     val playbackProgress: PlaybackProgressRepository = com.aritxonly.bdfun.infra.storage.AndroidPlaybackProgressRepository(context)
     val playbackTrackingRepository = com.aritxonly.bdfun.infra.bili.BiliPlaybackTrackingRepository(api)
     val videoEntryRepository: VideoEntryRepository = com.aritxonly.bdfun.infra.bili.BiliVideoEntryRepository(api::view, api::viewByAid)
@@ -326,6 +328,9 @@ internal class AppContainer(
             videoEntryRepository, videoRepository, videoPlaybackRepository, videoMetadataRepository,
             videoActionsRepository, playbackTrackingRepository, playbackTrackingRepository)
     }
+    val danmakuSegmentFeed by lazy {
+        com.aritxonly.bdfun.core.application.DanmakuSegmentFeed { cid, index -> api.danmakuSegment(cid, index) }
+    }
     val videoPageDependencies by lazy {
         com.aritxonly.bdfun.ui.VideoPageDependencies(videoStateFactory, playbackProgress,
             { checkNotNull(videoCache) { "视频下载存储尚未初始化" } },
@@ -334,7 +339,8 @@ internal class AppContainer(
             com.aritxonly.bdfun.ui.CommentDependencies(
                 com.aritxonly.bdfun.feature.comment.application.CommentStateFactory(
                     commentContentRepository, commentImageRepository, commentLikesStore),
-                session, commentLikes, commentLikesStore.generationState))
+                session, commentLikes, commentLikesStore.generationState),
+            danmakuSegmentFeed)
     }
     fun close() { closed = true; homeSlot.close(); dynamicFeedSlots.close(); videoReadCache.close(); settings.close(); presentationScope.cancel() }
     val sentHistory: SentHistoryStore? = context?.let { SentHistoryStore(it.applicationContext) }

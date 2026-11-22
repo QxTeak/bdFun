@@ -183,9 +183,8 @@ internal fun CommentListCard(
 }
 
 internal fun androidx.compose.foundation.lazy.LazyListScope.commentSkeletonItems() {
-    items(count = 5, key = { "comment-skeleton-$it" }) {
-        CommentSkeletonRow()
-    }
+    // 统一改用 Miuix 加载动画；骨架行实现保留但不再挂载。
+    item(key = "comment-loading") { com.aritxonly.teak.common.chrome.TeakLoadingArea() }
 }
 
 /** 评论首屏骨架：头像 + 昵称/时间 + 两行正文 + 底部操作行，尺寸贴近真实评论行。 */

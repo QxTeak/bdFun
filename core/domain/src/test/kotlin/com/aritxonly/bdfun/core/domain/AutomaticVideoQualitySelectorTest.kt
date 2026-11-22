@@ -6,12 +6,15 @@ import org.junit.Test
 
 class AutomaticVideoQualitySelectorTest {
     private fun quality(id: Int, url: String = "$id") = Quality(id, "", 0, 0, "", "", url)
+    private fun selector(kbps: Int, cellular: Boolean = false) =
+        AutomaticVideoQualitySelector(NetworkBandwidthSource { kbps }, CellularNetworkSource { cellular })
     private fun select(kbps: Int, ids: List<Int>) =
-        AutomaticVideoQualitySelector { kbps }.select(ids.map { quality(it) })?.id
+        selector(kbps).select(ids.map { quality(it) })?.id
     private val ladder = listOf(127, 120, 116, 112, 80, 74, 64, 32, 16)
 
     @Test fun emptyListDoesNotReadPlatformBandwidth() {
-        assertNull(AutomaticVideoQualitySelector { error("must not read") }.select(emptyList()))
+        assertNull(AutomaticVideoQualitySelector(NetworkBandwidthSource { error("must not read") })
+            .select(emptyList()))
     }
     @Test fun exactThresholdsUse1024Conversion() {
         val thresholds = listOf(40960 to 127, 24576 to 120, 10240 to 112,
@@ -37,14 +40,33 @@ class AutomaticVideoQualitySelectorTest {
     }
     @Test fun duplicateTierUsesFirstOriginalItem() {
         val first = quality(80, "first")
-        assertSame(first, AutomaticVideoQualitySelector { 6144 }.select(listOf(first, quality(80, "second"))))
+        assertSame(first, selector(6144).select(listOf(first, quality(80, "second"))))
     }
     @Test fun readsCurrentBandwidthOnEachSelection() {
         var kbps = 1
-        val selector = AutomaticVideoQualitySelector { kbps }
+        val sut = AutomaticVideoQualitySelector(NetworkBandwidthSource { kbps })
         val items = ladder.map { quality(it) }
-        assertEquals(16, selector.select(items)?.id)
+        assertEquals(16, sut.select(items)?.id)
         kbps = 40960
-        assertEquals(127, selector.select(items)?.id)
+        assertEquals(127, sut.select(items)?.id)
+    }
+    @Test fun cellularCapsAutomaticTierAt1080p60() {
+        val items = ladder.map { quality(it) }
+        val mobile = selector(81920, cellular = true)
+        assertEquals(116, mobile.select(items)?.id)
+        // 没有 116 时退到 112，而不是 120/127。
+        assertEquals(112, mobile.select(listOf(127, 120, 112, 80).map { quality(it) })?.id)
+        // Wi-Fi 不受影响。
+        val wifi = selector(81920, cellular = false)
+        assertEquals(127, wifi.select(items)?.id)
+    }
+    @Test fun inlinePlaybackCapsQualityAt720p() {
+        val items = ladder.map { quality(it) }
+        assertEquals(64, capInlineQuality(items.first { it.id == 120 }, items)?.id)
+        // 没有 720P 时取不高于 720P 的最高档。
+        assertEquals(32, capInlineQuality(quality(120), listOf(quality(120), quality(32), quality(16)))?.id)
+        // 本来就低于 720P 的不动。
+        assertEquals(32, capInlineQuality(quality(32), items)?.id)
+        assertNull(capInlineQuality(null, items))
     }
 }

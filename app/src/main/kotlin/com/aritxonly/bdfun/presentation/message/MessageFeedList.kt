@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -49,14 +50,17 @@ internal fun MessageFeedList(
     val pageItems = if (ui.tab == 1) allItems.filter { it.followed } else allItems
     val barHeight = if (isWideFoldTopBar()) TopAppBarDefaults.CollapsedHeight else TeakChromeDefaults.TopOverlayHeight
     val topInset = rememberStatusBarTop() + barHeight
-    val refreshing = loadingByTab[key] == true && pageItems.isNotEmpty()
+    // 小电视只在手动下拉时出现；tab 切换/返回本页的自动加载不弹。
+    var manualRefresh by remember { mutableStateOf(false) }
+    LaunchedEffect(loadingByTab[key]) { if (loadingByTab[key] != true) manualRefresh = false }
+    val refreshing = manualRefresh && loadingByTab[key] == true
     HomePullRefreshBox(
         refreshing = refreshing,
         topPadding = barHeight - 8.dp,
         canScrollBackward = { listState.canScrollBackward },
         isAtTop = { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 },
         scrollToTop = { listState.animateScrollToItem(0) },
-        onRefresh = { if (!snapshot.busy) actions.load(ui.tab) },
+        onRefresh = { if (!snapshot.busy) { manualRefresh = true; actions.load(ui.tab) } },
         modifier = Modifier.fillMaxSize(),
     ) { pullModifier ->
         LazyColumn(
@@ -70,7 +74,8 @@ internal fun MessageFeedList(
             ),
         ) {
             if (tabs.isNotEmpty()) item(key = "tabs") {
-                Box(Modifier.padding(bottom = 4.dp)) {
+                // 内容与 tab 之间拉开 5dp，避免紧贴。
+                Box(Modifier.padding(bottom = 9.dp)) {
                     TeakPagerTabs(
                         options = tabs, selected = if (ui.tab == 2) 1 else 0,
                         onSelect = { ui.tab = if (it == 1) 2 else 0 },
@@ -81,8 +86,8 @@ internal fun MessageFeedList(
             itemsIndexed(pageItems, key = { _, item -> "message_${item.id}" }) { index, item ->
                 val sectionStart = index == 0 || kind == MessageFeedKind.Like &&
                     item.presentation.latestLike != pageItems[index - 1].presentation.latestLike
-                if (kind == MessageFeedKind.Like && sectionStart) {
-                    Text(if (item.presentation.latestLike) "最新" else "累计",
+                if (kind == MessageFeedKind.Like && sectionStart && item.presentation.latestLike) {
+                    Text("最新",
                         color = colors.onBackgroundVariant, fontSize = 13.sp,
                         modifier = Modifier.padding(start = 12.dp, top = if (index == 0) 2.dp else 10.dp, bottom = 6.dp))
                 }

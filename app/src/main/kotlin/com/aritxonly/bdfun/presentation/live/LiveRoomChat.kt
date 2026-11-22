@@ -32,6 +32,8 @@ import coil.compose.AsyncImage
 import com.aritxonly.bdfun.BrandPink
 import com.aritxonly.bdfun.core.model.live.LiveChatKind
 import com.aritxonly.bdfun.core.model.live.LiveChatMessage
+import com.kyant.shapes.Capsule
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
 internal fun LiveChatList(
@@ -122,20 +124,13 @@ internal fun LiveChatRow(message: LiveChatMessage) {
         }
 
         LiveChatKind.DANMAKU -> {
-            val prefix = buildString {
-                if (!message.medal.isNullOrBlank()) {
-                    append("[")
-                    append(message.medal)
-                    append("] ")
-                }
-                if (message.uname.isNotBlank()) {
-                    append(message.uname)
-                    append("：")
-                }
-            }
+            // 粉丝牌改成和个人主页同款的小胶囊，不再拼成 "[牌子] " 文本前缀。
+            val prefix = if (message.uname.isNotBlank()) "${message.uname}：" else ""
+            val medal: @Composable () -> Unit = { LiveMedalBadge(message) }
             when {
                 // 整条消息就是一张大表情
                 message.emoteUrl != null -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    medal()
                     Text(prefix, color = Color.White.copy(alpha = 0.92f), fontSize = 14.4.sp)
                     AsyncImage(
                         model = message.emoteUrl,
@@ -144,14 +139,49 @@ internal fun LiveChatRow(message: LiveChatMessage) {
                         contentScale = androidx.compose.ui.layout.ContentScale.Fit,
                     )
                 }
-                message.emotes.isEmpty() -> Text(
-                    text = prefix + message.text,
-                    color = Color.White.copy(alpha = 0.92f),
-                    fontSize = 14.4.sp,
-                )
-                else -> ChatWithEmotes(prefix, message)
+                message.emotes.isEmpty() -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    medal()
+                    Text(
+                        text = prefix + message.text,
+                        color = Color.White.copy(alpha = 0.92f),
+                        fontSize = 14.4.sp,
+                    )
+                }
+                else -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    medal()
+                    androidx.compose.foundation.layout.Box(Modifier.weight(1f)) {
+                        ChatWithEmotes(prefix, message)
+                    }
+                }
             }
         }
+    }
+}
+
+/** 直播弹幕的粉丝牌：和 `SpaceProfileMedal` 同一套「半透明底色 + 同色文字」胶囊。 */
+@Composable
+private fun LiveMedalBadge(message: LiveChatMessage) {
+    val name = message.medalName?.takeIf { it.isNotBlank() } ?: return
+    val medalColor = if (message.medalColor != 0) {
+        Color(0xFF000000L or (message.medalColor.toLong() and 0xFFFFFFL))
+    } else {
+        MiuixTheme.colorScheme.primary
+    }
+    Box(
+        modifier = Modifier
+            .padding(end = 4.dp)
+            .clip(Capsule())
+            .background(medalColor.copy(alpha = 0.16f))
+            .padding(horizontal = 5.dp, vertical = 1.dp),
+    ) {
+        Text(
+            text = if (message.medalLevel > 0) "$name Lv.${message.medalLevel}" else name,
+            color = medalColor,
+            fontSize = 9.sp,
+            lineHeight = 10.sp,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 1,
+        )
     }
 }
 

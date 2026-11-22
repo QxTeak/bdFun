@@ -29,6 +29,8 @@ data class FeedItem(
     val pgcCover get() = attachments.pgcCover
     val pgcTitle get() = attachments.pgcTitle
     val pgcLabel get() = attachments.pgcLabel
+    val pgcSeasonId get() = attachments.pgcSeasonId
+    val pgcEpId get() = attachments.pgcEpId
     val moduleTag get() = attachments.moduleTag
     val liveRecommendation get() = attachments.liveRecommendation
     val ipLocation get() = author.ipLocation
@@ -62,6 +64,9 @@ data class FeedAttachments(
     val pgcCover: String = "",
     val pgcTitle: String = "",
     val pgcLabel: String = "",
+    /** 番剧 / 影视入口：动态 PGC 卡只带 season_id / ep_id 进详情页。 */
+    val pgcSeasonId: Long = 0L,
+    val pgcEpId: Long = 0L,
     val moduleTag: String = "",
     val liveRecommendation: FeedLiveRecommendation? = null,
 )

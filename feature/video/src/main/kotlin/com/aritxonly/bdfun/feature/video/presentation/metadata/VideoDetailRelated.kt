@@ -11,9 +11,8 @@ import com.aritxonly.bdfun.core.model.video.VideoItem
 internal fun androidx.compose.foundation.lazy.LazyListScope.videoDetailRelated(
     related: List<VideoItem>, metaReady: Boolean, onRelated: (VideoItem) -> Unit, slots: VideoDetailTailSlots,
 ) {
-    // 相关推荐没到手时先摆行骨架；到位后原位替换，不做整列上浮。
+    // 首屏加载统一由元信息区的一个加载图标承担，这里不再重复出现。
     if (related.isEmpty() && !metaReady) {
-        item(key = "related-skeleton") { VideoRelatedSkeleton() }
         return
     }
     if (related.isEmpty()) return

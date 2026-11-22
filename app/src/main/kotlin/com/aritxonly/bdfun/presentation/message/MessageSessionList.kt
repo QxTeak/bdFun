@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,13 +44,16 @@ internal fun MessageSessionList(
     val openRoute = messageRouteAction()
     val visibleSessions = snapshot.visibleSessions(ui.tabIndex == 1)
     val classic = TeakUiStyle.isClassic
+    // 小电视只属于用户手动下拉：自动加载/后台补全都走骨架或列表自身，不弹指示器。
+    var manualRefresh by remember { mutableStateOf(false) }
+    LaunchedEffect(snapshot.loading) { if (!snapshot.loading) manualRefresh = false }
     HomePullRefreshBox(
-        refreshing = snapshot.loading && snapshot.sessions.isNotEmpty(),
+        refreshing = manualRefresh && snapshot.loading,
         topPadding = TeakChromeDefaults.TopBarHeight - 8.dp,
         canScrollBackward = { listState.canScrollBackward },
         isAtTop = { listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0 },
         scrollToTop = { listState.animateScrollToItem(0) },
-        onRefresh = { onRefresh() },
+        onRefresh = { manualRefresh = true; onRefresh() },
         modifier = Modifier.fillMaxSize(),
     ) { pullModifier ->
         LazyColumn(
@@ -75,9 +79,9 @@ internal fun MessageSessionList(
             if (!loggedIn) {
                 item(key = "login") { MessageLoginPrompt(events.onNeedLogin) }
             } else {
-                // 首次进入用骨架屏；下拉刷新才由 App 层的小电视提示。
+                // 首屏用 Miuix 默认加载动画；下拉刷新才由 App 层的小电视提示。
                 if (snapshot.loading && visibleSessions.isEmpty()) {
-                    items(count = 8, key = { "session-skeleton-$it" }) { MessageSessionSkeletonRow() }
+                    item(key = "session-loading") { MiuixLoadingRow() }
                 }
                 itemsIndexed(visibleSessions, key = { _, session -> session.id }) { _, session ->
                     val anchor = remember { CardBoundsHolder() }

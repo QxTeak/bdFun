@@ -27,8 +27,9 @@ import com.kyant.shapes.Capsule
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-internal fun FeedCardPgc(item: FeedItem, onOpen: () -> Unit) {
+internal fun FeedCardPgc(item: FeedItem, onOpen: () -> Unit, onOpenVideo: (() -> Unit)? = null) {
     val colors = MiuixTheme.colorScheme
+    val open = if (item.pgcSeasonId > 0L && onOpenVideo != null) onOpenVideo else onOpen
     if (item.pgcCover.isNotBlank()) {
         Spacer(Modifier.height(10.dp))
         Box(
@@ -37,7 +38,7 @@ internal fun FeedCardPgc(item: FeedItem, onOpen: () -> Unit) {
                 .aspectRatio(16f / 9f)
                 .clip(ContinuousCornerShape(12.dp))
                 .background(colors.surfaceContainerHigh)
-                .clickable(interactionSource = null, indication = null, onClick = onOpen),
+                .clickable(interactionSource = null, indication = null, onClick = open),
         ) {
             AsyncImage(
                 model = rememberImageRequest(item.pgcCover),

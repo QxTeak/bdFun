@@ -22,6 +22,8 @@ data class VideoScreenPresentation(
     val pictureInPicture: Boolean = false,
     val immersiveStatusBar: Boolean = false,
     val autoRotate: Boolean = true,
+    /** 当前是否全屏：半屏播放把清晰度压到 720P，全屏后恢复。 */
+    val fullscreen: Boolean = false,
 )
 
 class VideoScreenEvents(

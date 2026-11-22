@@ -1,6 +1,6 @@
 package com.aritxonly.bdfun.feature.settings.application
 
-import com.aritxonly.bdfun.core.model.settings.AUTO_CDN_ID
+import com.aritxonly.bdfun.core.model.settings.BASE_CDN_ID
 import com.aritxonly.bdfun.core.domain.*
 import com.aritxonly.bdfun.core.model.settings.*
 
@@ -31,8 +31,9 @@ internal class PlaybackSettingsStateHolder(
 
     private val codecPreferenceState = stateCell("codecPreferenceState", prefs.getString("codec_preference", "auto") ?: "auto")
 
+    // 默认用「原地址」：自动测速要下载多个节点的 1MB 样本，不能作为默认行为。
     private val cdnServiceState = stateCell("cdnServiceState",
-        prefs.getString("cdn_service", AUTO_CDN_ID) ?: AUTO_CDN_ID,
+        prefs.getString("cdn_service", BASE_CDN_ID) ?: BASE_CDN_ID,
     )
 
     /** 蓝牙耳机延迟补偿：检测到蓝牙输出时，让弹幕按设定延迟对齐。 */

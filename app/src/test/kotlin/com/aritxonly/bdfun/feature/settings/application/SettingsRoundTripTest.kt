@@ -112,7 +112,7 @@ class SettingsRoundTripTest(private val case: SettingCase<*>) {
             SettingCase("fontScale", 1f, 1.2f, { it.fontScale }, { s, v -> s.fontScale = v }),
             SettingCase("decoderMode", 0, 1, { it.decoderMode }, { s, v -> s.decoderMode = v }),
             SettingCase("codecPreference", "auto", "avc", { it.codecPreference }, { s, v -> s.codecPreference = v }),
-            SettingCase("cdnService", "auto", "base", { it.cdnService }, { s, v -> s.cdnService = v }),
+            SettingCase("cdnService", "base", "auto", { it.cdnService }, { s, v -> s.cdnService = v }),
             )
             val setters = SettingsRepository::class.java.methods
                 .filter { it.name.startsWith("set") && it.parameterCount == 1 }
