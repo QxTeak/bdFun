@@ -22,35 +22,39 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun MessageCardHeader(item: MessageItem, aggregate: Boolean = false) {
     val colors = MiuixTheme.colorScheme
     val cover = item.presentation.originalVideoCover.ifBlank { item.subjectCover }
+    // 只有确实指向视频（或本来就有封面）的消息才占这一格；
+    // 认不出视频来源时用占位图标，避免卡片头部忽高忽低。
+    val videoRelated = cover.isNotBlank() || item.bvid.isNotBlank() || item.videoSubject
     Row(Modifier.fillMaxWidth()) {
         Box(Modifier.weight(1f)) { MessageActorHeadline(item, aggregate) }
-        Spacer(Modifier.width(12.dp))
-        // 认不出视频来源、提取不到封面时也要占住同一个位置，避免卡片头部忽高忽低。
-        Box(
-            modifier = Modifier
-                .size(width = 80.dp, height = 50.dp)
-                .clip(TeakContinuousCornerShape(10.dp))
-                .background(colors.surfaceContainerHigh),
-            contentAlignment = Alignment.Center,
-        ) {
-            if (cover.isNotBlank()) {
-                AsyncImage(
-                    model = rememberImageRequest(cover),
-                    contentDescription = if (item.presentation.originalVideoCover.isNotBlank()) {
-                        "原视频封面"
-                    } else {
-                        "原内容封面"
-                    },
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            } else {
-                AppGlyph(
-                    icon = MiuixIcons.Play,
-                    tint = colors.onBackgroundVariant.copy(alpha = 0.4f),
-                    size = 20.dp,
-                    contentDescription = "暂无封面",
-                )
+        if (videoRelated) {
+            Spacer(Modifier.width(12.dp))
+            Box(
+                modifier = Modifier
+                    .size(width = 80.dp, height = 50.dp)
+                    .clip(TeakContinuousCornerShape(10.dp))
+                    .background(colors.surfaceContainerHigh),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (cover.isNotBlank()) {
+                    AsyncImage(
+                        model = rememberImageRequest(cover),
+                        contentDescription = if (item.presentation.originalVideoCover.isNotBlank()) {
+                            "原视频封面"
+                        } else {
+                            "原内容封面"
+                        },
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                } else {
+                    AppGlyph(
+                        icon = MiuixIcons.Play,
+                        tint = colors.onBackgroundVariant.copy(alpha = 0.4f),
+                        size = 20.dp,
+                        contentDescription = "暂无封面",
+                    )
+                }
             }
         }
     }
