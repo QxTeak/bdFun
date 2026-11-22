@@ -55,10 +55,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainBottomNavigation(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
-                    .graphicsLayer {
-                        alpha = visual.tabBarAlpha
-                        translationX = -visual.discSlot * visual.discShift.toPx()
-                    }
+                    .graphicsLayer { alpha = visual.tabBarAlpha }
                     .blockTouches(visual.tabBarCovered)
                     .navigationBarsPadding(),
             )
