@@ -37,6 +37,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+/** 半屏听视频的选集动作：上一集 / 下一集以及是否可点。 */
+class HalfAudioEpisodes(
+    val onPrevious: () -> Unit,
+    val onNext: () -> Unit,
+    val hasPrevious: Boolean,
+    val hasNext: Boolean,
+)
+
 @Composable
 fun HalfScreenAudioMode(
     title: String,
@@ -47,10 +55,7 @@ fun HalfScreenAudioMode(
     durationMs: Long,
     onExit: () -> Unit,
     onPlayPause: () -> Unit,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit,
-    hasPrevious: Boolean,
-    hasNext: Boolean,
+    episodes: HalfAudioEpisodes,
     appearance: InlinePlayerAppearance, coverImage: @Composable (String, Modifier) -> Unit,
 ) {
 
@@ -62,10 +67,7 @@ fun HalfScreenAudioMode(
         HalfAudioBackground(cover, coverImage)
         HalfAudioMetadata(title, author, cover, appearance.accentColor, coverImage)
         HalfAudioExit(onExit)
-        HalfAudioControls(
-            playing, positionMs, durationMs, onPlayPause,
-            onPrevious, onNext, hasPrevious, hasNext, appearance.playIcon,
-        )
+        HalfAudioControls(playing, positionMs, durationMs, onPlayPause, episodes, appearance.playIcon)
     }
 }
 
@@ -146,10 +148,7 @@ private fun BoxScope.HalfAudioControls(
     positionMs: Long,
     durationMs: Long,
     onPlayPause: () -> Unit,
-    onPrevious: () -> Unit,
-    onNext: () -> Unit,
-    hasPrevious: Boolean,
-    hasNext: Boolean,
+    episodes: HalfAudioEpisodes,
     playIcon: Int,
 ) {
     Row(
@@ -166,7 +165,7 @@ private fun BoxScope.HalfAudioControls(
             fontSize = 10.sp,
         )
         Spacer(Modifier.weight(1f))
-        HalfAudioStep(MiuixIcons.ChevronBackward, "上一集", hasPrevious, onPrevious)
+        HalfAudioStep(MiuixIcons.ChevronBackward, "上一集", episodes.hasPrevious, episodes.onPrevious)
         Spacer(Modifier.width(6.dp))
         Box(
             modifier = Modifier
@@ -179,7 +178,7 @@ private fun BoxScope.HalfAudioControls(
             if (playing) PauseGlyph() else PlayGlyph(playIcon)
         }
         Spacer(Modifier.width(6.dp))
-        HalfAudioStep(MiuixIcons.ChevronForward, "下一集", hasNext, onNext)
+        HalfAudioStep(MiuixIcons.ChevronForward, "下一集", episodes.hasNext, episodes.onNext)
         Spacer(Modifier.weight(1f))
         Text(
             text = formatPlayTime(durationMs),

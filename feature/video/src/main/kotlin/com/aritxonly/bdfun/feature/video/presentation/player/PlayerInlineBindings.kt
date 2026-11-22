@@ -93,16 +93,18 @@ internal fun PlayerInlineAudio(
             durationMs = durationMs,
             onExit = { fsAudioOnly = false },
             onPlayPause = { touch(); togglePlay(playback, playing) },
-            onPrevious = {
-                touch()
-                pages.getOrNull(index - 1)?.let(fsActions.onPageSelected)
-            },
-            onNext = {
-                touch()
-                pages.getOrNull(index + 1)?.let(fsActions.onPageSelected)
-            },
-            hasPrevious = index > 0,
-            hasNext = index >= 0 && index < pages.lastIndex,
+            episodes = HalfAudioEpisodes(
+                onPrevious = {
+                    touch()
+                    pages.getOrNull(index - 1)?.let(fsActions.onPageSelected)
+                },
+                onNext = {
+                    touch()
+                    pages.getOrNull(index + 1)?.let(fsActions.onPageSelected)
+                },
+                hasPrevious = index > 0,
+                hasNext = index >= 0 && index < pages.lastIndex,
+            ),
         )
     }
 
