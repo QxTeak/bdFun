@@ -4,11 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -30,93 +27,98 @@ internal fun QualityPanel(
     onClose: () -> Unit,
     accentColor: Color,
 ) {
-
     PanelCard(title = "画质") {
         if (playback.qualities.isEmpty()) {
-                Text("暂无可用画质", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                AutomaticQualityRow(playback.autoQuality, actions, onClose, accentColor)
-                playback.qualities
-                    .let { list ->
-                        // 和半屏播放器一致：不列 720P 以下的档位；
-                        // 视频本身最高不到 720P 时退回完整列表，避免菜单空掉。
-                        list.filter { it.id >= 64 }.ifEmpty { list }
-                    }
-                    .forEach { item ->
+            Text("暂无可用画质", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState()),
+        ) {
+            AutomaticQualityRow(playback.autoQuality, actions, onClose, accentColor)
+            playback.qualities
+                .let { list ->
+                    // 和半屏播放器一致：不列 720P 以下的档位；
+                    // 视频本身最高不到 720P 时退回完整列表，避免菜单空掉。
+                    list.filter { it.id >= 64 }.ifEmpty { list }
+                }
+                .forEach { item ->
                     val active = !playback.autoQuality && item.id == playback.qualityId
                     QualityOptionRow(item, active, actions, onClose, accentColor)
                 }
-            }
         }
-}
-
-
-@Composable
-private fun AutomaticQualityRow(active: Boolean, actions: FullscreenActions, onClose: () -> Unit, accentColor: Color) {
-    // 自动：按当前网速挑一档；选中后画质标签显示「自动」
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
-            .background(
-                if (active) accentColor.copy(alpha = 0.18f) else Color.Transparent,
-            )
-            .clickable(interactionSource = null, indication = null) {
-                actions.onQualitySelected(0)
-                onClose()
-            }
-            .padding(horizontal = 12.dp, vertical = 13.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(
-            text = "自动",
-            color = if (active) accentColor else Color.White,
-            fontSize = 15.sp,
-            fontWeight = if (active) FontWeight.Medium else FontWeight.Normal,
-            modifier = Modifier.weight(1f),
-        )
-        if (active) CheckGlyph(accentColor)
     }
 }
 
 @Composable
-private fun QualityOptionRow(item: com.aritxonly.bdfun.core.model.video.Quality, active: Boolean, actions: FullscreenActions, onClose: () -> Unit, accentColor: Color) {
+private fun AutomaticQualityRow(
+    active: Boolean,
+    actions: FullscreenActions,
+    onClose: () -> Unit,
+    accentColor: Color,
+) {
+    // 自动：按当前网速挑一档；选中后画质标签显示「自动」。
+    OptionRow(
+        active = active,
+        accentColor = accentColor,
+        onClick = {
+            actions.onQualitySelected(0)
+            onClose()
+        },
+    ) {
+        Text(
+            text = "自动",
+            color = if (active) accentColor else Color.White,
+            fontSize = 13.sp,
+            fontWeight = if (active) FontWeight.Medium else FontWeight.Normal,
+        )
+    }
+}
+
+@Composable
+private fun QualityOptionRow(
+    item: com.aritxonly.bdfun.core.model.video.Quality,
+    active: Boolean,
+    actions: FullscreenActions,
+    onClose: () -> Unit,
+    accentColor: Color,
+) {
+    // 只显示 1080P / 720P 这类标签，不再把实际分辨率写出来。
+    OptionRow(
+        active = active,
+        accentColor = accentColor,
+        onClick = {
+            actions.onQualitySelected(item.id)
+            onClose()
+        },
+    ) {
+        Text(
+            text = qualityMenuLabel(item.label),
+            color = if (active) accentColor else Color.White,
+            fontSize = 13.sp,
+            fontWeight = if (active) FontWeight.Medium else FontWeight.Normal,
+        )
+    }
+}
+
+@Composable
+private fun OptionRow(
+    active: Boolean,
+    accentColor: Color,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit,
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(
-                if (active) accentColor.copy(alpha = 0.18f) else Color.Transparent,
-            )
-            .clickable(interactionSource = null, indication = null) {
-                actions.onQualitySelected(item.id)
-                onClose()
-            }
-            .padding(horizontal = 12.dp, vertical = 13.dp),
+            .background(if (active) accentColor.copy(alpha = 0.18f) else Color.Transparent)
+            .clickable(interactionSource = null, indication = null, onClick = onClick)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = qualityMenuLabel(item.label),
-                color = if (active) accentColor else Color.White,
-                fontSize = 15.sp,
-                fontWeight = if (active) FontWeight.Medium else FontWeight.Normal,
-            )
-            if (item.width > 0 && item.height > 0) {
-                Spacer(Modifier.height(2.dp))
-                Text(
-                    text = "${item.width}×${item.height}",
-                    color = Color.White.copy(alpha = 0.4f),
-                    fontSize = 10.sp,
-                )
-            }
-        }
+        androidx.compose.foundation.layout.Box(Modifier.weight(1f)) { content() }
         if (active) CheckGlyph(accentColor)
     }
 }

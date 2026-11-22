@@ -53,9 +53,15 @@ fun FullscreenPlayerChrome(
 ) {
 
     if (playback.audioOnly) {
+        val pages = info.pages
+        val index = pages.indexOfFirst { it.cid == info.currentCid }
         FullscreenAudioMode(info = info, playback = playback,
             onBack = { actions.onAudioOnlyChanged(false) }, onPlayPause = actions.onPlayPause,
-            onSeek = actions.onSeek, onSeekRelative = actions.onSeekRelative,
+            onSeek = actions.onSeek,
+            onPrevious = { pages.getOrNull(index - 1)?.let(actions.onPageSelected) },
+            onNext = { pages.getOrNull(index + 1)?.let(actions.onPageSelected) },
+            hasPrevious = index > 0,
+            hasNext = index >= 0 && index < pages.lastIndex,
             modifier = modifier, appearance = appearance, slots = slots)
         return
     }

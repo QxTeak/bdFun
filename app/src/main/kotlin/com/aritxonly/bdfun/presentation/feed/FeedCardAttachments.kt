@@ -23,6 +23,7 @@ internal fun FeedCardAttachments(
         FeedVideoCard(
             video = video,
             isCollection = item.isCollection,
+            isCharge = item.isCharge,
             autoPlay = presentation.autoPlay,
             muted = presentation.muted,
             onOpenVideo = onOpenVideo,

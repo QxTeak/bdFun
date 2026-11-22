@@ -64,6 +64,7 @@ internal fun parseFeedItem(item: JSONObject, allowOrig: Boolean = true): FeedIte
             title = title,
             orig = orig,
             isCollection = !ugcSeason?.s("bvid").isNullOrBlank(),
+            isCharge = major.archiveBadge.contains("充电"),
             pgcCover = pgc?.s("cover").orEmpty().takeIf { it.isNotBlank() }
             ?.let { image(it, 720) }.orEmpty(),
             pgcTitle = pgc?.s("title").orEmpty(),
