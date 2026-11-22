@@ -80,18 +80,7 @@ internal fun PhotoViewerRoot(
         }
     }
     // Compose 层说图已经能画了：等它真正画出一两帧后再淡出盖层，杜绝中间闪一帧。
-    LaunchedEffect(view.settled, view.coverReadyToken) {
-        if (view.settled && view.morphCovering && view.coverReadyToken > 0) {
-            kotlinx.coroutines.delay(120)
-            if (!view.morphCovering) return@LaunchedEffect
-            val overlay = morphViewRef
-            if (overlay != null) {
-                overlay.fadeOut { view.morphCovering = false }
-            } else {
-                view.morphCovering = false
-            }
-        }
-    }
+    PhotoCoverReadyEffect(view) { morphViewRef }
 
     // 入场动画/缩略图盖层期间点击也要能立刻关闭，不能等原图加载完。
     val dismissOnTap = view.displayed != null && (!view.settled || view.morphCovering)
@@ -120,6 +109,25 @@ internal fun PhotoViewerRoot(
             // 动画结束后缩略图仍盖在最上面，直到 Compose 层真正把原图/缩略图画出来。
             if ((!view.settled || view.morphCovering) && view.morphParams != null) {
                 PhotoMorphLayer(view, state) { morphViewRef = it }
+            }
+        }
+    }
+}
+
+@Composable
+private fun PhotoCoverReadyEffect(
+    view: PhotoViewerTransitionState,
+    overlay: () -> PhotoMorphView?,
+) {
+    LaunchedEffect(view.settled, view.coverReadyToken) {
+        if (view.settled && view.morphCovering && view.coverReadyToken > 0) {
+            kotlinx.coroutines.delay(120)
+            if (!view.morphCovering) return@LaunchedEffect
+            val target = overlay()
+            if (target != null) {
+                target.fadeOut { view.morphCovering = false }
+            } else {
+                view.morphCovering = false
             }
         }
     }

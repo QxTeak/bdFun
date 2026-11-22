@@ -78,11 +78,7 @@ internal fun LiveChatList(
 @Composable
 internal fun LiveChatRow(message: LiveChatMessage) {
     when (message.kind) {
-        LiveChatKind.SYSTEM -> Text(
-            text = message.text,
-            color = Color.White.copy(alpha = 0.45f),
-            fontSize = 14.4.sp,
-        )
+        LiveChatKind.SYSTEM -> LiveSystemText(message)
 
         LiveChatKind.GIFT -> Text(
             text = buildString {
@@ -156,6 +152,16 @@ internal fun LiveChatRow(message: LiveChatMessage) {
             }
         }
     }
+}
+
+/** 系统提示：只读、弱化的单行文本。 */
+@Composable
+private fun LiveSystemText(message: LiveChatMessage) {
+    Text(
+        text = message.text,
+        color = Color.White.copy(alpha = 0.45f),
+        fontSize = 14.4.sp,
+    )
 }
 
 /** 直播弹幕的粉丝牌：和 `SpaceProfileMedal` 同一套「半透明底色 + 同色文字」胶囊。 */
