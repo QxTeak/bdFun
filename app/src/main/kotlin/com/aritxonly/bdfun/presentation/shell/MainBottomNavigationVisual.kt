@@ -45,11 +45,13 @@ internal fun rememberMainBottomNavigationVisual(
         stiffness = 300f,
         damping = 26f,
     )
-    // 底部唱片出现时，底栏本身的高度和宽度完全不动，只是整体向左让位。
+    // 底部唱片出现时，底栏本身的高度和宽度完全不动，只是给唱片腾地方。
     //
-    // 底栏不是满屏宽：三个 Tab 每个最多 78dp，所以它只有 234dp。
+    // 浮动胶囊样式：底栏不是满屏宽（三个 Tab 每个最多 78dp，共 234dp）。
     // 有唱片时，底栏 + 8dp 缝隙 + 唱片作为“一组”整体居中，
-    // 底栏离屏幕左边的距离 = 唱片离屏幕右边的距离。
+    // 底栏离屏幕左边的距离 = 唱片离屏幕右边的距离，所以整条栏左移半个唱片位。
+    // 经典样式：底栏是整条贴边，平移会把最左的 Tab 推出屏幕、右侧露底，
+    // 因此整条栏一像素都不挪；唱片改由 DiscPlacement 抬到栏上方（bottomOffset 为负）。
     val windowWidthDp = LocalConfiguration.current.screenWidthDp.dp
     val tabBarWidth = minOf(
         TeakFloatingTabBarDefaults.MaximumWidth,
@@ -62,14 +64,12 @@ internal fun rememberMainBottomNavigationVisual(
     // 整组居中后的左留白。
     val groupLeft = ((windowWidthDp - tabBarWidth - discGap - discWidth) / 2)
         .coerceAtLeast(0.dp)
-    val discShift = if (TeakStyle.fromStoredValue(settings.interfaceStyle).layout.hasBottomSearch) {
-        0.dp
-    } else if (TeakUiStyle.current.layout.edgeNavigation) {
-        // 经典样式底栏是整条贴边，只能整体左移，让出唱片 + 右边距 + 缝隙。
-        discWidth + 16.dp + discGap
-    } else {
+    val edgeNavigation = TeakUiStyle.current.layout.edgeNavigation
+    val discShift = when {
+        TeakStyle.fromStoredValue(settings.interfaceStyle).layout.hasBottomSearch -> 0.dp
+        edgeNavigation -> 0.dp
         // 底栏从“自己居中”变成“跟着唱片一起居中”，只往左让半个唱片位。
-        (windowWidthDp - tabBarWidth) / 2 - groupLeft
+        else -> (windowWidthDp - tabBarWidth) / 2 - groupLeft
     }
     // 所有页面的唱片位置统一由 rememberDiscPlacement 计算，保证和首页一致。
     val discEndPadding = if (wideNavigation) 16.dp else discPlacement.endPadding
