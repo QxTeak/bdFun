@@ -15,7 +15,6 @@ internal fun IndexedActionComponent(entry: Setting, runtime: SettingsPageRuntime
         "developer_aritx" -> DeveloperRow(entry.title, R.drawable.dev_artix, "https://github.com/AritxOnly", runtime.navigation.onDeveloper)
         "developer_teak" -> DeveloperRow(entry.title, R.drawable.dev_teak, "https://github.com/QxTeak", runtime.navigation.onDeveloper)
         "contributor_xubu" -> DeveloperRow(entry.title, R.drawable.contributor_xubu, "https://github.com/xu-bu", runtime.navigation.onDeveloper)
-        "contributor_moretti" -> DeveloperRow(entry.title, R.drawable.contributor_moretti, "https://github.com/Moretti815", runtime.navigation.onDeveloper)
         "contributor_maochenyu" -> DeveloperRow(entry.title, R.drawable.contributor_maochenyu, "https://github.com/maochenyu-me", runtime.navigation.onDeveloper)
         "version" -> TeakSettingsValueRow(entry.title, BuildConfig.VERSION_NAME)
         "version_snapshot" -> TeakSettingsValueRow(entry.title, BuildConfig.SOURCE_REVISION)
