@@ -31,6 +31,10 @@ interface BackgroundPlaybackPort {
     val playing: Boolean
     val positionMs: Long
     val durationMs: Long
+
+    /** 供系统分享用的原始链接；拿不到时为空，调用方应跳过分享字段。 */
+    val shareUrl: String get() = ""
+
     fun next()
     fun previous()
     fun togglePlayPause()

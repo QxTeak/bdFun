@@ -189,7 +189,7 @@ abstract class PlaybackForegroundService : Service() {
 
         updateNotificationSession(title, artist, snapshot, art)
 
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setContentTitle(title)
             .setContentText(artist)
@@ -224,7 +224,9 @@ abstract class PlaybackForegroundService : Service() {
                     .setMediaSession(mediaSession?.sessionToken)
                     .setShowActionsInCompactView(0, 1, 2),
             )
-            .build()
+        // HyperOS 超级岛：带上分享载荷后可以把媒体通知拖进聊天窗口直接分享。
+        xiaomiMediaIslandExtras(title, artist, playback.shareUrl)?.let(builder::addExtras)
+        return builder.build()
     }
     private fun updateNotificationSession(title: String, artist: String, snapshot: com.aritxonly.bdfun.core.application.PlaybackSnapshot, art: Bitmap?) {
         mediaSession?.let { session ->
