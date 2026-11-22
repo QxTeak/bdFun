@@ -44,6 +44,7 @@ internal fun LargeVideoCover(video: VideoItem, progress: Float) {
                 ),
         )
         LargeCoverMetrics(video)
+        VideoChargeBadge(video.isCharge)
         if (progress > 0f) {
             Box(
                 modifier = Modifier

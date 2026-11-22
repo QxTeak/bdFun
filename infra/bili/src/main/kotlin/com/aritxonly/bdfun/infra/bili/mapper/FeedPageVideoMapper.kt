@@ -26,6 +26,7 @@ internal fun parseFeedVideo(archive: JSONObject?, ugcSeason: JSONObject?, author
             pubdate = 0,
             extras = VideoItemExtras(
                 cid = 0,
+                isCharge = it.hasChargeBadge(),
             ),
         )
     } ?: ugcSeason?.let {

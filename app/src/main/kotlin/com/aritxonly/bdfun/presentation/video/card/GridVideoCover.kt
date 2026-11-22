@@ -45,6 +45,8 @@ internal fun GridVideoCover(video: VideoItem, progress: Float, selectionEnabled:
 
         GridCoverMetrics(video, reserveMeta)
 
+        VideoChargeBadge(video.isCharge)
+
         // 历史记录：封面底部一条已看进度
         if (progress > 0f) {
             Box(

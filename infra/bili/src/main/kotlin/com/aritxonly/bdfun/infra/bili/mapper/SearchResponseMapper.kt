@@ -61,6 +61,7 @@ internal fun mapSearchVideos(data: JSONObject, cleanHtml: (String) -> String): L
             danmaku = item.s("danmaku").toLongOrNull() ?: 0,
             duration = parseDurationText(item.s("duration")),
             pubdate = item.l("pubdate"),
+            extras = VideoItemExtras(isCharge = item.hasChargeBadge()),
         )
     }
 

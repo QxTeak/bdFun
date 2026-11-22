@@ -26,4 +26,5 @@ internal data class VideoFeedDto(
     val bvid: String, val aid: Long, val title: String, val cover: String,
     val owner: VideoOwnerDto, val stats: VideoStatsDto, val timing: VideoTimingDto,
     val category: String, val trackId: String, val reason: String, val followed: Boolean,
+    val isCharge: Boolean = false,
 )

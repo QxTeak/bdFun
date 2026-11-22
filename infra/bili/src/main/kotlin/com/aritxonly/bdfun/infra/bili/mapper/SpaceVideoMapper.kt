@@ -25,6 +25,7 @@ internal fun mapSpaceVideo(item: JSONObject, cleanHtml: (String) -> String): Vid
         pubdate = item.l("created"),
         extras = VideoItemExtras(
             cid = item.l("cid"),
+            isCharge = item.hasChargeBadge(),
         ),
     )
 }

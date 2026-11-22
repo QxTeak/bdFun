@@ -280,5 +280,6 @@ private fun SearchVideoCover(video: VideoItem, coverWidth: androidx.compose.ui.u
                     .padding(end = 5.dp, bottom = 4.dp),
             )
         }
+        VideoChargeBadge(video.isCharge)
     }
 }
