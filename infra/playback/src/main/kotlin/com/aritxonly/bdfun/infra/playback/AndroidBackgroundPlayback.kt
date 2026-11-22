@@ -49,6 +49,8 @@ open class AndroidBackgroundPlayback(
     override var cover: String
         get() = snapshot.cover
         set(value) { session.updateMetadata(video, title, author, value); sync() }
+    override val shareUrl: String
+        get() = video?.bvid?.takeIf { it.isNotBlank() }?.let { "https://www.bilibili.com/video/$it" }.orEmpty()
 
     private var detail: VideoDetail? = null
     private var currentCid: Long = 0L
