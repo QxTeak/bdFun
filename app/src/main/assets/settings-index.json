@@ -800,13 +800,6 @@
             "default": ""
           },
           {
-            "pref_name": "contributor_moretti",
-            "type": "developer",
-            "title": "Moretti815",
-            "storage": "none",
-            "default": ""
-          },
-          {
             "pref_name": "contributor_maochenyu",
             "type": "developer",
             "title": "maochenyu-me",
