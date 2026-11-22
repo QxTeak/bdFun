@@ -38,7 +38,9 @@ internal fun rememberDiscPlacement(settings: SettingsBindings, tabCount: Int = 3
     // 唱片 + 底栏在同一宽度约束下居中，所以两套布局算出的绝对位置本来就一致。
     val endPadding = if (classic) 8.dp else (groupLeft - 8.dp).coerceAtLeast(0.dp)
     val bottomOffset = if (classic) {
-        8.dp
+        // 经典底栏高 58dp。唱片不嵌进栏里——那会把三个 Tab 挤成非等分——
+        // 而是浮在栏上方留 8dp 缝隙，底栏和 Tab 保持原样。
+        (-(58 + 8)).dp
     } else {
         4.dp - if (settings.bottomBarRaise) {
             TeakChromeDefaults.RaisedBottomBarExtra
