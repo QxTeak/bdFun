@@ -50,7 +50,7 @@ internal fun SearchUserRow(user: SearchUser, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 4.dp, vertical = 10.dp),
+            .padding(horizontal = 4.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         // 澶栧湀 52dp銆佸ご鍍?48dp锛氬渾褰㈣鍒囦笌鎻忚竟閮界暀鍑?2dp 浣欓噺锛屽ご鍍忎笉浼氳鍒囨帀涓€鍦堛€?
@@ -72,6 +72,7 @@ internal fun SearchUserRow(user: SearchUser, onClick: () -> Unit) {
                 text = user.name,
                 color = colors.onBackground,
                 fontSize = 14.sp,
+                lineHeight = 17.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
             )
@@ -80,14 +81,16 @@ internal fun SearchUserRow(user: SearchUser, onClick: () -> Unit) {
                     text = user.sign,
                     color = colors.onBackgroundVariant,
                     fontSize = 11.sp,
+                    lineHeight = 13.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
             }
             Text(
-                text = "${formatCount(user.fans)} 绮変笣 路 ${user.videos} 鎶曠",
+                text = "${formatCount(user.fans)} 粉丝 · ${user.videos} 投稿",
                 color = colors.onBackgroundVariant,
                 fontSize = 11.sp,
+                lineHeight = 13.sp,
             )
         }
     }

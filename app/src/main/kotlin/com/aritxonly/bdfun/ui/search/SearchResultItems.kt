@@ -312,7 +312,7 @@ private fun SearchVideoSkeletonRow() {
 private fun SearchUserSkeletonRow() {
     val sweep = rememberTeakSkeletonSweep()
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         TeakSkeletonBlock(sweep, Modifier.size(44.dp), CircleShape)
