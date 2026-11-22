@@ -68,6 +68,7 @@ internal fun PlayerInlineAudio(
     playback: com.aritxonly.bdfun.core.application.PlaybackController,
     observed: PlayerObservedStateHolder,
     presentation: VideoPlayerPresentation,
+    fsActions: FullscreenActions,
     ui: VideoPlayerUiStateHolder, ports: PlayerRenderPorts,
 ) {
     val playing by observed.playing
@@ -79,6 +80,8 @@ internal fun PlayerInlineAudio(
     fun touch() { ui.interactionTick.intValue++ }
     // 半屏听视频：不进入全屏也能用，播放器区域换成音频模式。
     if (!fullscreen && fsAudioOnly) {
+        val pages = fullscreenInfo.pages
+        val index = pages.indexOfFirst { it.cid == fullscreenInfo.currentCid }
         HalfScreenAudioMode(
             appearance = ports.inlineAppearance(),
             coverImage = ports.cover,
@@ -90,12 +93,16 @@ internal fun PlayerInlineAudio(
             durationMs = durationMs,
             onExit = { fsAudioOnly = false },
             onPlayPause = { touch(); togglePlay(playback, playing) },
-            onSeekRelative = { delta ->
+            onPrevious = {
                 touch()
-                val target = (positionMs + delta).coerceIn(0L, durationMs.coerceAtLeast(0L))
-                playback.seekTo(target)
-
+                pages.getOrNull(index - 1)?.let(fsActions.onPageSelected)
             },
+            onNext = {
+                touch()
+                pages.getOrNull(index + 1)?.let(fsActions.onPageSelected)
+            },
+            hasPrevious = index > 0,
+            hasNext = index >= 0 && index < pages.lastIndex,
         )
     }
 

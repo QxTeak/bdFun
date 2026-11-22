@@ -2,6 +2,10 @@ package com.aritxonly.bdfun.ui
 
 import com.aritxonly.teak.common.player.PlayGlyph
 import com.aritxonly.teak.common.player.PauseGlyph
+import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.ChevronBackward
+import top.yukonga.miuix.kmp.icon.extended.ChevronForward
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,7 +47,10 @@ fun HalfScreenAudioMode(
     durationMs: Long,
     onExit: () -> Unit,
     onPlayPause: () -> Unit,
-    onSeekRelative: (Long) -> Unit,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    hasPrevious: Boolean,
+    hasNext: Boolean,
     appearance: InlinePlayerAppearance, coverImage: @Composable (String, Modifier) -> Unit,
 ) {
 
@@ -55,7 +62,10 @@ fun HalfScreenAudioMode(
         HalfAudioBackground(cover, coverImage)
         HalfAudioMetadata(title, author, cover, appearance.accentColor, coverImage)
         HalfAudioExit(onExit)
-        HalfAudioControls(playing, positionMs, durationMs, onPlayPause, onSeekRelative, appearance.playIcon)
+        HalfAudioControls(
+            playing, positionMs, durationMs, onPlayPause,
+            onPrevious, onNext, hasPrevious, hasNext, appearance.playIcon,
+        )
     }
 }
 
@@ -131,7 +141,17 @@ private fun BoxScope.HalfAudioExit(onExit: () -> Unit) {
 }
 
 @Composable
-private fun BoxScope.HalfAudioControls(playing: Boolean, positionMs: Long, durationMs: Long, onPlayPause: () -> Unit, onSeekRelative: (Long) -> Unit, playIcon: Int) {
+private fun BoxScope.HalfAudioControls(
+    playing: Boolean,
+    positionMs: Long,
+    durationMs: Long,
+    onPlayPause: () -> Unit,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    hasPrevious: Boolean,
+    hasNext: Boolean,
+    playIcon: Int,
+) {
     Row(
         modifier = Modifier
             .align(Alignment.BottomCenter)
@@ -146,17 +166,7 @@ private fun BoxScope.HalfAudioControls(playing: Boolean, positionMs: Long, durat
             fontSize = 10.sp,
         )
         Spacer(Modifier.weight(1f))
-        Text(
-            text = "-10s",
-            color = Color.White.copy(alpha = 0.85f),
-            fontSize = 12.sp,
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable(interactionSource = null, indication = null) {
-                    onSeekRelative(-10_000L)
-                }
-                .padding(8.dp),
-        )
+        HalfAudioStep(MiuixIcons.ChevronBackward, "上一集", hasPrevious, onPrevious)
         Spacer(Modifier.width(6.dp))
         Box(
             modifier = Modifier
@@ -169,22 +179,34 @@ private fun BoxScope.HalfAudioControls(playing: Boolean, positionMs: Long, durat
             if (playing) PauseGlyph() else PlayGlyph(playIcon)
         }
         Spacer(Modifier.width(6.dp))
-        Text(
-            text = "+10s",
-            color = Color.White.copy(alpha = 0.85f),
-            fontSize = 12.sp,
-            modifier = Modifier
-                .clip(CircleShape)
-                .clickable(interactionSource = null, indication = null) {
-                    onSeekRelative(10_000L)
-                }
-                .padding(8.dp),
-        )
+        HalfAudioStep(MiuixIcons.ChevronForward, "下一集", hasNext, onNext)
         Spacer(Modifier.weight(1f))
         Text(
             text = formatPlayTime(durationMs),
             color = Color.White.copy(alpha = 0.62f),
             fontSize = 10.sp,
+        )
+    }
+}
+
+@Composable
+private fun HalfAudioStep(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    description: String,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    Box(
+        modifier = Modifier
+            .clip(CircleShape)
+            .clickable(interactionSource = null, indication = null, enabled = enabled, onClick = onClick)
+            .padding(8.dp),
+    ) {
+        AppGlyph(
+            icon = icon,
+            tint = Color.White.copy(alpha = if (enabled) 0.85f else 0.28f),
+            size = 18.dp,
+            contentDescription = description,
         )
     }
 }
