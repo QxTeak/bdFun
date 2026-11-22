@@ -151,40 +151,62 @@ private fun BoxScope.HalfAudioControls(
     episodes: HalfAudioEpisodes,
     playIcon: Int,
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .align(Alignment.BottomCenter)
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
             .padding(bottom = 12.dp),
-        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            text = formatPlayTime(positionMs),
-            color = Color.White.copy(alpha = 0.62f),
-            fontSize = 10.sp,
-        )
-        Spacer(Modifier.weight(1f))
-        HalfAudioStep(MiuixIcons.ChevronBackward, "上一集", episodes.hasPrevious, episodes.onPrevious)
-        Spacer(Modifier.width(6.dp))
+        val fraction = if (durationMs > 0L) {
+            (positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
+        } else {
+            0f
+        }
         Box(
             modifier = Modifier
-                .size(38.dp)
+                .fillMaxWidth()
+                .height(3.dp)
                 .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.16f))
-                .clickable(interactionSource = null, indication = null, onClick = onPlayPause),
-            contentAlignment = Alignment.Center,
+                .background(Color.White.copy(alpha = 0.18f)),
         ) {
-            if (playing) PauseGlyph() else PlayGlyph(playIcon)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(fraction)
+                    .height(3.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.9f)),
+            )
         }
-        Spacer(Modifier.width(6.dp))
-        HalfAudioStep(MiuixIcons.ChevronForward, "下一集", episodes.hasNext, episodes.onNext)
-        Spacer(Modifier.weight(1f))
-        Text(
-            text = formatPlayTime(durationMs),
-            color = Color.White.copy(alpha = 0.62f),
-            fontSize = 10.sp,
-        )
+        Spacer(Modifier.height(8.dp))
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = formatPlayTime(positionMs),
+                color = Color.White.copy(alpha = 0.62f),
+                fontSize = 10.sp,
+            )
+            Spacer(Modifier.weight(1f))
+            HalfAudioStep(MiuixIcons.ChevronBackward, "上一集", episodes.hasPrevious, episodes.onPrevious)
+            Spacer(Modifier.width(6.dp))
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0.16f))
+                    .clickable(interactionSource = null, indication = null, onClick = onPlayPause),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (playing) PauseGlyph() else PlayGlyph(playIcon)
+            }
+            Spacer(Modifier.width(6.dp))
+            HalfAudioStep(MiuixIcons.ChevronForward, "下一集", episodes.hasNext, episodes.onNext)
+            Spacer(Modifier.weight(1f))
+            Text(
+                text = formatPlayTime(durationMs),
+                color = Color.White.copy(alpha = 0.62f),
+                fontSize = 10.sp,
+            )
+        }
     }
 }
 

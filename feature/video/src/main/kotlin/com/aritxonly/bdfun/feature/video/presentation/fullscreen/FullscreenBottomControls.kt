@@ -91,7 +91,11 @@ internal fun androidx.compose.foundation.layout.BoxScope.FullscreenBottomControl
             Spacer(Modifier.width(18.dp))
             PlayerTextAction(
                 accentColor = appearance.accentColor,
-                text = "${trimSpeed(playback.speed)}x",
+                text = if (kotlin.math.abs(playback.speed - 1f) < 0.001f) {
+                    "倍速"
+                } else {
+                    "${trimSpeed(playback.speed)}x"
+                },
                 onClick = { onPanelChanged(FullscreenPanel.Speed) },
             )
             Spacer(Modifier.width(16.dp))

@@ -65,5 +65,5 @@ private fun FeedBadge(text: String, background: Color, content: Color) {
     }
 }
 
-/** 充电专属的黄色底：和 B 站客户端一致，压暗文字保证在黄色上可读。 */
-private val ChargeBadgeYellow = Color(0xFFFFC107)
+/** 充电专属的黄色底：和合集一样带一点透明，压在封面上不突兀。 */
+private val ChargeBadgeYellow = Color(0xFFFFC107).copy(alpha = 0.92f)
