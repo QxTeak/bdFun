@@ -18,7 +18,7 @@ internal fun readFeedVideo(item: JSONObject): VideoFeedDto? {
         readVideoStats(item.optJSONObject("stat")),
         VideoTimingDto(item.l("pubdate"), item.optInt("duration", 0), item.l("cid")),
         item.s("tname"), item.s("track_id"), item.optJSONObject("rcmd_reason")?.s("content").orEmpty(),
-        item.optBoolean("is_followed", false),
+        item.optBoolean("is_followed", false), item.hasChargeBadge(),
     )
 }
 
@@ -40,5 +40,6 @@ internal fun mapFeedVideo(dto: VideoFeedDto, cleanHtml: (String) -> String): Vid
         recommendationTrackId = dto.trackId,
         reason = dto.reason,
         isFollowed = dto.followed,
+        isCharge = dto.isCharge,
     ),
 )

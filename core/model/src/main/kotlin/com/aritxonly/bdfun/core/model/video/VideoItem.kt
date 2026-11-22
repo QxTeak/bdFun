@@ -22,6 +22,7 @@ data class VideoItem(
     val recommendationTrackId get() = extras.recommendationTrackId
     val appRecommendation get() = extras.appRecommendation
     val dislikeReasons get() = extras.dislikeReasons
+    val isCharge get() = extras.isCharge
 }
 
 /** 列表来源/跳转与推荐扩展；不改变各字段的存储键与默认值。 */
@@ -35,4 +36,6 @@ data class VideoItemExtras(
     val recommendationTrackId: String = "",
     val appRecommendation: Boolean = false,
     val dislikeReasons: List<RecommendationReason> = emptyList(),
+    /** 包月充电专属视频：列表封面显示黄色「充电」标识。 */
+    val isCharge: Boolean = false,
 )

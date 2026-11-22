@@ -62,6 +62,7 @@ internal fun mapAppRecommendations(data: JSONObject, cleanHtml: (String) -> Stri
                 .map { RecommendationReason(it.l("id"), it.s("name")) }.distinctBy { it.id },
                 isFollowed = args.optBoolean("is_followed", false) ||
                 raw.optBoolean("is_followed", false),
+                isCharge = raw.hasChargeBadge(),
             ),
         )
     }

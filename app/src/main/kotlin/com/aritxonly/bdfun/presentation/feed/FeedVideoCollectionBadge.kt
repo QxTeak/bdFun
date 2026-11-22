@@ -32,7 +32,7 @@ internal fun BoxScope.FeedVideoBadges(isCollection: Boolean, isCharge: Boolean) 
         if (isCharge) {
             FeedBadge(
                 text = "充电",
-                background = ChargeBadgeYellow,
+                background = FeedChargeBadgeYellow,
                 content = Color(0xFF3D2E00),
             )
         }
@@ -66,4 +66,4 @@ private fun FeedBadge(text: String, background: Color, content: Color) {
 }
 
 /** 充电专属的黄色底：和合集一样带一点透明，压在封面上不突兀。 */
-private val ChargeBadgeYellow = Color(0xFFFFC107).copy(alpha = 0.92f)
+private val FeedChargeBadgeYellow = Color(0xFFFFC107).copy(alpha = 0.92f)
