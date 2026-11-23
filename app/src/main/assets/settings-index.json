@@ -852,7 +852,14 @@
           {
             "pref_name": "discussion",
             "type": "action",
-            "title": "加入讨论组",
+            "title": "加入 Telegram 群组",
+            "storage": "none",
+            "default": ""
+          },
+          {
+            "pref_name": "qq_group",
+            "type": "action",
+            "title": "加入 QQ 群聊",
             "storage": "none",
             "default": ""
           },

@@ -35,6 +35,7 @@ internal fun IndexedActionComponent(entry: Setting, runtime: SettingsPageRuntime
 private fun SettingsDestinationAction(entry: Setting, runtime: SettingsPageRuntime) {
     val destination = when (entry.prefName) {
         "discussion" -> SettingsDestination.Discussion
+        "qq_group" -> SettingsDestination.QqGroup
         "help" -> SettingsDestination.Help
         "onboarding" -> SettingsDestination.Onboarding
         "donation" -> SettingsDestination.Donation
@@ -46,6 +47,7 @@ private fun SettingsDestinationAction(entry: Setting, runtime: SettingsPageRunti
     }
     TeakSettingsActionRow(entry.title, trailing = when (entry.prefName) {
         "discussion" -> "Telegram 群"
+        "qq_group" -> "QQ 群"
         "live_preview", "logs" -> "调试"
         else -> ""
     }) { runtime.navigation.onAbout(destination) }

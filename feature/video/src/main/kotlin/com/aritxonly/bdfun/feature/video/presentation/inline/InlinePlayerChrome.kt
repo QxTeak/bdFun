@@ -205,26 +205,32 @@ internal fun CompactIconButton(
 }
 
 /**
- * 长按倍速提示：复用播放/暂停按钮那颗三角（同一份 drawable），只做闪烁，
- * 尺寸保持和原来的三角形一致（约 12×11dp），不额外放大。
+ * 长按倍速提示：仍然是原来那样三颗三角依次闪烁，只是三角改用播放/暂停按钮那颗
+ * （同一份 drawable），每颗保持原来的 8dp 宽、11dp 高、3dp 间距。
  */
 @Composable
 fun BoostTriangles(playIcon: Int) {
 
-    val transition = rememberInfiniteTransition(label = "boost-glyph")
-    val alpha by transition.animateFloat(
-        initialValue = 0.28f,
-        targetValue = 1f,
+    val transition = rememberInfiniteTransition(label = "boost-triangles")
+    val phase by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 2f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 520, easing = LinearEasing),
-            repeatMode = RepeatMode.Reverse,
+            animation = tween(durationMillis = 900, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
         ),
-        label = "boost-alpha",
+        label = "phase",
     )
-    com.aritxonly.teak.common.player.PixelIcon(
-        res = playIcon,
-        modifier = Modifier.size(width = 12.dp, height = 11.dp),
-        tint = Color.White.copy(alpha = alpha),
-        contentDescription = null,
-    )
+    Row(horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.CenterVertically) {
+        repeat(3) { index ->
+            val pulse = ((phase + index * 0.5f) % 2f).let { if (it > 1f) 2f - it else it }
+            val alpha = 0.25f + 0.75f * pulse
+            com.aritxonly.teak.common.player.PixelIcon(
+                res = playIcon,
+                modifier = Modifier.size(width = 8.dp, height = 11.dp),
+                tint = Color.White.copy(alpha = alpha),
+                contentDescription = null,
+            )
+        }
+    }
 }
