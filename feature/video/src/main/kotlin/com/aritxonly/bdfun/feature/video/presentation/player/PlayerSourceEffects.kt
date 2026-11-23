@@ -25,9 +25,11 @@ fun BindPlayerSource(
     val resumePositionMs = presentation.resumePositionMs
     val usingFallback by ui.usingFallback
     val usingOriginal by ui.usingOriginal
+    val audioOnly by ui.fsAudioOnly
     val speed by ui.speed
     val mediaKey = "$bvid:${presentation.fullscreenInfo.currentCid}"
-    LaunchedEffect(mediaKey, info, quality, usingFallback, usingOriginal) {
+    // audioOnly 进 key：退出听视频时要按当时的档位重新起播（听视频期间被跳过的档位切换会在这里补上）。
+    LaunchedEffect(mediaKey, info, quality, usingFallback, usingOriginal, audioOnly) {
         val source = resolvePlaybackSourceUrls(quality, info, usingOriginal, usingFallback) ?: run {
             log(
                 "PLAYER",
@@ -49,6 +51,19 @@ fun BindPlayerSource(
                 "video=${describeMediaUrl(url)} audio=${describeMediaUrl(audioUrl)}",
         )
         val previousKey = ui.preparedMediaKey.value
+        // 听视频没有画面，只有声音：DASH 的音轨与档位无关，而半屏压 720P、全屏回用户档位会让档位
+        // 每一转都变一次。音轨没变就不该重新起播，否则每切一次横竖屏都要黑一下、缓冲一下。
+        // 退出听视频要看画面了，这时才按当前档位重新起播。
+        val unchanged = previousKey == mediaKey && if (audioOnly) {
+            ui.preparedAudioUrl.value == audioUrl &&
+                (audioUrl != null || ui.preparedVideoUrl.value == url)
+        } else {
+            ui.preparedVideoUrl.value == url && ui.preparedAudioUrl.value == audioUrl
+        }
+        if (unchanged) {
+            log("PLAYER", "source-keep bvid=$bvid q=${quality?.id} audioOnly=$audioOnly")
+            return@LaunchedEffect
+        }
         if (resumePlayback() && previousKey != null && previousKey != mediaKey) {
             val previous = previousKey.split(":")
             val tick = playback.refresh()
@@ -58,6 +73,8 @@ fun BindPlayerSource(
             progress.resumeFor(bvid, presentation.fullscreenInfo.currentCid)
         } else 0L
         ui.preparedMediaKey.value = mediaKey
+        ui.preparedVideoUrl.value = url
+        ui.preparedAudioUrl.value = audioUrl
         playback.prepare(PlaybackSource(
             videoUrl = url, audioUrl = audioUrl, mediaKey = mediaKey,
             headers = mapOf("Referer" to "https://www.bilibili.com/video/$bvid/"), userAgent = playback.userAgent,
