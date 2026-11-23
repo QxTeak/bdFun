@@ -33,6 +33,7 @@ private fun openSettingsDestination(context: ComponentActivity, destination: Set
     when (destination) {
         SettingsDestination.Update -> context.startActivity(Intent(context, UpdateActivity::class.java))
         SettingsDestination.Discussion -> openSettingsTelegramGroup(context)
+        SettingsDestination.QqGroup -> openSettingsQqGroup(context)
         SettingsDestination.Changelog -> navigateToChangelog(context)
         SettingsDestination.Help -> navigateToHelp(context)
         SettingsDestination.Onboarding -> navigateToOnboarding(context)
@@ -57,6 +58,19 @@ private fun openSettingsTelegramGroup(context: ComponentActivity) {
     if (runCatching { context.startActivity(telegram) }.isSuccess) return
     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
         .onFailure { context.showToast("无法打开链接") }
+}
+
+/** QQ 群：先走 mqqapi 打开群卡片，没装 QQ 就退回网页。 */
+private fun openSettingsQqGroup(context: ComponentActivity) {
+    val group = "852442572"
+    val qqScheme = Uri.parse(
+        "mqqapi://card/show_pslcard?src_type=internal&version=1&uin=$group&card_type=group&source=qrcode",
+    )
+    val qqIntent = Intent(Intent.ACTION_VIEW, qqScheme).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    if (runCatching { context.startActivity(qqIntent) }.isSuccess) return
+    val web = Uri.parse("https://qun.qq.com/")
+    runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, web).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+        .onFailure { context.showToast("未安装 QQ，请手动搜索群号 $group") }
 }
 
 /** 推荐保持独立存储，启动层仅向索引渲染器提供三项展示扩展。 */

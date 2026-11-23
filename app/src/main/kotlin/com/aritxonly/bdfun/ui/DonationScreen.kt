@@ -10,9 +10,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -29,7 +29,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.R
@@ -44,9 +43,7 @@ private val WeChatGreen = Color(0xFF07C160)
 
 @Composable
 fun DonationScreen() {
-    val colors = MiuixTheme.colorScheme
     var method by remember { mutableIntStateOf(0) }
-    var dragTotal by remember { mutableFloatStateOf(0f) }
 
     TeakSettingsPage(title = "捐赠") {
         item(key = "methods") {
@@ -72,71 +69,96 @@ fun DonationScreen() {
         }
 
         item(key = "qr") {
-            TeakSettingsCard {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp)
-                        .pointerInput(method) {
-                            detectHorizontalDragGestures(
-                                onDragStart = { dragTotal = 0f },
-                                onDragEnd = {
-                                    if (abs(dragTotal) > 70f) method = 1 - method
-                                    dragTotal = 0f
-                                },
-                                onHorizontalDrag = { change, amount ->
-                                    change.consume()
-                                    dragTotal += amount
-                                },
-                            )
-                        },
-                    contentAlignment = Alignment.Center,
-                ) {
-                    if (method == 0) {
-                        // 微信：作者和合作伙伴各一张收款码，不加任何文字。
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            DonationQr(R.drawable.donation_qr, "微信捐赠二维码", colors)
-                            DonationQr(R.drawable.donation_qr_partner, "合作伙伴微信收款码", colors)
-                        }
-                    } else {
-                        Image(
-                            painter = painterResource(R.drawable.donation_alipay),
-                            contentDescription = "支付宝捐赠二维码",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(RoundedCornerShape(14.dp))
-                                .background(colors.surfaceContainer),
-                        )
-                    }
-                }
-            }
+            DonationQrCard(method = method, onToggle = { method = 1 - method })
         }
 
         item(key = "space") { Spacer(Modifier.height(24.dp)) }
     }
 }
 
+/** 收款码卡片：左右滑动可在微信/支付宝之间切换。 */
+@Composable
+private fun DonationQrCard(method: Int, onToggle: () -> Unit) {
+    var dragTotal by remember { mutableFloatStateOf(0f) }
+    TeakSettingsCard {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp)
+                .pointerInput(method) {
+                    detectHorizontalDragGestures(
+                        onDragStart = { dragTotal = 0f },
+                        onDragEnd = {
+                            if (abs(dragTotal) > 70f) onToggle()
+                            dragTotal = 0f
+                        },
+                        onHorizontalDrag = { change, amount ->
+                            change.consume()
+                            dragTotal += amount
+                        },
+                    )
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            if (method == 0) {
+                // 微信：两位作者的收款码左右并排，各自在二维码下面写名字。
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(14.dp),
+                ) {
+                    DonationQr(
+                        image = R.drawable.donation_qr,
+                        name = "绮锡Teak",
+                        description = "绮锡Teak 微信收款码",
+                        modifier = Modifier.weight(1f),
+                    )
+                    DonationQr(
+                        image = R.drawable.donation_qr_partner,
+                        name = "音唯AritxOnly",
+                        description = "音唯AritxOnly 微信收款码",
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            } else {
+                DonationQr(
+                    image = R.drawable.donation_alipay,
+                    name = "绮锡Teak",
+                    description = "绮锡Teak 支付宝收款码",
+                    modifier = Modifier.fillMaxWidth(0.72f),
+                )
+            }
+        }
+    }
+}
+
+/** 一张收款码 + 下面一行的作者名字；不加圆角矩形底色，就是干净的二维码。 */
 @Composable
 private fun DonationQr(
     image: Int,
+    name: String,
     description: String,
-    colors: top.yukonga.miuix.kmp.theme.Colors,
+    modifier: Modifier = Modifier,
 ) {
-    Image(
-        painter = painterResource(image),
-        contentDescription = description,
-        contentScale = ContentScale.Fit,
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(max = 360.dp)
-            .clip(RoundedCornerShape(14.dp))
-            .background(colors.surfaceContainer),
-    )
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Image(
+            painter = painterResource(image),
+            contentDescription = description,
+            contentScale = ContentScale.Fit,
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f),
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = name,
+            color = MiuixTheme.colorScheme.onBackgroundVariant,
+            fontSize = 12.sp,
+            maxLines = 1,
+        )
+    }
 }
 
 @Composable
@@ -160,7 +182,6 @@ private fun DonationMethodChip(
             text = text,
             color = if (selected) Color.White else colors.onBackgroundVariant,
             fontSize = 14.sp,
-            fontWeight = if (selected) FontWeight.Normal else FontWeight.Normal,
         )
     }
 }
