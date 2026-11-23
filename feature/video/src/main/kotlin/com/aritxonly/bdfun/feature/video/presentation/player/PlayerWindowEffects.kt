@@ -12,6 +12,17 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.aritxonly.bdfun.core.model.video.Quality
 
+/** 由播放器全屏逻辑强行写进窗口的朝向：退出全屏时一律还给系统旋转，不能原样写回。 */
+private val forcedOrientations = setOf(
+    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
+    ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
+    ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
+    ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
+    ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
+    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
+    ActivityInfo.SCREEN_ORIENTATION_LOCKED,
+)
+
 @Composable
 fun BindPlayerSystemBars(
     fullscreen: Boolean,
@@ -47,12 +58,17 @@ fun BindPlayerSystemBars(
         }
         onDispose {
             controller?.show(WindowInsetsCompat.Type.systemBars())
-            if (fullscreen && activity?.requestedOrientation !in listOf(
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
-                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
-                    ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
-                )) {
-                activity?.requestedOrientation = inlineOrientation
+// 全屏期间的朝向是我们自己写进窗口的（SENSOR_LANDSCAPE / SENSOR_PORTRAIT /
+            // LOCKED / 传感器监听写的 PORTRAIT）。退出全屏必须把它还给系统旋转，
+            // 否则详情页被钉死在当前方向：横屏转竖屏之后就再也转不回横屏，
+            // 只能退出视频重进才能恢复。
+            if (fullscreen) {
+                activity?.requestedOrientation =
+                    if (inlineOrientation in forcedOrientations) {
+                        ActivityInfo.SCREEN_ORIENTATION_USER
+                    } else {
+                        inlineOrientation
+                    }
             }
         }
     }

@@ -71,6 +71,8 @@ fun BindPlayerControlVisibility(
         if (fsAudioOnly) {
             controlsVisible = true
             page.controlsVisible = true
+            // 听视频界面没有锁按钮，若带着旧的锁定状态进来就再也解不开了。
+            ui.fsLocked.value = false
         }
         // 听视频：真正关掉视频轨，只保留音频解码，不是拿一张图盖住画面
         playback.setVideoEnabled(!fsAudioOnly)

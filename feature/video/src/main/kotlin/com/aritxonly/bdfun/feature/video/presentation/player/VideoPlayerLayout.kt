@@ -68,8 +68,9 @@ fun VideoPlayerLayout(
             media, presentation, ui, fsActions, playing, positionMs, durationMs, bufferedMs, ports,
         )
 
-        PlayerLockOverlay(ui, fullscreen, ports.page)
-
+// 听视频会把视频轨关掉，整屏只剩一块听视频界面，没有能看的画面，锁按钮也没有意义。
+        val audioOnly by ui.fsAudioOnly
+        if (!audioOnly) PlayerLockOverlay(ui, fullscreen, ports.page)
         PlayerScrubOverlay(ui, fullscreen, positionMs, durationMs, bufferedMs)
 
         PlayerSubtitleLayer(fullscreenInfo, fullscreen, ui, positionMs)
