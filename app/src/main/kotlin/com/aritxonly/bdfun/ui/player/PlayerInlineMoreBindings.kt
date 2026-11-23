@@ -2,12 +2,16 @@ package com.aritxonly.bdfun.ui
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import com.aritxonly.bdfun.core.application.PlaybackController
 import com.aritxonly.bdfun.data.Quality
+import com.aritxonly.teak.common.modal.TeakActionSheet
 
 @Composable
 internal fun PlayerInlineMore(
@@ -16,7 +20,6 @@ internal fun PlayerInlineMore(
 ) {
     val settings = LocalVideoPageState.current.settings
     val context = LocalContext.current
-    val VideoPageBus = LocalVideoPageState.current
     val fullscreen = presentation.fullscreen
     var halfMoreOpen by ui.halfMoreOpen
     var speed by ui.speed
@@ -25,6 +28,9 @@ internal fun PlayerInlineMore(
     var fsMirror by ui.fsMirror
     var fsSubtitlesOn by ui.fsSubtitlesOn
     var fsSleepAt by ui.fsSleepAt
+    // 弹幕设置的二级 sheet：从「更多」里打开，跟「更多」是两个独立面板。
+    var danmakuSheetOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(fullscreen) { if (fullscreen) danmakuSheetOpen = false }
     // 半屏「更多」：与全屏 MorePanel 同一套设置项，复用评论区同款底部弹簧面板。
     if (!fullscreen) {
         HalfScreenMoreSheet(
@@ -41,8 +47,24 @@ internal fun PlayerInlineMore(
                 sleepAtMs = fsSleepAt,
             ),
             quick = inlineMoreQuickActions(context, media.quality, actions, fsActions, ui),
-            settings = inlineMoreSettingsActions(playback, ui, VideoPageBus, VideoPageBus.settings),
+            settings = inlineMoreSettingsActions(playback, ui, settings) {
+                danmakuSheetOpen = true
+            },
         )
+        // 面板用的是主题化表面，弹幕设置这套原本的白色配色要换成主题色，否则浅色下看不见。
+        TeakActionSheet(
+            visible = danmakuSheetOpen,
+            onDismiss = { danmakuSheetOpen = false },
+            title = "弹幕设置",
+        ) {
+            CompositionLocalProvider(LocalDanmakuPanelPalette provides themedDanmakuPanelPalette()) {
+                DanmakuSettingsContent(
+                    fullscreen = false,
+                    onInteract = {},
+                    danmakuItems = media.danmaku,
+                ) { DanmakuCloudRulesEntry({}) }
+            }
+        }
     }
 }
 
@@ -84,10 +106,10 @@ private fun inlineMoreQuickActions(
 }
 
 private fun inlineMoreSettingsActions(
-    playback: PlaybackController, ui: VideoPlayerUiStateHolder, VideoPageBus: VideoPagePresentationState,
+    playback: PlaybackController, ui: VideoPlayerUiStateHolder,
     settings: com.aritxonly.bdfun.core.domain.SettingsRepository,
+    onOpenDanmakuSettings: () -> Unit,
 ): HalfMoreSettingsActions {
-    val PlayerUiState = VideoPageBus.playerUi
     var speed by ui.speed
     var fsAutoPlayNext by ui.fsAutoPlayNext
     var fsLoopMode by ui.fsLoopMode
@@ -106,19 +128,9 @@ private fun inlineMoreSettingsActions(
             settings.backgroundPlay = !settings.backgroundPlay
         },
         onSubtitlesToggle = { fsSubtitlesOn = !fsSubtitlesOn },
-        onDanmakuSettings = {
-            if (!PlayerUiState.danmakuPanelOpen) {
-                VideoPageBus.panelBackdrop = grabPlayerVideoFrame(ui)
-            }
-            PlayerUiState.danmakuPanelOpen = true
-        },
+        onDanmakuSettings = onOpenDanmakuSettings,
         onSleepAt = { target ->
             fsSleepAt = target
         },
     )
 }
-
-private fun grabPlayerVideoFrame(ui: VideoPlayerUiStateHolder): androidx.compose.ui.graphics.ImageBitmap? {
-        val bmp = ui.playerViewRef.value?.captureThirdSize() ?: return null
-        return runCatching { bmp.asImageBitmap() }.getOrNull()
-    }

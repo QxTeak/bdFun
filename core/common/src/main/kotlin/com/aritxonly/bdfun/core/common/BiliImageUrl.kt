@@ -8,7 +8,8 @@ fun biliImageUrl(url: String, width: Int = 0): String {
         url.startsWith("http://") -> "https://${url.removePrefix("http://")}"
         else -> url
     }
-    if (width > 0 && !result.contains("@")) {
+    // GIF 不能被服务端转成静态 webp，否则动图只剩第一帧；原样交给 Coil 的动图解码器。
+    if (width > 0 && !result.contains("@") && !result.isGifImage()) {
         // B 站图片的 @尺寸 必须放在路径末尾、查询串之前；直接拼在 ? 后面会得到 404。
         val query = result.indexOf('?').takeIf { it >= 0 }
         val base = if (query != null) result.substring(0, query) else result
@@ -16,6 +17,12 @@ fun biliImageUrl(url: String, width: Int = 0): String {
         result = "$base@${width}w_${(width * 9 / 16)}h_1c.webp$suffix"
     }
     return result
+}
+
+/** 判断 B 站图片是不是 GIF（路径以 .gif 结尾，查询串和片段不算）。 */
+private fun String.isGifImage(): Boolean {
+    val path = substringBefore('?').substringBefore('#')
+    return path.endsWith(".gif", ignoreCase = true)
 }
 
 /**
@@ -36,7 +43,7 @@ fun biliImageThumbUrl(url: String, width: Int): String {
         url.startsWith("http://") -> "https://${url.removePrefix("http://")}"
         else -> url
     }
-    if (width <= 0 || normalized.contains("@")) return normalized
+    if (width <= 0 || normalized.contains("@") || normalized.isGifImage()) return normalized
     val query = normalized.indexOf('?').takeIf { it >= 0 }
     val base = if (query != null) normalized.substring(0, query) else normalized
     val suffix = if (query != null) normalized.substring(query) else ""

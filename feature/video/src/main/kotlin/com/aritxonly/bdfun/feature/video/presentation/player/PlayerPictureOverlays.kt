@@ -16,6 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -24,7 +26,7 @@ import com.kyant.shapes.Capsule
 
 @Composable
 fun BoxScope.PlayerAlwaysProgress(
-    ui: VideoPlayerUiStateHolder, fullscreen: Boolean, positionMs: Long, durationMs: Long,
+    ui: VideoPlayerUiStateHolder, fullscreen: Boolean,
     progressBarMode: Int, accentColor: Color,
 ) {
     val controlsVisible by ui.controlsVisible
@@ -34,21 +36,20 @@ fun BoxScope.PlayerAlwaysProgress(
         (progressBarMode == 3 ||
             (progressBarMode == 1 && !fullscreen) ||
             (progressBarMode == 2 && fullscreen))
-    if (alwaysProgress && durationMs > 0L) {
-        val fraction = (positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
+    if (alwaysProgress) {
+        // 位置/总长只在绘制阶段读取：每秒一次的值变化只重画这一条线，播放器整块不重组。
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .fillMaxWidth()
                 .height(2.dp)
-                .background(Color.White.copy(alpha = 0.12f)),
-        )
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .fillMaxWidth(fraction)
-                .height(2.dp)
-                .background(accentColor),
+                .drawBehind {
+                    val total = ui.progressDurationMs.longValue
+                    if (total <= 0L) return@drawBehind
+                    drawRect(Color.White.copy(alpha = 0.12f))
+                    val fraction = (ui.progressPositionMs.longValue.toFloat() / total).coerceIn(0f, 1f)
+                    drawRect(accentColor, size = Size(size.width * fraction, size.height))
+                },
         )
     }
 

@@ -21,7 +21,7 @@ fun BindPlayerInitialEffects(
     val quality = media.quality
     var usingFallback by ui.usingFallback
     var usingOriginal by ui.usingOriginal
-    BindPlayerLifecycle(playback, ui, ports.page, ports.settings.backgroundPlay)
+    BindPlayerLifecycle(playback, ports.page, ports.settings.backgroundPlay)
     BindPlayerBuffering(playback, ui)
     LaunchedEffect(info, quality) {
         usingFallback = false

@@ -31,7 +31,20 @@ class VideoMetadataActions(
 class VideoDescriptionStateHolder {
     var expanded by mutableStateOf(false)
     var expandable by mutableStateOf(false)
-    fun reset() { expanded = false; expandable = false }
+    private var lastToggleAt = 0L
+
+    /**
+     * 点击层和正文的兜底 clickable 可能同时收到同一次抬手；250ms 内只接受一次，
+     * 否则会“展开后立刻收起”，表现成点了没反应。
+     */
+    fun toggle() {
+        val now = System.currentTimeMillis()
+        if (now - lastToggleAt < 250L) return
+        lastToggleAt = now
+        if (expandable) expanded = !expanded
+    }
+
+    fun reset() { expanded = false; expandable = false; lastToggleAt = 0L }
 }
 
 @Composable
@@ -74,7 +87,7 @@ fun VideoMetadataSection(
             durationMs = 420f,
         )
         Spacer(Modifier.height(4.dp))
-        VideoMetadataIdentifier(content, description, descText, descProgress)
+        VideoMetadataIdentifier(content, description, descText, descProgress, slots)
         VideoMetadataDescription(descText, description, slots)
         VideoMetadataCategory(content)
         Spacer(Modifier.height(14.dp))

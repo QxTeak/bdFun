@@ -1,15 +1,9 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -23,7 +17,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -32,7 +25,7 @@ import com.aritxonly.teak.common.material.TeakGlassIconButton
 import com.aritxonly.teak.common.material.TeakGlassSurface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.icon.basic.SearchCleanup
 import top.yukonga.miuix.kmp.icon.extended.Search
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -63,12 +56,6 @@ internal fun BoxScope.SettingsSearchDock(session: SettingsBrowserSession) {
                     if (searching) SettingsSearchInput(session)
                     else Text("搜索设置", color = colors.onSurfaceVariantSummary)
                 }
-                AnimatedVisibility(searching, enter = fadeIn() + expandHorizontally(), exit = fadeOut() + shrinkHorizontally()) {
-                    Box(Modifier.size(40.dp).clickable(role = Role.Button, onClick = session.browser::closeSearch),
-                        contentAlignment = Alignment.Center) {
-                        Icon(MiuixIcons.Close, "关闭搜索", tint = colors.onSurface, modifier = Modifier.size(20.dp))
-                    }
-                }
             }
         }
         return
@@ -83,11 +70,6 @@ internal fun BoxScope.SettingsSearchDock(session: SettingsBrowserSession) {
                 Icon(MiuixIcons.Search, null, tint = MiuixTheme.colorScheme.onSurface, modifier = Modifier.size(20.dp))
                 if (searching) SettingsSearchInput(session)
                 else Text("搜索设置", color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
-            }
-        }
-        AnimatedVisibility(searching, enter = fadeIn() + expandHorizontally(), exit = fadeOut() + shrinkHorizontally()) {
-            TeakGlassIconButton(onClick = session.browser::closeSearch, size = 48.dp) {
-                Icon(MiuixIcons.Close, "关闭搜索", tint = MiuixTheme.colorScheme.onSurface, modifier = Modifier.size(22.dp))
             }
         }
     }
@@ -105,10 +87,23 @@ private fun SettingsSearchInput(session: SettingsBrowserSession) {
         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
         keyboardActions = KeyboardActions(onSearch = { keyboard?.hide() }),
         decorationBox = { input ->
-            Box {
-                if (session.navigation.query.isEmpty()) Text(if (session.navigation.searchRoute == null) "搜索全部设置" else "搜索当前分类",
-                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
-                input()
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.weight(1f)) {
+                    if (session.navigation.query.isEmpty()) Text(if (session.navigation.searchRoute == null) "搜索全部设置" else "搜索当前分类",
+                        color = MiuixTheme.colorScheme.onSurfaceVariantSummary)
+                    input()
+                }
+                // 与首页搜索框同一个「清空」小图标；退出搜索仍由返回键承担。
+                if (session.navigation.query.isNotEmpty()) {
+                    Icon(
+                        imageVector = MiuixIcons.Basic.SearchCleanup,
+                        contentDescription = "清空搜索",
+                        tint = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clickable(role = Role.Button) { session.browser.query("") },
+                    )
+                }
             }
         })
 }

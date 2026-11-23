@@ -98,7 +98,8 @@ internal fun SpaceShopCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1f)
+                // 商品图用 16:9，卡片整体更紧凑，不再是一块很高的方块。
+                .aspectRatio(16f / 9f)
                 .background(colors.surfaceContainerHigh),
         ) {
             if (item.cover.isNotBlank()) {
@@ -110,21 +111,21 @@ internal fun SpaceShopCard(
                 )
             }
         }
-        Column(modifier = Modifier.padding(8.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 7.dp, vertical = 6.dp)) {
             Text(
                 text = item.title,
                 color = colors.onBackground,
-                fontSize = 13.sp,
-                lineHeight = 18.sp,
+                fontSize = 12.5.sp,
+                lineHeight = 16.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
             if (item.price.isNotBlank()) {
-                Spacer(Modifier.height(5.dp))
+                Spacer(Modifier.height(3.dp))
                 Text(
                     text = item.price,
                     color = colors.primary,
-                    fontSize = 13.sp,
+                    fontSize = 12.5.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                 )

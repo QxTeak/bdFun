@@ -11,7 +11,13 @@ import com.aritxonly.bdfun.core.domain.*
 class AndroidPlaybackProgressRepository(context: Context?, private val clock: () -> Long = System::currentTimeMillis) : PlaybackProgressRepository {
     private val prefs = context?.applicationContext?.getSharedPreferences("playback_progress", Context.MODE_PRIVATE)
     @Volatile private var writesSincePrune = 0
-    init { prefs?.let(::prune) }
+    @Volatile private var pruned = false
+    // 清理旧进度放到第一次写入时做：构造期在 App 启动主线程上，不能在这里读整份 XML。
+    private fun pruneOnce(store: SharedPreferences) {
+        if (pruned) return
+        pruned = true
+        prune(store)
+    }
     override fun resumeFor(bvid: String): Long {
         val store = prefs ?: return 0L
         if (bvid.isBlank()) return 0L
@@ -20,6 +26,7 @@ class AndroidPlaybackProgressRepository(context: Context?, private val clock: ()
     override fun save(bvid: String, positionMs: Long, durationMs: Long) {
         val store = prefs ?: return
         if (bvid.isBlank()) return
+        pruneOnce(store)
         when (playbackProgressDecision(positionMs, durationMs)) {
             ProgressSaveDecision.Skip -> return
             ProgressSaveDecision.Clear -> { clear(bvid); return }

@@ -74,6 +74,8 @@ fun MiuixBottomSheet(
     endAction: @Composable (() -> Unit)? = null,
     allowDismiss: Boolean = true,
     sheetHeight: SheetHeight = SheetHeight.MEDIUM,
+    /** 可选高度上限：视频页用播放器下边界压住 sheet，避免浮层盖住半屏画面。 */
+    maxBodyHeight: Dp? = null,
     enterFrom: Rect? = null,
     bottomBar: @Composable () -> Unit = {},
     headerContent: @Composable () -> Unit = {},
@@ -88,7 +90,8 @@ fun MiuixBottomSheet(
     val systemTop = maxOf(WindowInsets.statusBars.asPaddingValues().calculateTopPadding(),
         WindowInsets.displayCutout.asPaddingValues().calculateTopPadding(),
         WindowInsets.captionBar.asPaddingValues().calculateTopPadding())
-    val bodyHeight = sheetHeight.bodyHeight(LocalWindowInfo.current.containerDpSize.height, systemTop)
+    val naturalHeight = sheetHeight.bodyHeight(LocalWindowInfo.current.containerDpSize.height, systemTop)
+    val bodyHeight = maxBodyHeight?.let { minOf(naturalHeight, it) } ?: naturalHeight
     val bottomRadius = sheetBottomCornerRadius(
         LocalWindowInfo.current.containerDpSize.width, ScaffoldSheetMaxWidth,
     )

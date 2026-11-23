@@ -26,7 +26,7 @@ internal fun LargeVideoContent(video: VideoItem, onMoreClick: (() -> Unit)? = nu
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
 
-    Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 9.dp)) {
+    Column(modifier = Modifier.padding(start = 12.dp, end = 6.dp, top = 9.dp, bottom = 9.dp)) {
         Text(
             text = video.title,
             color = colors.onBackground,
@@ -56,7 +56,6 @@ internal fun LargeVideoContent(video: VideoItem, onMoreClick: (() -> Unit)? = nu
                     },
             )
             if (onMoreClick != null) {
-                Spacer(Modifier.width(2.dp))
                 VideoCardMoreButton(
                     onClick = onMoreClick,
                     touchSize = 22.dp,

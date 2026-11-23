@@ -35,6 +35,7 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.ui.showToast
@@ -84,7 +85,12 @@ internal object CastRequestState {
  * 且 [DlnaCaster.stop] 会关闭 socket，避免后台继续占用组播与端口。
  */
 @Composable
-internal fun CastDialog(visible: Boolean, url: String?, onDismiss: () -> Unit) {
+internal fun CastDialog(
+    visible: Boolean,
+    url: String?,
+    onDismiss: () -> Unit,
+    maxBodyHeight: Dp? = null,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val caster = remember { DlnaCaster(context.applicationContext) }
@@ -159,6 +165,7 @@ internal fun CastDialog(visible: Boolean, url: String?, onDismiss: () -> Unit) {
         onDismiss = onDismiss,
         onResearch = { searchTick += 1 },
         onCast = ::castTo,
+        maxBodyHeight = maxBodyHeight,
     )
 }
 
@@ -183,31 +190,17 @@ private fun CastSheet(
     onDismiss: () -> Unit,
     onResearch: () -> Unit,
     onCast: (CastDevice) -> Unit,
+    maxBodyHeight: Dp? = null,
 ) {
     MiuixBottomSheet(
         show = visible,
         title = "投屏",
         onDismissRequest = onDismiss,
+        // 右上角不再重复放「重新搜索」：空状态/失败状态的内容区已经有同一个动作。
         startAction = {
             IconButton(onClick = onDismiss) { Icon(MiuixIcons.Close, "关闭") }
         },
-        endAction = {
-            // 重新搜索改成白字胶囊；只留图标在深色玻璃上没有可读的文字入口。
-            Button(
-                onClick = onResearch,
-                enabled = !searching,
-                cornerRadius = 999.dp,
-                colors = top.yukonga.miuix.kmp.basic.ButtonDefaults.buttonColors(
-                    color = MiuixTheme.colorScheme.primary,
-                    contentColor = Color.White,
-                ),
-                insideMargin = PaddingValues(horizontal = 14.dp, vertical = 7.dp),
-                minHeight = 32.dp,
-                minWidth = 0.dp,
-            ) {
-                Text("重新搜索", color = Color.White, fontSize = 12.sp)
-            }
-        },
+        maxBodyHeight = maxBodyHeight,
     ) { padding ->
         val direction = LocalLayoutDirection.current
         Column(

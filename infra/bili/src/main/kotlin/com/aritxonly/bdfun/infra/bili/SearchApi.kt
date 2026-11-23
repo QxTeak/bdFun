@@ -82,7 +82,7 @@ internal suspend fun BiliApiContext.searchSuggest(term: String): List<String> = 
 
 /** B 站热搜词。依次尝试「搜索发现」和「热搜词」，都失败时给一份兜底列表。 */
 
-internal suspend fun BiliApiContext.hotKeywords(): List<String> = withContext(Dispatchers.IO) {
+internal suspend fun BiliApiContext.hotKeywords(): List<SearchHotWord> = withContext(Dispatchers.IO) {
     // 1) 搜索发现：data.trending.list[].keyword
     val square = cancellableCatching {
         val data = dataRequest(
@@ -91,7 +91,7 @@ internal suspend fun BiliApiContext.hotKeywords(): List<String> = withContext(Di
             signed = true,
         )
         mapSearchDiscovery(data)
-    }.getOrDefault(emptyList())
+    }.getOrDefault(emptyList<SearchHotWord>())
 
     if (square.isNotEmpty()) return@withContext square
 
@@ -103,6 +103,33 @@ internal suspend fun BiliApiContext.hotKeywords(): List<String> = withContext(Di
             base = "https://s.search.bilibili.com",
         )
         mapHotwordSearch(root)
+    }.getOrDefault(emptyList<SearchHotWord>())
+}
+
+/**
+ * 搜索发现（对齐 PiliPlus 的 `SSearchController.queryRecommendList`）。
+ *
+ * 走 app.bilibili.com 的 `/x/v2/search/recommend`，参数与 PiliPlus 固定一致；
+ * 注意它和 [hotKeywords] 是两份不同的数据：热搜是排行榜词，搜索发现是推荐词。
+ */
+internal suspend fun BiliApiContext.searchDiscovery(): List<String> = withContext(Dispatchers.IO) {
+    cancellableCatching {
+        val data = dataRequest(
+            "/x/v2/search/recommend",
+            mapOf(
+                "build" to "8430300",
+                "channel" to "master",
+                "version" to "8.43.0",
+                "c_locale" to "zh_CN",
+                "mobi_app" to "android",
+                "platform" to "android",
+                "s_locale" to "zh_CN",
+                "from" to "2",
+            ),
+            base = APP,
+            userAgent = APP_UA,
+        )
+        mapSearchRecommend(data)
     }.getOrDefault(emptyList())
 }
 

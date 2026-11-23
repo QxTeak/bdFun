@@ -24,7 +24,9 @@ internal data class SearchPgcState(
 )
 
 internal data class SearchUiState(
-    val hotKeywords: List<String> = emptyList(), val results: List<VideoItem> = emptyList(),
+    val hotKeywords: List<com.aritxonly.bdfun.core.domain.SearchHotWord> = emptyList(),
+    /** 搜索发现（底部板块）；与热榜是两份数据，互不阻塞。 */
+    val discoveryKeywords: List<String> = emptyList(), val results: List<VideoItem> = emptyList(),
     val users: List<SearchUser> = emptyList(), val suggestions: List<String> = emptyList(),
     /** 番剧 / 影视 Tab 的结果；与视频/用户同时请求，互不阻塞。 */
     val pgc: SearchPgcState = SearchPgcState(),
@@ -33,6 +35,9 @@ internal data class SearchUiState(
     val loadingMore: Boolean = false,
     /** 已经没有下一页（或当前结果不足一页）。 */
     val end: Boolean = false,
+    /** 用户 Tab 自己的一组分页状态：不能和视频结果共用一个 end，否则会互相提前结束。 */
+    val usersLoadingMore: Boolean = false,
+    val usersEnd: Boolean = false,
 )
 
 internal class SearchStateHolder(
@@ -45,6 +50,8 @@ internal class SearchStateHolder(
     private var searchRevision = 0
     private var suggestionRevision = 0
     private var lastUserKeyword: String? = null
+    /** 用户 Tab 已加载到的页码；0 表示还没加载。 */
+    private var usersPage = 0
     /** 当前结果对应的请求（含页码与筛选），翻下一页时在它上面 +1。 */
     private var lastRequest: SearchRequest? = null
 
@@ -52,6 +59,15 @@ internal class SearchStateHolder(
         if (!enabled || mutable.value.hotKeywords.isNotEmpty()) return
         when (val result = repository.hotKeywords()) {
             is Outcome.Success -> mutable.update { it.copy(hotKeywords = result.value) }
+            is Outcome.Failure -> Unit
+        }
+    }
+
+    /** 搜索发现：首次进入拉一次；与 [loadHotKeywords] 独立，任一失败都不影响另一个板块。 */
+    suspend fun loadDiscovery(enabled: Boolean) {
+        if (!enabled || mutable.value.discoveryKeywords.isNotEmpty()) return
+        when (val result = repository.discoveryKeywords()) {
+            is Outcome.Success -> mutable.update { it.copy(discoveryKeywords = result.value) }
             is Outcome.Failure -> Unit
         }
     }
@@ -77,23 +93,34 @@ internal class SearchStateHolder(
         val revision = ++searchRevision
         if (submitted == null) {
             lastUserKeyword = null
+            usersPage = 0
             lastRequest = null
             mutable.update { it.copy(results = emptyList(), users = emptyList(), pgc = SearchPgcState(),
-                error = null, loadedOnce = false, loading = false, loadingMore = false, end = false) }
+                error = null, loadedOnce = false, loading = false, loadingMore = false, end = false,
+                usersLoadingMore = false, usersEnd = false) }
             return
         }
         lastRequest = null
         mutable.update { it.copy(loading = true, loadedOnce = false,
             pgc = it.pgc.copy(loading = true, loadedOnce = false),
-            error = null, loadingMore = false, end = false) }
+            error = null, loadingMore = false, end = false,
+            // 换关键词时别把上一组用户留在列表里冒充新结果。
+            users = if (lastUserKeyword != submitted) emptyList() else it.users,
+            usersLoadingMore = false, usersEnd = false) }
         try {
             wait(if (lastUserKeyword != submitted) 90 else 180)
             if (revision != searchRevision) return
             if (lastUserKeyword != submitted) {
-                when (val result = repository.users(submitted)) {
+                // 换关键词时先丢弃旧分页游标，避免新关键词请求失败后还拿旧 page 去续页。
+                usersPage = 0
+                when (val result = repository.users(submitted, page = 1)) {
                     is Outcome.Success -> if (revision == searchRevision) {
                         lastUserKeyword = submitted
-                        mutable.update { it.copy(users = result.value) }
+                        usersPage = 1
+                        mutable.update { it.copy(
+                            users = result.value,
+                            usersEnd = result.value.size < SEARCH_PAGE_SIZE,
+                        ) }
                     }
                     is Outcome.Failure -> Unit
                 }
@@ -166,6 +193,36 @@ internal class SearchStateHolder(
             }
         } finally {
             if (currentRevision == searchRevision) mutable.update { it.copy(loadingMore = false) }
+        }
+    }
+
+    /** 用户 Tab 滑到底：按同一关键词追加下一页用户。 */
+    suspend fun loadMoreUsers() {
+        val keyword = lastUserKeyword ?: return
+        val snapshot = mutable.value
+        if (snapshot.loading || snapshot.usersLoadingMore || snapshot.usersEnd || usersPage <= 0) return
+        val revision = searchRevision
+        val next = usersPage + 1
+        mutable.update { it.copy(usersLoadingMore = true) }
+        try {
+            when (val result = repository.users(keyword, next)) {
+                is Outcome.Success -> if (revision == searchRevision) {
+                    usersPage = next
+                    mutable.update { current ->
+                        val known = current.users.mapTo(HashSet()) { it.mid }
+                        current.copy(
+                            users = current.users + result.value.filter { known.add(it.mid) },
+                            usersLoadingMore = false,
+                            usersEnd = result.value.size < SEARCH_PAGE_SIZE,
+                        )
+                    }
+                }
+                is Outcome.Failure -> if (revision == searchRevision) {
+                    mutable.update { it.copy(usersLoadingMore = false) }
+                }
+            }
+        } finally {
+            if (revision == searchRevision) mutable.update { it.copy(usersLoadingMore = false) }
         }
     }
 }

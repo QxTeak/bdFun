@@ -49,7 +49,11 @@ internal fun HomeVideoGrid(
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         if (state.loading && state.videos.isEmpty()) {
-            homeFeedSkeletonItems()
+            // contentPadding.top 会让加载项整体下移，这里把同样的距离补回给高度计算，
+            // 让加载图标重新回到屏幕正中。
+            homeFeedSkeletonItems(
+                extraTopInset = host.topBarHeight + statusBarTop + 12.dp + sectionGap * 2,
+            )
         }
         homeVideoItems(state, largeCards, ui, onOpenVideo, host)
         if (state.videos.isNotEmpty()) {

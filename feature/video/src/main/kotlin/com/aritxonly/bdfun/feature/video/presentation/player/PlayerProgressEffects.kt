@@ -41,6 +41,9 @@ fun BindPlayerProgressTracking(
             val playing = tick.playing
             val ended = tick.ended
             page.danmakuProgressMs = positionMs
+            // 常显进度条：每秒采一次，画的时候才读，播放器本体不跟着重组。
+            ui.progressPositionMs.longValue = positionMs
+            ui.progressDurationMs.longValue = durationMs
             // 上报官方历史记录：首次 3 秒后，之后每 15 秒一次；播放结束时补一次
             val now = System.currentTimeMillis()
             if (resumePlayback() && now - lastProgressSaveAt >= 10_000L) {
@@ -58,7 +61,8 @@ fun BindPlayerProgressTracking(
                 durationMs = durationMs,
                 speed = speed,
             )
-            delay(if (playing) 300 else 700)
+            // 进度与通知每秒一次即可：播放/暂停/缓冲这些离散状态由播放器回调即时发布。
+            delay(1_000L)
         }
     }
 

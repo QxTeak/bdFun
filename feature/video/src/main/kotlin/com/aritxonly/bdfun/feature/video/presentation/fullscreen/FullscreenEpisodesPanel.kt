@@ -10,13 +10,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,6 +26,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.flow.first
 
 @Composable
 internal fun EpisodesPanel(
@@ -40,12 +43,27 @@ internal fun EpisodesPanel(
             fontSize = 11.sp,
         )
         Spacer(Modifier.height(8.dp))
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .verticalScroll(rememberScrollState()),
+        val listState = rememberLazyListState()
+        val currentIndex = info.pages.indexOfFirst { it.cid == info.currentCid }
+        // 打开面板时把当前集摆在正中：先滚到它，等布局出来再回退半个视口。
+        LaunchedEffect(currentIndex, info.pages.size) {
+            if (currentIndex < 0) return@LaunchedEffect
+            listState.scrollToItem(currentIndex)
+            val layout = snapshotFlow { listState.layoutInfo }
+                .first { it.visibleItemsInfo.isNotEmpty() }
+            val item = layout.visibleItemsInfo.firstOrNull { it.index == currentIndex }
+                ?: layout.visibleItemsInfo.first()
+            val offset = ((layout.viewportSize.height - item.size) / 2).coerceAtLeast(0)
+            if (offset > 0) listState.scrollToItem(currentIndex, -offset)
+        }
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.weight(1f),
         ) {
-            info.pages.forEachIndexed { index, page ->
+            itemsIndexed(
+                items = info.pages,
+                key = { index, _ -> "episode-$index" },
+            ) { index, page ->
                 val active = page.cid == info.currentCid
                 Row(
                     modifier = Modifier

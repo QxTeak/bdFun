@@ -131,6 +131,8 @@ class VideoActivity : OneTakeExitActivity() {
 
     override fun onResume() {
         super.onResume()
+        // 从后台/相关推荐返回：只有此前是自动暂停的才续播，用户手动暂停不会被恢复。
+        VideoPageBus.resumeIfPending()
         com.aritxonly.bdfun.ui.BackgroundPlayback.stopKeepAlive()
         // Split panes use the page theme under system bars; stacked/fullscreen video uses light icons.
         runCatching {

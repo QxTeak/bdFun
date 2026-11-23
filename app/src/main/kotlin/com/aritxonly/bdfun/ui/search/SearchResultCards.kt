@@ -109,6 +109,10 @@ internal fun SearchResultRow(
     onMoreClick: ((Rect) -> Unit)? = null,
     /** 鎵归噺绠＄悊锛歯ull 琛ㄧず涓嶆樉绀哄嬀閫夛紝true/false 琛ㄧず宸查€?鏈€夈€?*/
     selection: Boolean? = null,
+    /** 播放量那一行是否带上发布时间。 */
+    showDate: Boolean = true,
+    /** 非空时用它顶掉底部的 UP 行（个人主页投稿页显示发布时间用）。 */
+    metaLabel: String? = null,
 ) {
     val coverWidth = 150.dp
     val coverHeight = coverWidth * 9f / 16f
@@ -168,7 +172,7 @@ internal fun SearchResultRow(
         SearchVideoCover(video, coverWidth, coverHeight)
         Spacer(Modifier.width(10.dp))
         // 楂樺害鍙粰涓嬮檺锛氬瓧鍙锋斁澶с€佷袱琛屾爣棰樻椂鍙冲垪鍙拺楂橈紝UP 琛屼笉浼氳鎸ゅ嚭瀹瑰櫒瑁佹帀銆?
-        SearchResultInfo(video, Modifier.weight(1f).heightIn(min = coverHeight))
+        SearchResultInfo(video, showDate, metaLabel, Modifier.weight(1f).heightIn(min = coverHeight))
         if (onMoreClick != null) {
             // 鍜岃瘎璁鸿灏惧悓鏍风殑 Miuix More 鍥炬爣锛屾寕鍦ㄦ暣琛屽彸涓嬭銆?
             VideoCardMoreButton(
@@ -192,7 +196,12 @@ internal fun SearchResultRow(
 
 /** 鏍囬 + 鎾斁/寮瑰箷 + UP锛氬彸鍒楅珮搴︿笉浣庝簬灏侀潰锛屾爣棰樹笌鏁版嵁璐撮《銆乁P 璐村簳銆?*/
 @Composable
-private fun SearchResultInfo(video: VideoItem, modifier: Modifier = Modifier) {
+private fun SearchResultInfo(
+    video: VideoItem,
+    showDate: Boolean = true,
+    metaLabel: String? = null,
+    modifier: Modifier = Modifier,
+) {
     val colors = MiuixTheme.colorScheme
     // 鍙粰涓嬮檺鑰屼笉鏄啓姝婚珮搴︼細瀛楀彿鏀惧ぇ鎴栦袱琛屾爣棰樻椂鍙冲垪鑳借嚜宸辨拺楂橈紝
     // 鍓╀綑绌虹櫧浜ょ粰 SpaceBetween 鍏ㄨ惤鍦ㄦ暟鎹涓?UP 琛屼箣闂达紝閬垮厤 UP 琛岃鎸ゅ嚭瀹瑰櫒瑁佹帀銆?
@@ -228,7 +237,7 @@ private fun SearchResultInfo(video: VideoItem, modifier: Modifier = Modifier) {
                     fontSize = 10.sp,
                 )
                 // 发布时间跟着播放量行一起排：不额外占一行，UP 行位置保持原样。
-                if (video.pubdate > 0L) {
+                if (showDate && video.pubdate > 0L) {
                     Spacer(Modifier.width(6.dp))
                     Text(
                         text = formatDate(video.pubdate),
@@ -239,16 +248,26 @@ private fun SearchResultInfo(video: VideoItem, modifier: Modifier = Modifier) {
                 }
             }
         }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            UpBadge()
-            Spacer(Modifier.width(5.dp))
+        if (!metaLabel.isNullOrBlank()) {
+            // 个人主页投稿页：底部换成发布时间，不再显示 UP 名字。
             Text(
-                text = video.ownerName,
+                text = metaLabel,
                 color = colors.onBackgroundVariant,
                 fontSize = 11.sp,
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
+        } else {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                UpBadge()
+                Spacer(Modifier.width(5.dp))
+                Text(
+                    text = video.ownerName,
+                    color = colors.onBackgroundVariant,
+                    fontSize = 11.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
         }
     }
 }

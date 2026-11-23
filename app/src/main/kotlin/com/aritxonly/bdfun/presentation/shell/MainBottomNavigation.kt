@@ -37,8 +37,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainBottomNavigation(
                         .align(Alignment.BottomCenter)
                         .fillMaxWidth()
                         .graphicsLayer { alpha = visual.tabBarAlpha }
-                        .blockTouches(visual.tabBarCovered)
-                        .navigationBarsPadding(),
+                        .blockTouches(visual.tabBarCovered),
                 )
             } else {
                 MainWideNavigation(tabItems, selectedKey, onBarItem, visual, onSearch)
@@ -56,8 +55,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainBottomNavigation(
                     .align(Alignment.BottomCenter)
                     .fillMaxWidth()
                     .graphicsLayer { alpha = visual.tabBarAlpha }
-                    .blockTouches(visual.tabBarCovered)
-                    .navigationBarsPadding(),
+                    .blockTouches(visual.tabBarCovered),
             )
         } else {
             MainFloatingNavigation(settings, tabItems, selectedKey, onBarItem, visual, onBottomSearch, onOpenVideo)

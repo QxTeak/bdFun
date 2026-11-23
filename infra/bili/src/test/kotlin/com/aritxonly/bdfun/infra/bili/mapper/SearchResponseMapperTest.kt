@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.infra.bili.mapper
 
+import com.aritxonly.bdfun.core.domain.SearchHotWord
 import org.json.JSONObject
 import org.junit.Assert.*
 import org.junit.Test
@@ -34,13 +35,34 @@ class SearchResponseMapperTest {
         assertEquals(0L, user.videos)
         assertEquals(6, user.level)
     }
+    @Test fun searchRecommendReadsListKeywordWithShowNameFallback() {
+        // 结构取自 2026-11-23 匿名请求 app.bilibili.com/x/v2/search/recommend 的真实响应（list 截取）。
+        val data = JSONObject("""{"code":0,"data":{"list":[
+            {"keyword":"最中立的电竞","show_name":"最中立的电竞"},
+            {"keyword":"异环","show_name":"异环"},
+            {"keyword":"异环","show_name":"异环"},
+            {"show_name":"只有展示名"},
+            {"keyword":""}]}}""").getJSONObject("data")
+        assertEquals(listOf("最中立的电竞", "异环", "只有展示名"), mapSearchRecommend(data))
+        assertTrue(mapSearchRecommend(JSONObject()).isEmpty())
+    }
     @Test fun hotwordSourcesRetainDuplicatesAndOriginalFallbackFields() {
-        val data = JSONObject("""{"trending":{"list":[{"keyword":" word "},{"keyword":"word"},
-            {"keyword":"word"},{"keyword":""}]}}""")
-        assertEquals(listOf(" word ", "word", "word"), mapSearchDiscovery(data))
-        assertEquals(mapSearchDiscovery(data), mapHotSearch(data))
-        assertEquals(listOf("keyword", "name"), mapHotwordSearch(JSONObject("""{"data":[
-            {"keyword":"keyword","name":"ignored"},{"name":"name"},{}]}""")))
+        val data = JSONObject("""{"trending":{"list":[{"keyword":" word ","show_name":"展示一",
+            "icon":"http://i0.hdslb.com/a.png"},{"keyword":"word"},{"keyword":"word"},{"keyword":""}]}}""")
+        assertEquals(
+            listOf(
+                SearchHotWord(" word ", "展示一", "http://i0.hdslb.com/a.png"),
+                SearchHotWord("word"),
+                SearchHotWord("word"),
+            ),
+            mapSearchDiscovery(data),
+        )
+        // 词条小标只在 square 接口里有，热搜词兜底接口没有。
+        assertEquals(
+            listOf(SearchHotWord("keyword"), SearchHotWord("name")),
+            mapHotwordSearch(JSONObject("""{"data":[
+                {"keyword":"keyword","name":"ignored"},{"name":"name"},{}]}""")),
+        )
         assertTrue(mapHotwordSearch(JSONObject()).isEmpty())
     }
 }

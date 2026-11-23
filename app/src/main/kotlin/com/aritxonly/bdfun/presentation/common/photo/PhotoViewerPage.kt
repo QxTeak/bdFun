@@ -202,7 +202,9 @@ private fun PhotoViewerLayers(
     // 原图在打开时就发起请求（alpha=0 也会触发 Coil），动画结束才淡入；
     // 否则要等 200ms 进场跑完才开始下载，用户会明显感觉"原图很慢"。
     PhotoMorphImage(
-        model = url,
+        // 查看器不需要原图级别的分辨率：让 CDN 缩到 1920w 能显著缩短“先糊后清”的时间；
+        // 手机屏幕上已经足够清晰。GIF 保持原地址，避免被转成静态 webp。
+        model = remember(url) { com.aritxonly.bdfun.core.common.biliImageThumbUrl(url, 1920) },
         spec = spec,
         view = view,
         zoom = { page.zoom },

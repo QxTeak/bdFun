@@ -9,7 +9,13 @@ internal fun VideoDetailSheets(
     actions: VideoDetailViewActions,
 ) {
     // 投币用 PiliPlus 的整页投币界面（硬币箱 / 角色 / 余额 / 同时点赞）。
-    val session = LocalVideoPageState.current.dependencies.comments.session
+    val page = LocalVideoPageState.current
+    val session = page.dependencies.comments.session
+    // 收藏夹 sheet 同样从播放器下方开始，半屏视频不被遮住。
+    val sheetMaxHeight = rememberVideoSheetMaxHeight(
+        playerBottomPx = if (ui.fullscreen.value) 0f else page.playerBottomPx,
+        fullscreen = ui.fullscreen.value,
+    )
     CoinPayOverlay(
         visible = ui.coinSheet.value,
         balance = session.value?.coins,
@@ -32,5 +38,6 @@ internal fun VideoDetailSheets(
         ),
         onDismiss = { ui.favSheet.value = false },
         onSelect = actions::toggleFolder,
+        maxBodyHeight = sheetMaxHeight,
     )
 }

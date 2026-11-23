@@ -118,6 +118,10 @@ private fun otherBindings(repository: SettingsRepository) = mapOf(
         { repository.danmaku.danmakuLowRefresh = (it as SettingValue.Flag).value }),
     "show_hot_search" to IndexedSettingBinding({ SettingValue.Flag(repository.general.showHotSearch) },
         { repository.general.showHotSearch = (it as SettingValue.Flag).value }),
+    "show_search_history" to IndexedSettingBinding({ SettingValue.Flag(repository.general.showSearchHistory) },
+        { repository.general.showSearchHistory = (it as SettingValue.Flag).value }),
+    "show_search_discovery" to IndexedSettingBinding({ SettingValue.Flag(repository.general.showSearchDiscovery) },
+        { repository.general.showSearchDiscovery = (it as SettingValue.Flag).value }),
     "sent_history_entry" to IndexedSettingBinding({ SettingValue.Flag(repository.message.sentHistoryEntry) },
         { repository.message.sentHistoryEntry = (it as SettingValue.Flag).value }),
 )

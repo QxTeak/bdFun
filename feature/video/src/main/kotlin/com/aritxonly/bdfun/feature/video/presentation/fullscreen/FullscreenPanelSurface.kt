@@ -68,7 +68,7 @@ internal fun PanelCard(
         Text(
             text = title,
             color = Color.White.copy(alpha = 0.92f),
-            fontSize = 15.sp,
+            fontSize = 16.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(start = 4.dp, bottom = 6.dp),
         )

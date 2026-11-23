@@ -51,9 +51,10 @@ object LogCollector {
         logFile = file
         // 崩溃后重新进入时，内存缓冲是空的；先把上次落盘的内容读回来，
         // 否则「日志抓取」页面会显示“暂无日志”。
+        // 只读文件尾部一小段（不是整份 2MB），启动首帧不做大 IO。
         runCatching {
             if (file.isFile) {
-                file.readLines()
+                readTailLines(file, 128 * 1024)
                     .takeLast(MAX_MEMORY_LINES)
                     .forEach { lines.addLast(it) }
             }
@@ -79,6 +80,23 @@ object LogCollector {
         while (lines.size > MAX_MEMORY_LINES) lines.removeFirst()
         ensureWriter()
         pending.add(line)
+    }
+
+    /** 只读文件末尾 [maxBytes] 内的行；第一行可能被截断，丢掉。 */
+    private fun readTailLines(file: File, maxBytes: Int): List<String> {
+        val length = file.length()
+        if (length <= 0L) return emptyList()
+        val start = (length - maxBytes).coerceAtLeast(0L)
+        val text = runCatching {
+            java.io.RandomAccessFile(file, "r").use { raf ->
+                raf.seek(start)
+                val buffer = ByteArray((length - start).toInt().coerceAtMost(maxBytes))
+                raf.readFully(buffer)
+                String(buffer, Charsets.UTF_8)
+            }
+        }.getOrDefault("")
+        val all = text.split('\n')
+        return if (start > 0L) all.drop(1) else all
     }
 
     /** 单线程批量落盘：避免每个播放器回调都在主线程打开/关闭文件。 */

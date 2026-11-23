@@ -21,8 +21,6 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import com.aritxonly.teak.common.skeleton.TeakSkeletonVideoCard
-import com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip

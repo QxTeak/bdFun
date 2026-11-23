@@ -5,7 +5,6 @@ import com.aritxonly.teak.common.icons.ResourceGlyph
 import com.aritxonly.teak.common.player.PlayGlyph
 import com.aritxonly.teak.common.player.PauseGlyph
 
-import com.aritxonly.teak.common.material.TeakGlassPanel
 import android.app.Activity
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
@@ -20,15 +19,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -209,65 +204,27 @@ internal fun CompactIconButton(
     }
 }
 
+/**
+ * 长按倍速提示：复用播放/暂停按钮那颗三角（同一份 drawable），只做闪烁，
+ * 尺寸保持和原来的三角形一致（约 12×11dp），不额外放大。
+ */
 @Composable
-fun BoostTriangles() {
+fun BoostTriangles(playIcon: Int) {
 
-    val transition = rememberInfiniteTransition(label = "boost-triangles")
-    val phase by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 2f,
+    val transition = rememberInfiniteTransition(label = "boost-glyph")
+    val alpha by transition.animateFloat(
+        initialValue = 0.28f,
+        targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 900, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
+            animation = tween(durationMillis = 520, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "phase",
+        label = "boost-alpha",
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-        repeat(3) { index ->
-            val pulse = ((phase + index * 0.5f) % 2f).let { if (it > 1f) 2f - it else it }
-            val alpha = 0.25f + 0.75f * pulse
-            Canvas(modifier = Modifier.size(width = 8.dp, height = 11.dp)) {
-                val path = androidx.compose.ui.graphics.Path().apply {
-                    moveTo(0f, 0f)
-                    lineTo(size.width, size.height / 2f)
-                    lineTo(0f, size.height)
-                    close()
-                }
-                drawPath(path, Color.White.copy(alpha = alpha))
-            }
-        }
-    }
-}
-
-/** 弹幕设置面板：黑底 + 白色高光描边，由 Activity 的覆盖层绘制，点外面一定收得掉。 */
-@Composable
-fun DanmakuSettingsPanel(
-    onInteract: () -> Unit,
-    modifier: Modifier = Modifier,
-    backdrop: androidx.compose.ui.graphics.ImageBitmap? = null,
-    settingsContent: @Composable (() -> Unit) -> Unit,
-) {
-
-    TeakGlassPanel(
-        modifier = modifier.width(286.dp),
-        shape = RoundedCornerShape(24.dp),
-        solid = true,
-        solidColor = Color(0xFF121318),
-        backdropImage = backdrop,
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 640.dp)
-                    .verticalScroll(rememberScrollState()),
-            ) {
-                settingsContent(onInteract)
-            }
-        }
-    }
+    com.aritxonly.teak.common.player.PixelIcon(
+        res = playIcon,
+        modifier = Modifier.size(width = 12.dp, height = 11.dp),
+        tint = Color.White.copy(alpha = alpha),
+        contentDescription = null,
+    )
 }

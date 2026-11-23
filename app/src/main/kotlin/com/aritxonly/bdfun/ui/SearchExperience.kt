@@ -24,6 +24,8 @@ internal fun SearchOverlay(
     onOpenUser: (SearchUser) -> Unit,
     controllerFactory: () -> com.aritxonly.bdfun.feature.search.application.SearchStateHolder,
     modifier: Modifier = Modifier,
+    /** 每次打开搜索页由入口递增；搜索首页据此把列表顶回顶部。 */
+    landingResetKey: Int = 0,
     wideResultsBar: (@Composable (@Composable () -> Unit) -> Unit)? = null,
 ) {
     val controller = remember { controllerFactory() }
@@ -31,6 +33,7 @@ internal fun SearchOverlay(
     val ui = remember { SearchPresentationStateHolder(settings.searchHistory) }
     val scope = androidx.compose.runtime.rememberCoroutineScope()
     LaunchedEffect(Unit) { controller.loadHotKeywords(settings.showHotSearch) }
+    LaunchedEffect(Unit) { controller.loadDiscovery(settings.showSearchDiscovery) }
     LaunchedEffect(query, submitted) { controller.suggest(query, submitted) }
     LaunchedEffect(submitted, ui.appliedFilters) {
         controller.search(submitted, ui.appliedFilters)
@@ -42,6 +45,9 @@ internal fun SearchOverlay(
 
     SearchRevealFrame(submitted, reveal, modifier) {
         SearchOverlayContent(settings, submitted, query, ui, content, onPickKeyword, onOpenVideo, onOpenUser,
-            onLoadMore = { scope.launch { controller.loadMore() } }, wideResultsBar = wideResultsBar)
+            onLoadMore = { scope.launch { controller.loadMore() } },
+            onLoadMoreUsers = { scope.launch { controller.loadMoreUsers() } },
+            landingResetKey = landingResetKey,
+            wideResultsBar = wideResultsBar)
     }
 }

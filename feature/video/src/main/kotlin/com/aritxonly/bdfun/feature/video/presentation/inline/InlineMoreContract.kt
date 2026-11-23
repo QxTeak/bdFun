@@ -25,6 +25,7 @@ data class HalfMoreSettingsActions(
     val onMirror: () -> Unit,
     val onBackgroundPlay: () -> Unit,
     val onSubtitlesToggle: () -> Unit,
+    /** 关闭「更多」并打开独立的弹幕设置 sheet。 */
     val onDanmakuSettings: () -> Unit,
     val onSleepAt: (Long) -> Unit,
 )

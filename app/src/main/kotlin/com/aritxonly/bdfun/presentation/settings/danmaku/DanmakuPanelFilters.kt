@@ -84,6 +84,7 @@ internal fun DmChip(
     size: androidx.compose.ui.unit.Dp,
     onClick: () -> Unit,
 ) {
+    val palette = LocalDanmakuPanelPalette.current
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -94,17 +95,17 @@ internal fun DmChip(
             modifier = Modifier
                 .size(size)
                 .background(
-                    if (active) Color.White.copy(alpha = 0.10f) else Color.White.copy(alpha = 0.04f),
+                    if (active) palette.chipActive else palette.chip,
                     RoundedCornerShape(12.dp),
                 ),
             contentAlignment = Alignment.Center,
         ) {
-            DmTypeGlyph(kind = kind, tint = if (active) DmText else Color.White.copy(alpha = 0.35f))
+            DmTypeGlyph(kind = kind, tint = if (active) palette.text else palette.muted)
         }
         Spacer(Modifier.height(4.dp))
         Text(
             text = label,
-            color = if (active) DmText else Color.White.copy(alpha = 0.4f),
+            color = if (active) palette.text else palette.muted,
             fontSize = 10.sp,
         )
     }

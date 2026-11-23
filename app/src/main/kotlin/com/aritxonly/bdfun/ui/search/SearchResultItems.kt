@@ -30,9 +30,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import com.aritxonly.teak.common.skeleton.TeakSkeletonBlock
-import com.aritxonly.teak.common.skeleton.TeakSkeletonVideoRow
-import com.aritxonly.teak.common.skeleton.rememberTeakSkeletonSweep
 
 internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchResultStatusItems(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
@@ -197,6 +194,9 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchUserResul
             )
         }
     }
+    if (users.isNotEmpty()) {
+        videoResultFooter(loadingMore = content.usersLoadingMore, end = content.usersEnd, colors = pageColors)
+    }
 }
 
 /** 番剧 / 影视搜索结果：封面 + 标题 + 类型/评分/地区。 */
@@ -296,31 +296,4 @@ private fun SearchPgcRow(item: SearchPgcItem) {
 /** 番剧/影视卡片只带 season_id 进详情页，避免为找首集多拉一整季。 */
 private fun openPgc(context: android.content.Context, seasonId: Long) {
     com.aritxonly.bdfun.presentation.pgc.openBangumi(context, seasonId)
-}
-
-/** 搜索结果首屏：和 SearchResultRow 同尺寸的骨架行。 */
-@androidx.compose.runtime.Composable
-private fun SearchVideoSkeletonRow() {
-    TeakSkeletonVideoRow(
-        progress = rememberTeakSkeletonSweep(),
-        modifier = Modifier.padding(vertical = 2.dp),
-    )
-}
-
-/** 用户结果首屏：头像 + 两行文字。 */
-@androidx.compose.runtime.Composable
-private fun SearchUserSkeletonRow() {
-    val sweep = rememberTeakSkeletonSweep()
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 7.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        TeakSkeletonBlock(sweep, Modifier.size(44.dp), CircleShape)
-        Spacer(Modifier.width(12.dp))
-        androidx.compose.foundation.layout.Column(modifier = Modifier.weight(1f)) {
-            TeakSkeletonBlock(sweep, Modifier.width(120.dp).height(14.dp))
-            Spacer(Modifier.height(7.dp))
-            TeakSkeletonBlock(sweep, Modifier.fillMaxWidth(0.6f).height(11.dp))
-        }
-    }
 }

@@ -27,8 +27,6 @@ data class VideoPageState(
     val commentThreadVisible get() = reply.commentThreadVisible
     val fullscreen get() = player.fullscreen
     val controlsVisible get() = player.controlsVisible
-    val danmakuPanelOpen get() = player.danmakuPanelOpen
-    val danmakuInteract get() = requests.danmakuInteract
     val orientationLocked get() = player.orientationLocked
     val replyName get() = reply.replyName
     val replyMid get() = reply.replyMid
@@ -49,7 +47,6 @@ data class VideoPageRequests(
     val consumedReplyFocus: Int = 0,
     val dismissReply: Int = 0,
     val consumedDismissReply: Int = 0,
-    val danmakuInteract: Int = 0,
 )
 
 data class VideoPagePlayerState(
@@ -59,7 +56,6 @@ data class VideoPagePlayerState(
     val danmakuProgressMs: Long = 0L,
     val fullscreen: Boolean = false,
     val controlsVisible: Boolean = false,
-    val danmakuPanelOpen: Boolean = false,
     val orientationLocked: Boolean = false,
 )
 

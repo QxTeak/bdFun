@@ -31,13 +31,11 @@ internal fun ExpandableSign(text: String) {
         lineHeight = 18.sp,
     )
     val ui = remember(text) { SpaceSignStateHolder() }
-    val progress by androidx.compose.animation.core.animateFloatAsState(
-        targetValue = if (ui.expanded) 1f else 0f,
-        animationSpec = androidx.compose.animation.core.tween(
-            durationMillis = 260,
-            easing = androidx.compose.animation.core.FastOutSlowInEasing,
-        ),
-        label = "space-sign-expand",
+    // 和视频页简介同一个 420ms 补间，箭头旋转与高度展开同步。
+    val progress = com.aritxonly.teak.common.chrome.rememberManualProgress(
+        target = if (ui.expanded) 1f else 0f,
+        durationMs = 420f,
+        easing = androidx.compose.animation.core.FastOutSlowInEasing,
     )
     androidx.compose.foundation.layout.BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         // 右侧给展开图标留出位置，文字不会跑到图标下面。
@@ -75,7 +73,7 @@ internal fun ExpandableSign(text: String) {
         }
         if (expandable) {
             // 和视频页简介一样：只在第一行右上角放一个箭头，点一下平滑展开/收起。
-            SpaceSignToggle(ui)
+            SpaceSignToggle(ui, progress)
         }
     }
 }

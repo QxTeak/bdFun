@@ -19,5 +19,7 @@ class VideoMetadataSlots(
     val metric: @Composable (Boolean, Color, Dp) -> Unit,
     val links: @Composable (String, Color) -> VideoDescriptionLinks,
     val copyDescription: (String) -> Unit,
+    /** 长按 BV 号等短文本：直接整段复制，不进入文字选择模式。 */
+    val copyText: (String) -> Unit = copyDescription,
     val activity: Activity?,
 )

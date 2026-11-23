@@ -21,13 +21,6 @@ internal fun BoxScope.VideoActivityOverlay(
         },
         replyBar = { modifier -> CommentReplyBar(modifier = modifier) },
         inputBar = { onDismiss, modifier -> DanmakuInputBar(onDismiss = onDismiss, modifier = modifier) },
-        panel = { onInteract, backdrop, modifier ->
-            DanmakuSettingsPanel(onInteract = onInteract, backdrop = backdrop,
-                settingsContent = { interact ->
-                    DanmakuSettingsContent(fullscreen = false, onInteract = interact) { DanmakuCloudRulesEntry(interact) }
-                },
-                modifier = modifier)
-        },
     ))
     }
 }

@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
@@ -86,20 +88,22 @@ private fun ClassicSegmentedBar(
     animIndex: Float,
 ) {
     val colors = MiuixTheme.colorScheme
-    Box(modifier = modifier.height(40.dp)) {
+    BoxWithConstraints(modifier = modifier.height(40.dp)) {
+        // 经典布局的分段栏铺满整行，不再把固定宽度的几个 tab 挤在中间。
+        val spread = maxWidth != Dp.Infinity
+        val slotWidth = if (spread) maxWidth / options.size else itemWidth
         Box(
             modifier = Modifier
-                .offset(x = itemWidth * animIndex + itemWidth * 0.34f, y = 30.dp)
-                .width(itemWidth * 0.32f)
+                .offset(x = slotWidth * animIndex + slotWidth * 0.34f, y = 30.dp)
+                .width(slotWidth * 0.32f)
                 .height(3.dp)
                 .background(colors.primary, Capsule()),
         )
-        Row {
+        Row(modifier = if (spread) Modifier.fillMaxWidth() else Modifier) {
             options.forEachIndexed { index, label ->
                 val active = index == selected
                 Box(
-                    modifier = Modifier
-                        .width(itemWidth)
+                    modifier = (if (spread) Modifier.weight(1f) else Modifier.width(itemWidth))
                         .height(36.dp)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },

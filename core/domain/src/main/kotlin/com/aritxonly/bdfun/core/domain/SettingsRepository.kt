@@ -111,6 +111,10 @@ interface GeneralSettings {
     var recommendWeb: Boolean
     var showViewerCount: Boolean
     var showHotSearch: Boolean
+    /** 搜索首页是否展示「搜索记录」板块。 */
+    var showSearchHistory: Boolean
+    /** 搜索首页是否展示「搜索发现」板块（与热搜是两个独立开关）。 */
+    var showSearchDiscovery: Boolean
     var autoCheckUpdate: Boolean
     var onboardingAcked: Boolean
     var termsAckedVersion: String

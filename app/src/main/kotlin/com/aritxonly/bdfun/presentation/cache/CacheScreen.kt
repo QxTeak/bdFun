@@ -65,18 +65,23 @@ internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly
         items(entries, key = { it.id }) { entry ->
             val oneTake = rememberOneTakeAnchor()
             val cacheRadiusPx = with(LocalDensity.current) { 16.dp.toPx() }
+            // 封面/播放地址要查文件是否存在；算一次记住，滚动时不再逐个查磁盘。
+            val coverUri = androidx.compose.runtime.remember(entry.id, entry.coverPath) { queue.cover(entry) }
+            val playable = androidx.compose.runtime.remember(entry.id, entry.videoPath, entry.audioPath) {
+                queue.video(entry)
+            }
             TeakSettingsCard(
                 modifier = Modifier.padding(bottom = 10.dp).then(oneTake.modifier),
             ) {
                 CacheRow(
                     entry = entry,
-                    cover = queue.cover(entry),
+                    cover = coverUri,
                     onOpen = {
                         oneTake.open(
                             context = context,
-                            video = queue.video(entry),
+                            video = playable,
                             radiusPx = cacheRadiusPx,
-                        ) { onOpen(queue.video(entry)) }
+                        ) { onOpen(playable) }
                     },
                     onDelete = {
                         queue.delete(entry.id)

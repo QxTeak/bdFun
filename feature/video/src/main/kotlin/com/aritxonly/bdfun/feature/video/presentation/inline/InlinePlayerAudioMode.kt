@@ -2,10 +2,9 @@ package com.aritxonly.bdfun.ui
 
 import com.aritxonly.teak.common.player.PlayGlyph
 import com.aritxonly.teak.common.player.PauseGlyph
-import com.aritxonly.teak.common.icons.AppGlyph
+import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.ChevronBackward
-import top.yukonga.miuix.kmp.icon.extended.ChevronForward
+import top.yukonga.miuix.kmp.icon.extended.Close
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,8 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,6 +53,7 @@ fun HalfScreenAudioMode(
     durationMs: Long,
     onExit: () -> Unit,
     onPlayPause: () -> Unit,
+    onSeek: (Long) -> Unit,
     episodes: HalfAudioEpisodes,
     appearance: InlinePlayerAppearance, coverImage: @Composable (String, Modifier) -> Unit,
 ) {
@@ -65,9 +64,9 @@ fun HalfScreenAudioMode(
             .background(Color(0xFF08090D)),
     ) {
         HalfAudioBackground(cover, coverImage)
-        HalfAudioMetadata(title, author, cover, appearance.accentColor, coverImage)
+        HalfAudioMetadata(title, author, cover, coverImage)
         HalfAudioExit(onExit)
-        HalfAudioControls(playing, positionMs, durationMs, onPlayPause, episodes, appearance.playIcon)
+        HalfAudioControls(playing, positionMs, durationMs, onPlayPause, onSeek, episodes, appearance)
     }
 }
 
@@ -92,54 +91,71 @@ private fun HalfAudioBackground(cover: String, coverImage: @Composable (String, 
     )
 }
 
+/**
+ * 封面按完整比例居中放在第一行，下面是居中的标题和 UP 名。
+ * 不再铺「听视频」小字，也不再让封面和文字左右并排。
+ */
 @Composable
-private fun BoxScope.HalfAudioMetadata(title: String, author: String, cover: String, accentColor: Color, coverImage: @Composable (String, Modifier) -> Unit) {
-    Row(
+private fun BoxScope.HalfAudioMetadata(
+    title: String,
+    author: String,
+    cover: String,
+    coverImage: @Composable (String, Modifier) -> Unit,
+) {
+    Column(
         modifier = Modifier
-            .align(Alignment.TopStart)
-            .padding(start = 14.dp, top = 12.dp, end = 88.dp),
-        verticalAlignment = Alignment.CenterVertically,
+            .align(Alignment.TopCenter)
+            .fillMaxWidth()
+            .padding(start = 56.dp, top = 10.dp, end = 56.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        coverImage(cover, Modifier
-                .size(66.dp)
-                .clip(RoundedCornerShape(10.dp))
+        coverImage(
+            cover,
+            Modifier
+                .width(132.dp)
+                .height(74.dp)
+                .clip(RoundedCornerShape(8.dp))
                 .background(Color.White.copy(alpha = 0.08f)),
         )
-        Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Text("听视频", color = accentColor, fontSize = 11.sp, fontWeight = FontWeight.Normal)
-            Spacer(Modifier.height(3.dp))
-            Text(
-                text = title,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Normal,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = author.ifBlank { "UP 主" },
-                color = Color.White.copy(alpha = 0.6f),
-                fontSize = 11.sp,
-                maxLines = 1,
-            )
-        }
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = title,
+            color = Color.White,
+            fontSize = 13.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.height(2.dp))
+        Text(
+            text = author.ifBlank { "UP 主" },
+            color = Color.White.copy(alpha = 0.6f),
+            fontSize = 10.sp,
+            textAlign = TextAlign.Center,
+            maxLines = 1,
+        )
     }
 }
 
+/** 退出听视频：使用 Miuix 自带的关闭图标，固定在播放器左上角。 */
 @Composable
 private fun BoxScope.HalfAudioExit(onExit: () -> Unit) {
-    Text(
-        text = "退出听视频",
-        color = Color.White.copy(alpha = 0.78f),
-        fontSize = 11.sp,
+    Box(
         modifier = Modifier
-            .align(Alignment.TopEnd)
-            .padding(top = 16.dp, end = 14.dp)
-            .clip(RoundedCornerShape(8.dp))
-            .clickable(interactionSource = null, indication = null, onClick = onExit)
-            .padding(horizontal = 7.dp, vertical = 4.dp),
-    )
+            .align(Alignment.TopStart)
+            .padding(top = 8.dp, start = 10.dp)
+            .size(36.dp)
+            .clip(CircleShape)
+            .clickable(interactionSource = null, indication = null, onClick = onExit),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = MiuixIcons.Close,
+            contentDescription = "退出听视频",
+            tint = Color.White.copy(alpha = 0.85f),
+            modifier = Modifier.size(19.dp),
+        )
+    }
 }
 
 @Composable
@@ -148,37 +164,26 @@ private fun BoxScope.HalfAudioControls(
     positionMs: Long,
     durationMs: Long,
     onPlayPause: () -> Unit,
+    onSeek: (Long) -> Unit,
     episodes: HalfAudioEpisodes,
-    playIcon: Int,
+    appearance: InlinePlayerAppearance,
 ) {
     Column(
         modifier = Modifier
             .align(Alignment.BottomCenter)
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
-            .padding(bottom = 12.dp),
+            .padding(bottom = 10.dp),
     ) {
-        val fraction = if (durationMs > 0L) {
-            (positionMs.toFloat() / durationMs).coerceIn(0f, 1f)
-        } else {
-            0f
-        }
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(3.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.18f)),
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(fraction)
-                    .height(3.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.9f)),
-            )
-        }
-        Spacer(Modifier.height(8.dp))
+        // 与视频播放器同款可拖动进度条，不再是纯展示的细线。
+        FullscreenSeekBar(
+            positionMs = positionMs,
+            durationMs = durationMs,
+            onInteract = {},
+            onSeek = onSeek,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Spacer(Modifier.height(2.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
                 text = formatPlayTime(positionMs),
@@ -186,20 +191,19 @@ private fun BoxScope.HalfAudioControls(
                 fontSize = 10.sp,
             )
             Spacer(Modifier.weight(1f))
-            HalfAudioStep(MiuixIcons.ChevronBackward, "上一集", episodes.hasPrevious, episodes.onPrevious)
+            HalfAudioStep(appearance.nextIcon, "上一集", episodes.hasPrevious, mirror = true, onClick = episodes.onPrevious)
             Spacer(Modifier.width(6.dp))
             Box(
                 modifier = Modifier
                     .size(38.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.16f))
                     .clickable(interactionSource = null, indication = null, onClick = onPlayPause),
                 contentAlignment = Alignment.Center,
             ) {
-                if (playing) PauseGlyph() else PlayGlyph(playIcon)
+                // 暂停/播放只保留图标本身，不再套一圈圆形底。
+                if (playing) PauseGlyph(Color.White) else PlayGlyph(appearance.playIcon, Color.White)
             }
             Spacer(Modifier.width(6.dp))
-            HalfAudioStep(MiuixIcons.ChevronForward, "下一集", episodes.hasNext, episodes.onNext)
+            HalfAudioStep(appearance.nextIcon, "下一集", episodes.hasNext, mirror = false, onClick = episodes.onNext)
             Spacer(Modifier.weight(1f))
             Text(
                 text = formatPlayTime(durationMs),
@@ -212,9 +216,10 @@ private fun BoxScope.HalfAudioControls(
 
 @Composable
 private fun HalfAudioStep(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    iconRes: Int,
     description: String,
     enabled: Boolean,
+    mirror: Boolean,
     onClick: () -> Unit,
 ) {
     Box(
@@ -223,11 +228,6 @@ private fun HalfAudioStep(
             .clickable(interactionSource = null, indication = null, enabled = enabled, onClick = onClick)
             .padding(8.dp),
     ) {
-        AppGlyph(
-            icon = icon,
-            tint = Color.White.copy(alpha = if (enabled) 0.85f else 0.28f),
-            size = 18.dp,
-            contentDescription = description,
-        )
+        NextGlyph(iconRes, enabled = enabled, mirror = mirror, description = description)
     }
 }

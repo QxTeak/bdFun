@@ -26,9 +26,69 @@ import com.aritxonly.teak.common.icons.AppGlyph
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.basic.*
 import top.yukonga.miuix.kmp.icon.extended.*
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import androidx.compose.runtime.compositionLocalOf
 
-internal val DmText = Color.White
-internal val DmSecondary = Color(0xFFB9BDC6)
+/**
+ * 弹幕设置原本只画在播放器的深色面板上（全屏/直播/半屏），所以文案一直是白色。
+ * 现在同一份内容也会放进主题化 sheet，必须能跟随浅色/深色主题；
+ * 用调色板区分这两种落点，默认保持原来的深色面板配色。
+ */
+internal data class DanmakuPanelPalette(
+    val text: Color,
+    val secondary: Color,
+    val muted: Color,
+    val card: Color,
+    val chip: Color,
+    val chipActive: Color,
+    val switchOff: Color,
+    val track: Color,
+    val tick: Color,
+    val thumb: Color,
+    val arrow: Color,
+)
+
+internal val DarkDanmakuPanelPalette = DanmakuPanelPalette(
+    text = Color.White,
+    secondary = Color(0xFFB9BDC6),
+    muted = Color.White.copy(alpha = 0.45f),
+    card = Color.White.copy(alpha = 0.055f),
+    chip = Color.White.copy(alpha = 0.04f),
+    chipActive = Color.White.copy(alpha = 0.10f),
+    switchOff = Color.White.copy(alpha = 0.16f),
+    track = Color.White.copy(alpha = 0.18f),
+    tick = Color.White.copy(alpha = 0.35f),
+    thumb = Color.White,
+    arrow = Color.White.copy(alpha = 0.4f),
+)
+
+internal val LocalDanmakuPanelPalette = compositionLocalOf { DarkDanmakuPanelPalette }
+
+/** 主题化面板用：文字/轨道/圆钮都取当前 Miuix 配色，浅色主题下也是深字。 */
+@Composable
+internal fun themedDanmakuPanelPalette(): DanmakuPanelPalette {
+    val colors = MiuixTheme.colorScheme
+    return DanmakuPanelPalette(
+        text = colors.onBackground,
+        secondary = colors.onBackgroundVariant,
+        muted = colors.onBackgroundVariant.copy(alpha = 0.75f),
+        card = colors.onBackground.copy(alpha = 0.05f),
+        chip = colors.onBackground.copy(alpha = 0.035f),
+        chipActive = colors.onBackground.copy(alpha = 0.08f),
+        switchOff = colors.onBackground.copy(alpha = 0.16f),
+        track = colors.onBackground.copy(alpha = 0.16f),
+        tick = colors.onBackground.copy(alpha = 0.35f),
+        thumb = colors.onBackground,
+        arrow = colors.onBackgroundVariant.copy(alpha = 0.7f),
+    )
+}
+
+internal val DmText: Color
+    @Composable get() = LocalDanmakuPanelPalette.current.text
+internal val DmSecondary: Color
+    @Composable get() = LocalDanmakuPanelPalette.current.secondary
+internal val DmMuted: Color
+    @Composable get() = LocalDanmakuPanelPalette.current.muted
 internal val DmPink = BrandPink
 
 @Composable
@@ -36,10 +96,11 @@ internal fun DmGroup(
     title: String,
     content: @Composable androidx.compose.foundation.layout.ColumnScope.() -> Unit,
 ) {
+    val palette = LocalDanmakuPanelPalette.current
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
             text = title,
-            color = Color.White.copy(alpha = 0.92f),
+            color = palette.text.copy(alpha = 0.92f),
             fontSize = 15.sp,
             fontWeight = FontWeight.Medium,
             modifier = Modifier.padding(start = 4.dp, bottom = 4.dp),
@@ -47,7 +108,7 @@ internal fun DmGroup(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White.copy(alpha = 0.055f), RoundedCornerShape(16.dp))
+                .background(palette.card, RoundedCornerShape(16.dp))
                 .padding(horizontal = 12.dp, vertical = 10.dp),
             content = content,
         )
@@ -76,7 +137,7 @@ internal fun DmSwitchRow(
             Text(text = title, color = DmText, fontSize = 14.sp)
             if (description.isNotBlank()) {
                 Spacer(Modifier.height(2.dp))
-                Text(text = description, color = Color.White.copy(alpha = 0.45f), fontSize = 11.sp)
+                Text(text = description, color = DmMuted, fontSize = 11.sp)
             }
         }
         Spacer(Modifier.width(10.dp))
@@ -86,12 +147,13 @@ internal fun DmSwitchRow(
 
 @Composable
 internal fun DmSwitch(checked: Boolean) {
+    val palette = LocalDanmakuPanelPalette.current
     Box(
         modifier = Modifier
             .width(40.dp)
             .height(22.dp)
             .background(
-                if (checked) DmPink else Color.White.copy(alpha = 0.16f),
+                if (checked) DmPink else palette.switchOff,
                 RoundedCornerShape(11.dp),
             ),
     ) {
@@ -99,7 +161,7 @@ internal fun DmSwitch(checked: Boolean) {
             modifier = Modifier
                 .padding(start = if (checked) 20.dp else 2.dp, top = 2.dp)
                 .size(18.dp)
-                .background(Color.White, RoundedCornerShape(9.dp)),
+                .background(palette.thumb, RoundedCornerShape(9.dp)),
         )
     }
 }
@@ -123,7 +185,8 @@ internal fun DmActionRow(
             Text(text = trailing, color = DmSecondary, fontSize = 11.5.sp)
             Spacer(Modifier.width(6.dp))
         }
-        AppGlyph(MiuixIcons.Basic.ArrowRight, size = 16.dp, tint = Color.White.copy(alpha = 0.4f))
+        AppGlyph(MiuixIcons.Basic.ArrowRight, size = 16.dp,
+            tint = LocalDanmakuPanelPalette.current.arrow)
     }
 }
 

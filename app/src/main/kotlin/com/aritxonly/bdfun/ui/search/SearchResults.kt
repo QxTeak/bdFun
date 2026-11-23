@@ -23,6 +23,7 @@ internal fun SearchResults(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState, ui: SearchPresentationStateHolder,
     onOpenVideo: (VideoItem) -> Unit, onOpenUser: (SearchUser) -> Unit,
     onLoadMore: () -> Unit = {},
+    onLoadMoreUsers: () -> Unit = {},
     wideResultsBar: (@Composable (@Composable () -> Unit) -> Unit)? = null,
 ) {
     val tab = ui.tab
@@ -47,7 +48,7 @@ internal fun SearchResults(
                 .fillMaxSize()
                 .layerBackdrop(presentation.backdrop),
         ) {
-            SearchResultPager(presentation, content, onOpenVideo, onOpenUser, onLoadMore)
+            SearchResultPager(presentation, content, onOpenVideo, onOpenUser, onLoadMore, onLoadMoreUsers)
         }
 
         // Tab / 筛选按钮固定不动，只跟随页面本身的滚动，不再随列表上移。

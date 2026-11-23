@@ -6,7 +6,9 @@ import androidx.compose.ui.layout.ContentScale
 import coil.compose.AsyncImage
 import com.aritxonly.bdfun.BrandPink
 
-internal fun inlinePlayerAppearance() = InlinePlayerAppearance(TeakIcon.PlayerPlay, TeakIcon.Fullscreen, BrandPink)
+internal fun inlinePlayerAppearance() = InlinePlayerAppearance(
+    TeakIcon.PlayerPlay, TeakIcon.Fullscreen, BrandPink, TeakIcon.PlayerNext,
+)
 
 @Composable
 internal fun InlinePlayerCover(cover: String, modifier: Modifier) {

@@ -26,6 +26,7 @@ fun BoxScope.PlayerStatusOverlays(
     fullscreen: Boolean,
     ended: Boolean,
     durationMs: Long,
+    playIcon: Int,
     buffering: @Composable (Modifier) -> Unit,
 ) {
     val showBuffering by ui.showBuffering
@@ -54,12 +55,12 @@ fun BoxScope.PlayerStatusOverlays(
         }
     }
 
-    PlayerBoostOverlay(ui, fullscreen)
+    PlayerBoostOverlay(ui, fullscreen, playIcon)
     PlayerGestureTips(ui, durationMs)
 }
 
 @Composable
-private fun BoxScope.PlayerBoostOverlay(ui: VideoPlayerUiStateHolder, fullscreen: Boolean) {
+private fun BoxScope.PlayerBoostOverlay(ui: VideoPlayerUiStateHolder, fullscreen: Boolean, playIcon: Int) {
     val boosting by ui.boosting
     val boostSpeed by ui.boostSpeed
     if (boosting) {
@@ -73,7 +74,7 @@ private fun BoxScope.PlayerBoostOverlay(ui: VideoPlayerUiStateHolder, fullscreen
                 .padding(horizontal = 14.dp, vertical = 8.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                BoostTriangles()
+                BoostTriangles(playIcon)
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = String.format(

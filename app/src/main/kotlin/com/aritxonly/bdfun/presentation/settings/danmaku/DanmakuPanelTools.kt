@@ -66,6 +66,7 @@ internal fun DanmakuPanelTools(runtime: DanmakuPanelRuntime) {
 @Composable
 internal fun DanmakuKeywordEditor(runtime: DanmakuPanelRuntime) {
     val settings = runtime.settings
+    val palette = LocalDanmakuPanelPalette.current
     Row(
         modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -79,14 +80,14 @@ internal fun DanmakuKeywordEditor(runtime: DanmakuPanelRuntime) {
             modifier = Modifier
                 .weight(1f)
                 .height(34.dp)
-                .background(Color.White.copy(alpha = 0.10f), RoundedCornerShape(10.dp))
+                .background(palette.chipActive, RoundedCornerShape(10.dp))
                 .padding(horizontal = 12.dp, vertical = 8.dp),
             decorationBox = { inner ->
                 Box {
                     if (runtime.ui.keyword.isEmpty()) {
                         Text(
                             "输入要屏蔽的词",
-                            color = Color.White.copy(alpha = 0.35f),
+                            color = palette.muted,
                             fontSize = 12.sp,
                         )
                     }
@@ -111,7 +112,7 @@ internal fun DanmakuKeywordEditor(runtime: DanmakuPanelRuntime) {
     if (settings.danmakuKeywords.isNotEmpty()) {
         Text(
             text = settings.danmakuKeywords.joinToString(" · "),
-            color = Color.White.copy(alpha = 0.45f),
+            color = palette.muted,
             fontSize = 11.sp,
             maxLines = 2,
             overflow = TextOverflow.Ellipsis,
@@ -128,18 +129,19 @@ internal fun DanmakuKeywordEditor(runtime: DanmakuPanelRuntime) {
 @Composable
 internal fun DanmakuCurrentList(runtime: DanmakuPanelRuntime) {
     val danmakuItems = runtime.items
+    val palette = LocalDanmakuPanelPalette.current
     Column(modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)) {
         danmakuItems.take(60).forEach { item ->
             Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp)) {
                 Text(
                     text = formatPlayTime(item.timeMs),
-                    color = Color.White.copy(alpha = 0.35f),
+                    color = palette.muted,
                     fontSize = 10.sp,
                     modifier = Modifier.width(48.dp),
                 )
                 Text(
                     text = item.text,
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = palette.text.copy(alpha = 0.8f),
                     fontSize = 11.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

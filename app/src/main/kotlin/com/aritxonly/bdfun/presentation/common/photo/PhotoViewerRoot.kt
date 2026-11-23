@@ -20,6 +20,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
+import android.content.pm.ActivityInfo
 import androidx.compose.ui.viewinterop.AndroidView
 import android.graphics.Bitmap
 import android.graphics.Rect
@@ -44,6 +45,18 @@ internal fun PhotoViewerRoot(
     val state = remember { PhotoViewerStateHolder() }
     val view = remember { PhotoViewerTransitionState() }
     val incoming = state.request
+    val context = LocalContext.current
+    // 查看器打开期间跟传感器转向，不受系统“自动旋转”开关限制；关闭后恢复进入前的方向策略。
+    DisposableEffect(incoming != null) {
+        val activity = context.findHostActivity()
+        if (incoming != null && activity != null) {
+            val previous = activity.requestedOrientation
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+            onDispose { activity.requestedOrientation = previous }
+        } else {
+            onDispose { }
+        }
+    }
     val durationMs = if (animationsEnabled) PhotoViewerDurationMs else 0L
     val viewerBackdrop = rememberLayerBackdrop {
         drawRect(androidx.compose.ui.graphics.Color.Black)
@@ -194,6 +207,7 @@ private fun PhotoMorphLayer(
 
 /** Telegram 的入场/退场是 200ms 的 AccelerateDecelerate，没有回弹、没有过冲。 */
 internal const val PhotoViewerDurationMs = 200L
+
 
 /**
  * 一次打开/关闭过程中的全部瞬时状态。

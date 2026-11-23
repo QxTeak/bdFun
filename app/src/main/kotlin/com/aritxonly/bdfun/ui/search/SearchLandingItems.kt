@@ -6,12 +6,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -43,7 +43,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchSuggestionItem
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
-                            .clickable { onPickKeyword(word) }
+                            .clickable(interactionSource = null, indication = null) { onPickKeyword(word) }
                             .padding(vertical = 12.dp, horizontal = 2.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -63,72 +63,125 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchSuggestionItem
     }
 }
 
+/** 板块之间的留白：热搜 / 搜索记录 / 搜索发现三块统一用它，避免看起来挤在一起。 */
+private val SearchSectionGap = 22.dp
+
+/** 热搜：两列（每行两个）排列，和搜索发现共用同一套网格。 */
+internal fun androidx.compose.foundation.lazy.LazyListScope.searchHotItems(
+    hot: List<com.aritxonly.bdfun.core.domain.SearchHotWord>,
+    colors: top.yukonga.miuix.kmp.theme.Colors, onPickKeyword: (String) -> Unit,
+) {
+    if (hot.isEmpty()) return
+    item(key = "hot-title") {
+        SectionHeader(title = "热搜", action = null, onAction = null)
+    }
+    item(key = "hot-grid") {
+        val classic = TeakUiStyle.isClassic
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)))
+                .background(colors.surfaceContainer)
+                .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 6.dp),
+        ) {
+            hot.chunked(2).forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    row.forEach { word ->
+                        HotWordCell(
+                            word = word.showName.ifBlank { word.keyword },
+                            badgeIcon = word.icon,
+                            onClick = { onPickKeyword(word.keyword) },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    if (row.size == 1) Spacer(Modifier.weight(1f))
+                }
+            }
+        }
+        Spacer(Modifier.height(SearchSectionGap))
+    }
+}
+
+/** 搜索历史：一个个胶囊横向排，行放满再换下一行。 */
 internal fun androidx.compose.foundation.lazy.LazyListScope.searchHistoryItems(
     history: List<String>, colors: top.yukonga.miuix.kmp.theme.Colors, onPickKeyword: (String) -> Unit, onClearHistory: () -> Unit,
 ) {
-    if (history.isNotEmpty()) {
-        item(key = "history-title") {
-            SectionHeader(
-                title = "搜索记录",
-                action = "清空",
-                onAction = onClearHistory,
-            )
-        }
-        item(key = "history-grid") {
-            // 与热搜一致的容器；经典样式去掉圆角、贴着屏幕边缘。
-            val classic = TeakUiStyle.isClassic
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)))
-                    .background(colors.surfaceContainer)
-                    .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 8.dp),
+    if (history.isEmpty()) return
+    item(key = "history-title") {
+        SectionHeader(
+            title = "搜索记录",
+            action = "清空",
+            onAction = onClearHistory,
+        )
+    }
+    item(key = "history-pills") {
+        val classic = TeakUiStyle.isClassic
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)))
+                .background(colors.surfaceContainer)
+                .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 12.dp),
+        ) {
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                history.chunked(2).forEach { row ->
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        row.forEach { word ->
-                            HistoryWord(
-                                word = word,
-                                onClick = { onPickKeyword(word) },
-                                modifier = Modifier.weight(1f),
-                            )
-                        }
-                        if (row.size == 1) Spacer(Modifier.weight(1f))
-                    }
+                history.forEach { word ->
+                    HistoryPill(word = word, onClick = { onPickKeyword(word) })
                 }
             }
-            Spacer(Modifier.height(18.dp))
         }
+        Spacer(Modifier.height(SearchSectionGap))
     }
-
 }
 
-internal fun androidx.compose.foundation.lazy.LazyListScope.searchHotItems(
-    hot: List<String>, colors: top.yukonga.miuix.kmp.theme.Colors, onPickKeyword: (String) -> Unit,
+/** 搜索发现：接口取自 PiliPlus 的 `/x/v2/search/recommend`，排版与热搜一致。 */
+internal fun androidx.compose.foundation.lazy.LazyListScope.searchDiscoveryItems(
+    discovery: List<String>, colors: top.yukonga.miuix.kmp.theme.Colors, onPickKeyword: (String) -> Unit,
 ) {
-    if (hot.isNotEmpty()) {
-        item(key = "hot-title") {
-            SectionHeader(title = "热搜", action = null, onAction = null)
-        }
-        item(key = "hot-list") {
-            val classic = TeakUiStyle.isClassic
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)))
-                    .background(colors.surfaceContainer)
-                    .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 6.dp),
+    if (discovery.isEmpty()) return
+    item(key = "discovery-title") {
+        SectionHeader(title = "搜索发现", action = null, onAction = null)
+    }
+    item(key = "discovery-grid") {
+        KeywordGrid(words = discovery, colors = colors, onPickKeyword = onPickKeyword)
+    }
+}
+
+/** 热搜 / 搜索发现共用的两列词条网格：一行两个，放不满时用等宽空位撑住。 */
+@androidx.compose.runtime.Composable
+private fun KeywordGrid(
+    words: List<String>,
+    colors: top.yukonga.miuix.kmp.theme.Colors,
+    onPickKeyword: (String) -> Unit,
+) {
+    val classic = TeakUiStyle.isClassic
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)))
+            .background(colors.surfaceContainer)
+            .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 6.dp),
+    ) {
+        words.chunked(2).forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                hot.forEachIndexed { index, word ->
-                    HotRow(
-                        rank = index + 1,
+                row.forEach { word ->
+                    HotWordCell(
                         word = word,
                         onClick = { onPickKeyword(word) },
+                        modifier = Modifier.weight(1f),
                     )
                 }
+                if (row.size == 1) Spacer(Modifier.weight(1f))
             }
         }
-    }}
+    }
+}

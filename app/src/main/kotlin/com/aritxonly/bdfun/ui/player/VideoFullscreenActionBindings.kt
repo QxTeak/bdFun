@@ -28,6 +28,8 @@ internal class VideoFullscreenActionBindings(
     private val actions: VideoPlayerActions,
     private val ui: VideoPlayerUiStateHolder,
     private val VideoPageBus: VideoPagePresentationState,
+    /** 杜比视界走直通表面，缩放/镜像/色觉辅助都作用不到画面，需要挡一下并提示。 */
+    private val dolbyVision: () -> Boolean = { false },
 ) {
     private val settings get() = VideoPageBus.settings
     private val activity = context as? Activity
@@ -191,11 +193,15 @@ internal class VideoFullscreenActionBindings(
 
     private val onLoopModeChanged: (Int) -> Unit = { fsLoopMode = it }
 
-    private val onMirrorChanged: (Boolean) -> Unit = { fsMirror = it }
+    private val onMirrorChanged: (Boolean) -> Unit = {
+        if (dolbyVision()) context.showToast("杜比视界播放时暂不支持镜像翻转") else fsMirror = it
+    }
 
     private val onResizeModeChanged: (Int) -> Unit = { fsResizeMode = it }
 
-    private val onColorAssistChanged: (Int) -> Unit = { fsColorAssist = it }
+    private val onColorAssistChanged: (Int) -> Unit = {
+        if (dolbyVision()) context.showToast("杜比视界播放时暂不支持色觉辅助") else fsColorAssist = it
+    }
 
     private val onSleepAtChanged: (Long) -> Unit = { fsSleepAt = it }
 

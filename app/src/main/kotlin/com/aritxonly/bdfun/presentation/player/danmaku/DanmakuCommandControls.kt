@@ -20,6 +20,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
@@ -27,6 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.teak.common.icons.AppGlyph
 import com.kyant.shapes.Capsule
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.extended.Favorites
+import top.yukonga.miuix.kmp.icon.extended.FavoritesFill
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.roundToInt
 
@@ -46,29 +50,32 @@ internal fun VoteOptionRow(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 40.dp)
+            .heightIn(min = 32.dp)
             .clip(shape)
-            .background(if (selected) accent.copy(alpha = 0.30f) else Color.White.copy(alpha = 0.08f))
+            .background(if (selected && !showRatio) accent.copy(alpha = 0.32f) else Color.White.copy(alpha = 0.08f))
+            .drawBehind {
+                if (showRatio && ratio > 0f) {
+                    // 比例就是填充长度：50% 填一半，100% 填满；直接画在圆角裁剪内。
+                    drawRect(
+                        color = accent.copy(alpha = if (selected) 0.62f else 0.42f),
+                        size = androidx.compose.ui.geometry.Size(
+                            width = size.width * ratio.coerceIn(0f, 1f),
+                            height = size.height,
+                        ),
+                    )
+                }
+            }
             .clickable(enabled = enabled, interactionSource = null, indication = null, onClick = onClick),
     ) {
-        if (showRatio && ratio > 0f) {
-            Box(
-                Modifier
-                    .matchParentSize()
-                    .clip(shape)
-                    .fillMaxWidth(ratio)
-                    // 比例条用更淡的一层，不抢文字和选中态的对比。
-                    .background(Color.White.copy(alpha = 0.07f)),
-            )
-        }
         Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 10.dp),
+            // 每个选项上下收窄一点，整张投票卡不再显得又高又满。
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 14.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
                 text = if (selected) "✓ $label" else label,
                 color = Color.White.copy(alpha = if (enabled || selected) 0.95f else 0.72f),
-                fontSize = 14.sp,
+                fontSize = 13.5.sp,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f),
@@ -85,6 +92,51 @@ internal fun VoteOptionRow(
         }
     }
 }
+
+/**
+ * 评分投票：五颗星，点第几颗就前几颗变黄。
+ *
+ * 未选中是空心收藏星（Miuix Favorites），选中后填成黄色的收藏星（FavoritesFill）。
+ */
+@Composable
+internal fun GradeStarRow(
+    options: List<com.aritxonly.bdfun.core.model.video.DanmakuCommandOption>,
+    selected: Int?,
+    enabled: Boolean,
+    onClick: (Int) -> Unit,
+) {
+    val selectedIndex = options.indexOfFirst { it.value == selected }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        options.forEachIndexed { index, option ->
+            val filled = selectedIndex >= 0 && index <= selectedIndex
+            Box(
+                modifier = Modifier
+                    .size(34.dp)
+                    .clip(CircleShape)
+                    .clickable(
+                        enabled = enabled && selected == null,
+                        interactionSource = null,
+                        indication = null,
+                    ) { onClick(option.value) },
+                contentAlignment = Alignment.Center,
+            ) {
+                AppGlyph(
+                    icon = if (filled) MiuixIcons.FavoritesFill else MiuixIcons.Favorites,
+                    tint = if (filled) GradeStarColor else Color.White.copy(alpha = 0.55f),
+                    size = 23.dp,
+                    contentDescription = option.label,
+                )
+            }
+        }
+    }
+}
+
+/** 评分选中的黄色。 */
+private val GradeStarColor = Color(0xFFFFC63C)
 
 @Composable
 internal fun RowScope.CapsuleOption(

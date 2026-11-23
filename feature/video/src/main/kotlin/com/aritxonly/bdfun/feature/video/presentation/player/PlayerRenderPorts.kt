@@ -38,4 +38,6 @@ class PlayerRenderPorts(
     val danmakuComposer: PlayerDanmakuComposePorts,
     val danmakuOverlays: @Composable androidx.compose.foundation.layout.BoxScope.(Boolean) -> Unit,
     val inlineMore: @Composable () -> Unit,
+    /** 播放/暂停按钮那颗三角（drawable 资源）；长按倍速提示复用它，不再自绘。 */
+    val playIcon: Int,
 )

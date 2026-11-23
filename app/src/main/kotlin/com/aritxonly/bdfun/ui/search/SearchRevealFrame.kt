@@ -56,10 +56,8 @@ internal fun SearchRevealFrame(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .then(if (submitted == null) Modifier.statusBarsPadding() else Modifier)
-                    // 结果页不再给整块内容留顶栏高度，让列表能滚到顶栏下面被模糊；
-                    // 搜索首页（记录/热搜）仍从顶栏下方开始。
-                    .padding(top = if (submitted == null) HomeTopBarHeight else 0.dp)
+                    // 搜索首页的内容也会滚到顶栏下面，交给顶栏做和首页一样的渐进模糊；
+                    // 顶部留白改到列表 contentPadding 里（见 SearchLanding）。
                     .then(contentLayer),
             ) {
                 content()

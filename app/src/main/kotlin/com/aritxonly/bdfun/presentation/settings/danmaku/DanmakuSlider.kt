@@ -66,6 +66,7 @@ internal fun DmSlider(
     val span = (range.endInclusive - range.start).coerceAtLeast(0.0001f)
     val ratio = ((value - range.start) / span).coerceIn(0f, 1f)
     val density = LocalDensity.current
+    val palette = LocalDanmakuPanelPalette.current
     val thumbRadius = with(density) { 8.dp.toPx() }
     val trackHeight = with(density) { 5.dp.toPx() }
     val tickRadius = with(density) { 1.6.dp.toPx() }
@@ -94,7 +95,7 @@ internal fun DmSlider(
             val fillRight = left + usable * ratio
             // 底轨
             drawRoundRect(
-                color = Color.White.copy(alpha = 0.18f),
+                color = palette.track,
                 topLeft = Offset(left, cy - trackHeight / 2f),
                 size = Size(usable, trackHeight),
                 cornerRadius = CornerRadius(trackHeight / 2f),
@@ -109,14 +110,14 @@ internal fun DmSlider(
             // 刻度点
             listOf(0.25f, 0.5f, 0.75f).forEach { mark ->
                 drawCircle(
-                    color = Color.White.copy(alpha = 0.35f),
+                    color = palette.tick,
                     radius = tickRadius,
                     center = Offset(left + usable * mark, cy),
                 )
             }
-            // 白色圆钮
+            // 圆钮
             drawCircle(
-                color = Color.White,
+                color = palette.thumb,
                 radius = thumbRadius,
                 center = Offset(fillRight, cy),
             )

@@ -166,9 +166,11 @@ internal suspend fun BiliApiContext.uploadCommentImage(uri: android.net.Uri): St
         val resolver = appContext.contentResolver
         val bytes = resolver.openInputStream(uri)?.use { it.readBytes() } ?: return@cancellableCatching null
         val mime = resolver.getType(uri) ?: "image/jpeg"
-        val bitmap = android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
-        val width = bitmap?.width ?: 0
-        val height = bitmap?.height ?: 0
+        // 只读图片头拿宽高：整张解码一张几十兆的照片只为两个数字，很容易 OOM。
+        val bounds = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        android.graphics.BitmapFactory.decodeByteArray(bytes, 0, bytes.size, bounds)
+        val width = bounds.outWidth.coerceAtLeast(0)
+        val height = bounds.outHeight.coerceAtLeast(0)
         val body = okhttp3.MultipartBody.Builder()
             .setType(okhttp3.MultipartBody.FORM)
             .addFormDataPart(

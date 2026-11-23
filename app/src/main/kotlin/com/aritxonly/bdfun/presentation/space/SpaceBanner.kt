@@ -51,7 +51,11 @@ internal suspend fun loadSpaceBannerBitmap(
     val request = ImageRequest.Builder(context)
         .data(com.aritxonly.bdfun.core.common.biliImageUrl(url))
         .setHeader("Referer", "https://space.bilibili.com/")
-        .size(1440, 1440)
+        // 按屏幕宽度解码，别在 1080p 屏上硬解 1440 宽的软件位图。
+        .size(
+            context.resources.displayMetrics.widthPixels.coerceIn(1, 1440),
+            1440,
+        )
         .scale(coil.size.Scale.FIT)
         .allowHardware(false)
         .build()
