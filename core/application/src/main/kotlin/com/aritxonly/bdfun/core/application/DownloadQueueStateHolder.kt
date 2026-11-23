@@ -72,20 +72,16 @@ class DownloadQueueStateHolder(private val storage: VideoCacheStorage, transfer:
         job.start()
         return true
     }
-    fun delete(id: String) {
+    /** 删除一条缓存：递归删文件在 IO 上做，删完再更新列表并落盘，界面线程不再卡住。 */
+    suspend fun delete(id: String) {
         if (!loaded) deletedDuringLoad += id
         tokens.remove(id)
         jobs.remove(id)?.cancel()
-        // 删大缓存要递归删文件：放到后台做，界面不再定住；删完再从列表移除。
-        val deleted = scope.launch {
-            withContext(Dispatchers.IO) { storage.delete(id) }
-            withContext(uiDispatcher) {
-                mutable.update { it.filterNot { entry -> entry.id == id } }
-                persistNow()
-            }
+        withContext(Dispatchers.IO) { storage.delete(id) }
+        withContext(uiDispatcher) {
+            mutable.update { it.filterNot { entry -> entry.id == id } }
+            persistNow()
         }
-        // 页面退出时队列可能被 close，这里只是兜底，不影响删除本身。
-        if (closed) deleted.cancel()
     }
     fun close() {
         closed = true

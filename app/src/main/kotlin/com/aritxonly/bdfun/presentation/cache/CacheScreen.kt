@@ -23,12 +23,14 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import com.aritxonly.bdfun.core.application.DownloadQueueStateHolder
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly.bdfun.core.model.video.VideoItem) -> Unit) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
     val entries by queue.state.collectAsState()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     if (entries.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -84,7 +86,8 @@ internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly
                         ) { onOpen(playable) }
                     },
                     onDelete = {
-                        queue.delete(entry.id)
+                        // 删除会在后台递归删文件；界面这边先给提示，列表随后自动更新。
+                        scope.launch { queue.delete(entry.id) }
                         context.showToast("已删除缓存")
                     },
                 )
