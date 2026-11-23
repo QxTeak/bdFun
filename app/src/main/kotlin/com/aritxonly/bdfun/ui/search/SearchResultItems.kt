@@ -195,7 +195,7 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchUserResul
         }
     }
     if (users.isNotEmpty()) {
-        videoResultFooter(loadingMore = content.usersLoadingMore, end = content.usersEnd, colors = pageColors)
+        videoResultFooter(loadingMore = content.userPaging.loadingMore, end = content.userPaging.end, colors = pageColors)
     }
 }
 

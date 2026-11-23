@@ -210,12 +210,12 @@ class SearchStateHolderTest {
         }
         val holder = SearchStateHolder(source, wait = {})
         holder.search("word", SearchFilterState())
-        assertFalse(holder.state.value.usersEnd)
+        assertFalse(holder.state.value.userPaging.end)
         holder.loadMoreUsers()
         assertEquals(listOf(1, 2), source.userPages)
         assertEquals(SEARCH_PAGE_SIZE + 3, holder.state.value.users.size)
-        assertTrue(holder.state.value.usersEnd)
-        assertFalse(holder.state.value.usersLoadingMore)
+        assertTrue(holder.state.value.userPaging.end)
+        assertFalse(holder.state.value.userPaging.loadingMore)
     }
 
     @Test fun aNewSearchResetsThePagingCursor() = runBlocking {

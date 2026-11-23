@@ -36,8 +36,13 @@ internal data class SearchUiState(
     /** 已经没有下一页（或当前结果不足一页）。 */
     val end: Boolean = false,
     /** 用户 Tab 自己的一组分页状态：不能和视频结果共用一个 end，否则会互相提前结束。 */
-    val usersLoadingMore: Boolean = false,
-    val usersEnd: Boolean = false,
+    val userPaging: SearchUserPagingState = SearchUserPagingState(),
+)
+
+/** 用户 Tab 的分页状态；单独成组，避免主状态构造参数过长。 */
+internal data class SearchUserPagingState(
+    val loadingMore: Boolean = false,
+    val end: Boolean = false,
 )
 
 internal class SearchStateHolder(
@@ -97,7 +102,7 @@ internal class SearchStateHolder(
             lastRequest = null
             mutable.update { it.copy(results = emptyList(), users = emptyList(), pgc = SearchPgcState(),
                 error = null, loadedOnce = false, loading = false, loadingMore = false, end = false,
-                usersLoadingMore = false, usersEnd = false) }
+                userPaging = SearchUserPagingState()) }
             return
         }
         lastRequest = null
@@ -106,7 +111,7 @@ internal class SearchStateHolder(
             error = null, loadingMore = false, end = false,
             // 换关键词时别把上一组用户留在列表里冒充新结果。
             users = if (lastUserKeyword != submitted) emptyList() else it.users,
-            usersLoadingMore = false, usersEnd = false) }
+            userPaging = SearchUserPagingState()) }
         try {
             wait(if (lastUserKeyword != submitted) 90 else 180)
             if (revision != searchRevision) return
@@ -119,7 +124,7 @@ internal class SearchStateHolder(
                         usersPage = 1
                         mutable.update { it.copy(
                             users = result.value,
-                            usersEnd = result.value.size < SEARCH_PAGE_SIZE,
+                            userPaging = SearchUserPagingState(end = result.value.size < SEARCH_PAGE_SIZE),
                         ) }
                     }
                     is Outcome.Failure -> Unit
@@ -200,10 +205,10 @@ internal class SearchStateHolder(
     suspend fun loadMoreUsers() {
         val keyword = lastUserKeyword ?: return
         val snapshot = mutable.value
-        if (snapshot.loading || snapshot.usersLoadingMore || snapshot.usersEnd || usersPage <= 0) return
+        if (snapshot.loading || snapshot.userPaging.loadingMore || snapshot.userPaging.end || usersPage <= 0) return
         val revision = searchRevision
         val next = usersPage + 1
-        mutable.update { it.copy(usersLoadingMore = true) }
+        mutable.update { it.copy(userPaging = it.userPaging.copy(loadingMore = true)) }
         try {
             when (val result = repository.users(keyword, next)) {
                 is Outcome.Success -> if (revision == searchRevision) {
@@ -212,17 +217,16 @@ internal class SearchStateHolder(
                         val known = current.users.mapTo(HashSet()) { it.mid }
                         current.copy(
                             users = current.users + result.value.filter { known.add(it.mid) },
-                            usersLoadingMore = false,
-                            usersEnd = result.value.size < SEARCH_PAGE_SIZE,
+                            userPaging = SearchUserPagingState(end = result.value.size < SEARCH_PAGE_SIZE),
                         )
                     }
                 }
                 is Outcome.Failure -> if (revision == searchRevision) {
-                    mutable.update { it.copy(usersLoadingMore = false) }
+                    mutable.update { it.copy(userPaging = it.userPaging.copy(loadingMore = false)) }
                 }
             }
         } finally {
-            if (revision == searchRevision) mutable.update { it.copy(usersLoadingMore = false) }
+            if (revision == searchRevision) mutable.update { it.copy(userPaging = it.userPaging.copy(loadingMore = false)) }
         }
     }
 }
