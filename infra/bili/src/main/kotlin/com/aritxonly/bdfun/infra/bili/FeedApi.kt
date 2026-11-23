@@ -133,24 +133,67 @@ internal suspend fun BiliApiContext.webRecommend(freshIndex: Int): List<VideoIte
 
 internal suspend fun BiliApiContext.appRecommend(freshIndex: Int): List<VideoItem> {
     // App 推荐域名是 app.bilibili.com；用 api.bilibili.com 会 404，随后悄悄退回 Web 推荐。
+    // 参数与请求头按 PiliPlus 的 rcmdVideoListApp 补齐：缺 device/fnval/flush 等字段时，
+    // 服务端会走降级推荐池，返回的内容明显更旧更窄。
     val data = dataRequest(
         "/x/v2/feed/index",
         mapOf(
-            "build" to "7880300",
-            "mobi_app" to "android",
-            "platform" to "android",
+            "build" to "8430300",
+            "c_locale" to "zh_CN",
+            "channel" to "master",
+            "column" to "2",
+            "device" to "phone",
+            "device_name" to "android",
+            "device_type" to "0",
+            "disable_rcmd" to "0",
+            "flush" to "8",
+            "fnval" to "976",
+            "fnver" to "0",
+            "force_host" to "2",
+            "fourk" to "1",
+            "guidance" to "1",
+            "https_url_req" to "1",
             "idx" to freshIndex.toString(),
             "login_event" to "0",
+            "mobi_app" to "android_i",
             "network" to "wifi",
-            "style" to "2",
+            "platform" to "android",
+            "player_net" to "1",
             "ps" to "12",
+            "pull" to if (freshIndex == 0) "true" else "false",
+            "qn" to "32",
+            "recsys_mode" to "0",
+            "s_locale" to "zh_CN",
+            "splash_id" to "",
+            "statistics" to BILI_APP_STATISTICS,
+            "style" to "2",
+            "voice_balance" to "0",
         ),
         base = APP,
+        userAgent = BILI_APP_HD_UA,
+        headers = appRecommendHeaders(),
     )
     val mapped = mapAppRecommendations(data, ::cleanHtml)
     log("FEED", "app-raw=${mapped.rawCount} kept=${mapped.items.size}")
     return mapped.items
 }
+
+/** 设备指纹类请求头：buvid 取本地 cookie，其余字段与 PiliPlus 固定值一致。 */
+internal fun BiliApiContext.appRecommendHeaders(): Map<String, String> = mapOf(
+    "buvid" to cookieJar.value("buvid3"),
+    "fp_local" to APP_RECOMMEND_FP,
+    "fp_remote" to APP_RECOMMEND_FP,
+    "session_id" to "11111111",
+    "env" to "prod",
+    "app-key" to "android_hd",
+    "x-bili-trace-id" to BILI_APP_TRACE_ID,
+    "x-bili-aurora-eid" to "",
+    "x-bili-aurora-zone" to "",
+    "bili-http-engine" to "cronet",
+)
+
+private const val APP_RECOMMEND_FP =
+    "1111111111111111111111111111111111111111111111111111111111111111"
 
 internal suspend fun BiliApiContext.dislikeRecommendation(video: VideoItem, reason: RecommendationReason) {
     if (video.appRecommendation) {
