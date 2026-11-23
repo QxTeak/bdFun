@@ -9,6 +9,7 @@ class PlayerEngineSettings(
     val backgroundPlay: () -> Boolean,
     val boostDefaultSpeed: () -> Float, val autoPlay: () -> Boolean,
     val resumePlayback: () -> Boolean, val autoPlayNextChanged: (Boolean) -> Unit,
+    val loopModeChanged: (Int) -> Unit,
 )
 class PlayerEnginePorts(
     val page: PlayerPageHost, val background: ForegroundPlaybackAttachment,
@@ -21,6 +22,8 @@ class PlayerEntryPorts(
     val createPlayback: () -> VideoPlaybackPlatform,
     val tracking: () -> com.aritxonly.bdfun.feature.video.application.PlaybackTrackingStateHolder,
     val defaultSpeed: () -> Float, val autoPlayNext: () -> Boolean,
+    /** 上次的循环播放模式：新视频/新页面沿用，不再回到「不循环」。 */
+    val loopMode: () -> Int,
     val sponsorSkipMode: () -> Int, val danmakuOn: () -> Boolean,
     val bluetoothLatency: @Composable () -> Int,
     val engine: PlayerEnginePorts,

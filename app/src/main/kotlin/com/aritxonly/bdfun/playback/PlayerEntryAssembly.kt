@@ -13,11 +13,12 @@ internal fun rememberPlayerEntryPorts(): PlayerEntryPorts {
         rememberPlayerExitHooks(), rememberPlayerDiagnostics(),
         PlayerEngineSettings({ settings.backgroundPlay },
             { settings.boostDefaultSpeed }, { settings.autoPlay }, { settings.resumePlayback },
-            { settings.autoPlayNext = it }))
+            { settings.autoPlayNext = it }, { settings.loopMode = it }))
     return PlayerEntryPorts(
         createPlayback = { dependencies.createPlayback(context, runCatching { settings.decoderMode }.getOrDefault(0)) },
         tracking = { dependencies.controllers.tracking() },
         defaultSpeed = { settings.defaultPlaybackSpeed }, autoPlayNext = { settings.autoPlayNext },
+        loopMode = { settings.loopMode },
         sponsorSkipMode = { settings.sponsorSkipMode }, danmakuOn = { settings.danmakuOn },
         bluetoothLatency = { rememberPlayerBluetoothLatency() }, engine = engine,
         render = { playback, media, presentation, actions, ui ->

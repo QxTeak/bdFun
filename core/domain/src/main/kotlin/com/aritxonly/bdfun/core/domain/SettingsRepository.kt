@@ -50,6 +50,8 @@ interface PlaybackSettings {
     var discBreathCoverColor: Boolean
     var autoPlay: Boolean
     var autoPlayNext: Boolean
+    /** 全屏循环播放：0 不循环 / 1 单集循环 / 2 列表循环。换视频、重进页面都要沿用上次的选择。 */
+    var loopMode: Int
     var dynamicAutoPlay: Boolean
     var dynamicAutoPlayMuted: Boolean
     var dynamicAutoPlayQuality: Int

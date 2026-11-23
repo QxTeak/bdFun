@@ -56,6 +56,15 @@ class MediaPlaybackSession(
     private var lastDuration = 0L
     private var queue: List<MediaQueueEntry> = emptyList()
     private var queueIndex = -1
+
+    /** 后台保活服务复用这条通知当前台通知时用到的 id。 */
+    internal val notificationId: Int get() = NOTIFICATION_ID
+
+    /**
+     * 服务接管期间注入的分享载荷：超级岛分享只在后台保活时才需要，
+     * 但通知本身仍由这里统一发，保证通知栏只有一条控制栏。
+     */
+    internal var islandExtras: (() -> android.os.Bundle?)? = null
     private val scope = kotlinx.coroutines.CoroutineScope(
         kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.SupervisorJob(),
     )
@@ -120,6 +129,7 @@ class MediaPlaybackSession(
                 .build(),
         )
         registry.attach(this)
+        PlaybackNotificationArbiter.attachPageSession(this)
         loadArtwork(artworkUrl)
     }
 
@@ -262,6 +272,18 @@ class MediaPlaybackSession(
         )
 
     private fun notifyState(playing: Boolean, positionMs: Long, durationMs: Long) {
+        runCatching { manager.notify(NOTIFICATION_ID, buildStateNotification(playing, positionMs, durationMs)) }
+    }
+
+    /** 后台保活服务需要一份与当前状态一致的通知对象来挂前台服务。 */
+    internal fun currentNotification(): Notification =
+        buildStateNotification(lastPlaying == true, lastPosition, lastDuration)
+
+    private fun buildStateNotification(
+        playing: Boolean,
+        positionMs: Long,
+        durationMs: Long,
+    ): Notification {
         val contentIntent = context.packageManager
             .getLaunchIntentForPackage(context.packageName)
             ?.let {
@@ -319,7 +341,8 @@ class MediaPlaybackSession(
                 false,
             )
         }
-        runCatching { manager.notify(NOTIFICATION_ID, builder.build()) }
+        islandExtras?.invoke()?.let(builder::addExtras)
+        return builder.build()
     }
 
     override fun release() {
@@ -327,7 +350,12 @@ class MediaPlaybackSession(
         released = true
         scope.cancel()
         registry.detach(this)
-        runCatching { manager.cancel(NOTIFICATION_ID) }
+        islandExtras = null
+        // 后台服务正把这条通知当作前台通知时，由它立刻换成自己那条，避免通知栏空掉；
+        // 没有服务接管时才自己取消。
+        if (!PlaybackNotificationArbiter.releasePageSession(this)) {
+            runCatching { manager.cancel(NOTIFICATION_ID) }
+        }
         runCatching {
             session.isActive = false
             session.release()

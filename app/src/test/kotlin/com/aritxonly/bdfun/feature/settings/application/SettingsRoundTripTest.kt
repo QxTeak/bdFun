@@ -81,6 +81,7 @@ class SettingsRoundTripTest(private val case: SettingCase<*>) {
             SettingCase("discBreathCoverColor", false, true, { it.discBreathCoverColor }, { s, v -> s.discBreathCoverColor = v }),
             SettingCase("autoPlay", true, false, { it.autoPlay }, { s, v -> s.autoPlay = v }),
             SettingCase("autoPlayNext", true, false, { it.autoPlayNext }, { s, v -> s.autoPlayNext = v }),
+            SettingCase("loopMode", 0, 2, { it.loopMode }, { s, v -> s.loopMode = v }),
             SettingCase("dynamicAutoPlay", true, false, { it.dynamicAutoPlay }, { s, v -> s.dynamicAutoPlay = v }),
             SettingCase("dynamicAutoPlayMuted", true, false, { it.dynamicAutoPlayMuted }, { s, v -> s.dynamicAutoPlayMuted = v }),
             SettingCase("dynamicAutoPlayQuality", 64, 80, { it.dynamicAutoPlayQuality }, { s, v -> s.dynamicAutoPlayQuality = v }),

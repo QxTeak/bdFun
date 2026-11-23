@@ -13,7 +13,9 @@ fun VideoPlayerEntry(
     actions: VideoPlayerActions, modifier: Modifier = Modifier, ports: PlayerEntryPorts,
 ) {
     val ui = remember {
-        VideoPlayerUiStateHolder(ports.defaultSpeed(), ports.autoPlayNext(), presentation.fullscreen)
+        VideoPlayerUiStateHolder(
+            ports.defaultSpeed(), ports.autoPlayNext(), ports.loopMode(), presentation.fullscreen,
+        )
     }
     val playback = remember {
         ports.createPlayback()

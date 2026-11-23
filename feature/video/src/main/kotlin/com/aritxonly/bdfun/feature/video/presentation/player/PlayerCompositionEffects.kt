@@ -47,6 +47,11 @@ fun BindPlayerPresentationSetup(
     LaunchedEffect(fsAutoPlayNext) {
         ports.settings.autoPlayNextChanged(fsAutoPlayNext)
     }
+    // 循环播放要和自动连播一样记住：换视频、重进页面都沿用上次的选择。
+    var fsLoopMode by ui.fsLoopMode
+    LaunchedEffect(fsLoopMode) {
+        ports.settings.loopModeChanged(fsLoopMode)
+    }
     var videoScale by ui.videoScale
     var videoRotation by ui.videoRotation
     var videoOffset by ui.videoOffset

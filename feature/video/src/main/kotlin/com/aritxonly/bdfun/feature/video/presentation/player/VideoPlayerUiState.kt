@@ -12,7 +12,9 @@ import androidx.compose.ui.geometry.Offset
 import kotlinx.coroutines.Job
 
 /** 原 remember(Unit) 的瞬时 UI/资源引用；状态对象与播放器组合同生命周期。 */
-class VideoPlayerUiStateHolder(initialSpeed: Float, initialAutoPlayNext: Boolean, initialFullscreen: Boolean) {
+class VideoPlayerUiStateHolder(
+    initialSpeed: Float, initialAutoPlayNext: Boolean, initialLoopMode: Int, initialFullscreen: Boolean,
+) {
     val danmakuHit = PlayerDanmakuHit()
 
     val showBuffering = mutableStateOf(false)
@@ -30,7 +32,7 @@ class VideoPlayerUiStateHolder(initialSpeed: Float, initialAutoPlayNext: Boolean
     val fsAudioOnly = mutableStateOf(false)
     val halfMoreOpen = mutableStateOf(false)
     val fsAutoPlayNext = mutableStateOf(initialAutoPlayNext)
-    val fsLoopMode = mutableIntStateOf(0)
+    val fsLoopMode = mutableIntStateOf(initialLoopMode.coerceIn(0, 2))
     val fsMirror = mutableStateOf(false)
     val fsResizeMode = mutableIntStateOf(0)
     val fsColorAssist = mutableIntStateOf(0)
