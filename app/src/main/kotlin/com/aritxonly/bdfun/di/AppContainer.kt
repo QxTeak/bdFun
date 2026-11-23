@@ -338,11 +338,17 @@ internal class AppContainer(
             backgroundPlayback, playbackQueue, ::createPlaybackController, LogCollector::record,
             com.aritxonly.bdfun.ui.CommentDependencies(
                 com.aritxonly.bdfun.feature.comment.application.CommentStateFactory(
-                    commentContentRepository, commentImageRepository, commentLikesStore),
+                    commentContentRepository, commentImageRepository, commentLikesStore, ::commentAiBlockConfig),
                 session, commentLikes, commentLikesStore.generationState),
             danmakuSegmentFeed)
     }
     fun close() { closed = true; homeSlot.close(); dynamicFeedSlots.close(); videoReadCache.close(); settings.close(); presentationScope.cancel() }
+    /** 评论屏蔽设置每次拉取时现读，用户改完下一次刷新/翻页就生效。 */
+    private fun commentAiBlockConfig() = com.aritxonly.bdfun.core.domain.CommentAiBlockConfig(
+        enabled = settings.repository.message.commentAiBlockEnabled,
+        strength = settings.repository.message.commentAiBlockStrength,
+        replyMode = settings.repository.message.commentAiBlockReplyMode,
+    )
     val sentHistory: SentHistoryStore? = context?.let { SentHistoryStore(it.applicationContext) }
 
     init {

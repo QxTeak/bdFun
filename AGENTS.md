@@ -847,6 +847,13 @@ bdFun 对应调整：`Media3PlayerBuilder` 恢复 `setEnableAudioTrackPlaybackPa
 
 查看器不再用 Dialog：`PhotoViewerRoot` 直接画在当前窗口最上层，楼中楼在自己的 Dialog 内容里再包一层宿主。入场/退场由 `PhotoMorphView`（一个自定义 View + 一个 ValueAnimator）用列表已缓存的缩略图 bitmap 跑 200ms AccelerateDecelerate；动画期间不组合 pager、不解码原图。动画结束后缩略图继续盖住查看器，等 `fullAlpha` 真正到 1 再淡出盖层（`markCoverReady`），避免原图首次加载时闪一帧；超时 4s 兜底。列表缩略图在 `PhotoThumbCache` 里按原始 URL 缓存（LruCache 上限 64MB，sizeOf 单位是 KB）。不要改回 Dialog 或“先显示 pager 再等原图”。
 
+### 2026-11-23 评论 AI 人格屏蔽（大肥鱼规则）
+
+评论区新增 AI 人格账号屏蔽，规则移植自 ybyz2/bilibili-dafeiyu-blocker（MIT，提交与边界见 `docs/DAFEIYU_BLOCK_PROVENANCE.md`）。纯判定在 `core:domain` 的 `CommentAiBlockPolicy`（账号名含肥鱼 → 品牌词 → 真 @ → 单字 → 全角标点，档位切段，置顶跳过，简繁靠字符类），过滤发生在 `CommentListStateHolder.fetch`：主评论与楼中楼（`root>0`）共用同一状态容器，因此一处接线两边都生效。整页被屏蔽时最多补取 3 页再结束，避免首屏空白。
+
+设置落在 `MessageSettings`：`comment_ai_block` / `comment_ai_block_strength` / `comment_ai_block_reply_mode`，默认关闭（未开启前行为与上一版完全一致）。`CommentStateFactory` 收 `() -> CommentAiBlockConfig`，由 AppContainer 在每次拉取时现读 `settings.repository.message`，不做组合期快照。删除/拉黑、计数横幅、自定义屏蔽词/用户名都没有接入，不要顺手把写操作接进来。
+
+
 
 
 

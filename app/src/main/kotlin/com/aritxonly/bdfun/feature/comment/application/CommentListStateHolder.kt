@@ -15,8 +15,16 @@ internal data class CommentListState(
     val error: AppError? = null, val query: CommentQuery,
 )
 
+/** 一页评论被屏蔽干净时最多再往后补取几页，防止极端情况下无限翻页。 */
+private const val FILTERED_PAGE_SKIPS = 3
+
 /** 主评论与楼中楼共用分页规则，查询版本隔离排序、评论区与根评论切换。 */
-internal class CommentListStateHolder(private val repository: CommentContentRepository, query: CommentQuery) {
+internal class CommentListStateHolder(
+    private val repository: CommentContentRepository,
+    query: CommentQuery,
+    /** 每次拉取时读取当前屏蔽设置；关闭时策略是空转的，不改动任何数据。 */
+    private val blockConfig: () -> CommentAiBlockConfig = { CommentAiBlockConfig() },
+) {
     private val mutableState = MutableStateFlow(CommentListState(query = query))
     val state = mutableState.asStateFlow()
     private var revision = 0L
@@ -61,16 +69,32 @@ internal class CommentListStateHolder(private val repository: CommentContentRepo
 
     private suspend fun fetch(page: Int, version: Long) {
         val query = mutableState.value.query
-        val result = repository.page(query, page)
-        currentCoroutineContext().ensureActive()
-        if (closed || version != revision) return
-        when (result) {
-            is Outcome.Failure -> mutableState.update { it.copy(error = result.error) }
-            is Outcome.Success -> mutableState.update {
-                val items = if (page == 1) result.value.items else (it.items + result.value.items).distinctBy { item -> item.rpid }
-                it.copy(items = items, total = result.value.total.takeIf { count -> count > 0 } ?: items.size,
-                    page = page, end = result.value.isEnd || result.value.items.isEmpty())
+        val policy = CommentAiBlockPolicy(blockConfig())
+        val replace = page == 1
+        var target = page
+        var skipped = 0
+        while (true) {
+            val result = repository.page(query, target)
+            currentCoroutineContext().ensureActive()
+            if (closed || version != revision) return
+            if (result is Outcome.Failure) {
+                mutableState.update { it.copy(error = result.error) }
+                return
             }
+            val pageData = (result as Outcome.Success).value
+            val filtered = policy.filter(pageData.items)
+            // 整页都是 AI 评论时继续往后取，否则用户只会看到空评论区；上限避免极端情况下空转翻页。
+            if (filtered.isEmpty() && pageData.items.isNotEmpty() && !pageData.isEnd && skipped < FILTERED_PAGE_SKIPS) {
+                target++
+                skipped++
+                continue
+            }
+            mutableState.update {
+                val items = if (replace) filtered else (it.items + filtered).distinctBy { item -> item.rpid }
+                it.copy(items = items, total = pageData.total.takeIf { count -> count > 0 } ?: items.size,
+                    page = target, end = pageData.isEnd || filtered.isEmpty())
+            }
+            return
         }
     }
 

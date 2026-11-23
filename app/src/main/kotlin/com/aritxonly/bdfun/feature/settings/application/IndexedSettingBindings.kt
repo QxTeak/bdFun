@@ -124,4 +124,10 @@ private fun otherBindings(repository: SettingsRepository) = mapOf(
         { repository.general.showSearchDiscovery = (it as SettingValue.Flag).value }),
     "sent_history_entry" to IndexedSettingBinding({ SettingValue.Flag(repository.message.sentHistoryEntry) },
         { repository.message.sentHistoryEntry = (it as SettingValue.Flag).value }),
+    "comment_ai_block" to IndexedSettingBinding({ SettingValue.Flag(repository.message.commentAiBlockEnabled) },
+        { repository.message.commentAiBlockEnabled = (it as SettingValue.Flag).value }),
+    "comment_ai_block_strength" to IndexedSettingBinding({ SettingValue.Number(repository.message.commentAiBlockStrength) },
+        { repository.message.commentAiBlockStrength = (it as SettingValue.Number).value }),
+    "comment_ai_block_reply_mode" to IndexedSettingBinding({ SettingValue.Number(repository.message.commentAiBlockReplyMode) },
+        { repository.message.commentAiBlockReplyMode = (it as SettingValue.Number).value }),
 )

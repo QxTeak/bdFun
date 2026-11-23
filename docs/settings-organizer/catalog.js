@@ -414,7 +414,7 @@ window.SETTINGS_CATALOG = [
             "pref_name": "adaptive_buffering",
             "type": "switch",
             "title": "自适应缓冲",
-            "subtitle": "开启后在本机学习观看习惯；关闭使用分阶段固定规则。当前播放即可生效",
+            "subtitle": "本地学习观看习惯，优化缓冲机制",
             "default": false
           },
           {
@@ -480,44 +480,6 @@ window.SETTINGS_CATALOG = [
         ]
       },
       {
-        "title": "弹幕",
-        "settings": [
-          {
-            "pref_name": "sponsor_skip_mode",
-            "type": "dropdown",
-            "title": "空降助手",
-            "subtitle": "提示片段，或进入片段后自动跳到结尾",
-            "default": 1,
-            "options": [
-              {
-                "title": "关闭",
-                "value": 0
-              },
-              {
-                "title": "提示",
-                "value": 1
-              },
-              {
-                "title": "自动跳过",
-                "value": 2
-              }
-            ]
-          },
-          {
-            "pref_name": "hot_danmaku",
-            "type": "switch",
-            "title": "弹幕计数",
-            "default": true
-          },
-          {
-            "pref_name": "dm_low_refresh",
-            "type": "switch",
-            "title": "降低弹幕刷新率",
-            "default": true
-          }
-        ]
-      },
-      {
         "title": "声音与蓝牙",
         "settings": [
           {
@@ -542,14 +504,12 @@ window.SETTINGS_CATALOG = [
             "pref_name": "background_play",
             "type": "switch",
             "title": "离开 App 或锁屏后继续播放",
-            "subtitle": "视频页仍打开时，切换到其他 App、锁屏或隐藏画中画后继续听视频",
             "default": true
           },
           {
             "pref_name": "show_disc_after_video",
             "type": "switch",
             "title": "退出视频页后继续播放",
-            "subtitle": "返回首页等方式离开视频页时，使用画中画或唱片继续播放；不影响锁屏和切换 App",
             "default": true
           },
           {
@@ -607,6 +567,111 @@ window.SETTINGS_CATALOG = [
             "default": true
           }
         ]
+      },
+      {
+        "title": "评论区",
+        "settings": [
+          {
+            "pref_name": "comment_ai_block",
+            "type": "switch",
+            "title": "屏蔽 AI 人格评论",
+            "subtitle": "按「大肥鱼」规则过滤评论区里的 AI 人格账号，命中即不显示；置顶评论始终保留",
+            "default": false
+          },
+          {
+            "pref_name": "comment_ai_block_strength",
+            "type": "dropdown",
+            "title": "屏蔽强度",
+            "subtitle": "标准档也会屏蔽真实的 @；杀戮档误伤最大",
+            "default": 2,
+            "options": [
+              {
+                "title": "小杯",
+                "value": 1
+              },
+              {
+                "title": "标准",
+                "value": 2
+              },
+              {
+                "title": "杀戮",
+                "value": 3
+              },
+              {
+                "title": "只屏蔽 @",
+                "value": 4
+              }
+            ],
+            "visible_when": "comment_ai_block"
+          },
+          {
+            "pref_name": "comment_ai_block_reply_mode",
+            "type": "dropdown",
+            "title": "楼中楼处理",
+            "subtitle": "「只删楼中楼」可能留下空楼",
+            "default": 0,
+            "options": [
+              {
+                "title": "只删楼中楼",
+                "value": 0
+              },
+              {
+                "title": "整楼删除",
+                "value": 1
+              },
+              {
+                "title": "不管楼中楼",
+                "value": 2
+              }
+            ],
+            "visible_when": "comment_ai_block"
+          }
+        ]
+      },
+      {
+        "title": "弹幕",
+        "settings": [
+          {
+            "pref_name": "sponsor_skip_mode",
+            "type": "dropdown",
+            "title": "空降助手",
+            "subtitle": "提示片段，或进入片段后自动跳到结尾",
+            "default": 1,
+            "options": [
+              {
+                "title": "关闭",
+                "value": 0
+              },
+              {
+                "title": "提示",
+                "value": 1
+              },
+              {
+                "title": "自动跳过",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "pref_name": "hot_danmaku",
+            "type": "switch",
+            "title": "弹幕计数",
+            "default": true
+          },
+          {
+            "pref_name": "dm_low_refresh",
+            "type": "switch",
+            "title": "降低弹幕刷新率",
+            "default": true
+          },
+          {
+            "pref_name": "video_interaction",
+            "type": "switch",
+            "title": "视频互动",
+            "subtitle": "弹幕投票、评分与关注卡片等",
+            "default": true
+          }
+        ]
       }
     ]
   },
@@ -617,14 +682,6 @@ window.SETTINGS_CATALOG = [
       {
         "title": "首页推荐",
         "settings": [
-          {
-            "pref_name": "home_channels",
-            "type": "action",
-            "title": "首页频道",
-            "subtitle": "选择首页显示的频道，推荐始终开启",
-            "storage": "none",
-            "default": ""
-          },
           {
             "pref_name": "home_card_style",
             "type": "dropdown",
@@ -651,7 +708,7 @@ window.SETTINGS_CATALOG = [
             "pref_name": "recommendation_toggle",
             "type": "extension",
             "title": "推荐算法优化",
-            "subtitle": "根据本机观看反馈微调推荐顺序，减少重复。关闭后下次刷新恢复原推荐方式。",
+            "subtitle": "本地优化推荐内容，减少重复推送",
             "storage": "none",
             "default": "",
             "visible_when": "extension:recommendation_toggle"
@@ -708,6 +765,18 @@ window.SETTINGS_CATALOG = [
       {
         "title": "搜索页",
         "settings": [
+          {
+            "pref_name": "show_search_history",
+            "type": "switch",
+            "title": "显示搜索记录",
+            "default": true
+          },
+          {
+            "pref_name": "show_search_discovery",
+            "type": "switch",
+            "title": "显示搜索发现",
+            "default": true
+          },
           {
             "pref_name": "show_hot_search",
             "type": "switch",
@@ -792,6 +861,25 @@ window.SETTINGS_CATALOG = [
         ]
       },
       {
+        "title": "贡献者",
+        "settings": [
+          {
+            "pref_name": "contributor_xubu",
+            "type": "developer",
+            "title": "xu-bu",
+            "storage": "none",
+            "default": ""
+          },
+          {
+            "pref_name": "contributor_maochenyu",
+            "type": "developer",
+            "title": "maochenyu-me",
+            "storage": "none",
+            "default": ""
+          }
+        ]
+      },
+      {
         "title": "版本信息",
         "settings": [
           {
@@ -823,7 +911,14 @@ window.SETTINGS_CATALOG = [
           {
             "pref_name": "discussion",
             "type": "action",
-            "title": "加入讨论组",
+            "title": "加入 Telegram 群组",
+            "storage": "none",
+            "default": ""
+          },
+          {
+            "pref_name": "qq_group",
+            "type": "action",
+            "title": "加入 QQ 群聊",
             "storage": "none",
             "default": ""
           },
@@ -831,13 +926,6 @@ window.SETTINGS_CATALOG = [
             "pref_name": "help",
             "type": "action",
             "title": "帮助中心",
-            "storage": "none",
-            "default": ""
-          },
-          {
-            "pref_name": "donation",
-            "type": "action",
-            "title": "捐赠",
             "storage": "none",
             "default": ""
           },
