@@ -859,7 +859,7 @@
           {
             "pref_name": "qq_group",
             "type": "action",
-            "title": "加入 QQ 群聊（852442572）",
+            "title": "加入 QQ 群聊",
             "storage": "none",
             "default": ""
           },

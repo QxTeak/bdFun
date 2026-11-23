@@ -70,7 +70,7 @@ private fun openSettingsQqGroup(context: ComponentActivity) {
     if (runCatching { context.startActivity(qqIntent) }.isSuccess) return
     val web = Uri.parse("https://qun.qq.com/")
     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, web).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
-        .onFailure { context.showToast("未安装 QQ，请手动搜索群号 $group") }
+        .onFailure { context.showToast("无法打开 QQ，请确认已安装 QQ") }
 }
 
 /** 推荐保持独立存储，启动层仅向索引渲染器提供三项展示扩展。 */
