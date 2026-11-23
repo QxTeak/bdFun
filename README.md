@@ -21,16 +21,16 @@ bdFun 是一个第三方哔哩哔哩 Android 客户端，使用 Kotlin + Jetpack
 ## 界面预览
 
 <p align="center">
-  <img src="docs/preview/1.png" height="340" alt="界面预览 1">
-  <img src="docs/preview/2.png" height="340" alt="界面预览 2">
-  <img src="docs/preview/3.png" height="340" alt="界面预览 3">
-  <img src="docs/preview/4.png" height="340" alt="界面预览 4">
+  <img src="docs/preview/shot-1.png" height="340" alt="界面预览 1">
+  <img src="docs/preview/shot-2.png" height="340" alt="界面预览 2">
+  <img src="docs/preview/shot-3.png" height="340" alt="界面预览 3">
+  <img src="docs/preview/shot-4.png" height="340" alt="界面预览 4">
 </p>
 <p align="center">
-  <img src="docs/preview/5.png" height="340" alt="界面预览 5">
-  <img src="docs/preview/6.png" height="340" alt="界面预览 6">
-  <img src="docs/preview/7.png" height="340" alt="界面预览 7">
-  <img src="docs/preview/8.png" height="340" alt="界面预览 8">
+  <img src="docs/preview/shot-5.png" height="340" alt="界面预览 5">
+  <img src="docs/preview/shot-6.png" height="340" alt="界面预览 6">
+  <img src="docs/preview/shot-7.png" height="340" alt="界面预览 7">
+  <img src="docs/preview/shot-8.png" height="340" alt="界面预览 8">
 </p>
 
 采用 HyperOS 4 的设计风格。
