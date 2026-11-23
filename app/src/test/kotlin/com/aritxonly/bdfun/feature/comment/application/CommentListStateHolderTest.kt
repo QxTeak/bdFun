@@ -176,4 +176,47 @@ class CommentListStateHolderTest {
         job.cancelAndJoin()
         assertTrue(holder.state.value.items.isEmpty()); assertFalse(holder.state.value.loading)
     }
+
+    private fun ai(id: Long) = CommentItem(id, "大肥鱼", "", "主人今天也在看呢", 0, 0, 1, 0, false, false)
+    private val blockOn = { CommentAiBlockConfig(enabled = true, strength = STRENGTH_STANDARD) }
+
+    @Test fun aiCommentsAreFilteredOutButPinnedOnesStay() = runBlocking {
+        val pinned = ai(9).copy(isTop = true)
+        val fake = Fake().apply { load = { _, page ->
+            Outcome.Success(CommentPage(listOf(item(1), ai(2), pinned), page, true, 3))
+        } }
+        val holder = CommentListStateHolder(fake, query, blockOn); holder.reset()
+        assertEquals(listOf(1L, 9L), holder.state.value.items.map { it.rpid })
+        assertTrue(holder.state.value.end)
+    }
+
+    @Test fun fullyFilteredPageContinuesToTheNextOne() = runBlocking {
+        val fake = Fake().apply { load = { _, page ->
+            val rows = if (page < 3) listOf(ai(page.toLong()), ai(page.toLong() + 100)) else listOf(item(7))
+            Outcome.Success(CommentPage(rows, page, page == 3, 40))
+        } }
+        val holder = CommentListStateHolder(fake, query, blockOn); holder.reset()
+        assertEquals(listOf(7L), holder.state.value.items.map { it.rpid })
+        assertEquals(3, holder.state.value.page)
+        assertEquals(listOf(1, 2, 3), fake.requests.map { it.second })
+    }
+
+    @Test fun filteringStopsAfterBoundedSkipsInsteadOfPagingForever() = runBlocking {
+        val fake = Fake().apply { load = { _, page -> Outcome.Success(CommentPage(listOf(ai(page.toLong())), page, false, 99)) } }
+        val holder = CommentListStateHolder(fake, query, blockOn); holder.reset()
+        assertTrue(holder.state.value.items.isEmpty())
+        assertTrue(holder.state.value.end)
+        assertEquals(4, fake.requests.size)
+    }
+
+    @Test fun blockSettingIsReadAtFetchTimeNotAtFactoryTime() = runBlocking {
+        val fake = Fake().apply { load = { _, page -> Outcome.Success(CommentPage(
+            if (page == 1) listOf(item(1)) else listOf(ai(2), item(3)), page, false, 9)) } }
+        var config = CommentAiBlockConfig()
+        val holder = CommentListStateHolder(fake, query) { config }
+        holder.reset()
+        config = CommentAiBlockConfig(enabled = true, strength = STRENGTH_STANDARD)
+        holder.loadMore()
+        assertEquals(listOf(1L, 3L), holder.state.value.items.map { it.rpid })
+    }
 }

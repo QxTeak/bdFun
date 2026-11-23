@@ -102,6 +102,12 @@ interface DanmakuSettings {
 interface MessageSettings {
     var showIpLocation: Boolean
     var sentHistoryEntry: Boolean
+    /** 评论区 AI 人格账号（「大肥鱼」类）屏蔽总开关；默认关闭，不改变现有阅读体验。 */
+    var commentAiBlockEnabled: Boolean
+    /** 屏蔽强度：1 小杯 / 2 标准 / 3 杀戮 / 4 只屏蔽 @（取值对齐上游脚本的 tier）。 */
+    var commentAiBlockStrength: Int
+    /** 楼中楼处理：0 只删命中的楼中楼 / 1 整楼删除 / 2 不管楼中楼。 */
+    var commentAiBlockReplyMode: Int
 }
 
 interface GeneralSettings {

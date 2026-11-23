@@ -568,6 +568,66 @@
         ]
       },
       {
+        "title": "评论区",
+        "settings": [
+          {
+            "pref_name": "comment_ai_block",
+            "type": "switch",
+            "title": "屏蔽 AI 人格评论",
+            "subtitle": "按「大肥鱼」规则过滤评论区里的 AI 人格账号，命中即不显示；置顶评论始终保留",
+            "default": false
+          },
+          {
+            "pref_name": "comment_ai_block_strength",
+            "type": "dropdown",
+            "title": "屏蔽强度",
+            "subtitle": "标准档也会屏蔽真实的 @；杀戮档误伤最大",
+            "default": 2,
+            "options": [
+              {
+                "title": "小杯",
+                "value": 1
+              },
+              {
+                "title": "标准",
+                "value": 2
+              },
+              {
+                "title": "杀戮",
+                "value": 3
+              },
+              {
+                "title": "只屏蔽 @",
+                "value": 4
+              }
+            ],
+            "visible_when": "comment_ai_block"
+          },
+          {
+            "pref_name": "comment_ai_block_reply_mode",
+            "type": "dropdown",
+            "title": "楼中楼处理",
+            "subtitle": "「只删楼中楼」可能留下空楼",
+            "default": 0,
+            "options": [
+              {
+                "title": "只删楼中楼",
+                "value": 0
+              },
+              {
+                "title": "整楼删除",
+                "value": 1
+              },
+              {
+                "title": "不管楼中楼",
+                "value": 2
+              }
+            ],
+            "visible_when": "comment_ai_block"
+          }
+        ]
+      },
+      {
         "title": "弹幕",
         "settings": [
           {
