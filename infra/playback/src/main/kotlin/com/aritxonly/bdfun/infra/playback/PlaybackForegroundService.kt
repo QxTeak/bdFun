@@ -118,7 +118,7 @@ abstract class PlaybackForegroundService : Service() {
         return START_STICKY
     }
 
-/** 只有真的变了才重建通知：标题/播放态/队列/封面。进度由系统按 PlaybackState 自己推算，不用每秒重画。 */
+    /** 只有真的变了才重建通知：标题/播放态/队列/封面。进度由系统按 PlaybackState 自己推算，不用每秒重画。 */
     private fun notificationSignature(): String {
         val snapshot = playback.playbackSnapshot
         return listOf(
@@ -161,15 +161,16 @@ abstract class PlaybackForegroundService : Service() {
             if (notificationId == page.notificationId) return
             val previous = notificationId
             notificationId = page.notificationId
-            cancelNotification(previous)
+            // 先挂新的再撤旧的：反过来做的中间会有一小段通知栏里一条都没有。
             runCatching { startForeground(notificationId, page.currentNotification()) }
+            cancelNotification(previous)
         } else {
             if (notificationId == NOTIFICATION_ID) return
             val previous = notificationId
             notificationId = NOTIFICATION_ID
             // 页面会话释放时为了不让前台通知空掉而没有自己取消，这里由接管方清掉。
-            cancelNotification(previous)
             runCatching { startForeground(NOTIFICATION_ID, buildNotification()) }
+            cancelNotification(previous)
         }
     }
 

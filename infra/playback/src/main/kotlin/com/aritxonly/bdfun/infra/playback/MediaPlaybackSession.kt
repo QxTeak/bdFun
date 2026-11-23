@@ -27,7 +27,7 @@ import kotlinx.coroutines.cancel
  * 用平台自带的 MediaSessionCompat + MediaStyle 通知，不额外起 Service（播放仍在前台 Activity）。
  */
 class MediaPlaybackSession(
-    private val context: Context,
+    context: Context,
     private val registry: MediaControlsRegistry,
     private val actionReceiver: Class<out BroadcastReceiver>,
     private val playback: PlaybackController,
@@ -46,13 +46,24 @@ class MediaPlaybackSession(
         const val ACTION_NEXT = "com.aritxonly.bdfun.MEDIA_NEXT"
     }
 
+    /** 通知用的上下文：会话可能被后台服务跨线程读通知，不能让它间接吊住 Activity。 */
+    private val appContext = context.applicationContext
     private val manager =
-        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        appContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     private var lastNotifyAt = 0L
+
+    /** 后台服务会在主线程调 [currentNotification]，这三个值要能被安全跨线程读到。 */
+    @Volatile
     private var lastPlaying: Boolean? = null
+
+    @Volatile
     private var released = false
     private var artwork: android.graphics.Bitmap? = null
+
+    @Volatile
     private var lastPosition = 0L
+
+    @Volatile
     private var lastDuration = 0L
     private var queue: List<MediaQueueEntry> = emptyList()
     private var queueIndex = -1
@@ -69,7 +80,7 @@ class MediaPlaybackSession(
         kotlinx.coroutines.Dispatchers.IO + kotlinx.coroutines.SupervisorJob(),
     )
 
-    private val session = MediaSessionCompat(context, "TeakBili").apply {
+    private val session = MediaSessionCompat(appContext, "TeakBili").apply {
         setCallback(object : MediaSessionCompat.Callback() {
             override fun onPlay() {
                 playback.play()
@@ -158,8 +169,8 @@ class MediaPlaybackSession(
         if (url.isNullOrBlank()) return
         scope.launch {
             val result = runCatching {
-                coil.Coil.imageLoader(context).execute(
-                    coil.request.ImageRequest.Builder(context)
+                coil.Coil.imageLoader(appContext).execute(
+                    coil.request.ImageRequest.Builder(appContext)
                         .data(url)
                         .size(512)
                         .allowHardware(false)
@@ -265,13 +276,16 @@ class MediaPlaybackSession(
 
     private fun actionIntent(action: String, requestCode: Int): PendingIntent =
         PendingIntent.getBroadcast(
-            context,
+            appContext,
             requestCode,
-            Intent(context, actionReceiver).setAction(action),
+            Intent(appContext, actionReceiver).setAction(action),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
 
     private fun notifyState(playing: Boolean, positionMs: Long, durationMs: Long) {
+        // 前后两个视频页交接时都用 4201：旧会话在被释放前还会收到几次播放状态回调，
+        // 它若照常 notify 就会把新页面那条通知盖掉，所以只让当前拥有者发。
+        if (PlaybackNotificationArbiter.pageSession !== this) return
         runCatching { manager.notify(NOTIFICATION_ID, buildStateNotification(playing, positionMs, durationMs)) }
     }
 
@@ -284,17 +298,17 @@ class MediaPlaybackSession(
         positionMs: Long,
         durationMs: Long,
     ): Notification {
-        val contentIntent = context.packageManager
-            .getLaunchIntentForPackage(context.packageName)
+        val contentIntent = appContext.packageManager
+            .getLaunchIntentForPackage(appContext.packageName)
             ?.let {
                 PendingIntent.getActivity(
-                    context,
+                    appContext,
                     0,
                     it,
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 )
             }
-        val builder = NotificationCompat.Builder(context, CHANNEL_ID)
+        val builder = NotificationCompat.Builder(appContext, CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_media_play)
             .setContentTitle(title)
             .setContentText(artist)

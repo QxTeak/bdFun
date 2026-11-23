@@ -12,15 +12,20 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.aritxonly.bdfun.core.model.video.Quality
 
-/** 由播放器全屏逻辑强行写进窗口的朝向：退出全屏时一律还给系统旋转，不能原样写回。 */
-private val forcedOrientations = setOf(
-    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
-    ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT,
-    ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT,
-    ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
-    ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE,
-    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
+/**
+ * 全屏期间由我们这一侧写进窗口的朝向：
+ * `BindPlayerOrientation` 写的 LOCKED / SENSOR_LANDSCAPE，
+ * 以及 `VideoActivity` 姿态监听写的 LANDSCAPE / PORTRAIT。
+ *
+ * `VideoActivity` 只在 `!fullscreen` 时把窗口交还系统，而横屏退回竖屏那一刻
+ * `onConfigurationChanged` 跑在 Compose 把 fullscreen 改回 false 之前，
+ * 那时它看到的还是全屏，补不上这一手；退出全屏时若朝向仍是这些值，就得自己还原。
+ */
+private val playerForcedOrientations = setOf(
     ActivityInfo.SCREEN_ORIENTATION_LOCKED,
+    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
+    ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
+    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
 )
 
 @Composable
@@ -58,17 +63,15 @@ fun BindPlayerSystemBars(
         }
         onDispose {
             controller?.show(WindowInsetsCompat.Type.systemBars())
-// 全屏期间的朝向是我们自己写进窗口的（SENSOR_LANDSCAPE / SENSOR_PORTRAIT /
-            // LOCKED / 传感器监听写的 PORTRAIT）。退出全屏必须把它还给系统旋转，
-            // 否则详情页被钉死在当前方向：横屏转竖屏之后就再也转不回横屏，
-            // 只能退出视频重进才能恢复。
+            // 退出全屏后详情页要是被钉在某个方向，就只能退出视频重进才恢复旋转，
+            // 所以在放开 systemBars 之后，只把仍被我们钉住的朝向还给系统。
             if (fullscreen) {
-                activity?.requestedOrientation =
-                    if (inlineOrientation in forcedOrientations) {
-                        ActivityInfo.SCREEN_ORIENTATION_USER
-                    } else {
-                        inlineOrientation
-                    }
+                val current = activity?.requestedOrientation
+                activity?.requestedOrientation = if (current in playerForcedOrientations) {
+                    ActivityInfo.SCREEN_ORIENTATION_USER
+                } else {
+                    inlineOrientation
+                }
             }
         }
     }
