@@ -39,7 +39,6 @@ internal fun HomeChannelsSettingsSection(settings: SettingsBindings) {
         HomeChannel.entries.drop(1).forEach { channel ->
             TeakSettingsSwitchRow(
                 title = channel.title,
-                description = if (channel == HomeChannel.Popular) "内容即将上线" else "",
                 checked = channel.key in settings.homeChannels,
                 onCheckedChange = { enabled ->
                     settings.homeChannels = if (enabled) settings.homeChannels + channel.key
