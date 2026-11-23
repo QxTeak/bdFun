@@ -72,13 +72,16 @@ class DownloadQueueStateHolder(private val storage: VideoCacheStorage, transfer:
         job.start()
         return true
     }
-    fun delete(id: String) {
+    /** 删除一条缓存：递归删文件在 IO 上做，删完再更新列表并落盘，界面线程不再卡住。 */
+    suspend fun delete(id: String) {
         if (!loaded) deletedDuringLoad += id
         tokens.remove(id)
         jobs.remove(id)?.cancel()
-        storage.delete(id)
-        mutable.update { it.filterNot { entry -> entry.id == id } }
-        persistNow()
+        withContext(Dispatchers.IO) { storage.delete(id) }
+        withContext(uiDispatcher) {
+            mutable.update { it.filterNot { entry -> entry.id == id } }
+            persistNow()
+        }
     }
     fun close() {
         closed = true

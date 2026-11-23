@@ -15,6 +15,7 @@ internal fun SearchResultPager(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
     onOpenVideo: (VideoItem) -> Unit, onOpenUser: (SearchUser) -> Unit,
     onLoadMore: () -> Unit = {},
+    onLoadMoreUsers: () -> Unit = {},
 ) {
     CompositionLocalProvider(
         LocalViewConfiguration provides rememberStricterSwipeConfiguration(),
@@ -25,7 +26,7 @@ internal fun SearchResultPager(
             beyondViewportPageCount = 1,
             overscrollEffect = null,
         ) { page ->
-            SearchResultList(page, presentation, content, onOpenVideo, onOpenUser, onLoadMore)
+            SearchResultList(page, presentation, content, onOpenVideo, onOpenUser, onLoadMore, onLoadMoreUsers)
         }
     }
 }

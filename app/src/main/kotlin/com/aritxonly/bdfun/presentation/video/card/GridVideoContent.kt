@@ -36,7 +36,7 @@ internal fun GridVideoContent(
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
 
-    Column(modifier = Modifier.padding(start = 8.dp, end = 8.dp, top = 7.dp, bottom = 8.dp)) {
+    Column(modifier = Modifier.padding(start = 8.dp, end = 4.dp, top = 7.dp, bottom = 8.dp)) {
         Text(
             text = video.title,
             color = colors.onBackground,
@@ -87,7 +87,6 @@ internal fun GridVideoContent(
                     )
                 }
                 if (onMoreClick != null) {
-                    Spacer(Modifier.width(2.dp))
                     VideoCardMoreButton(
                         onClick = onMoreClick,
                         touchSize = 20.dp,

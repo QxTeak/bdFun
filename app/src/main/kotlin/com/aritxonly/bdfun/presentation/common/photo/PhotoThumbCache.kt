@@ -16,7 +16,8 @@ import android.util.LruCache
 internal object PhotoThumbCache {
 
     // sizeOf 返回 KB，所以上限也是 KB；32 会让任何一张缩略图都立即被淘汰。
-    private val cache = object : LruCache<String, Bitmap>(64 * 1024) {
+    // 上限 16MB：原来 64MB 会把整份列表缩略图长期按着不放，Coil 那边还各留一份。
+    private val cache = object : LruCache<String, Bitmap>(16 * 1024) {
         override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount / 1024
     }
 
@@ -26,6 +27,11 @@ internal object PhotoThumbCache {
     }
 
     fun get(url: String): Bitmap? = cache.get(url)?.takeIf { !it.isRecycled }
+
+    /** 系统内存紧张时只收缩到给定上限，最近看过的图仍然可用。 */
+    fun trim(maxBytes: Int) {
+        cache.trimToSize((maxBytes / 1024).coerceAtLeast(1))
+    }
 }
 
 /** Coil 的 drawable 可能是 BitmapDrawable，也可能是其它 Drawable；统一取一张可绘制的 bitmap。 */

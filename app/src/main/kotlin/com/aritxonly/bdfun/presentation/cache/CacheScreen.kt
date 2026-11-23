@@ -23,12 +23,14 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 import com.aritxonly.bdfun.core.application.DownloadQueueStateHolder
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly.bdfun.core.model.video.VideoItem) -> Unit) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
     val entries by queue.state.collectAsState()
+    val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     if (entries.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -65,21 +67,27 @@ internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly
         items(entries, key = { it.id }) { entry ->
             val oneTake = rememberOneTakeAnchor()
             val cacheRadiusPx = with(LocalDensity.current) { 16.dp.toPx() }
+            // 封面/播放地址要查文件是否存在；算一次记住，滚动时不再逐个查磁盘。
+            val coverUri = androidx.compose.runtime.remember(entry.id, entry.coverPath) { queue.cover(entry) }
+            val playable = androidx.compose.runtime.remember(entry.id, entry.videoPath, entry.audioPath) {
+                queue.video(entry)
+            }
             TeakSettingsCard(
                 modifier = Modifier.padding(bottom = 10.dp).then(oneTake.modifier),
             ) {
                 CacheRow(
                     entry = entry,
-                    cover = queue.cover(entry),
+                    cover = coverUri,
                     onOpen = {
                         oneTake.open(
                             context = context,
-                            video = queue.video(entry),
+                            video = playable,
                             radiusPx = cacheRadiusPx,
-                        ) { onOpen(queue.video(entry)) }
+                        ) { onOpen(playable) }
                     },
                     onDelete = {
-                        queue.delete(entry.id)
+                        // 删除会在后台递归删文件；界面这边先给提示，列表随后自动更新。
+                        scope.launch { queue.delete(entry.id) }
                         context.showToast("已删除缓存")
                     },
                 )

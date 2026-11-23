@@ -43,7 +43,7 @@ fun HalfScreenMoreSheet(
             HalfMoreQuickRow(onDismiss, quick)
             Spacer(Modifier.height(6.dp))
             HalfMorePlaybackSettings(state, settings, timerMinutes, accentColor)
-            HalfMoreExtraSettings(state, settings, onDismiss, accentColor)
+            HalfMoreExtraSettings(state, settings, accentColor)
         }
     }
 }
@@ -113,7 +113,10 @@ private fun HalfMorePlaybackSettings(state: HalfMoreState, settings: HalfMoreSet
 }
 
 @Composable
-private fun HalfMoreExtraSettings(state: HalfMoreState, settings: HalfMoreSettingsActions, onDismiss: () -> Unit, accentColor: androidx.compose.ui.graphics.Color) {
+private fun HalfMoreExtraSettings(
+    state: HalfMoreState, settings: HalfMoreSettingsActions,
+    accentColor: androidx.compose.ui.graphics.Color,
+) {
     val colors = MiuixTheme.colorScheme
     HalfMoreSwitchRow(
         accentColor = accentColor,
@@ -134,8 +137,8 @@ private fun HalfMoreExtraSettings(state: HalfMoreState, settings: HalfMoreSettin
         value = "",
         glyph = { DanmakuSettingGlyph(colors.onBackground) },
     ) {
+        // 叠一层新的 sheet，「更多」先留在下面，关掉弹幕设置就回到这里。
         settings.onDanmakuSettings()
-        onDismiss()
     }
     HalfMoreSwitchRow(
         accentColor = accentColor,

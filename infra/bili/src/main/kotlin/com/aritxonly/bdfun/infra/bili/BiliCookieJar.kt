@@ -44,8 +44,12 @@ class BiliCookieJar(context: Context) : CookieJar {
         var changed = false
         cookies.forEach {
             if (it.name.isNotBlank()) {
-                this.cookies[it.name] = it
-                changed = true
+                // B 站几乎每个响应都下发 Cookie；值没变就别再整份序列化写盘。
+                val previous = this.cookies[it.name]
+                if (previous == null || previous.value != it.value || previous.expiresAt != it.expiresAt) {
+                    this.cookies[it.name] = it
+                    changed = true
+                }
             }
         }
         if (changed) persist()
@@ -53,6 +57,7 @@ class BiliCookieJar(context: Context) : CookieJar {
 
     fun put(name: String, value: String, domain: String = "bilibili.com") {
         if (name.isBlank()) return
+        if (value.isNotBlank() && cookies[name]?.value == value) return
         cookies[name] = Cookie.Builder()
             .name(name)
             .value(value)

@@ -89,6 +89,8 @@ class SettingsRoundTripTest(private val case: SettingCase<*>) {
             SettingCase("showIpLocation", true, false, { it.showIpLocation }, { s, v -> s.showIpLocation = v }),
             SettingCase("showViewerCount", true, false, { it.showViewerCount }, { s, v -> s.showViewerCount = v }),
             SettingCase("showHotSearch", true, false, { it.showHotSearch }, { s, v -> s.showHotSearch = v }),
+            SettingCase("showSearchHistory", true, false, { it.showSearchHistory }, { s, v -> s.showSearchHistory = v }),
+            SettingCase("showSearchDiscovery", true, false, { it.showSearchDiscovery }, { s, v -> s.showSearchDiscovery = v }),
             SettingCase("autoCheckUpdate", true, false, { it.autoCheckUpdate }, { s, v -> s.autoCheckUpdate = v }),
             SettingCase("onboardingAcked", false, true, { it.onboardingAcked }, { s, v -> s.onboardingAcked = v }),
             SettingCase("termsAckedVersion", "", "saved-value", { it.termsAckedVersion }, { s, v -> s.termsAckedVersion = v }),

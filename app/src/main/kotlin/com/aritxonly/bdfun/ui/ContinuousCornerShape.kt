@@ -14,6 +14,12 @@ import top.yukonga.miuix.kmp.squircle.addSquircleRect
  * 而不是普通圆弧圆角。
  */
 class ContinuousCornerShape(private val radius: Dp) : Shape {
+    // 调用点常常每次组合都新建一个；没有相等性判断时裁剪/轮廓缓存会一直失效。
+    override fun equals(other: Any?): Boolean =
+        other is ContinuousCornerShape && other.radius == radius
+
+    override fun hashCode(): Int = radius.hashCode()
+
     override fun createOutline(
         size: Size,
         layoutDirection: LayoutDirection,

@@ -37,16 +37,23 @@ internal fun VideoMetadataAuthor(content: VideoMetadataContent, interaction: com
     val upVideos = content.upVideos
     val followed = interaction.followed
     Row(verticalAlignment = Alignment.CenterVertically) {
-        slots.avatar(
-            detail?.ownerFace ?: video.ownerFace,
-            Modifier
-                .size(40.dp)
+        // 整块「头像 + 昵称 + 粉丝信息」都是进入 UP 主空间的热区，不再只有头像能点。
+        Row(
+            modifier = Modifier
+                .weight(1f)
                 .clickable(
                     interactionSource = null,
                     indication = null,
                 ) {
                     actions.onOpenSpace()
                 }
+                .padding(vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+        slots.avatar(
+            detail?.ownerFace ?: video.ownerFace,
+            Modifier
+                .size(40.dp)
                 .clip(CircleShape)
                 .background(colors.surfaceContainerHigh),
         )
@@ -73,6 +80,7 @@ internal fun VideoMetadataAuthor(content: VideoMetadataContent, interaction: com
                 maxLines = 1,
                 modifier = Modifier.offset(x = 1.dp),
             )
+        }
         }
         Spacer(Modifier.width(10.dp))
         Row(

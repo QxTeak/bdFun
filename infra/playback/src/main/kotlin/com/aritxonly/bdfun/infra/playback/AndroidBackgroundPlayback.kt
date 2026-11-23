@@ -122,7 +122,11 @@ open class AndroidBackgroundPlayback(
 
     /** 把仍在使用中的 ExoPlayer 交给后台。必须在 exo.release() 之前调用。 */
     fun adopt(exo: PlaybackController, context: Context) {
-        if (detached) return
+        if (detached) {
+            // 后台槽位已被释放：不能把传进来的播放器静默丢掉（会连同解码器泄漏）。
+            runCatching { exo.release() }
+            return
+        }
         session.adopt(exo); sync()
         session.cancelHandOff(); sync()
         actions = null
@@ -138,7 +142,8 @@ open class AndroidBackgroundPlayback(
                         "id=${System.identityHashCode(exo)} position=${playback.positionMs} " +
                             "playing=${playback.playing} speed=${playback.speed}")
                 }
-                delay(500L)
+                // 暂停时不用每半秒唤醒主线程；播放中也一秒一次足够刷唱片/画中画。
+                delay(if (playback.playing) 1_000L else 5_000L)
             }
         }
         startKeepAlive(context)

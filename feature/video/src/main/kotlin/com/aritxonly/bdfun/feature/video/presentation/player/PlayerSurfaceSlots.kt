@@ -23,4 +23,6 @@ data class VideoPictureSettings(
     val hotDanmakuStrokeDp: Float = 1.5f,
     val hotDanmakuTextScale: Float = 1f,
     val danmakuOpacity: Float = 1f,
+    /** 播放/暂停按钮那颗三角（drawable 资源）；长按倍速提示复用它，不再自绘。 */
+    val playIcon: Int = 0,
 )

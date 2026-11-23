@@ -11,6 +11,8 @@ internal fun SearchOverlayContent(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
     onPickKeyword: (String) -> Unit, onOpenVideo: (VideoItem) -> Unit, onOpenUser: (SearchUser) -> Unit,
     onLoadMore: () -> Unit = {},
+    onLoadMoreUsers: () -> Unit = {},
+    landingResetKey: Int = 0,
     wideResultsBar: (@Composable (@Composable () -> Unit) -> Unit)? = null,
 ) {
     val rememberKeyword: (String) -> Unit = { word ->
@@ -19,8 +21,10 @@ internal fun SearchOverlayContent(
     }
     if (submitted == null) {
         SearchLanding(
-            history = ui.history,
+            history = if (settings.showSearchHistory) ui.history else emptyList(),
             hot = if (settings.showHotSearch) content.hotKeywords else emptyList(),
+            // 搜索发现有自己的开关；热搜关掉不影响它。
+            discovery = if (settings.showSearchDiscovery) content.discoveryKeywords else emptyList(),
             query = query,
             suggestions = content.suggestions,
             onPickKeyword = { word ->
@@ -31,8 +35,9 @@ internal fun SearchOverlayContent(
                 settings.clearSearchHistory()
                 ui.history = emptyList()
             },
+            resetKey = landingResetKey,
         )
     } else {
-        SearchResults(content, ui, onOpenVideo, onOpenUser, onLoadMore, wideResultsBar)
+        SearchResults(content, ui, onOpenVideo, onOpenUser, onLoadMore, onLoadMoreUsers, wideResultsBar)
     }
 }

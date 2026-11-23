@@ -7,6 +7,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
@@ -21,6 +26,12 @@ internal fun MainSearchLayer(settings: SettingsBindings, shell: MainShellState, 
     val searchChrome = shell.chrome.search
     val searchBackdrop = shell.backdrops.search
     val searchReveal = input.reveal
+    // 搜索页收起后可能还留在组合里（收起动画期间），再打开会带着上次的列表位置；
+    // 每次从关到开递增一次，让搜索首页自己把列表顶回顶部。
+    var openTick by remember { mutableIntStateOf(0) }
+    LaunchedEffect(input.active) {
+        if (input.active) openTick++
+    }
     // 搜索页：搜索框保持不动，下面整块换成纯白页（搜索记录 + 热搜 / 结果）
     if (input.active || searchReveal > 0.01f) {
         // 搜索页复刻首页结构：内容先录进 searchBackdrop，
@@ -52,6 +63,7 @@ internal fun MainSearchLayer(settings: SettingsBindings, shell: MainShellState, 
                     },
                     onOpenVideo = { navigateToVideo(context, it) },
                     onOpenUser = { navigateToSpace(context, it.mid) },
+                    landingResetKey = openTick,
                     modifier = Modifier.fillMaxSize(),
                 )
             }

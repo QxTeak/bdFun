@@ -2,8 +2,8 @@ package com.aritxonly.bdfun
 
 import com.aritxonly.bdfun.navigateToVideo
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.ui.RelatedRow
 
 internal fun androidx.compose.foundation.lazy.LazyListScope.spaceVideoItems(
@@ -13,23 +13,18 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.spaceVideoItems(
     val allVideos = content.snapshot.videos.items
     val videoLoading = content.snapshot.videos.loading
     val tabEnterModifier = Modifier
-    itemsIndexed(
+    items(
         items = allVideos,
-        key = { _, video -> "video-${video.bvid}" },
-    ) { index, video ->
-        SpaceSubmissionCard(
-            index = index,
-            isLast = index == allVideos.lastIndex,
-            modifier = tabEnterModifier,
-        ) {
+        key = { video -> "video-${video.bvid}" },
+    ) { video ->
+        SpaceSubmissionVideoRow(modifier = tabEnterModifier) {
             RelatedRow(
                 item = video,
-                metaLabel = com.aritxonly.bdfun.ui.formatDate(
-                    video.pubdate,
-                ),
+                metaLabel = com.aritxonly.bdfun.ui.formatDate(video.pubdate),
                 onClick = {
                     navigateToVideo(context, video)
                 },
+                horizontalPadding = 0.dp,
             )
         }
     }

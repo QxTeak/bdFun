@@ -2,6 +2,8 @@ package com.aritxonly.bdfun.di
 
 import android.content.Context
 import coil.ImageLoader
+import coil.decode.GifDecoder
+import coil.decode.ImageDecoderDecoder
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import com.aritxonly.bdfun.infra.bili.BiliBackend
@@ -31,6 +33,11 @@ internal fun installAppImageLoader(context: Context) {
         .build()
     val loader = ImageLoader.Builder(appContext)
         .okHttpClient(okHttp)
+        // 动态图的解码器默认不注册，GIF 会一直按静态图/失败处理；minSdk 33 可直接用 ImageDecoder。
+        .components {
+            add(ImageDecoderDecoder.Factory())
+            add(GifDecoder.Factory())
+        }
         .crossfade(true)
         .memoryCache {
             MemoryCache.Builder(appContext).maxSizePercent(0.15).build()

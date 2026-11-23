@@ -707,6 +707,18 @@
         "title": "搜索页",
         "settings": [
           {
+            "pref_name": "show_search_history",
+            "type": "switch",
+            "title": "显示搜索记录",
+            "default": true
+          },
+          {
+            "pref_name": "show_search_discovery",
+            "type": "switch",
+            "title": "显示搜索发现",
+            "default": true
+          },
+          {
             "pref_name": "show_hot_search",
             "type": "switch",
             "title": "显示热搜",

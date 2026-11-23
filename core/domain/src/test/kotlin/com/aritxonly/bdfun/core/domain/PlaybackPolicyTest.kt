@@ -4,6 +4,8 @@ import com.aritxonly.bdfun.core.domain.playbackCodecPriority
 import com.aritxonly.bdfun.core.domain.playbackCodecMatches
 import com.aritxonly.bdfun.core.domain.choosePlaybackVideo
 import com.aritxonly.bdfun.core.domain.choosePlaybackAudio
+import com.aritxonly.bdfun.core.domain.isDolbyVisionQuality
+import com.aritxonly.bdfun.core.model.video.Quality
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -51,4 +53,16 @@ class PlaybackPolicyTest {
         assertTrue(playbackCodecMatches("dvhe.05", "dvh1"))
         assertFalse(playbackCodecMatches("h264", "avc"))
     }
+    @Test fun dolbyVisionQualityDetectedByIdAndCodecOnly() {
+        // B 站杜比视界：id 126，codecs 可能是 dvh1.xx / dvhe.xx。
+        assertTrue(isDolbyVisionQuality(quality(126, "hev1.2.4")))
+        assertTrue(isDolbyVisionQuality(quality(120, "dvh1.05.06")))
+        assertTrue(isDolbyVisionQuality(quality(80, "dvhe.08.06")))
+        // HDR10 / 普通 HEVC / AV1 仍走原来的纹理表面，不能误判。
+        assertFalse(isDolbyVisionQuality(quality(125, "hev1.2.4")))
+        assertFalse(isDolbyVisionQuality(quality(120, "hev1.2.4")))
+        assertFalse(isDolbyVisionQuality(quality(80, "avc1.640028")))
+        assertFalse(isDolbyVisionQuality(null))
+    }
+    private fun quality(id: Int, codec: String) = Quality(id, "", 0, 0, "", codec, "url")
 }

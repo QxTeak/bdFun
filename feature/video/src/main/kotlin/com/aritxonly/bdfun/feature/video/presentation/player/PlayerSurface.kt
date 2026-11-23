@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.viewinterop.AndroidView
+import com.aritxonly.bdfun.core.domain.isDolbyVisionQuality
 import com.aritxonly.bdfun.core.model.video.SponsorSegment
 import com.aritxonly.bdfun.feature.video.presentation.VideoPlaybackPlatform
 
@@ -37,38 +38,42 @@ fun PlayerSurface(
 ) {
     val state = playback.state.collectAsState()
     val playing by remember(playback) { derivedStateOf { state.value.playing } }
-    val positionMs by remember(playback) { derivedStateOf { state.value.positionMs } }
-    val durationMs by remember(playback) { derivedStateOf { state.value.durationMs } }
     var playerViewRef by ui.playerViewRef
     val fullscreen = presentation.fullscreen
     val danmaku = media.danmaku
-    val frameMs by ui.frameMs
     val boosting by ui.boosting
     val boostSpeed by ui.boostSpeed
     val speed by ui.speed
+    // 杜比视界只能走直通表面；此时缩放/镜像/色觉辅助都做不到，下面统一关掉。
+    val directSurface = isDolbyVisionQuality(media.quality)
     Box(
         modifier = Modifier.fillMaxSize()
-            .playerPictureGestures(ui)
-            .drawColorAssist(ui),
+            .then(if (directSurface) Modifier else Modifier.playerPictureGestures(ui))
+            .drawColorAssist(ui, enabled = !directSurface),
     ) {
         // 只缩放视频画面本身：弹幕、进度条、赞助提示都不跟着变大变小。
-        Box(modifier = Modifier.fillMaxSize().playerPictureTransform(ui)) {
+        Box(modifier = Modifier.fillMaxSize()
+            .then(if (directSurface) Modifier else Modifier.playerPictureTransform(ui))) {
             AndroidView(
-                factory = { ctx ->
-                    playback.createOutput(ctx).also { playerViewRef = it }.view
-                },
+                factory = { ctx -> PlayerOutputHost(ctx) },
                 modifier = Modifier.fillMaxSize(),
+                update = { host ->
+                    host.bind(directSurface) { direct ->
+                        playback.createOutput(host.context, direct).also { playerViewRef = it }
+                    }
+                },
+                onRelease = { host -> host.dispose() },
             )
         }
 
         if (danmakuVisible) {
             val hot = if (picture.hotDanmakuEnabled && !ui.fsAudioOnly.value) ui.danmakuHit.hotPresentation.value
                 else HotDanmakuPresentation()
-            slots.danmaku(danmaku, { frameMs - btLatencyMs }, playing,
+            slots.danmaku(danmaku, { ui.frameMs.longValue - btLatencyMs }, playing,
                 if (boosting) boostSpeed else speed, Modifier.fillMaxSize(), fullscreen, hot, ui.danmakuHit)
         }
 
-        PlayerAlwaysProgress(ui, fullscreen, positionMs, durationMs, picture.progressBarMode, picture.accentColor)
+        PlayerAlwaysProgress(ui, fullscreen, picture.progressBarMode, picture.accentColor)
         PlayerHotDanmakuOverlay(ui, fullscreen, picture, danmakuVisible)
         if (sponsor != null) {
             PlayerSponsorOverlay(sponsor, fullscreen, picture.accentColor) { segment ->
@@ -123,10 +128,11 @@ private fun Modifier.playerPictureGestures(ui: VideoPlayerUiStateHolder): Modifi
         }
 }
 
-private fun Modifier.drawColorAssist(ui: VideoPlayerUiStateHolder): Modifier {
+private fun Modifier.drawColorAssist(ui: VideoPlayerUiStateHolder, enabled: Boolean): Modifier {
     val fsColorAssist by ui.fsColorAssist
     return this.drawWithContent {
         drawContent()
+        if (!enabled) return@drawWithContent
         when (fsColorAssist) {
             1 -> drawRect(Color.Gray, blendMode = BlendMode.Saturation)
             2 -> drawRect(Color(0x3300A8FF), blendMode = BlendMode.Color)

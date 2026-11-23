@@ -209,7 +209,8 @@ internal fun BoxScope.FullscreenAuthor(info: FullscreenPlayerInfo, actions: Full
             modifier = Modifier
                 .height(26.dp)
                 .clip(Capsule())
-                .background(if (info.followed) colors.surfaceContainerHigh else Color.Black.copy(alpha = 0.3f))
+                // 已关注也要保持半透明，不能是一块实色底盖在视频上。
+                .background(if (info.followed) colors.surfaceContainerHigh.copy(alpha = 0.45f) else Color.Black.copy(alpha = 0.3f))
                 .clickable(interactionSource = null, indication = null) {
                     actions.onOpenSpace()
                 },

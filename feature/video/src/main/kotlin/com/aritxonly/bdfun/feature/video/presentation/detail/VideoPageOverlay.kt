@@ -11,11 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
-import com.aritxonly.teak.common.chrome.rememberSpringFloat
 import com.aritxonly.teak.common.interaction.blockTouches
 import com.aritxonly.teak.common.chrome.rememberManualProgress
 
@@ -37,7 +34,6 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageOverlay(
         VideoActivityReplyLayer(layout, pager, host, slots)
         VideoActivityInputLayer(layout, ui, host, slots)
     }
-    VideoActivityDanmakuPanel(layout, host, slots)
 }
 
 @Composable
@@ -126,64 +122,4 @@ private fun androidx.compose.foundation.layout.BoxScope.VideoActivityInputLayer(
                 .then(if (splitPanes) Modifier.width(paneLayout.playerWidthDp.dp) else Modifier),
         )
     }
-}
-
-@Composable
-private fun androidx.compose.foundation.layout.BoxScope.VideoActivityDanmakuPanel(layout: VideoActivityLayout, host: VideoPageOverlayHost, slots: VideoPageOverlaySlots) {
-    val VideoPageBus = host
-    val PlayerUiState = host
-    val pipMode = layout.pictureInPicture
-    val pageFullscreen = layout.fullscreen
-    val pageOverlayAlpha = layout.overlayAlpha
-    val paneLayout = layout.paneLayout
-    val splitPanes = layout.splitPanes
-    val statusBarDp = layout.statusBarTop
-    val playerTopInset = layout.playerTopInset
-    // 弹幕设置面板：统一玻璃 + 弹簧弹出；动画过程中面板自身由模糊变清晰
-    val panelOpen = PlayerUiState.danmakuPanelOpen
-    val spring = rememberSpringFloat(
-        target = if (panelOpen) 1f else 0f,
-        stiffness = 300f,
-        damping = 22f,
-    )
-    val shown = spring.coerceIn(0f, 1f)
-    if (panelOpen || shown > 0.01f) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val event = awaitPointerEvent()
-                            if (event.changes.any { it.pressed }) {
-                                PlayerUiState.danmakuPanelOpen = false
-                            }
-                            event.changes.forEach { it.consume() }
-                        }
-                    }
-                },
-        )
-        val selfBlur = if (shown < 0.99f) {
-            Modifier.blur((10f * (1f - shown)).dp)
-        } else {
-            Modifier
-        }
-        slots.panel(
-            { PlayerUiState.danmakuInteract++ },
-            VideoPageBus.panelBackdrop,
-            Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = statusBarDp + 54.dp, end = if (splitPanes) paneLayout.detailsWidthDp.dp + 12.dp else 12.dp)
-                .graphicsLayer {
-                    alpha = shown
-                    scaleX = 0.82f + 0.18f * spring
-                    scaleY = 0.82f + 0.18f * spring
-                    translationY = (1f - shown) * -14f
-                    transformOrigin =
-                        androidx.compose.ui.graphics.TransformOrigin(1f, 0f)
-                }
-                .then(selfBlur),
-        )
-    }
-
 }

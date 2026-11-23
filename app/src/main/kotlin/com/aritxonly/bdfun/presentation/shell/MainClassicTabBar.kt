@@ -11,7 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.clickable
@@ -37,7 +39,11 @@ internal fun ClassicTabBar(
     showDivider: Boolean = true,
 ) {
     val colors = top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme
-    Box(modifier = modifier.height(58.dp)) {
+    // 底栏背景必须一直画到屏幕底边（盖住系统小白条区域），只把内容行抬高；不能再让
+    // navigationBarsPadding 把整条背景裁在导航栏上方，否则小白条位置会留出一条空白。
+    val navBottom = androidx.compose.foundation.layout.WindowInsets
+        .navigationBars.asPaddingValues().calculateBottomPadding()
+    Box(modifier = modifier.height(58.dp + navBottom)) {
         if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
             // 经典底栏整条走 Miuix 玻璃模糊；不再画顶部分割线。
             Box(Modifier.matchParentSize().teakClassicBarGlass())
@@ -49,7 +55,7 @@ internal fun ClassicTabBar(
             Box(Modifier.matchParentSize().background(colors.surfaceContainer))
         }
         Row(
-            modifier = Modifier.fillMaxWidth().height(58.dp),
+            modifier = Modifier.fillMaxWidth().height(58.dp).align(Alignment.TopCenter),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             items.forEach { item ->

@@ -1,19 +1,25 @@
 package com.aritxonly.teak.common.chrome
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBars
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -46,22 +52,35 @@ fun TeakLoadingRow(
 }
 
 /**
- * 「内容区域」居中的加载占位：高度等于窗口高度减去顶部栏+状态栏，
- * 所以图标落在顶栏以下那块可见内容的中间，而不是整个屏幕的中间。
+ * 首屏加载占位：图标固定在**整个窗口的中心**。
+ *
+ * 它作为列表项出现，列表的 contentPadding 会把这一项整体往下推；这里用自己实际落在窗口里的
+ * y 坐标反推偏移量，所以不管顶栏/tab/留白有多少，图标都在屏幕正中（`extraTopInset` 已不再需要，
+ * 仅为调用方源码兼容保留）。
  */
 @Composable
 fun TeakLoadingArea(
     modifier: Modifier = Modifier,
     size: Dp = 20.dp,
-    extraTopInset: Dp = 0.dp,
+    @Suppress("UNUSED_PARAMETER") extraTopInset: Dp = 0.dp,
 ) {
-    val window = LocalWindowInfo.current.containerSize
     val density = LocalDensity.current
-    val topInset = WindowInsets.statusBars
-        .asPaddingValues().calculateTopPadding() + TeakChromeDefaults.TopBarHeight + extraTopInset
-    val height = with(density) { window.height.toDp() } - topInset
+    val windowHeightPx = LocalWindowInfo.current.containerSize.height
+    val areaHeight = 160.dp
+    val areaHeightPx = with(density) { areaHeight.toPx() }
+    var itemTopPx by remember { mutableFloatStateOf(0f) }
     Box(
-        modifier = modifier.fillMaxWidth().height(height.coerceAtLeast(160.dp)),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(areaHeight)
+            .onGloballyPositioned { coordinates -> itemTopPx = coordinates.positionInWindow().y }
+            .offset {
+                if (itemTopPx <= 0f) {
+                    IntOffset.Zero
+                } else {
+                    IntOffset(0, (windowHeightPx / 2f - itemTopPx - areaHeightPx / 2f).roundToInt())
+                }
+            },
         contentAlignment = Alignment.Center,
     ) {
         TeakLoadingIndicator(size = size)

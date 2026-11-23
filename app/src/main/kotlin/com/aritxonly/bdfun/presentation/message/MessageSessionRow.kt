@@ -38,7 +38,8 @@ internal fun SessionRow(session: MessageSession, onClick: () -> Unit, onLongClic
         modifier = Modifier
             .fillMaxWidth()
             .combinedClickable(interactionSource = null, indication = null, onClick = onClick, onLongClick = onLongClick)
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+            // 左右留白交给列表 contentPadding（与视频页评论区同为 16dp），行内不再叠加。
+            .padding(vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
@@ -57,8 +58,8 @@ internal fun SessionRow(session: MessageSession, onClick: () -> Unit, onLongClic
             }
         }
         Spacer(Modifier.width(12.dp))
-        Column(modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.Top) {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = session.name.ifBlank { "消息" },
                     color = colors.onBackground,
@@ -66,30 +67,54 @@ internal fun SessionRow(session: MessageSession, onClick: () -> Unit, onLongClic
                     fontWeight = FontWeight.Normal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
                 )
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.height(4.dp))
+                Text(
+                    // 预览只到时间列左缘为止，给时间下面的未读点留出位置。
+                    text = (if (session.pinned) "[置顶] " else "") + (if (session.muted) "[免打扰] " else "") + session.preview.ifBlank { "暂无新消息" },
+                    color = colors.onBackgroundVariant,
+                    fontSize = 13.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            Spacer(Modifier.width(8.dp))
+            Column(horizontalAlignment = Alignment.End) {
                 Text(
                     text = formatSessionTime(session.time),
                     color = colors.onBackgroundVariant.copy(alpha = 0.7f),
                     fontSize = 11.sp,
                     maxLines = 1,
                 )
+                if (session.unread > 0 || session.preferences.unreadDot) {
+                    Spacer(Modifier.height(4.dp))
+                    UnreadBadge(session.preferences.unreadDot, session.unread)
+                }
             }
-            Spacer(Modifier.height(4.dp))
-            Text(
-                text = (if (session.pinned) "[置顶] " else "") + (if (session.muted) "[免打扰] " else "") + session.preview.ifBlank { "暂无新消息" },
-                color = colors.onBackgroundVariant,
-                fontSize = 13.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
         }
-        if (session.unread > 0 || session.preferences.unreadDot) {
-            Spacer(Modifier.width(8.dp))
-            Text(if (session.preferences.unreadDot) "•" else if (session.unread > 99) "99+" else session.unread.toString(),
-                color = Color.White, fontSize = 11.sp,
-                modifier = Modifier.background(MessageRed, CircleShape).padding(horizontal = 6.dp, vertical = 2.dp))
+    }
+}
+
+/** 免打扰的未读提示必须是正圆：旧写法用「•」加横向内边距，渲染出来是椭圆。 */
+@Composable
+private fun UnreadBadge(dotOnly: Boolean, unread: Int) {
+    if (dotOnly) {
+        Box(Modifier.size(8.dp).background(MessageRed, CircleShape))
+    } else {
+        Box(
+            modifier = Modifier
+                .height(18.dp)
+                .clip(CircleShape)
+                .background(MessageRed)
+                .padding(horizontal = 5.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = if (unread > 99) "99+" else unread.toString(),
+                color = Color.White,
+                fontSize = 10.sp,
+                maxLines = 1,
+            )
         }
     }
 }

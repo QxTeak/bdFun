@@ -11,10 +11,8 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -48,9 +46,9 @@ internal fun DanmakuCommandCard(
             .clip(shape)
             .background(Color.Black.copy(alpha = 0.68f))
             .border(0.5.dp, Color.White.copy(alpha = 0.22f), shape)
-            .padding(if (vote) 14.dp else 10.dp)
-            .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(if (vote) 8.dp else 6.dp),
+            // 投票/互动卡一次性完整展示，不再用滚动条把选项藏起来。
+            .padding(if (vote) 12.dp else 10.dp),
+        verticalArrangement = Arrangement.spacedBy(if (vote) 6.dp else 6.dp),
     ) {
         CommandCardHeader(command, contentColor, onDismiss, if (vote) 15.sp else 12.sp)
         CommandCardBody(
@@ -136,19 +134,13 @@ private fun CommandCardBody(
             }
         }
         DanmakuCommandKind.Grade -> {
-            command.options.chunked(2).forEach { row ->
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    row.forEach { option ->
-                        CapsuleOption(
-                            label = option.label,
-                            selected = selected == option.value,
-                            enabled = !busy && selected == null && command.interactionId > 0,
-                            onClick = { onSubmit(option.value) },
-                        )
-                    }
-                    if (row.size == 1) Spacer(Modifier.weight(1f))
-                }
-            }
+            // 评分不再显示 1/2/3/4/5 的文字胶囊，改成星星：点第几颗就前几颗变黄。
+            GradeStarRow(
+                options = command.options,
+                selected = selected,
+                enabled = !busy && selected == null && command.interactionId > 0,
+                onClick = onSubmit,
+            )
             val summary = listOfNotNull(
                 command.average?.let { "平均 ${String.format(java.util.Locale.ROOT, "%.1f", it)} 分" },
                 command.participants?.let { "${it} 人参与" },

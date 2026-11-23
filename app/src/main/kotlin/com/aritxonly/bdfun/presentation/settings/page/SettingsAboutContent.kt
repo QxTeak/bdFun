@@ -20,7 +20,8 @@ internal fun SettingsAboutContent(session: SettingsBrowserSession, values: Map<S
     val category = session.selected ?: return
     val scroll = rememberScrollState()
     if (!session.navigation.searching) TrackTeakPageScroll(scroll)
-    val distance = with(LocalDensity.current) { 320.dp.toPx() }
+    // 参考 HyperIsland：光晕在 389dp 的滚动距离内淡出。
+    val distance = with(LocalDensity.current) { 389.dp.toPx() }
     val progress by remember(scroll, distance) { derivedStateOf { (scroll.value / distance).coerceIn(0f, 1f) } }
     Box(modifier) {
         if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {

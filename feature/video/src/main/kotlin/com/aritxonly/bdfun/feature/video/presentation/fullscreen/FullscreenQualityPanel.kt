@@ -2,13 +2,14 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -21,7 +22,6 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 internal fun QualityPanel(
-    info: FullscreenPlayerInfo,
     playback: FullscreenPlaybackState,
     actions: FullscreenActions,
     onClose: () -> Unit,
@@ -29,14 +29,14 @@ internal fun QualityPanel(
 ) {
     PanelCard(title = "画质") {
         if (playback.qualities.isEmpty()) {
-            Text("暂无可用画质", color = Color.White.copy(alpha = 0.5f), fontSize = 13.sp)
+            Text("暂无可用画质", color = Color.White.copy(alpha = 0.5f), fontSize = 15.sp)
         }
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState()),
+            modifier = Modifier.fillMaxSize(),
+            // 选项均分剩余高度，但每行自身保持固定高度：选中框不会跟着间距一起长高。
+            verticalArrangement = Arrangement.SpaceEvenly,
         ) {
-            AutomaticQualityRow(playback.autoQuality, actions, onClose, accentColor)
+            AutomaticQualityRow(playback.autoQuality, actions, onClose, accentColor, Modifier.height(OptionRowHeight))
             playback.qualities
                 .let { list ->
                     // 和半屏播放器一致：不列 720P 以下的档位；
@@ -45,7 +45,7 @@ internal fun QualityPanel(
                 }
                 .forEach { item ->
                     val active = !playback.autoQuality && item.id == playback.qualityId
-                    QualityOptionRow(item, active, actions, onClose, accentColor)
+                    QualityOptionRow(item, active, actions, onClose, accentColor, Modifier.height(OptionRowHeight))
                 }
         }
     }
@@ -57,11 +57,13 @@ private fun AutomaticQualityRow(
     actions: FullscreenActions,
     onClose: () -> Unit,
     accentColor: Color,
+    modifier: Modifier = Modifier,
 ) {
     // 自动：按当前网速挑一档；选中后画质标签显示「自动」。
     OptionRow(
         active = active,
         accentColor = accentColor,
+        modifier = modifier,
         onClick = {
             actions.onQualitySelected(0)
             onClose()
@@ -70,7 +72,7 @@ private fun AutomaticQualityRow(
         Text(
             text = "自动",
             color = if (active) accentColor else Color.White,
-            fontSize = 13.sp,
+            fontSize = 16.sp,
             fontWeight = if (active) FontWeight.Medium else FontWeight.Normal,
         )
     }
@@ -83,11 +85,13 @@ private fun QualityOptionRow(
     actions: FullscreenActions,
     onClose: () -> Unit,
     accentColor: Color,
+    modifier: Modifier = Modifier,
 ) {
     // 只显示 1080P / 720P 这类标签，不再把实际分辨率写出来。
     OptionRow(
         active = active,
         accentColor = accentColor,
+        modifier = modifier,
         onClick = {
             actions.onQualitySelected(item.id)
             onClose()
@@ -96,7 +100,7 @@ private fun QualityOptionRow(
         Text(
             text = qualityMenuLabel(item.label),
             color = if (active) accentColor else Color.White,
-            fontSize = 13.sp,
+            fontSize = 16.sp,
             fontWeight = if (active) FontWeight.Medium else FontWeight.Normal,
         )
     }
@@ -106,11 +110,12 @@ private fun QualityOptionRow(
 private fun OptionRow(
     active: Boolean,
     accentColor: Color,
+    modifier: Modifier = Modifier,
     onClick: () -> Unit,
     content: @Composable () -> Unit,
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(if (active) accentColor.copy(alpha = 0.18f) else Color.Transparent)

@@ -93,6 +93,7 @@ internal fun PlayerInlineAudio(
             durationMs = durationMs,
             onExit = { fsAudioOnly = false },
             onPlayPause = { touch(); togglePlay(playback, playing) },
+            onSeek = { ms -> touch(); fsActions.onSeek(ms) },
             episodes = HalfAudioEpisodes(
                 onPrevious = {
                     touch()

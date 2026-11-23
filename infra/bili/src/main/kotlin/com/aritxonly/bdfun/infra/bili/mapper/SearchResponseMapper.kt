@@ -4,6 +4,7 @@ import com.aritxonly.bdfun.core.model.pgc.SearchPgcItem
 import com.aritxonly.bdfun.core.model.video.*
 import com.aritxonly.bdfun.core.model.library.*
 import com.aritxonly.bdfun.core.model.user.*
+import com.aritxonly.bdfun.core.domain.SearchHotWord
 import com.aritxonly.bdfun.core.domain.relationNextPage
 import com.aritxonly.bdfun.infra.bili.biliImage as image
 import com.aritxonly.bdfun.infra.bili.biliAvatar as avatar
@@ -22,25 +23,34 @@ internal fun mapSearchSuggestions(root: JSONObject, cleanHtml: (String) -> Strin
         .distinct()
         .take(8)
 
-internal fun mapSearchDiscovery(data: JSONObject): List<String> {
+/** 热搜：关键词 + 展示名 + 词条末尾的小标（B 站下发的 PNG，如「独家」）。 */
+internal fun mapSearchDiscovery(data: JSONObject): List<SearchHotWord> {
     val list = data.optJSONObject("trending")?.optJSONArray("list")
-    val out = ArrayList<String>()
+    val out = ArrayList<SearchHotWord>()
     if (list != null) {
         for (i in 0 until list.length()) {
-            val word = list.optJSONObject(i)?.optString("keyword").orEmpty()
-            if (word.isNotBlank()) out.add(word)
+            val item = list.optJSONObject(i) ?: continue
+            val word = item.optString("keyword")
+            if (word.isBlank()) continue
+            out.add(
+                SearchHotWord(
+                    keyword = word,
+                    showName = item.optString("show_name").ifBlank { word },
+                    icon = item.optString("icon"),
+                ),
+            )
         }
     }
     return out
 }
 
-internal fun mapHotwordSearch(root: JSONObject): List<String> {
-    val array = root.optJSONArray("data") ?: return emptyList<String>()
-    val result = ArrayList<String>(array.length())
+internal fun mapHotwordSearch(root: JSONObject): List<SearchHotWord> {
+    val array = root.optJSONArray("data") ?: return emptyList<SearchHotWord>()
+    val result = ArrayList<SearchHotWord>(array.length())
     for (i in 0 until array.length()) {
         val item = array.optJSONObject(i) ?: continue
         val word = item.optString("keyword").ifBlank { item.optString("name") }
-        if (word.isNotBlank()) result.add(word)
+        if (word.isNotBlank()) result.add(SearchHotWord(keyword = word))
     }
     return result
 }
@@ -100,6 +110,21 @@ internal fun mapSearchPgc(data: JSONObject, cleanHtml: (String) -> String): List
             desc = cleanHtml(item.s("desc")),
         )
     }
+
+/**
+ * 搜索发现：`data.list[]` 里 `keyword` 是搜索词、`show_name` 是展示文案。
+ * 同一份响应里会出现重复词，这里去重并保留首次出现顺序（与原展示一致）。
+ */
+internal fun mapSearchRecommend(data: JSONObject): List<String> {
+    val array = data.optJSONArray("list") ?: return emptyList()
+    val out = LinkedHashSet<String>()
+    for (i in 0 until array.length()) {
+        val item = array.optJSONObject(i) ?: continue
+        val word = item.s("keyword").ifBlank { item.s("show_name") }
+        if (word.isNotBlank()) out.add(word)
+    }
+    return out.toList()
+}
 
 internal fun mapHotSearch(data: JSONObject): List<String> =
     data.optJSONObject("trending")?.optJSONArray("list").objects()

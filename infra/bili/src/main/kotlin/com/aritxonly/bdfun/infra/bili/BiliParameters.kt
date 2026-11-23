@@ -10,6 +10,20 @@ internal const val BILI_APP_UA =
     "Mozilla/5.0 BiliDroid/8.43.0 (bbcallen@gmail.com) os/android model/android " +
         "mobi_app/android build/8430300 channel/master innerVer/8430300 osVer/15 network/2"
 internal const val BILI_APP = "https://app.bilibili.com"
+
+/**
+ * App 推荐用的 HD 端 UA / trace-id / statistics。
+ *
+ * 与 PiliPlus 的 `rcmdVideoListApp` 完全一致：`app-key: android_hd` + `mobi_app: android_i`
+ * + 这份 2.0.1 HD UA 是 B 站客户端真实组合，缺任意一项推荐流都会被降级。
+ */
+internal const val BILI_APP_HD_UA =
+    "Mozilla/5.0 BiliDroid/2.0.1 (bbcallen@gmail.com) os/android model/android_hd " +
+        "mobi_app/android_hd build/2001100 channel/master innerVer/2001100 osVer/15 network/2"
+internal const val BILI_APP_TRACE_ID =
+    "11111111111111111111111111111111:1111111111111111:0:0"
+internal const val BILI_APP_STATISTICS =
+    """{"appId":1,"platform":3,"version":"8.43.0","abtest":""}"""
 /** Android App 的 appkey / appsec，用于 app.bilibili.com 的签名。 */
 internal const val BILI_APP_KEY = "dfca71928277209b"
 internal const val BILI_APP_SEC = "b5475a8825547a4fc26c7d518eaaa02e"

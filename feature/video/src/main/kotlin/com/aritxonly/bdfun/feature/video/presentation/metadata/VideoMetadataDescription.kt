@@ -4,6 +4,8 @@ import com.aritxonly.teak.common.icons.AppGlyph
 import com.aritxonly.teak.common.theme.LocalTeakContentColors
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -12,7 +14,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,22 +33,25 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 @Composable
 internal fun VideoMetadataIdentifier(
     content: VideoMetadataContent, description: VideoDescriptionStateHolder,
-    descText: String?, descProgress: Float,
+    descText: String?, descProgress: Float, slots: VideoMetadataSlots,
 ) {
     val colors = MiuixTheme.colorScheme
     val detail = content.detail
     val video = content.video
+    val bvid = detail?.bvid ?: video.bvid
     Row(
         modifier = Modifier.fillMaxWidth().padding(start = 1.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        SelectionContainer {
-            Text(
-                text = detail?.bvid ?: video.bvid,
-                color = colors.onBackgroundVariant,
-                fontSize = 12.sp,
-            )
-        }
+        // 长按直接整段复制 BV 号；不再使用 SelectionContainer，避免先弹文字选择手柄再点复制。
+        Text(
+            text = bvid,
+            color = colors.onBackgroundVariant,
+            fontSize = 12.sp,
+            modifier = Modifier.pointerInput(bvid) {
+                detectTapGestures(onLongPress = { slots.copyText(bvid) })
+            },
+        )
         Spacer(Modifier.weight(1f))
         if (descText != null && description.expandable) {
             Box(
@@ -57,7 +61,7 @@ internal fun VideoMetadataIdentifier(
                     .clickable(
                         interactionSource = null,
                         indication = null,
-                    ) { description.expanded = !description.expanded },
+                    ) { description.toggle() },
                 contentAlignment = Alignment.Center,
             ) {
                 // 换成 Miuix 自带的箭头（向右的 ChevronForward 转 90° 就是向下），
@@ -73,6 +77,7 @@ internal fun VideoMetadataIdentifier(
     }
 }
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 internal fun VideoMetadataDescription(
     descText: String?, description: VideoDescriptionStateHolder, slots: VideoMetadataSlots,
@@ -80,22 +85,51 @@ internal fun VideoMetadataDescription(
     val colors = MiuixTheme.colorScheme
     if (descText != null) {
         Spacer(Modifier.height(4.dp))
-        CollapsibleDescription(
-            text = descText,
-            expanded = description.expanded,
-            color = colors.onBackgroundVariant,
-            onExpandableChange = { description.expandable = true },
-            modifier = Modifier
-                .padding(start = 1.dp)
-                .pointerInput(descText) {
-                    detectTapGestures(
-                        onLongPress = {
-                            slots.copyDescription(descText)
-                        },
-                    )
+        // 简介正文带 LinkAnnotation，普通点击会被 Text 内部链接处理先吃掉。
+        // 用 Initial 阶段的指针监听自己判定“点按/长按”，并在抬手时消费事件，
+        // 从根上保证左半部分文字也能展开；滑动超过阈值就完全放行给列表滚动。
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .pointerInput(descText, description.expandable) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(
+                            requireUnconsumed = false,
+                            pass = androidx.compose.ui.input.pointer.PointerEventPass.Initial,
+                        )
+                        val start = down.position
+                        val downAt = System.currentTimeMillis()
+                        var moved = false
+                        while (true) {
+                            val event = awaitPointerEvent(
+                                androidx.compose.ui.input.pointer.PointerEventPass.Initial,
+                            )
+                            val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                            if (!change.pressed) {
+                                if (!moved) {
+                                    change.consume()
+                                    val elapsed = System.currentTimeMillis() - downAt
+                                    if (elapsed >= 500L) slots.copyDescription(descText)
+                                    else description.toggle()
+                                }
+                                break
+                            }
+                            if ((change.position - start).getDistance() > viewConfiguration.touchSlop) {
+                                moved = true
+                            }
+                        }
+                    }
                 },
-            slots = slots,
-        )
+        ) {
+            CollapsibleDescription(
+                text = descText,
+                expanded = description.expanded,
+                color = colors.onBackgroundVariant,
+                onExpandableChange = { description.expandable = true },
+                modifier = Modifier.fillMaxWidth().padding(start = 1.dp),
+                slots = slots,
+            )
+        }
     }
 }
 

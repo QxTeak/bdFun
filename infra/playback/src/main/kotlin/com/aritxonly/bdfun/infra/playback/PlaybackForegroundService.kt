@@ -95,14 +95,34 @@ abstract class PlaybackForegroundService : Service() {
         startForeground(NOTIFICATION_ID, buildNotification())
         if (ticker == null) {
             ticker = scope.launch {
+                var lastSignature: String? = null
                 while (isActive) {
-                    val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-                    runCatching { manager.notify(NOTIFICATION_ID, buildNotification()) }
+                    // 只有真的变了才重建通知：标题/播放态/队列/封面。
+                    // 进度由系统按 PlaybackState 自己推算，不用每秒重画。
+                    val signature = notificationSignature()
+                    if (signature != lastSignature) {
+                        lastSignature = signature
+                        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+                        runCatching { manager.notify(NOTIFICATION_ID, buildNotification()) }
+                    }
                     delay(1000L)
                 }
             }
         }
         return START_STICKY
+    }
+
+    private fun notificationSignature(): String {
+        val snapshot = playback.playbackSnapshot
+        return listOf(
+            playback.title,
+            playback.author,
+            playback.cover,
+            playback.playing,
+            snapshot.phase,
+            snapshot.speed,
+            artUrl.orEmpty(),
+        ).joinToString("|")
     }
 
     override fun onDestroy() {

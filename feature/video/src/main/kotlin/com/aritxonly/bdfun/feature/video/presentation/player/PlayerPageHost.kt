@@ -7,11 +7,12 @@ interface PlayerPageHost {
     var danmakuProgressMs: Long
     fun requestAutoNext()
     var controlsVisible: Boolean
-    var danmakuPanelOpen: Boolean
-    val danmakuInteract: Int
     var orientationLocked: Boolean
     fun registerPause(owner: Any?, hook: (Boolean) -> Unit)
     fun unregisterPause(hook: (Boolean) -> Unit)
+    /** 被后台/其他页面暂停时登记续播动作，回到本页由 Activity 显式调用。 */
+    fun setPendingResume(action: (() -> Unit)?)
+    fun resumeIfPending()
 }
 
 class PlayerDiagnostics(val log: (String, String) -> Unit, val toast: (String) -> Unit)

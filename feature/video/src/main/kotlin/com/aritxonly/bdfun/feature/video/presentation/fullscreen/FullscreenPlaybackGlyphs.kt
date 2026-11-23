@@ -36,15 +36,24 @@ import androidx.compose.ui.unit.dp
 import com.kyant.shapes.Capsule
 
 @Composable
-internal fun NextGlyph(res: Int, enabled: Boolean) {
+internal fun NextGlyph(
+    res: Int,
+    enabled: Boolean,
+    /** 上一集复用同一个「下一集」像素图标，仅做水平镜像。 */
+    mirror: Boolean = false,
+    description: String = "下一集",
+) {
 
     PixelIcon(
         res = res,
         tint = Color.White,
-        contentDescription = "下一集",
+        contentDescription = description,
         modifier = Modifier
             .size(19.dp)
-            .graphicsLayer { alpha = if (enabled) 1f else 0.28f },
+            .graphicsLayer {
+                alpha = if (enabled) 1f else 0.28f
+                if (mirror) scaleX = -1f
+            },
     )
 }
 

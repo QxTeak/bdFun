@@ -27,8 +27,13 @@ import com.aritxonly.bdfun.feature.login.application.QrLoginStateHolder
 internal fun LoginScreen(controller: QrLoginStateHolder, onBack: () -> Unit, onSuccess: (UserProfile?) -> Unit) {
     val context = LocalContext.current
     val state by controller.state.collectAsState()
-    val bitmap = remember(state.displayQr) {
-        state.displayQr?.let { runCatching { qrBitmap(it.url, 480) }.getOrNull() }
+    // 二维码编码 + 480×480 像素遍历放到后台，别卡登录页首帧。
+    var bitmap by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf<Bitmap?>(null) }
+    androidx.compose.runtime.LaunchedEffect(state.displayQr) {
+        val url = state.displayQr?.url
+        bitmap = if (url == null) null else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            runCatching { qrBitmap(url, 480) }.getOrNull()
+        }
     }
     val scope = rememberCoroutineScope()
     DisposableEffect(controller) { onDispose { controller.close() } }
@@ -45,7 +50,7 @@ internal fun LoginScreen(controller: QrLoginStateHolder, onBack: () -> Unit, onS
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         LoginHeader()
-        LoginQrCard(bitmap, state.loading) { saveLoginQr(context, bitmap) }
+        LoginQrCard(bitmap, state.loading) { saveLoginQr(context, bitmap, scope) }
         OfficialAppLoginButton(enabled = controller.officialAppLoginLink() != null) {
             controller.officialAppLoginLink()?.let { openOfficialAppLogin(context, it) }
                 ?: context.showToast("请先刷新并获取有效二维码")
@@ -53,11 +58,20 @@ internal fun LoginScreen(controller: QrLoginStateHolder, onBack: () -> Unit, onS
         LoginStatus(state) { scope.launch { controller.generate() } }
     }
 }
-private fun saveLoginQr(context: android.content.Context, bitmap: Bitmap?) {
+private fun saveLoginQr(
+    context: android.content.Context,
+    bitmap: Bitmap?,
+    scope: kotlinx.coroutines.CoroutineScope,
+) {
     if (bitmap == null) {
         context.showToast("二维码还没准备好")
         return
     }
-    if (saveQrToGallery(context, bitmap)) context.showToast("成功保存二维码")
-    else context.showToast("保存失败")
+    // 相册写入 + PNG 压缩放后台，避免点保存时卡住。
+    scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+        val ok = saveQrToGallery(context, bitmap)
+        kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+            context.showToast(if (ok) "成功保存二维码" else "保存失败")
+        }
+    }
 }

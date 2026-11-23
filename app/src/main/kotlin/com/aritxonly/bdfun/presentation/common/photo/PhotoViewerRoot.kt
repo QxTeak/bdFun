@@ -20,6 +20,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
+import android.content.pm.ActivityInfo
 import androidx.compose.ui.viewinterop.AndroidView
 import android.graphics.Bitmap
 import android.graphics.Rect
@@ -44,6 +45,18 @@ internal fun PhotoViewerRoot(
     val state = remember { PhotoViewerStateHolder() }
     val view = remember { PhotoViewerTransitionState() }
     val incoming = state.request
+    val context = LocalContext.current
+    // 查看器打开期间跟传感器转向，不受系统“自动旋转”开关限制；关闭后恢复进入前的方向策略。
+    DisposableEffect(incoming != null) {
+        val activity = context.findHostActivity()
+        if (incoming != null && activity != null) {
+            val previous = activity.requestedOrientation
+            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR
+            onDispose { activity.requestedOrientation = previous }
+        } else {
+            onDispose { }
+        }
+    }
     val durationMs = if (animationsEnabled) PhotoViewerDurationMs else 0L
     val viewerBackdrop = rememberLayerBackdrop {
         drawRect(androidx.compose.ui.graphics.Color.Black)
@@ -70,17 +83,8 @@ internal fun PhotoViewerRoot(
             }
         }
     }
-    // 原图/缩略图迟迟没画出来时，缩略图不能永远盖着；超时后露出 Compose 层。
-    LaunchedEffect(view.settled, view.morphCovering) {
-        if (view.settled && view.morphCovering) {
-            kotlinx.coroutines.delay(600)
-            if (view.morphCovering) {
-                morphViewRef?.fadeOut { view.morphCovering = false } ?: run { view.morphCovering = false }
-            }
-        }
-    }
-    // Compose 层说图已经能画了：等它真正画出一两帧后再淡出盖层，杜绝中间闪一帧。
-    PhotoCoverReadyEffect(view) { morphViewRef }
+    // 原图/缩略图迟迟没画出来、或 Compose 层报告能画了：统一由这个 effect 处理盖层淡出。
+    PhotoMorphCoverFallback(view) { morphViewRef }
 
     // 入场动画/缩略图盖层期间点击也要能立刻关闭，不能等原图加载完。
     val dismissOnTap = view.displayed != null && (!view.settled || view.morphCovering)
@@ -114,12 +118,31 @@ internal fun PhotoViewerRoot(
     }
 }
 
+/** 缩略图盖层的两种淡出时机：等太久兜底，或 Compose 层报告已经能画。 */
+@Composable
+private fun PhotoMorphCoverFallback(
+    view: PhotoViewerTransitionState,
+    overlay: () -> PhotoMorphView?,
+) {
+    // 原图/缩略图迟迟没画出来时，缩略图不能永远盖着；超时后露出 Compose 层。
+    LaunchedEffect(view.settled, view.morphCovering) {
+        if (view.settled && view.morphCovering) {
+            kotlinx.coroutines.delay(600)
+            if (view.morphCovering) {
+                val target = overlay()
+                if (target != null) target.fadeOut { view.morphCovering = false } else view.morphCovering = false
+            }
+        }
+    }
+    // Compose 层说图已经能画了：等它真正画出一两帧后再淡出盖层，杜绝中间闪一帧。
+    PhotoCoverReadyEffect(view, overlay)
+}
+
 @Composable
 private fun PhotoCoverReadyEffect(
     view: PhotoViewerTransitionState,
     overlay: () -> PhotoMorphView?,
-) {
-    LaunchedEffect(view.settled, view.coverReadyToken) {
+) {    LaunchedEffect(view.settled, view.coverReadyToken) {
         if (view.settled && view.morphCovering && view.coverReadyToken > 0) {
             kotlinx.coroutines.delay(120)
             if (!view.morphCovering) return@LaunchedEffect
@@ -194,6 +217,7 @@ private fun PhotoMorphLayer(
 
 /** Telegram 的入场/退场是 200ms 的 AccelerateDecelerate，没有回弹、没有过冲。 */
 internal const val PhotoViewerDurationMs = 200L
+
 
 /**
  * 一次打开/关闭过程中的全部瞬时状态。

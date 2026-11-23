@@ -39,6 +39,10 @@ internal fun rememberVideoMetadataAssembly(): VideoMetadataAssembly {
                 context.copyToClipboard("简介", text)
                 context.showToast("已复制简介")
             },
+            copyText = { text ->
+                context.copyToClipboard("BV 号", text)
+                context.showToast("已复制")
+            },
             activity = context.findHostActivity(),
         )
     }

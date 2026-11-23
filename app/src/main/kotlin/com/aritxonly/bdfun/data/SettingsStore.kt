@@ -19,20 +19,27 @@ class SettingsStore private constructor(context: Context, scope: CoroutineScope)
     constructor(context: Context) : this(context, CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate))
 }
 
-private fun loadSettingsIndex(context: Context): com.aritxonly.bdfun.core.domain.SettingsIndex {
+private fun loadSettingsIndex(context: Context): com.aritxonly.bdfun.core.domain.SettingsIndex = runCatching {
     val json = context.assets.open("settings-index.json").bufferedReader().use { it.readText() }
-    return when (val result = com.aritxonly.bdfun.infra.storage.JsonSettingsIndexCodec().decode(json)) {
+    when (val result = com.aritxonly.bdfun.infra.storage.JsonSettingsIndexCodec().decode(json)) {
         is com.aritxonly.bdfun.core.domain.SettingsIndexImport.Success ->
             com.aritxonly.bdfun.core.domain.SettingsIndex(result.categories)
         is com.aritxonly.bdfun.core.domain.SettingsIndexImport.Invalid -> error(result.reason)
     }
+}.getOrElse {
+    // 设置清单坏了也不能让 App 起不来：退化成空设置页，至少还能用。
+    LogCollector.record("SETTINGS", "settings-index 解析失败：${it.message}")
+    com.aritxonly.bdfun.core.domain.SettingsIndex(emptyList())
 }
 
 private fun loadSettingsSeperation(context: Context, index: com.aritxonly.bdfun.core.domain.SettingsIndex):
-    List<com.aritxonly.bdfun.core.model.settings.SettingsSeperation> {
+    List<com.aritxonly.bdfun.core.model.settings.SettingsSeperation> = runCatching {
     val json = context.assets.open("settings-seperation.json").bufferedReader().use { it.readText() }
-    return when (val result = com.aritxonly.bdfun.infra.storage.JsonSettingsSeperationCodec().decode(json, index)) {
+    when (val result = com.aritxonly.bdfun.infra.storage.JsonSettingsSeperationCodec().decode(json, index)) {
         is com.aritxonly.bdfun.core.domain.SettingsSeperationImport.Success -> result.index.groups
         is com.aritxonly.bdfun.core.domain.SettingsSeperationImport.Invalid -> error(result.reason)
     }
+}.getOrElse {
+    LogCollector.record("SETTINGS", "settings-seperation 解析失败：${it.message}")
+    emptyList()
 }

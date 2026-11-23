@@ -118,6 +118,24 @@ internal fun SpaceSubmissionCard(
     }
 }
 
+/**
+ * 投稿页的视频行：不再套圆角矩形卡片，直接铺在页面上。
+ * 左右留白与搜索结果页一致（12dp），避免视频内容被卡片再加一层内缩。
+ */
+@Composable
+internal fun SpaceSubmissionVideoRow(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit,
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp, vertical = 4.dp),
+    ) {
+        content()
+    }
+}
+
 @Composable
 internal fun SpaceLoadingRow() {
     Box(

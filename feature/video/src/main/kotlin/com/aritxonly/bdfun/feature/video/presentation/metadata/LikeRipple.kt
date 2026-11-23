@@ -192,6 +192,11 @@ internal class LikeRippleView(context: android.content.Context) : View(context) 
 
     override fun onDetachedFromWindow() {
         removeCallbacks(spawnRunnable)
+        // 页面关掉就把整屏截图放掉；下次进入会重新抓，不能让它跟着进程常驻。
+        contentBitmap?.takeIf { !it.isRecycled }?.recycle()
+        contentBitmap = null
+        bitmap?.takeIf { !it.isRecycled }?.recycle()
+        bitmap = null
         super.onDetachedFromWindow()
     }
 

@@ -27,6 +27,7 @@ internal fun SearchResultList(
     content: com.aritxonly.bdfun.feature.search.application.SearchUiState,
     onOpenVideo: (VideoItem) -> Unit, onOpenUser: (SearchUser) -> Unit,
     onLoadMore: () -> Unit = {},
+    onLoadMoreUsers: () -> Unit = {},
 ) {
     val wide = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600
     val pageColors = MiuixTheme.colorScheme
@@ -34,13 +35,20 @@ internal fun SearchResultList(
     // 只有视频 Tab 有分页：滑到接近底部就拉下一页；drop(1) 忽略进入页面时的首次布局。
     // 结果数量用 rememberUpdatedState 读最新值，否则 effect 会一直拿第一次的 20 条判断阈值。
     val resultsSize by androidx.compose.runtime.rememberUpdatedState(content.results.size)
+    val usersSize by androidx.compose.runtime.rememberUpdatedState(content.users.size)
     val loadMore by androidx.compose.runtime.rememberUpdatedState(onLoadMore)
-    if (page == 0) {
-        LaunchedEffect(listState) {
+    val loadMoreUsers by androidx.compose.runtime.rememberUpdatedState(onLoadMoreUsers)
+    if (page == 0 || page == 3) {
+        LaunchedEffect(listState, page) {
             snapshotFlow { listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1 }
                 .drop(1)
                 .collect { last ->
-                    if (resultsSize > 0 && last >= resultsSize - 4) loadMore()
+                    // 用户 Tab 也必须能续页：之前只在视频 Tab 上挂了分页，用户拉几屏就停住了。
+                    if (page == 0) {
+                        if (resultsSize > 0 && last >= resultsSize - 4) loadMore()
+                    } else if (usersSize > 0 && last >= usersSize - 4) {
+                        loadMoreUsers()
+                    }
                 }
         }
     }

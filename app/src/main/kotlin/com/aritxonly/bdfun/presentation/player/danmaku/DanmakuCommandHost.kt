@@ -210,7 +210,12 @@ internal fun commandCardPlacement(
     val bottomLimit = contentTop + contentHeight - safeInsetPx
     return CommandCardPlacement(
         width = (widthPx / density).dp,
-        maxHeight = ((contentHeight * 0.5f).coerceAtLeast(1f) / density).dp,
+        // 投票卡要一次完整展示所有选项，允许用满播放器高度；其它卡片仍限制在一半。
+        maxHeight = (if (command.kind == DanmakuCommandKind.Vote) {
+            (contentHeight - safeInsetPx * 2f).coerceAtLeast(1f)
+        } else {
+            (contentHeight * 0.5f).coerceAtLeast(1f)
+        } / density).dp,
         x = rawX.coerceIn(contentLeft + safeInsetPx, maxWidthPx.coerceAtLeast(contentLeft + safeInsetPx)),
         y = if (rawY != null) rawY.coerceIn(contentTop + safeInsetPx, bottomLimit) else
             contentTop + contentHeight - 52.dp.value * density,

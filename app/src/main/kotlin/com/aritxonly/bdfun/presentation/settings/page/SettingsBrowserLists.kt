@@ -53,8 +53,10 @@ internal fun SettingsCategoryList(session: SettingsBrowserSession, modifier: Mod
                             onClick = { session.browser.open(category.route) })
                         if (entry.route == "settings/about") {
                             // 捐赠从「关于」页挪到设置第一页，和关于同一张卡片、排在关于下面；
-                            // 图标先直接复用关于的。
-                            ArrowPreference(title = "捐赠", startAction = { SettingsCategoryIcon(entry) },
+                            // 捐赠从「关于」页挪到设置第一页，和关于同一张卡片、排在关于下面；
+                            // 图标用自己的（Miuix BankCards + 珊瑚色块），不再和关于共用。
+                            ArrowPreference(title = "捐赠",
+                                startAction = { SettingsCategoryIcon(iconName = "BankCards", color = "#FF6A3D") },
                                 onClick = { runtime.navigation.onAbout(SettingsDestination.Donation) })
                         }
                     }

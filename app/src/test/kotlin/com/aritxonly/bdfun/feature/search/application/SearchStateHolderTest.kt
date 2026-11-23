@@ -18,10 +18,17 @@ class SearchStateHolderTest {
         val requests = mutableListOf<SearchRequest>()
         var suggest: suspend (String) -> Outcome<List<String>> = { Outcome.Success(listOf(it)) }
         var people: suspend (String) -> Outcome<List<SearchUser>> = { Outcome.Success(emptyList()) }
+        /** 需要区分页码的用户分页测试用它；为空时沿用 [people]。 */
+        var peoplePage: (suspend (String, Int) -> Outcome<List<SearchUser>>)? = null
+        val userPages = mutableListOf<Int>()
         var videos: suspend (SearchRequest) -> Outcome<List<VideoItem>> = { Outcome.Success(emptyList()) }
-        override suspend fun hotKeywords(): Outcome<List<String>> { hotCalls++; return Outcome.Success(listOf("热词")) }
+        override suspend fun hotKeywords(): Outcome<List<SearchHotWord>> { hotCalls++; return Outcome.Success(listOf(SearchHotWord("热词"))) }
+        override suspend fun discoveryKeywords(): Outcome<List<String>> = Outcome.Success(listOf("发现"))
         override suspend fun suggestions(query: String): Outcome<List<String>> { calls += "suggest:$query"; return suggest(query) }
-        override suspend fun users(keyword: String): Outcome<List<SearchUser>> { calls += "users:$keyword"; return people(keyword) }
+        override suspend fun users(keyword: String, page: Int): Outcome<List<SearchUser>> {
+            calls += "users:$keyword"; userPages += page
+            return peoplePage?.invoke(keyword, page) ?: people(keyword)
+        }
         override suspend fun videos(request: SearchRequest): Outcome<List<VideoItem>> {
             calls += "videos:${request.keyword}"; requests += request; return videos.invoke(request)
         }
@@ -35,7 +42,20 @@ class SearchStateHolderTest {
         assertEquals(0, source.hotCalls)
         holder.loadHotKeywords(true); holder.loadHotKeywords(true)
         assertEquals(1, source.hotCalls)
-        assertEquals(listOf("热词"), holder.state.value.hotKeywords)
+        assertEquals(listOf(SearchHotWord("热词")), holder.state.value.hotKeywords)
+    }
+
+    @Test fun discoveryLoadsOnlyWhenEnabledAndEmptyAndStaysSeparateFromHot() = runBlocking {
+        val source = Fake(); val holder = SearchStateHolder(source, wait = {})
+        holder.loadDiscovery(false)
+        assertTrue(holder.state.value.discoveryKeywords.isEmpty())
+        holder.loadDiscovery(true); holder.loadDiscovery(true)
+        assertEquals(listOf("发现"), holder.state.value.discoveryKeywords)
+        // 两个板块各自独立：发现不会写进热搜，热搜也不会盖掉发现。
+        assertTrue(holder.state.value.hotKeywords.isEmpty())
+        holder.loadHotKeywords(true)
+        assertEquals(listOf("发现"), holder.state.value.discoveryKeywords)
+        assertEquals(listOf(SearchHotWord("热词")), holder.state.value.hotKeywords)
     }
 
     @Test fun suggestionsTrimDebounceAndClearOnBlankOrSubmitted() = runBlocking {
@@ -105,7 +125,7 @@ class SearchStateHolderTest {
         assertTrue(holder.state.value.users.isEmpty())
         assertFalse(holder.state.value.loadedOnce)
         assertFalse(holder.state.value.loading)
-        assertEquals(listOf("热词"), holder.state.value.hotKeywords)
+        assertEquals(listOf(SearchHotWord("热词")), holder.state.value.hotKeywords)
         holder.search("word", SearchFilterState())
         assertEquals(2, source.calls.count { it == "users:word" })
     }
@@ -179,6 +199,23 @@ class SearchStateHolderTest {
         assertTrue(holder.state.value.end)
         holder.loadMore()
         assertEquals(1, source.requests.size)
+    }
+
+    @Test fun userTabLoadsMorePagesInsteadOfStoppingAfterTheFirstScreen() = runBlocking {
+        val source = Fake()
+        val first = (1..SEARCH_PAGE_SIZE).map { SearchUser(it.toLong(), "u$it", "", "") }
+        val second = (1..3).map { SearchUser((SEARCH_PAGE_SIZE + it).toLong(), "v$it", "", "") }
+        source.peoplePage = { _, page ->
+            Outcome.Success(if (page == 1) first else second)
+        }
+        val holder = SearchStateHolder(source, wait = {})
+        holder.search("word", SearchFilterState())
+        assertFalse(holder.state.value.userPaging.end)
+        holder.loadMoreUsers()
+        assertEquals(listOf(1, 2), source.userPages)
+        assertEquals(SEARCH_PAGE_SIZE + 3, holder.state.value.users.size)
+        assertTrue(holder.state.value.userPaging.end)
+        assertFalse(holder.state.value.userPaging.loadingMore)
     }
 
     @Test fun aNewSearchResetsThePagingCursor() = runBlocking {

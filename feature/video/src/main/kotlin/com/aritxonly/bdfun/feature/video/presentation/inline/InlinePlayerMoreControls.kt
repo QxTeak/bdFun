@@ -62,7 +62,8 @@ internal fun HalfSpeedRow(speed: Float, onSelect: (Float) -> Unit, accentColor: 
                 } else {
                     colors.onBackgroundVariant
                 },
-                fontSize = 11.5.sp,
+                // 半屏更多面板的倍速选项也比原来大一号，和全屏倍速面板一致。
+                fontSize = 12.5.sp,
                 modifier = Modifier.clickable(interactionSource = null, indication = null) {
                     onSelect(value)
                 },

@@ -44,7 +44,6 @@ fun BindPlayerControlVisibility(
 
     LaunchedEffect(controlsVisible) {
         if (!controlsVisible) {
-            page.danmakuPanelOpen = false
             speedMenu = false
             fsPanel = FullscreenPanel.None
             fsInputOpen = false
@@ -88,15 +87,13 @@ private fun BindPlayerControlsAutoHide(ui: VideoPlayerUiStateHolder, page: Playe
     LaunchedEffect(
         controlsVisible,
         interactionTick,
-        page.danmakuPanelOpen,
-        page.danmakuInteract,
         boosting,
         fsPanel,
         fsInputOpen,
         fsAudioOnly,
         fsScrubbing,
     ) {
-        if (controlsVisible && !page.danmakuPanelOpen && !boosting &&
+        if (controlsVisible && !boosting &&
             fsPanel == FullscreenPanel.None && !fsInputOpen && !fsAudioOnly &&
             !fsScrubbing
         ) {

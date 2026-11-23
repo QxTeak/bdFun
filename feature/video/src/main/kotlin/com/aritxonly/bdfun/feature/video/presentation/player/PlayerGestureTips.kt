@@ -36,7 +36,7 @@ internal fun GestureIconTip(
             .padding(horizontal = 18.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AppGlyph(if (brightness) LucideIcons.Sun else LucideIcons.Volume1, Color.White, size = 24.dp)
+        LevelGlyph(brightness = brightness, value = value)
         Spacer(Modifier.width(8.dp))
         Box(
             modifier = Modifier
@@ -52,6 +52,66 @@ internal fun GestureIconTip(
                     .clip(Capsule())
                     .background(Color(0xFFFB7299)),
             )
+        }
+    }
+}
+
+/**
+ * 保留原来的 Lucide 喇叭/太阳图标作为底座，只在其外围叠加动态元素：
+ * 音量按大小补 1/2/3 根弧线；亮度按高低改变外圈光线长度。
+ */
+@Composable
+private fun LevelGlyph(brightness: Boolean, value: Float) {
+    Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
+        AppGlyph(
+            if (brightness) LucideIcons.Sun else LucideIcons.Volume1,
+            Color.White,
+            size = 20.dp,
+        )
+        androidx.compose.foundation.Canvas(Modifier.size(24.dp)) {
+            val w = size.width
+            val h = size.height
+            val stroke = 1.3.dp.toPx()
+            if (brightness) {
+                val cx = w * 0.5f
+                val cy = h * 0.5f
+                val inner = w * 0.37f
+                val outer = inner + w * 0.13f * value.coerceIn(0f, 1f)
+                for (index in 0 until 8) {
+                    val angle = Math.toRadians((index * 45).toDouble())
+                    val dx = kotlin.math.cos(angle).toFloat()
+                    val dy = kotlin.math.sin(angle).toFloat()
+                    drawLine(
+                        color = Color.White.copy(alpha = 0.9f),
+                        start = androidx.compose.ui.geometry.Offset(cx + dx * inner, cy + dy * inner),
+                        end = androidx.compose.ui.geometry.Offset(cx + dx * outer, cy + dy * outer),
+                        strokeWidth = stroke,
+                        cap = androidx.compose.ui.graphics.StrokeCap.Round,
+                    )
+                }
+            } else {
+                val arcs = when {
+                    value < 0.34f -> 1
+                    value < 0.67f -> 2
+                    else -> 3
+                }
+                // 原图标自带第一根弧线，这里只补第 2/3 根。
+                for (index in 1 until arcs) {
+                    val radius = w * (0.29f + 0.09f * (index - 1))
+                    drawArc(
+                        color = Color.White,
+                        startAngle = -52f,
+                        sweepAngle = 104f,
+                        useCenter = false,
+                        topLeft = androidx.compose.ui.geometry.Offset(w * 0.50f - radius, h * 0.5f - radius),
+                        size = androidx.compose.ui.geometry.Size(radius * 2f, radius * 2f),
+                        style = androidx.compose.ui.graphics.drawscope.Stroke(
+                            width = stroke,
+                            cap = androidx.compose.ui.graphics.StrokeCap.Round,
+                        ),
+                    )
+                }
+            }
         }
     }
 }
