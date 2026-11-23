@@ -91,6 +91,7 @@ open class SettingsBindings internal constructor(
     override var discBreathCoverColor: Boolean by projection.property("discBreathCoverColorState", { controller.discBreathCoverColor }, { controller.discBreathCoverColor = it })
     override var autoPlay: Boolean by projection.property("autoPlayState", { controller.autoPlay }, { controller.autoPlay = it })
     override var autoPlayNext: Boolean by projection.property("autoPlayNextState", { controller.autoPlayNext }, { controller.autoPlayNext = it })
+    override var loopMode: Int by projection.property("loopModeState", { controller.loopMode }, { controller.loopMode = it })
     override var dynamicAutoPlay: Boolean by projection.property("dynamicAutoPlayState", { controller.dynamicAutoPlay }, { controller.dynamicAutoPlay = it })
     override var dynamicAutoPlayMuted: Boolean by projection.property("dynamicAutoPlayMutedState", { controller.dynamicAutoPlayMuted }, { controller.dynamicAutoPlayMuted = it })
     override var dynamicAutoPlayQuality: Int by projection.property("dynamicAutoPlayQualityState", { controller.dynamicAutoPlayQuality }, { controller.dynamicAutoPlayQuality = it })

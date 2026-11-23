@@ -54,12 +54,16 @@ fun BindPlayerControlVisibility(
         if (fullscreen == lastFullscreenForControls) return@LaunchedEffect
         lastFullscreenForControls = fullscreen
         // 进入 / 退出全屏（包括旋转触发）都不自动弹出控件，全部先收起。
-        controlsVisible = false
-        page.controlsVisible = false
+        // 例外：听视频模式已经关掉视频轨，全屏界面本身就是唯一的「画面」，
+        // 收起控件等于整屏黑掉，所以进入全屏时保持可见（它本来也不参与自动隐藏）。
+        val keepAudioChrome = fullscreen && fsAudioOnly
+        controlsVisible = keepAudioChrome
+        page.controlsVisible = keepAudioChrome
         if (!fullscreen) {
             fsPanel = FullscreenPanel.None
             fsInputOpen = false
-            fsAudioOnly = false
+            // 听视频不在退出全屏时关闭：旋转是「横屏全屏 → 竖屏半屏」的同一次播放，
+            // 把模式清掉会让用户刚开的听视频自己退出。真正退出只用听视频界面上的按钮。
         }
     }
 
@@ -67,6 +71,8 @@ fun BindPlayerControlVisibility(
         if (fsAudioOnly) {
             controlsVisible = true
             page.controlsVisible = true
+            // 听视频界面没有锁按钮，若带着旧的锁定状态进来就再也解不开了。
+            ui.fsLocked.value = false
         }
         // 听视频：真正关掉视频轨，只保留音频解码，不是拿一张图盖住画面
         playback.setVideoEnabled(!fsAudioOnly)

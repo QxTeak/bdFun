@@ -65,6 +65,9 @@ internal class PlaybackSettingsStateHolder(
 
     private val autoPlayNextState = stateCell("autoPlayNextState", prefs.getBoolean("auto_play_next", true))
 
+    /** 全屏循环播放：0 不循环 / 1 单集循环 / 2 列表循环。 */
+    private val loopModeState = stateCell("loopModeState", prefs.getInt("loop_mode", 0))
+
     /** 动态页视频滚到屏幕中心附近时是否自动静音预览播放。 */
 
     private val dynamicAutoPlayState = stateCell("dynamicAutoPlayState", prefs.getBoolean("dynamic_auto_play", true))
@@ -214,6 +217,14 @@ internal class PlaybackSettingsStateHolder(
         set(value) {
             autoPlayNextState.value = value
             prefs.edit().putBoolean("auto_play_next", value).apply()
+        }
+
+    override var loopMode: Int
+        get() = loopModeState.value.coerceIn(0, 2)
+        set(value) {
+            val mode = value.coerceIn(0, 2)
+            loopModeState.value = mode
+            prefs.edit().putInt("loop_mode", mode).apply()
         }
 
     override var dynamicAutoPlay: Boolean
