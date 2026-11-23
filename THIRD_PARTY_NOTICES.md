@@ -16,8 +16,8 @@ bdFun 包含或参考了以下第三方项目的代码、材质和参数。分�
 
 - 仓库：https://github.com/1812z/HyperIsland
 - 许可证：MIT
-- 使用方式：**仅参数/观感参考**，未复制源码。参考了顶栏渐进式模糊的部分参数和分层方式；`TeakProgressiveTopBar` 实际来自 Hyper-PiliPlus，不是 HyperIsland。
-- 如果后续复制了 HyperIsland 的代码，必须保留其 MIT 版权与许可声明。
+- 使用方式：顶栏渐进式模糊**仅参数/观感参考**，未复制源码；`TeakProgressiveTopBar` 实际来自 Hyper-PiliPlus，不是 HyperIsland。此外「关于」页的动态渐变背景**移植自 HyperIsland 的 About 背景实现**（`SettingsAboutBackground.kt` 文件头已标明来源与修改）。
+- 因为包含了 HyperIsland 的背景实现移植，分发时按 MIT 保留其版权与许可声明。
 
 ## Miuix
 
