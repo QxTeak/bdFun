@@ -20,12 +20,11 @@ internal class SettingsStateHolder private constructor(private val groups: Setti
     companion object {
         fun create(prefs: SettingsPreferences, codec: SearchHistoryCodec, scope: CoroutineScope): SettingsStateHolder {
             // 历史版本的脏数据不应该让 App 每次冷启动都崩在首帧之前：迁移失败就跳过。
+            // 应用层不引用平台日志实现，失败静默忽略即可（设置本身会退回默认值）。
             runCatching {
                 migrateSettings0(prefs)
                 migrateSettings1(prefs)
                 migrateSettings2(prefs)
-            }.onFailure {
-                com.aritxonly.bdfun.data.LogCollector.record("SETTINGS", "迁移失败，已跳过：${it.message}")
             }
             val values = SettingsValuesStateHolder()
             val floats = FloatSettingsWriter(prefs, scope)
