@@ -48,7 +48,11 @@ internal fun PlayerFullscreenOverlay(
     var fsScrubbing by ui.fsScrubbing
     var fsSeekLook by ui.fsSeekLook
     var fsBarPreviewMs by ui.fsBarPreviewMs
-    val controlsAlpha = if (controlsVisible && !pictureInPicture) 1f else 0f
+    val fsAudioOnly by ui.fsAudioOnly
+    // 听视频模式关掉了视频轨，全屏界面不再只是"控件"，它就是画面本身：
+    // 控件自动隐藏 / 进出全屏时不能把它一起藏掉，否则整屏全黑。
+    val chromeVisible = controlsVisible || fsAudioOnly
+    val controlsAlpha = if (chromeVisible && !pictureInPicture) 1f else 0f
     if (fullscreen && !pictureInPicture) {
         val chrome = ports.fullscreenVisuals()
         FullscreenPlayerChrome(
@@ -60,7 +64,7 @@ internal fun PlayerFullscreenOverlay(
             modifier = Modifier
                 .fillMaxSize()
                 .zIndex(10f)
-                .offset(x = if (controlsVisible && !fsInputOpen) 0.dp else 10_000.dp)
+                .offset(x = if (chromeVisible && !fsInputOpen) 0.dp else 10_000.dp)
                 .graphicsLayer { alpha = if (fsInputOpen) 0f else controlsAlpha },
             scrubOnly = fsScrubbing,
             scrub = FullscreenScrubActions(
