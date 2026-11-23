@@ -62,7 +62,8 @@ fun BindPlayerControlVisibility(
         if (!fullscreen) {
             fsPanel = FullscreenPanel.None
             fsInputOpen = false
-            fsAudioOnly = false
+            // 听视频不在退出全屏时关闭：旋转是「横屏全屏 → 竖屏半屏」的同一次播放，
+            // 把模式清掉会让用户刚开的听视频自己退出。真正退出只用听视频界面上的按钮。
         }
     }
 
