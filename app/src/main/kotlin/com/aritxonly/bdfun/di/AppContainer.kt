@@ -298,7 +298,7 @@ internal class AppContainer(
             com.aritxonly.bdfun.feature.mine.application.MinePreviewStateHolder(
                 com.aritxonly.bdfun.infra.bili.BiliLibraryRepository(api),
                 { !closed && sessionController.identity == identity && identity.mid == profile?.mid })
-        })
+        }, playbackQueue)
     }
     val libraryDependencies by lazy {
         com.aritxonly.bdfun.ui.LibraryDependencies(::libraryStateHolder, { scope ->

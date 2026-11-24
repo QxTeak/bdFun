@@ -83,7 +83,11 @@ internal fun LibrarySearchOverlay(runtime: LibraryRuntime, data: LibraryUiState,
     }
     LibrarySearchPage(
         LibrarySearchContent(runtime.request.title, ui.searchHistory, results, data.loading[runtime.currentMode] == true, data.errors[runtime.currentMode]),
-        LibrarySearchActions(interaction::clearSearchHistory, interaction::submitQuery, interaction::closeSearch, runtime.navigation.onOpenVideo),
+        // 搜索结果里点开的视频同样先准备队列，否则播完没有下一集可连。
+        LibrarySearchActions(interaction::clearSearchHistory, interaction::submitQuery, interaction::closeSearch) { video ->
+            runtime.dependencies.playbackQueue.set(results, video.bvid)
+            runtime.navigation.onOpenVideo(video)
+        },
     )
 }
 

@@ -67,4 +67,22 @@ class VideoPagePolicyTest {
             ),
         )))
     }
+    @Test fun collectionStartIsZeroForSinglePartVideo() {
+        // 单 P 视频的播放页就是纯合集列表，合集从第 0 项开始。
+        val single = detail.copy(info = detail.info.copy(episodes = listOf(episode(1), episode(3))))
+        assertEquals(0, collectionStartIndex(single))
+    }
+    @Test fun collectionStartSkipsOwnParts() {
+        // 多 P 视频前面是自己分 P，合集第一集要跳过它们。
+        val multi = detail.copy(info = detail.info.copy(
+            pages = listOf(first, second),
+            episodes = listOf(episode(3), episode(4)),
+        ))
+        assertEquals(listOf(1L, 2L, 3L, 4L), videoPlaybackPages(multi).map { it.cid })
+        assertEquals(2, collectionStartIndex(multi))
+    }
+    @Test fun collectionStartIsMinusOneWithoutCollection() {
+        assertEquals(-1, collectionStartIndex(detail))
+        assertEquals(-1, collectionStartIndex(detail.copy(info = detail.info.copy(episodes = listOf(episode(9))))))
+    }
 }

@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.ui
 
+import com.aritxonly.bdfun.core.domain.collectionStartIndex
 import com.aritxonly.bdfun.core.domain.videoPlaybackPages
 import com.aritxonly.bdfun.ui.FullscreenVideoInfo
 import com.aritxonly.bdfun.ui.FullscreenMediaInfo
@@ -57,6 +58,8 @@ private fun fullscreenPlayerInfo(content: VideoPlayerContent): FullscreenPlayerI
         media = FullscreenMediaInfo(
             qualityLabel = if (content.selection.autoQuality) "自动" else content.quality?.label ?: "",
             pages = detail?.let(::videoPlaybackPages).orEmpty(),
+            partCount = detail?.pages?.size ?: 0,
+            collectionStartIndex = detail?.let(::collectionStartIndex) ?: -1,
             currentCid = content.selection.cid,
             subtitles = metadata.subtitles,
             selectedSubtitle = metadata.selectedSubtitle,
