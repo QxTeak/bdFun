@@ -126,8 +126,15 @@ internal fun buzzDevice(context: Context) {
 }
 
 internal fun currentBrightness(activity: Activity?): Float {
-    val value = activity?.window?.attributes?.screenBrightness ?: -1f
-    return if (value < 0f) 0.5f else value
+    val window = activity?.window ?: return 0.5f
+    val explicit = window.attributes.screenBrightness
+    if (explicit >= 0f) return explicit
+    // -1 表示跟随系统。此时必须读系统当前亮度，不能从固定的 50% 起跳。
+    val resolver = activity.contentResolver
+    val raw = runCatching {
+        android.provider.Settings.System.getInt(resolver, android.provider.Settings.System.SCREEN_BRIGHTNESS)
+    }.getOrDefault(128)
+    return (raw / 255f).coerceIn(0.02f, 1f)
 }
 
 internal fun applyBrightness(activity: Activity?, value: Float) {

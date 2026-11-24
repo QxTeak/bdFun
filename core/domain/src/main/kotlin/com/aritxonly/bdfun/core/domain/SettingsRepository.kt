@@ -130,6 +130,13 @@ interface GeneralSettings {
     val searchHistory: List<String>
     fun addSearchHistory(keyword: String)
     fun clearSearchHistory()
+    /**
+     * 页面级搜索记录（收藏 / 历史 / 稍后再看等）：和首页搜索历史互相隔离，
+     * 只记录发生在该页面的关键词，不读写 `searchHistory`。
+     */
+    fun searchHistory(scope: String): List<String>
+    fun addSearchHistory(scope: String, keyword: String)
+    fun clearSearchHistory(scope: String)
 }
 
 interface SettingsRepository : AppearanceSettings, PlaybackSettings, DanmakuSettings, MessageSettings, GeneralSettings {

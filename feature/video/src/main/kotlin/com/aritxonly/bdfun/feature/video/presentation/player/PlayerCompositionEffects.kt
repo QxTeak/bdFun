@@ -38,12 +38,13 @@ fun BindPlayerInitialEffects(
 @Composable
 fun BindPlayerPresentationSetup(
     media: VideoMediaInput, presentation: VideoPlayerPresentation, ui: VideoPlayerUiStateHolder, ports: PlayerEnginePorts,
+    portraitVideo: Boolean = false,
 ) {
     val bvid = media.bvid
     val fullscreenInfo = presentation.fullscreenInfo
     val fullscreen = presentation.fullscreen
     // 全屏新 UI 的本地状态：二级面板、听视频、镜像、循环、画面尺寸、定时关闭等
-    BindPlayerOrientation(fullscreen, ui, ports.page)
+    BindPlayerOrientation(fullscreen, ui, ports.page, portraitVideo)
     var fsAutoPlayNext by ui.fsAutoPlayNext
     LaunchedEffect(fsAutoPlayNext) {
         ports.settings.autoPlayNextChanged(fsAutoPlayNext)

@@ -54,6 +54,7 @@ internal fun MessageFeedList(
     var manualRefresh by remember { mutableStateOf(false) }
     LaunchedEffect(loadingByTab[key]) { if (loadingByTab[key] != true) manualRefresh = false }
     val refreshing = manualRefresh && loadingByTab[key] == true
+    Box(Modifier.fillMaxSize()) {
     HomePullRefreshBox(
         refreshing = refreshing,
         topPadding = barHeight - 8.dp,
@@ -95,12 +96,23 @@ internal fun MessageFeedList(
                     if (!snapshot.busy && loadingByTab[key] != true) menu.open(key, item, anchor)
                 }
             }
-            // 首次加载的占位一旦消失，LazyColumn 才会从索引 0 开始，而非锚定到列表末尾。
-            item(key = if (pageItems.isEmpty()) "initial-footer" else "footer") {
-                MessagePageFooter(loadingByTab[key] == true, errorByTab[key], nextByTab[key] != null, pageItems.isEmpty(),
-                    onLoad = { actions.loadFooter(ui.tab) })
+            // 首次加载由整屏居中图标负责，footer 只在已有内容或失败时出现。
+            if (!(loadingByTab[key] == true && pageItems.isEmpty())) {
+                item(key = if (pageItems.isEmpty()) "initial-footer" else "footer") {
+                    MessagePageFooter(
+                        loading = loadingByTab[key] == true && pageItems.isNotEmpty(),
+                        error = errorByTab[key],
+                        hasMore = nextByTab[key] != null,
+                        empty = pageItems.isEmpty(),
+                        onLoad = { actions.loadFooter(ui.tab) },
+                    )
+                }
             }
         }
+    }
+    if (loadingByTab[key] == true && pageItems.isEmpty() && errorByTab[key] == null) {
+        PageCenteredLoading()
+    }
     }
 }
 

@@ -210,7 +210,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.commentListFooter(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                TeakLoading(size = 36.dp)
+                com.aritxonly.teak.common.chrome.TeakLoadingIndicator()
             }
         }
     }

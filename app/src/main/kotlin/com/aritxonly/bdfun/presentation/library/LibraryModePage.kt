@@ -19,7 +19,10 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +54,22 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
         // 和热门页/搜索结果完全同一套：一列视频行，宽屏用有界网格；
         // 骨架、分页尾巴也直接复用那两份实现，不再单独维护一套卡片。
         val wide = maxWidth >= 600.dp
+        var historyCategory by remember { mutableStateOf(HistoryCategory.All) }
+        // 列表滚动时 LazyGrid 的内容 lambda 会反复执行，过滤/映射放在外面只算一次。
+        val rows = remember(
+            content.folderVideos, content.historyEntries, content.watchLaterEntries,
+            layout.mode, historyCategory,
+        ) {
+            when (layout.mode) {
+                0 -> content.folderVideos
+                1 -> content.historyEntries
+                    .filter { historyCategory == HistoryCategory.All || it.historyCategory() == historyCategory }
+                    .map { it.toVideoItem() }
+                else -> content.watchLaterEntries.map { it.toVideoItem() }
+            }
+        }
+        // 稍后再看进视频时用完整列表建队列，历史/收藏仍按当前可见结果。
+        val queueRows = if (layout.mode == 2 && content.allWatchLater.isNotEmpty()) content.allWatchLater else rows
         LazyVerticalGrid(
             state = gridState,
             columns = if (wide) BoundedVideoGridCells(280.dp, 420.dp) else GridCells.Fixed(1),
@@ -59,12 +78,7 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
                 bottom = if (content.batchMode) 92.dp else TeakChromeDefaults.ContentBottomPadding),
             horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            libraryGridHeader(content, layout, actions)
-            val rows = when (layout.mode) {
-                0 -> content.folderVideos
-                1 -> content.historyEntries.map { it.toVideoItem() }
-                else -> content.watchLaterEntries.map { it.toVideoItem() }
-            }
+            libraryGridHeader(content, layout, actions, historyCategory) { historyCategory = it }
             val emptyFirstLoad = content.loading && rows.isEmpty()
             if (emptyFirstLoad) {
                 videoResultSkeleton(keyPrefix = "library-skeleton-${layout.mode}")
@@ -76,7 +90,12 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
                 // onOpenVideo 只是动画失败时的兜底，正常路径根本不执行，写在那里等于没准备。
                 onBeforeOpen = { video ->
                     if (!content.batchMode) {
-                        actions.onPrepareQueue(rows, video.bvid)
+                        // 稍后再看把整页当成一个本地合集；收藏/历史只保留普通连播队列。
+                        if (layout.mode == 2) {
+                            actions.onPrepareCollection(queueRows, video.bvid, "稍后再看")
+                        } else {
+                            actions.onPrepareQueue(queueRows, video.bvid, "")
+                        }
                     }
                 },
                 onOpenVideo = { video ->
@@ -93,16 +112,31 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
                 enableOneTake = !content.batchMode,
             )
             if (!emptyFirstLoad && rows.isEmpty() && !content.loading && content.error == null) {
-                item(key = "library-empty", span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        text = if (layout.mode == 0) "这个收藏夹还没有视频" else "暂时没有内容",
-                        color = MiuixTheme.colorScheme.onBackgroundVariant,
-                        fontSize = 13.sp,
-                        modifier = Modifier.padding(top = 24.dp),
-                    )
-                }
+                libraryEmptyItem(layout.mode, historyCategory)
             }
             libraryGridFooter(content, layout, actions)
+        }
+    }
+}
+
+/** 空列表提示：放在内容区中间，而不是缩在左上角。 */
+private fun androidx.compose.foundation.lazy.grid.LazyGridScope.libraryEmptyItem(
+    mode: Int, historyCategory: HistoryCategory,
+) {
+    item(key = "library-empty", span = { GridItemSpan(maxLineSpan) }) {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier.fillMaxWidth().height(320.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = when {
+                    mode == 0 -> "这个收藏夹还没有视频"
+                    mode == 1 && historyCategory != HistoryCategory.All -> "该分类下暂无观看记录"
+                    else -> "暂时没有内容"
+                },
+                color = MiuixTheme.colorScheme.onBackgroundVariant,
+                fontSize = 13.sp,
+            )
         }
     }
 }
@@ -129,6 +163,8 @@ internal fun LibraryModeEffects(
 
 internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.libraryGridHeader(
     content: LibraryModeContent, layout: LibraryModeLayout, actions: LibraryModeActions,
+    historyCategory: HistoryCategory = HistoryCategory.All,
+    onHistoryCategory: (HistoryCategory) -> Unit = {},
 ) {
     val title = layout.title; val mode = layout.mode; val showModeTabs = layout.showModeTabs
     val modeProgress = layout.modeProgress; val folders = content.folders; val foldersReady = content.foldersReady
@@ -157,6 +193,12 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.libraryGridHead
                             position = modeProgress,
                         )
                     }
+                }
+            }
+
+            if (mode == 1) {
+                item(key = "history-categories", span = { GridItemSpan(maxLineSpan) }) {
+                    LibraryHistoryCategoryBar(historyCategory, onHistoryCategory)
                 }
             }
 

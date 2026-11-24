@@ -21,7 +21,9 @@ fun assembleVideoPlayer(content: VideoPlayerContent, flags: VideoPlayerFlags): V
     val detail = content.detail
     val video = content.video
     val media = VideoMediaInput(content.selection.bvid, content.playInfo, content.quality, content.selection.autoQuality,
-        detail?.cover ?: video.cover, detail?.title ?: video.title, detail?.ownerName ?: video.ownerName, content.danmaku)
+        detail?.cover ?: video.cover, detail?.title ?: video.title, detail?.ownerName ?: video.ownerName, content.danmaku,
+        // 多 P 按分 P 数；番剧 / UGC 合集按单集数。
+        cacheEpisodeCount = detail?.let { if (it.pages.size > 1) it.pages.size else it.episodes.size } ?: 0)
     return VideoPlayerAssembly(media, VideoPlayerPresentation(
         fullscreenInfo = fullscreenPlayerInfo(content), fullscreen = flags.fullscreen,
         resumePositionMs = content.selection.resumePositionMs, immersiveStatusBar = flags.immersiveStatusBar,

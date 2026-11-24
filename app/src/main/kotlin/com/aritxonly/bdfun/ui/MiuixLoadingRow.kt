@@ -1,6 +1,9 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.aritxonly.teak.common.chrome.TeakLoadingRow
 import androidx.compose.ui.unit.Dp
@@ -18,4 +21,12 @@ internal fun MiuixLoadingRow(
     verticalPadding: Dp = 36.dp,
 ) {
     TeakLoadingRow(modifier = modifier, size = size, verticalPadding = verticalPadding)
+}
+
+/** 首屏加载：固定在整屏中间，不随列表头/顶栏高度上浮。 */
+@Composable
+internal fun PageCenteredLoading(modifier: Modifier = Modifier) {
+    Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        MiuixLoadingRow(verticalPadding = 0.dp)
+    }
 }

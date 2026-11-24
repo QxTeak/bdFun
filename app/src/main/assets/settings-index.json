@@ -573,15 +573,15 @@
           {
             "pref_name": "comment_ai_block",
             "type": "switch",
-            "title": "屏蔽 AI 人格评论",
-            "subtitle": "按「大肥鱼」规则过滤评论区里的 AI 人格账号，命中即不显示；置顶评论始终保留",
+            "title": "「大肥鱼」屏蔽",
+            "subtitle": "过滤DeepSeek机器人评论，被置顶评论除外",
             "default": false
           },
           {
             "pref_name": "comment_ai_block_strength",
             "type": "dropdown",
             "title": "屏蔽强度",
-            "subtitle": "标准档也会屏蔽真实的 @；杀戮档误伤最大",
+            "subtitle": "自标准档起屏蔽真实@，档位越高误杀概率越大",
             "default": 2,
             "options": [
               {
@@ -619,7 +619,7 @@
                 "value": 1
               },
               {
-                "title": "不管楼中楼",
+                "title": "不作处理",
                 "value": 2
               }
             ],
@@ -634,7 +634,7 @@
             "pref_name": "sponsor_skip_mode",
             "type": "dropdown",
             "title": "空降助手",
-            "subtitle": "提示片段，或进入片段后自动跳到结尾",
+            "subtitle": "跳过片头、广告等低价值片段",
             "default": 1,
             "options": [
               {

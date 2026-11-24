@@ -108,6 +108,8 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHotItems(
 /** 搜索历史：一个个胶囊横向排，行放满再换下一行。 */
 internal fun androidx.compose.foundation.lazy.LazyListScope.searchHistoryItems(
     history: List<String>, colors: top.yukonga.miuix.kmp.theme.Colors, onPickKeyword: (String) -> Unit, onClearHistory: () -> Unit,
+    flat: Boolean = false,
+    roomy: Boolean = false,
 ) {
     if (history.isEmpty()) return
     item(key = "history-title") {
@@ -122,17 +124,21 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHistoryItems(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)))
-                .background(colors.surfaceContainer)
-                .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 12.dp),
+                .then(
+                    if (flat) Modifier
+                    else Modifier
+                        .clip(TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)))
+                        .background(colors.surfaceContainer)
+                        .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 12.dp),
+                ),
         ) {
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(if (roomy) 10.dp else 8.dp),
+                verticalArrangement = Arrangement.spacedBy(if (roomy) 12.dp else 8.dp),
             ) {
                 history.forEach { word ->
-                    HistoryPill(word = word, onClick = { onPickKeyword(word) })
+                    HistoryPill(word = word, onClick = { onPickKeyword(word) }, roomy = roomy)
                 }
             }
         }

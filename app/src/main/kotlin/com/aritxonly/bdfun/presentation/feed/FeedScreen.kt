@@ -1,9 +1,12 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -17,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import com.aritxonly.bdfun.AppGraph
+import com.aritxonly.bdfun.MainPageTransitionMs
 import com.aritxonly.bdfun.core.domain.DynamicTabPolicy
 import com.aritxonly.bdfun.core.model.feed.FeedItem
 import com.aritxonly.bdfun.core.model.video.VideoItem
@@ -54,7 +58,10 @@ fun FeedScreen(
         if (pager.currentPage != target || pager.currentPageOffsetFraction != 0f) {
             programmatic = true
             try {
-                pager.animateScrollToPage(target)
+                pager.animateScrollToPage(
+                    target,
+                    animationSpec = com.aritxonly.teak.common.navigation.TeakPageSwitchSpec(),
+                )
             } finally {
                 programmatic = false
             }
@@ -80,6 +87,11 @@ fun FeedScreen(
         modifier = Modifier.fillMaxSize(),
         beyondViewportPageCount = 0,
         overscrollEffect = null,
+        // 手滑松手吸附和点选共用官方的 350ms 三次方减速。
+        flingBehavior = PagerDefaults.flingBehavior(
+            state = pager,
+            snapAnimationSpec = com.aritxonly.teak.common.navigation.TeakPageSwitchSpec(),
+        ),
     ) { page ->
         val tab = tabs.getOrNull(page) ?: return@HorizontalPager
         androidx.compose.runtime.key(tab.key) {

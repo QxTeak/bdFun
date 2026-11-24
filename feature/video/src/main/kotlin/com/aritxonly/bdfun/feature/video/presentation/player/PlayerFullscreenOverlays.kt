@@ -78,6 +78,8 @@ internal fun PlayerFullscreenOverlay(
             ),
             appearance = chrome.appearance,
             slots = chrome.slots,
+            portrait = androidx.compose.ui.platform.LocalConfiguration.current.orientation ==
+                android.content.res.Configuration.ORIENTATION_PORTRAIT,
             onPanelHidden = {
                 controlsVisible = false
                 PlayerUiState.controlsVisible = false

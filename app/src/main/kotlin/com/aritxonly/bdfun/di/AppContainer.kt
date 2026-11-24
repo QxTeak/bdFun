@@ -122,6 +122,7 @@ internal class AppContainer(
         ))
     }
     val playbackQueue = com.aritxonly.bdfun.core.application.PlaybackQueueStateHolder()
+    val localVideoCollection = com.aritxonly.bdfun.core.application.LocalVideoCollectionStateHolder()
     val mediaControls = com.aritxonly.bdfun.core.application.MediaControlsRegistry()
     val playbackPauses = com.aritxonly.bdfun.core.application.PlaybackPauseRegistry()
     val pictureInPicturePages = com.aritxonly.bdfun.core.application.PictureInPicturePageRegistry()
@@ -301,11 +302,11 @@ internal class AppContainer(
         }, playbackQueue)
     }
     val libraryDependencies by lazy {
-        com.aritxonly.bdfun.ui.LibraryDependencies(::libraryStateHolder, { scope ->
+        com.aritxonly.bdfun.ui.LibraryDependencies(::libraryStateHolder, { scope, historyScope ->
             com.aritxonly.bdfun.feature.library.application.LibraryInteractionStateHolder(
-                settings.repository.general, settings.state.map { Unit }, scope,
+                settings.repository.general, settings.state.map { Unit }, scope, historyScope,
             )
-        }, playbackQueue)
+        }, playbackQueue, localVideoCollection)
     }
     fun libraryStateHolder(): com.aritxonly.bdfun.feature.library.application.LibraryStateHolder {
         val identity = sessionController.identity
@@ -335,7 +336,7 @@ internal class AppContainer(
         com.aritxonly.bdfun.ui.VideoPageDependencies(videoStateFactory, playbackProgress,
             { checkNotNull(videoCache) { "视频下载存储尚未初始化" } },
             { checkNotNull(sentHistory) { "发送记录存储尚未初始化" } },
-            backgroundPlayback, playbackQueue, ::createPlaybackController, LogCollector::record,
+            backgroundPlayback, playbackQueue, localVideoCollection, ::createPlaybackController, LogCollector::record,
             com.aritxonly.bdfun.ui.CommentDependencies(
                 com.aritxonly.bdfun.feature.comment.application.CommentStateFactory(
                     commentContentRepository, commentImageRepository, commentLikesStore, ::commentAiBlockConfig),

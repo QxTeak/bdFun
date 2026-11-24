@@ -26,6 +26,8 @@ import com.aritxonly.bdfun.navigateToVideoByBvid
 internal fun BoxScope.DanmakuCommandOverlay(
     playback: PlaybackController, aid: Long, cid: Long,
     actions: VideoInteractionActions, videoLiked: Boolean,
+    authorFace: String = "", followed: Boolean = false,
+    avatar: @Composable (String, androidx.compose.ui.Modifier) -> Unit = { _, _ -> },
 ) {
     val controller = LocalVideoPageState.current.danmakuModeration ?: return
     val context = LocalContext.current
@@ -49,6 +51,9 @@ internal fun BoxScope.DanmakuCommandOverlay(
             videoHeight = snapshot.videoHeight,
             actions = actions,
             videoLiked = videoLiked,
+            authorFace = authorFace,
+            followed = followed,
+            avatar = avatar,
         )
     }
     session.link?.let { target ->

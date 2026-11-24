@@ -19,6 +19,8 @@ internal fun rememberPlayerRenderPorts(
     val page = LocalVideoPageState.current
     val settings = page.settings
     val viewer = com.aritxonly.bdfun.AppGraph.session.value
+    // 全屏 chrome 与互动弹幕共用同一份头像 slot，关注弹幕直接复用它。
+    val fullscreenChrome = rememberFullscreenChromeAssembly()
     val fsActions = VideoFullscreenActionBindings(
         context, playback, presentation.fullscreenInfo, actions, ui, page,
         dolbyVision = { com.aritxonly.bdfun.core.domain.isDolbyVisionQuality(media.quality) },
@@ -56,8 +58,7 @@ internal fun rememberPlayerRenderPorts(
         cover = { cover, modifier -> InlinePlayerCover(cover, modifier) },
         inlineAppearance = ::inlinePlayerAppearance,
         fullscreenVisuals = {
-            val chrome = rememberFullscreenChromeAssembly()
-            PlayerFullscreenVisuals(chrome.appearance, chrome.slots, settings.danmakuOn, settings.backgroundPlay)
+            PlayerFullscreenVisuals(fullscreenChrome.appearance, fullscreenChrome.slots, settings.danmakuOn, settings.backgroundPlay)
         },
         danmakuComposer = PlayerDanmakuComposePorts(
             { page.styledDanmakuSender },
@@ -69,7 +70,10 @@ internal fun rememberPlayerRenderPorts(
                 SpecialVideoDanmakuOverlay(media.danmaku, playback, ui, page.aid, presentation.fullscreenInfo.currentCid)
                 if (settings.videoInteraction) {
                     DanmakuCommandOverlay(playback, page.aid, presentation.fullscreenInfo.currentCid,
-                        actions.interaction, presentation.fullscreenInfo.liked)
+                        actions.interaction, presentation.fullscreenInfo.liked,
+                        authorFace = presentation.fullscreenInfo.authorFace,
+                        followed = presentation.fullscreenInfo.followed,
+                        avatar = fullscreenChrome.slots.avatar)
                 }
             }
             DanmakuSelectionActions(playback, presentation.fullscreenInfo.currentCid)

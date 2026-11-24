@@ -7,6 +7,8 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import java.util.concurrent.ConcurrentHashMap
 
 /** 进程下载队列；每个任务有独立身份，旧回调和 finally 不得覆盖同 id 的重下任务。 */
@@ -20,6 +22,8 @@ class DownloadQueueStateHolder(private val storage: VideoCacheStorage, transfer:
     private val runner = CacheDownloadRunner(storage, transfer, now)
     private val jobs = ConcurrentHashMap<String, Job>()
     private val tokens = ConcurrentHashMap<String, Any>()
+    // 选集缓存会一次入队很多集；这里限制同时下载数，避免几十条连接一起跑。
+    private val downloadSlots = Semaphore(2)
     private val deletedDuringLoad = ConcurrentHashMap.newKeySet<String>()
     private var loadJob: Job? = null
     @Volatile private var loaded = false
@@ -67,7 +71,9 @@ class DownloadQueueStateHolder(private val storage: VideoCacheStorage, transfer:
         tokens[id] = token
         persistNow()
         startService()
-        val job = scope.launch(start = CoroutineStart.LAZY) { run(CacheDownloadRequest(entry, quality.videoUrl, audioUrl, destination), token) }
+        val job = scope.launch(start = CoroutineStart.LAZY) {
+            downloadSlots.withPermit { run(CacheDownloadRequest(entry, quality.videoUrl, audioUrl, destination), token) }
+        }
         jobs[id] = job
         job.start()
         return true

@@ -57,6 +57,29 @@ internal fun LibraryFolderBar(
     }
 }
 
+/** 历史页分类胶囊：与收藏夹胶囊同款，只负责筛选当前已加载的历史条目。 */
+@Composable
+internal fun LibraryHistoryCategoryBar(
+    selected: HistoryCategory,
+    onSelect: (HistoryCategory) -> Unit,
+) {
+    val listState = rememberLazyListState()
+    LazyRow(
+        state = listState,
+        modifier = Modifier.fillMaxWidth(),
+        contentPadding = PaddingValues(horizontal = 0.dp, vertical = 6.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        itemsIndexed(HistoryCategory.entries.toList()) { _, category ->
+            LibraryFolderChip(
+                text = category.label,
+                selected = category == selected,
+                onClick = { onSelect(category) },
+            )
+        }
+    }
+}
+
 @Composable
 internal fun LibraryFolderChip(text: String, selected: Boolean, onClick: () -> Unit) {
     com.aritxonly.bdfun.presentation.common.TeakCapsuleChip(

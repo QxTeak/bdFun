@@ -14,7 +14,7 @@ import com.aritxonly.bdfun.core.model.video.Quality
 
 /**
  * 全屏期间由我们这一侧写进窗口的朝向：
- * `BindPlayerOrientation` 写的 LOCKED / SENSOR_LANDSCAPE，
+ * `BindPlayerOrientation` 写的 LOCKED / SENSOR_LANDSCAPE / SENSOR，
  * 以及 `VideoActivity` 姿态监听写的 LANDSCAPE / PORTRAIT。
  *
  * `VideoActivity` 只在 `!fullscreen` 时把窗口交还系统，而横屏退回竖屏那一刻
@@ -26,6 +26,7 @@ private val playerForcedOrientations = setOf(
     ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE,
     ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE,
     ActivityInfo.SCREEN_ORIENTATION_PORTRAIT,
+    ActivityInfo.SCREEN_ORIENTATION_SENSOR,
 )
 
 @Composable
@@ -33,10 +34,11 @@ fun BindPlayerSystemBars(
     fullscreen: Boolean,
     immersiveStatusBar: Boolean,
     ui: VideoPlayerUiStateHolder,
+    portraitVideo: Boolean = false,
 ) {
     val activity = LocalContext.current as? Activity
     var inlineOrientation by ui.inlineOrientation
-    DisposableEffect(fullscreen, immersiveStatusBar) {
+    DisposableEffect(fullscreen, immersiveStatusBar, portraitVideo) {
         val window = activity?.window
         val controller = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
         if (fullscreen) {
@@ -46,7 +48,12 @@ fun BindPlayerSystemBars(
                     WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 hide(WindowInsetsCompat.Type.systemBars())
             }
-            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            // 竖屏视频：保持竖屏全屏，铺满整屏；横屏视频仍走原来的横屏全屏。
+            activity?.requestedOrientation = if (portraitVideo) {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR
+            } else {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
         } else {
             if (immersiveStatusBar) {
                 // 沉浸模式：半屏也不显示状态栏时间等信息，把状态栏一起藏掉；

@@ -8,6 +8,10 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.displayCutout
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,14 +47,14 @@ import androidx.compose.runtime.setValue
 
 
 @Composable
-internal fun BoxScope.FullscreenChromeMasks(appearance: FullscreenAppearance) {
-    val edge = 42.dp
+internal fun BoxScope.FullscreenChromeMasks(appearance: FullscreenAppearance, portrait: Boolean = false) {
+    val edge = if (portrait) 14.dp else 42.dp
     // 顶部 / 底部压暗，保证白字在亮画面上仍可读（参考图一有同款渐层）
     Box(
         modifier = Modifier
             .align(Alignment.TopCenter)
             .fillMaxWidth()
-            .height(190.dp)
+            .height(if (portrait) 260.dp else 190.dp)
             .background(
                 Brush.verticalGradient(
                     0f to Color.Black.copy(alpha = 0.62f),
@@ -72,20 +76,36 @@ internal fun BoxScope.FullscreenChromeMasks(appearance: FullscreenAppearance) {
                 ),
             ),
     )
-    // 最顶：时间居中，右侧网络 + 电量
+    // 横屏时间居中；竖屏没有系统状态栏，把时间放到左上角并给挖孔/前摄留出高度。
     if (appearance.showTime) {
+        val topInset = if (portrait) {
+            val status = androidx.compose.foundation.layout.WindowInsets.statusBars
+                .asPaddingValues().calculateTopPadding()
+            val cutout = androidx.compose.foundation.layout.WindowInsets.displayCutout
+                .asPaddingValues().calculateTopPadding()
+            maxOf(status, cutout, 30.dp)
+        } else 0.dp
         FullscreenStatusLine(
             modifier = Modifier
-                .align(Alignment.TopCenter)
+                .align(if (portrait) Alignment.TopStart else Alignment.TopCenter)
                 .fillMaxWidth()
-                .padding(horizontal = edge, vertical = 0.dp),
+                .padding(start = if (portrait) 18.dp else edge, top = if (portrait) 2.dp else topInset),
+            alignStart = portrait,
         )
     }
 
 }
 
 @Composable
-internal fun FullscreenHeader(info: FullscreenPlayerInfo, actions: FullscreenActions, onPanelChanged: (FullscreenPanel) -> Unit, appearance: FullscreenAppearance) {
+internal fun FullscreenHeader(
+    info: FullscreenPlayerInfo, actions: FullscreenActions,
+    onPanelChanged: (FullscreenPanel) -> Unit, appearance: FullscreenAppearance,
+    portrait: Boolean = false, danmakuEnabled: Boolean = true,
+) {
+    if (portrait) {
+        FullscreenHeaderPortrait(info, actions, onPanelChanged, appearance, danmakuEnabled)
+        return
+    }
     // 顶部操作行：返回 / 标题 / 点赞 / 评论 / 收藏 / 分享 / 更多
     Row(
         modifier = Modifier
@@ -118,6 +138,37 @@ internal fun FullscreenHeader(info: FullscreenPlayerInfo, actions: FullscreenAct
         FullscreenHeaderActions(info, actions, onPanelChanged, appearance)
     }
 
+}
+
+/** 竖屏全屏：标题单独一行，互动与弹幕开关放下一行，顶部避开前摄。 */
+@Composable
+private fun FullscreenHeaderPortrait(
+    info: FullscreenPlayerInfo, actions: FullscreenActions,
+    onPanelChanged: (FullscreenPanel) -> Unit, appearance: FullscreenAppearance,
+    danmakuEnabled: Boolean,
+) {
+    val status = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val cutout = WindowInsets.displayCutout.asPaddingValues().calculateTopPadding()
+    val topInset = maxOf(status, cutout, 30.dp)
+    // 时间留在状态栏区域，标题与互动行紧贴其下，整体尽量上移。
+    Column(Modifier.fillMaxWidth().padding(top = topInset + 4.dp, start = 8.dp, end = 10.dp)) {
+        Row(Modifier.fillMaxWidth().height(44.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier.size(40.dp).clip(CircleShape)
+                    .clickable(interactionSource = null, indication = null) { actions.onBack() },
+                contentAlignment = Alignment.Center,
+            ) { BackChevron() }
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = info.title, color = Color.White, fontSize = 16.sp,
+                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f),
+            )
+        }
+        Row(Modifier.fillMaxWidth().height(36.dp), verticalAlignment = Alignment.CenterVertically) {
+            Spacer(Modifier.weight(1f))
+            FullscreenHeaderActions(info, actions, onPanelChanged, appearance)
+        }
+    }
 }
 
 @Composable
@@ -181,13 +232,16 @@ internal fun FullscreenHeaderActions(info: FullscreenPlayerInfo, actions: Fullsc
 }
 
 @Composable
-internal fun BoxScope.FullscreenAuthor(info: FullscreenPlayerInfo, actions: FullscreenActions, appearance: FullscreenAppearance, slots: FullscreenChromeSlots) {
+internal fun BoxScope.FullscreenAuthor(
+    info: FullscreenPlayerInfo, actions: FullscreenActions,
+    appearance: FullscreenAppearance, slots: FullscreenChromeSlots, portrait: Boolean = false,
+) {
     val colors = MiuixTheme.colorScheme
-    // 观看人数 + UP 头像 / 昵称
+    // 观看人数 + UP 头像 / 昵称；竖屏排在两行标题/操作下面。
     Column(
         modifier = Modifier
             .align(Alignment.TopStart)
-            .padding(start = 50.dp, top = 55.dp),
+            .padding(start = if (portrait) 14.dp else 50.dp, top = if (portrait) 112.dp else 55.dp),
     ) {
         if (appearance.showViewerCount) {
             Row(
@@ -204,53 +258,73 @@ internal fun BoxScope.FullscreenAuthor(info: FullscreenPlayerInfo, actions: Full
             }
             Spacer(Modifier.height(10.dp))
         }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .height(26.dp)
-                .clip(Capsule())
-                // 已关注也要保持半透明，不能是一块实色底盖在视频上。
-                .background(if (info.followed) colors.surfaceContainerHigh.copy(alpha = 0.45f) else Color.Black.copy(alpha = 0.3f))
-                .clickable(interactionSource = null, indication = null) {
-                    actions.onOpenSpace()
-                },
-        ) {
-            slots.avatar(
-                info.authorFace,
-                Modifier
-                    .padding(start = 2.dp, top = 2.dp, bottom = 2.dp)
-                    .size(22.dp)
-                    .clip(CircleShape)
-                    .background(Color.White.copy(alpha = 0.12f)),
-            )
-            Spacer(Modifier.width(7.dp))
-            if (!info.followed) {
-                AppGlyph(MiuixIcons.Add, Color.White, size = 11.dp)
-                Spacer(Modifier.width(2.dp))
-            }
-            Text(
-                text = if (info.followed) "已关注" else "关注",
-                color = if (info.followed) colors.onBackgroundVariant else Color.White,
-                fontSize = 11.5.sp,
-                fontWeight = FontWeight.Normal,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.width(10.dp))
-        }
+        UpFollowChip(
+            authorFace = info.authorFace,
+            followed = info.followed,
+            avatar = slots.avatar,
+        ) { actions.onOpenSpace() }
     }
 
 }
 
+/**
+ * 播放器左上角的 UP 头像 + 关注胶囊。互动弹幕里的关注卡片也复用它，
+ * 保证两处是完全同款，不各画一套。
+ */
 @Composable
-internal fun BoxScope.FullscreenTimeline(playback: FullscreenPlaybackState, actions: FullscreenActions, scrub: FullscreenScrubActions) {
-    val edge = 42.dp
-    // 进度：时长在上，进度条紧贴在下
+fun UpFollowChip(
+    authorFace: String,
+    followed: Boolean,
+    avatar: @Composable (String, Modifier) -> Unit,
+    onClick: () -> Unit = {},
+) {
+    val colors = MiuixTheme.colorScheme
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .height(26.dp)
+            .clip(Capsule())
+            // 已关注也要保持半透明，不能是一块实色底盖在视频上。
+            .background(if (followed) colors.surfaceContainerHigh.copy(alpha = 0.45f) else Color.Black.copy(alpha = 0.3f))
+            .clickable(interactionSource = null, indication = null, onClick = onClick),
+    ) {
+        avatar(
+            authorFace,
+            Modifier
+                .padding(start = 2.dp, top = 2.dp, bottom = 2.dp)
+                .size(22.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.12f)),
+        )
+        Spacer(Modifier.width(7.dp))
+        if (!followed) {
+            AppGlyph(MiuixIcons.Add, Color.White, size = 11.dp)
+            Spacer(Modifier.width(2.dp))
+        }
+        Text(
+            text = if (followed) "已关注" else "关注",
+            color = if (followed) colors.onBackgroundVariant else Color.White,
+            fontSize = 11.5.sp,
+            fontWeight = FontWeight.Normal,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
+        Spacer(Modifier.width(10.dp))
+    }
+}
+
+@Composable
+internal fun BoxScope.FullscreenTimeline(
+    playback: FullscreenPlaybackState, actions: FullscreenActions, scrub: FullscreenScrubActions,
+    portrait: Boolean = false,
+) {
+    val edge = if (portrait) 14.dp else 42.dp
+    // 进度：时长在上，进度条紧贴在下；竖屏全屏时底部控件整体抬高，进度条再留一点空隙。
     Box(
         modifier = Modifier
             .align(Alignment.BottomCenter)
             .fillMaxWidth()
-            .padding(start = edge, end = edge, bottom = 52.dp)
+            .padding(start = edge, end = edge, bottom = if (portrait) 82.dp else 52.dp)
             .height(58.dp),
     ) {
         Text(

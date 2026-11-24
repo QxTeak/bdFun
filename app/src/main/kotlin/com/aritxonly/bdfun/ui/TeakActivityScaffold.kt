@@ -49,6 +49,10 @@ internal fun TeakActivityScaffold(
     val titleAlwaysVisible = options.titleAlwaysVisible
     val barBlurFraction = options.barBlurFraction
     val topBarGlyphColor = options.topBarGlyphColor
+    val contentUnderlayProgress = options.underlay.progress
+    val contentUnderlayAlpha = options.underlay.alpha
+    val contentUnderlayBlur = options.underlay.blur
+    val topBarAlpha = options.underlay.topBarAlpha
     val showBackgroundDisc = disc.showBackgroundDisc
     val discLift = disc.discLift
     val discEndPadding = disc.discEndPadding
@@ -56,9 +60,9 @@ internal fun TeakActivityScaffold(
     val topBarCenter = slots.topBarCenter
     val topBarActions = slots.topBarActions
     val overlay = slots.overlay
+    val topOverlay = slots.topOverlay
     val menuOverlay = slots.menuOverlay
     PageChromeScope {
-    val discContext = LocalContext.current
     TeakBareTheme(settings) { _, materialColors ->
         TeakPageScaffold(
             title = title,
@@ -81,40 +85,56 @@ internal fun TeakActivityScaffold(
             overlay = {
                 if (showScrollTop) ScrollTopButton(settings)
                 overlay()
-                // 后台播放时，除了播放器页，其他任意页面也保留一张唱片。
-                if (!com.aritxonly.teak.common.chrome.isWideFoldTopBar() && showBackgroundDisc &&
-                    settings.showDiscAfterVideo &&
-                    BackgroundPlayback.active
-                ) {
-                    // 和首页完全同一份位置计算。
-                    val discPlacement = rememberDiscPlacement(settings, stackedInSearch = false)
-                    val endPadding = discEndPadding ?: discPlacement.endPadding
-                    // 页面上有底部控件、唱片必须抬升时，若「回到顶部」也占了右侧，就把唱片镜像到左侧。
-                    val mirrorToStart = discLift > 0.dp && showScrollTop &&
-                        settings.scrollTopEnabled && settings.scrollTopSide == 1
-                    BackgroundPlayDisc(
-                        settings = settings, dependencies = com.aritxonly.bdfun.AppGraph.discDependencies,
-                        modifier = Modifier
-                            .align(if (mirrorToStart) Alignment.BottomStart else Alignment.BottomEnd)
-                            .navigationBarsPadding()
-                            .padding(start = if (mirrorToStart) endPadding else 0.dp,
-                                end = if (mirrorToStart) 0.dp else endPadding)
-                            .graphicsLayer {
-                                // 外壳自带 8dp 透明留白，下移后视觉底边和首页一致。
-                                // HyperOS 4 的基线已与首页对齐，页面自己的抬升（如动态详情/设置搜索框）同样生效。
-                                translationY = discPlacement.bottomOffset.toPx() - discLift.toPx()
-                            },
-                        size = discPlacement.size,
-                    ) { video ->
-                        navigateToVideo(discContext, video)
-                    }
-                }
+                BackgroundDiscOverlay(settings, showBackgroundDisc, discLift, discEndPadding, showScrollTop)
             },
             menuOverlay = menuOverlay,
+            topOverlay = topOverlay,
+            underlayProgress = contentUnderlayProgress,
+            underlayAlpha = contentUnderlayAlpha,
+            underlayBlurProgress = contentUnderlayBlur,
+            topBarAlpha = topBarAlpha,
             titleAlwaysVisible = titleAlwaysVisible,
             content = content,
         )
     }
+    }
+}
+
+/**
+ * 后台播放时，除了播放器页，其他任意页面也保留一张唱片。
+ * 位置和首页完全同一份计算；页面有底部控件需要抬升时同理。
+ */
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.BackgroundDiscOverlay(
+    settings: SettingsBindings,
+    showBackgroundDisc: Boolean,
+    discLift: androidx.compose.ui.unit.Dp,
+    discEndPadding: androidx.compose.ui.unit.Dp?,
+    showScrollTop: Boolean,
+) {
+    if (com.aritxonly.teak.common.chrome.isWideFoldTopBar() || !showBackgroundDisc ||
+        !settings.showDiscAfterVideo || !BackgroundPlayback.active
+    ) return
+    val context = LocalContext.current
+    val discPlacement = rememberDiscPlacement(settings, stackedInSearch = false)
+    val endPadding = discEndPadding ?: discPlacement.endPadding
+    // 页面上有底部控件、唱片必须抬升时，若「回到顶部」也占了右侧，就把唱片镜像到左侧。
+    val mirrorToStart = discLift > 0.dp && showScrollTop &&
+        settings.scrollTopEnabled && settings.scrollTopSide == 1
+    BackgroundPlayDisc(
+        settings = settings, dependencies = com.aritxonly.bdfun.AppGraph.discDependencies,
+        modifier = Modifier
+            .align(if (mirrorToStart) Alignment.BottomStart else Alignment.BottomEnd)
+            .navigationBarsPadding()
+            .padding(start = if (mirrorToStart) endPadding else 0.dp,
+                end = if (mirrorToStart) 0.dp else endPadding)
+            .graphicsLayer {
+                // 外壳自带 8dp 透明留白，下移后视觉底边和首页一致。
+                translationY = discPlacement.bottomOffset.toPx() - discLift.toPx()
+            },
+        size = discPlacement.size,
+    ) { video ->
+        navigateToVideo(context, video)
     }
 }
 

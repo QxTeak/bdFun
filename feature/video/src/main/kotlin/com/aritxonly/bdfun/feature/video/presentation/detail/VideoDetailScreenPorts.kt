@@ -15,6 +15,9 @@ class VideoDetailScreenPorts(
     val effects: VideoDetailEffectPorts,
     val actionHost: VideoDetailActionHost,
     val slots: VideoDetailScreenSlots,
+    /** 本地合集（例如稍后再看整页）：按当前 bvid 返回条目与标题。 */
+    val localCollectionFor: (String) -> Pair<List<com.aritxonly.bdfun.core.model.video.VideoItem>, String> =
+        { emptyList<com.aritxonly.bdfun.core.model.video.VideoItem>() to "" },
 )
 
 class VideoDetailScreenSlots(

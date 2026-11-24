@@ -149,7 +149,9 @@ private fun MineFolderPreviews(section: MinePreviewSection, openAll: () -> Unit)
 private fun MineVideoPreviews(section: MinePreviewSection, history: Boolean, navigation: MineNavigation,
     prepareQueue: (List<com.aritxonly.bdfun.core.model.video.VideoItem>, String) -> Unit, width: Dp) {
     // 卡片里的顺序就是连播顺序：点开任意一条都先把整卡塞进播放队列。
-    val videos = section.entries.map { it.mineVideo(history) }
+    val videos = androidx.compose.runtime.remember(section.entries, history) {
+        section.entries.map { it.mineVideo(history) }
+    }
     LazyRow(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         itemsIndexed(section.entries, key = { index, entry -> "${entry.bvid}-$index" }) { index, entry ->
             val video = videos.getOrNull(index) ?: entry.mineVideo(history)

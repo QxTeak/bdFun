@@ -13,7 +13,7 @@ class LibraryInteractionStateHolderTest {
     private class Fixture : AutoCloseable {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         val settings = SettingsStateHolder.create(MemorySettingsPreferences(), TestHistoryCodec, scope)
-        val holder = LibraryInteractionStateHolder(settings.general, settings.state.map { Unit }, scope)
+        val holder = LibraryInteractionStateHolder(settings.general, settings.state.map { Unit }, scope, "library_0")
         override fun close() { holder.close(); scope.cancel() }
     }
     private fun video(id: Int, title: String = "猫咪", owner: String = "UP") = VideoItem("BV$id", id.toLong(), title, "", owner, "", 1, 0, 0, 1, 0)
@@ -50,8 +50,27 @@ class LibraryInteractionStateHolderTest {
             val h=f.holder; h.submitQuery("  CAT  "); assertEquals("CAT",h.state.value.query)
             assertEquals(listOf("CAT"),h.state.value.searchHistory)
             h.submitQuery("   "); assertEquals("CAT",h.state.value.query)
-            f.settings.addSearchHistory("external"); assertEquals("external",h.state.value.searchHistory.first())
+            // 页面级搜索记录：别的页面/首页写入不会串进本页。
+            f.settings.addSearchHistory("library_1", "external")
+            assertEquals("CAT",h.state.value.searchHistory.first())
+            assertTrue(f.settings.searchHistory.isEmpty())
+            f.settings.addSearchHistory("library_0", "own")
+            assertEquals("own",h.state.value.searchHistory.first())
             h.clearSearchHistory(); assertEquals("",h.state.value.query); assertTrue(h.state.value.searchHistory.isEmpty())
+            assertTrue(f.settings.searchHistory.isEmpty())
+        }
+    }
+    @Test fun pageSearchHistoryIsIsolatedPerLibraryPage() {
+        Fixture().use { f ->
+            val favorites=f.holder
+            val history=LibraryInteractionStateHolder(f.settings.general, f.settings.state.map { Unit }, f.scope, "library_1")
+            favorites.submitQuery("猫")
+            assertTrue(history.state.value.searchHistory.isEmpty())
+            assertTrue(f.settings.searchHistory.isEmpty())
+            history.submitQuery("狗")
+            assertEquals(listOf("猫"),favorites.state.value.searchHistory)
+            assertEquals(listOf("狗"),history.state.value.searchHistory)
+            history.close()
         }
     }
     @Test fun filtersMatchTitlesAndAuthorsIgnoringCaseWithoutChangingOrder() {

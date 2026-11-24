@@ -18,7 +18,7 @@ import com.aritxonly.teak.common.icons.LucideIcons
 import kotlinx.coroutines.delay
 
 @Composable
-fun FullscreenStatusLine(modifier: Modifier = Modifier) {
+fun FullscreenStatusLine(modifier: Modifier = Modifier, alignStart: Boolean = false) {
 
     val clock by produceState(initialValue = clockText()) {
         while (true) {
@@ -31,7 +31,7 @@ fun FullscreenStatusLine(modifier: Modifier = Modifier) {
             text = clock,
             color = Color.White.copy(alpha = 0.95f),
             fontSize = 12.sp,
-            modifier = Modifier.align(Alignment.Center),
+            modifier = Modifier.align(if (alignStart) Alignment.CenterStart else Alignment.Center),
         )
     }
 }

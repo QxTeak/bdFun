@@ -124,12 +124,22 @@ internal fun GradeStarRow(
                     ) { onClick(option.value) },
                 contentAlignment = Alignment.Center,
             ) {
-                AppGlyph(
-                    icon = if (filled) MiuixIcons.FavoritesFill else MiuixIcons.Favorites,
-                    tint = if (filled) GradeStarColor else Color.White.copy(alpha = 0.55f),
-                    size = 23.dp,
-                    contentDescription = option.label,
-                )
+                // 评分用星星，不用收藏/喜欢的心形；实心星星表示已选中。
+                if (filled) {
+                    AppGlyph(
+                        icon = com.aritxonly.bdfun.R.drawable.fs_star,
+                        tint = GradeStarColor,
+                        size = 23.dp,
+                        contentDescription = option.label,
+                    )
+                } else {
+                    AppGlyph(
+                        icon = com.aritxonly.teak.common.icons.LucideIcons.Star,
+                        tint = Color.White.copy(alpha = 0.55f),
+                        size = 23.dp,
+                        contentDescription = option.label,
+                    )
+                }
             }
         }
     }

@@ -1,10 +1,13 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import com.aritxonly.bdfun.core.model.library.FavoriteFolder
@@ -29,7 +32,15 @@ internal class LibraryRuntime(
             2 -> interaction.showMoreWatchLater(data.state.value.watchLater.size)
         }
     }
-    fun selectMode(target: Int) { interaction.pageChanged(); scope.launch { pager.animateScrollToPage(target) } }
+    fun selectMode(target: Int) {
+        interaction.pageChanged()
+        scope.launch {
+            pager.animateScrollToPage(
+                target,
+                animationSpec = com.aritxonly.teak.common.navigation.TeakPageSwitchSpec(),
+            )
+        }
+    }
     fun selectFolder(index: Int) { interaction.selectFolder(); scope.launch { data.loadFolder(index) } }
     fun batchAction(key: String) {
         val selected = interaction.batchAction(key, currentMode, data.state.value) ?: return
@@ -70,7 +81,9 @@ internal fun rememberLibraryRuntime(
     val data = remember(dependencies, request.owner, request.loggedIn, request.sessionRevision) { dependencies.createData() }
     val scope = remember(data) { kotlinx.coroutines.CoroutineScope(parent.coroutineContext +
         kotlinx.coroutines.SupervisorJob(parent.coroutineContext[kotlinx.coroutines.Job])) }
-    val interaction = remember(data) { dependencies.createInteraction(scope) }
+    val interaction = remember(data) {
+        dependencies.createInteraction(scope, "library_${request.fixedMode ?: 0}")
+    }
     DisposableEffect(data, interaction) { onDispose { data.close(); interaction.close(); scope.cancel() } }
     val presentation = remember(chrome) { LibraryPresentationStateHolder(chrome) }
     val count = if (request.fixedMode == null) MODES.size else 1

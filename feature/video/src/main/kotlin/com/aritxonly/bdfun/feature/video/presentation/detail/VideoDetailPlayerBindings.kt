@@ -21,6 +21,7 @@ class VideoDetailPlayerActionBindings(
         onSubtitleSelected = { track -> scope.launch { metadataController.selectSubtitle(track) } },
         onQualitySelected = { actions.switchQuality(it) },
         onCacheVideo = { actions.cacheVideo(it) },
+        onCacheAll = { actions.cacheAll(it) },
     ),
     interaction = VideoInteractionActions(
         onLikeClick = { actions.toggleLike() },

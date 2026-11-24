@@ -56,8 +56,17 @@ internal fun LiveGestureIconTip(
 
 
 internal fun liveCurrentBrightness(activity: Activity?): Float {
-    val value = activity?.window?.attributes?.screenBrightness ?: -1f
-    return if (value < 0f) 0.5f else value
+    val window = activity?.window ?: return 0.5f
+    val explicit = window.attributes.screenBrightness
+    if (explicit >= 0f) return explicit
+    // -1 = 跟随系统；从系统当前亮度开始调，而不是固定 50%。
+    val raw = runCatching {
+        android.provider.Settings.System.getInt(
+            activity.contentResolver,
+            android.provider.Settings.System.SCREEN_BRIGHTNESS,
+        )
+    }.getOrDefault(128)
+    return (raw / 255f).coerceIn(0.02f, 1f)
 }
 
 

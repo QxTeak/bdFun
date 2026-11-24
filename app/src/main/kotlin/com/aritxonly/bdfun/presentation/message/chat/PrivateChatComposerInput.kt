@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -21,55 +20,52 @@ import com.aritxonly.bdfun.ui.ComposerIcon
 import com.aritxonly.bdfun.ui.ComposerIconButton
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+/**
+ * 与视频评论区同款：图片预览 + 图片 + 发送三个控件贴在胶囊右侧，
+ * 文本区通过 end padding 自动避让，输入前后都是同一个输入框。
+ */
 @Composable
-internal fun PrivateChatComposerInput(
+internal fun androidx.compose.foundation.layout.BoxScope.PrivateChatActionRow(
     content: PrivateChatComposerContent, actions: PrivateChatComposerActions,
 ) {
     val draft = content.draft
     val pendingImage = content.pendingImage
     val sending = content.sending
     val uploading = content.uploading
-    val onPickImage = actions.onPickImage
-    val onClearImage = actions.onClearImage
-    val onSend = actions.onSend
     val colors = MiuixTheme.colorScheme
     Row(
-        modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 6.dp),
+        modifier = Modifier
+            .align(Alignment.CenterEnd)
+            .padding(end = 6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PrivateChatTextField(content, actions)
         if (pendingImage != null) {
-            Box(
-                modifier = Modifier.padding(start = 6.dp),
-            ) {
-                AsyncImage(
-                    model = pendingImage,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(26.dp)
-                        .clip(RoundedCornerShape(7.dp))
-                        .background(colors.surfaceContainerHigh)
-                        .clickable(onClick = onClearImage),
-                )
-            }
+            AsyncImage(
+                model = pendingImage,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(26.dp)
+                    .clip(RoundedCornerShape(7.dp))
+                    .background(colors.surfaceContainerHigh)
+                    .clickable(onClick = actions.onClearImage),
+            )
+            Spacer(Modifier.width(6.dp))
         }
-        Spacer(Modifier.width(2.dp))
         ComposerIconButton(
             kind = ComposerIcon.Image,
             tint = colors.onBackgroundVariant,
-            onClick = onPickImage,
+            onClick = actions.onPickImage,
         )
+        Spacer(Modifier.width(1.dp))
         ComposerIconButton(
             kind = ComposerIcon.Send,
-            tint = if ((draft.isNotBlank() || pendingImage != null) &&
-                !sending && !uploading
-            ) {
+            tint = if ((draft.isNotBlank() || pendingImage != null) && !sending && !uploading) {
                 colors.primary
             } else {
                 colors.outline
             },
-            onClick = onSend,
+            onClick = actions.onSend,
         )
     }
 }

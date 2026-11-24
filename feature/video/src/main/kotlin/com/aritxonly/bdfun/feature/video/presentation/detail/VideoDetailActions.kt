@@ -2,6 +2,7 @@ package com.aritxonly.bdfun.ui
 
 import com.aritxonly.bdfun.core.domain.VideoStreamRequest
 import com.aritxonly.bdfun.core.model.video.Quality
+import com.aritxonly.bdfun.core.model.video.VideoDetail
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import com.aritxonly.bdfun.core.model.video.VideoPage
 import kotlinx.coroutines.launch
@@ -165,6 +166,70 @@ class VideoDetailViewActions(
             durationSec = seconds,
         )
         host.showToast(if (queued) "已加入缓存" else "该清晰度已在缓存中")
+    }
+
+    /** 选集缓存的目标：多 P 的某一 P，或番剧/合集的某一集。 */
+    private data class CacheTarget(
+        val bvid: String, val cid: Long, val durationSec: Int, val epId: Long, val title: String,
+    )
+
+    private fun cacheTargets(d: VideoDetail): List<CacheTarget> {
+        // 多 P 视频按分 P；番剧/影视/UGC 合集按单集（epId 只有 PGC 才有值）。
+        if (d.pages.size > 1) {
+            return d.pages.map { CacheTarget(d.bvid, it.cid, it.duration, 0L, it.part) }
+        }
+        return d.episodes.map { CacheTarget(it.bvid, it.cid, it.duration, it.epId, it.title) }
+    }
+
+    /**
+     * 选集缓存：把当前视频的全部分 P / 合集单集按顺序加入下载队列。
+     * 每集都要单独解析播放地址（音频/视频 URL 不是全局共享的），失败或已在缓存的跳过。
+     */
+    fun cacheAll(quality: Quality) {
+        val d = detail ?: return
+        val targets = cacheTargets(d)
+        if (targets.size <= 1) {
+            cacheVideo(quality)
+            return
+        }
+        host.showToast("正在加入 ${targets.size} 集缓存…")
+        scope.launch {
+            var queued = 0
+            var skipped = 0
+            for (target in targets) {
+                if (host.downloads.findPlayable(target.bvid, target.cid) != null) {
+                    skipped++
+                    continue
+                }
+                val resolved = detailController.resolveCacheSource(
+                    bvid = target.bvid, cid = target.cid, durationSec = target.durationSec,
+                    epId = target.epId, qualityId = quality.id,
+                    codecPreference = settings.codecPreference, cdnService = settings.cdnService,
+                )
+                if (resolved == null) {
+                    skipped++
+                    continue
+                }
+                val (episodeDetail, info) = resolved
+                val cacheQuality = info.qualities.firstOrNull { it.id == quality.id }
+                if (cacheQuality == null || info.audioUrl.isNullOrBlank()) {
+                    skipped++
+                    continue
+                }
+                val added = host.downloads.enqueue(
+                    detail = episodeDetail,
+                    quality = cacheQuality,
+                    cid = target.cid,
+                    audioUrl = info.audioUrl,
+                    durationSec = target.durationSec,
+                )
+                if (added) queued++ else skipped++
+            }
+            host.showToast(
+                if (skipped == 0) "已加入 $queued 集缓存"
+                else "已加入 $queued 集，跳过 $skipped 集",
+            )
+        }
     }
 
     /** 下一集：先走完当前视频的分 P，再进入合集的下一集。 */

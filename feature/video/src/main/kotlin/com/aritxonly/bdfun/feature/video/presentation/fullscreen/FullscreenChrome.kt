@@ -50,6 +50,7 @@ fun FullscreenPlayerChrome(
     onPanelHidden: () -> Unit = {},
     appearance: FullscreenAppearance,
     slots: FullscreenChromeSlots,
+    portrait: Boolean = false,
 ) {
 
     if (playback.audioOnly) {
@@ -77,12 +78,12 @@ fun FullscreenPlayerChrome(
                     alpha = if (!panelVisible && !scrubOnly) 1f else 0f
                 },
         ) {
-        FullscreenChromeMasks(appearance)
-        FullscreenHeader(info, actions, onPanelChanged, appearance)
-        FullscreenAuthor(info, actions, appearance, slots)
-        FullscreenTimeline(playback, actions, scrub)
+        FullscreenChromeMasks(appearance, portrait)
+        FullscreenHeader(info, actions, onPanelChanged, appearance, portrait, playback.danmakuEnabled)
+        FullscreenAuthor(info, actions, appearance, slots, portrait)
+        FullscreenTimeline(playback, actions, scrub, portrait)
 
-        FullscreenBottomControls(info, playback, actions, onPanelChanged, appearance)
+        FullscreenBottomControls(info, playback, actions, onPanelChanged, appearance, portrait)
         }
 
         // 二级面板：统一右侧渐变遮罩

@@ -22,6 +22,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.teak.common.icons.AppGlyph
 import com.kyant.shapes.Capsule
 
 @Composable
@@ -29,13 +30,19 @@ internal fun androidx.compose.foundation.layout.BoxScope.FullscreenBottomControl
     info: FullscreenPlayerInfo, playback: FullscreenPlaybackState, actions: FullscreenActions,
     onPanelChanged: (FullscreenPanel) -> Unit,
     appearance: FullscreenAppearance,
+    portrait: Boolean = false,
 ) {
         val hasNext = hasNextPage(info)
         Row(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .padding(start = 42.dp, end = 28.dp, bottom = 6.dp)
+                .padding(
+                    start = if (portrait) 12.dp else 42.dp,
+                    end = if (portrait) 12.dp else 28.dp,
+                    // 竖屏全屏没有系统导航条也按有小白条的高度抬高一点。
+                    bottom = if (portrait) 22.dp else 6.dp,
+                )
                 .height(42.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -53,10 +60,12 @@ internal fun androidx.compose.foundation.layout.BoxScope.FullscreenBottomControl
             ) {
                 NextGlyph(appearance.icons.next, enabled = hasNext)
             }
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(if (portrait) 4.dp else 12.dp))
+            // 竖屏也放回底部，用更小的图标和间距挤一挤。
+            val danmakuSize = if (portrait) 28.dp else 32.dp
             Box(
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(danmakuSize)
                     .clip(CircleShape)
                     .clickable(interactionSource = null, indication = null) {
                         actions.onToggleDanmaku()
@@ -65,46 +74,55 @@ internal fun androidx.compose.foundation.layout.BoxScope.FullscreenBottomControl
             ) {
                 DanmakuToggleGlyph(appearance.icons.danmakuOn, appearance.icons.danmakuOff, enabled = playback.danmakuEnabled)
             }
-            Spacer(Modifier.width(8.dp))
+            Spacer(Modifier.width(if (portrait) 4.dp else 8.dp))
             PlayerIconButton(
                 onClick = { onPanelChanged(FullscreenPanel.Danmaku) },
-                size = 32.dp,
+                size = danmakuSize,
             ) {
                 SlidersGlyph(appearance.icons.danmakuSettings)
             }
-            Spacer(Modifier.width(12.dp))
-            FullscreenSendDanmakuAction(actions.onSendDanmaku)
-            Spacer(Modifier.width(14.dp))
-            PlayerTextAction(
-                accentColor = appearance.accentColor,
-                text = if (info.selectedSubtitle != null) "字幕·开" else "字幕",
-                active = info.selectedSubtitle != null,
-                onClick = { onPanelChanged(FullscreenPanel.Subtitles) },
-            )
-            Spacer(Modifier.width(18.dp))
-            PlayerTextAction(
-                accentColor = appearance.accentColor,
-                text = "选集",
-                muted = info.pages.size <= 1,
-                onClick = actions.onEpisodes,
-            )
-            Spacer(Modifier.width(18.dp))
-            PlayerTextAction(
-                accentColor = appearance.accentColor,
-                text = if (kotlin.math.abs(playback.speed - 1f) < 0.001f) {
-                    "倍速"
-                } else {
-                    "${trimSpeed(playback.speed)}x"
-                },
-                onClick = { onPanelChanged(FullscreenPanel.Speed) },
-            )
-            Spacer(Modifier.width(16.dp))
-            QualityAction(
-                label = info.qualityLabel,
-                onClick = { onPanelChanged(FullscreenPanel.Quality) },
-            )
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(if (portrait) 4.dp else 12.dp))
+            if (portrait) {
+                // 竖屏发送框缩成圆形按钮。
+                PlayerIconButton(onClick = actions.onSendDanmaku, size = 28.dp) {
+                    AppGlyph(com.aritxonly.teak.common.icons.LucideIcons.Send, Color.White, size = 17.dp)
+                }
+            } else {
+                FullscreenSendDanmakuAction(actions.onSendDanmaku)
+            }
+            Spacer(Modifier.width(if (portrait) 6.dp else 14.dp))
+            FullscreenTrailingActions(info, playback, actions, onPanelChanged, appearance, portrait)
         }
+}
+
+/** 右侧字幕 / 选集 / 倍速 / 清晰度：竖屏用更小的间距，横屏保持原值。 */
+@Composable
+private fun androidx.compose.foundation.layout.RowScope.FullscreenTrailingActions(
+    info: FullscreenPlayerInfo, playback: FullscreenPlaybackState, actions: FullscreenActions,
+    onPanelChanged: (FullscreenPanel) -> Unit, appearance: FullscreenAppearance, portrait: Boolean,
+) {
+    PlayerTextAction(
+        accentColor = appearance.accentColor,
+        text = if (info.selectedSubtitle != null) "字幕·开" else "字幕",
+        active = info.selectedSubtitle != null,
+        onClick = { onPanelChanged(FullscreenPanel.Subtitles) },
+    )
+    Spacer(Modifier.width(if (portrait) 8.dp else 18.dp))
+    PlayerTextAction(
+        accentColor = appearance.accentColor,
+        text = "选集",
+        muted = info.pages.size <= 1,
+        onClick = actions.onEpisodes,
+    )
+    Spacer(Modifier.width(if (portrait) 8.dp else 18.dp))
+    PlayerTextAction(
+        accentColor = appearance.accentColor,
+        text = if (kotlin.math.abs(playback.speed - 1f) < 0.001f) "倍速" else "${trimSpeed(playback.speed)}x",
+        onClick = { onPanelChanged(FullscreenPanel.Speed) },
+    )
+    Spacer(Modifier.width(if (portrait) 6.dp else 16.dp))
+    QualityAction(label = info.qualityLabel, onClick = { onPanelChanged(FullscreenPanel.Quality) })
+    Spacer(Modifier.width(12.dp))
 }
 
 @Composable

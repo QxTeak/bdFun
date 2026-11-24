@@ -31,11 +31,23 @@ internal fun SearchLanding(
      * 再打开时会带着上次的位置；这里按这个 key 把列表顶回顶部。
      */
     resetKey: Int = 0,
+    /** 顶部给搜索栏留出的高度；媒体库搜索的输入栏比首页顶栏矮。 */
+    topContentPadding: androidx.compose.ui.unit.Dp = HomeTopBarHeight,
+    /** 外层已经消费过状态栏避让时传 false，避免再垫一条状态栏高度。 */
+    includeStatusBar: Boolean = true,
+    /** 媒体库搜索：搜索记录不再套圆角卡片，直接铺在页面背景上。 */
+    flatHistory: Boolean = false,
+    /** 媒体库搜索：胶囊略大、行距略宽。 */
+    roomyHistory: Boolean = false,
 ) {
     val colors = MiuixTheme.colorScheme
     // 内容从顶栏下方开始，但整块可以滚到顶栏下面（顶部留白放 contentPadding 里），
     // 这样滚动时是顶栏的渐进模糊，而不是被一条白边裁断。
-    val statusTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    val statusTop = if (includeStatusBar) {
+        WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
+    } else {
+        0.dp
+    }
 
     val listState = rememberLazyListState()
     TrackTeakPageScroll(listState)
@@ -51,18 +63,22 @@ internal fun SearchLanding(
         contentPadding = PaddingValues(
             start = TeakUiStyle.design.contentInset(16.dp),
             // 顶栏高度放进列表留白：列表本身铺满窗口，滚上去的内容由顶栏做渐进模糊。
-            top = statusTop + HomeTopBarHeight + 14.dp,
+            // 媒体库搜索的输入栏是页面里真实占位的一行，不再额外留顶栏高度，
+            // 搜索记录紧贴输入框下方（只留 6dp）。
+            top = statusTop + topContentPadding + if (includeStatusBar) 14.dp else 6.dp,
             end = TeakUiStyle.design.contentInset(16.dp),
             bottom = 32.dp,
         ),
     ) {
-        if (query.isNotBlank()) {
+        // 有关键词时优先给联想；联想还没回来/为空时继续显示搜索记录，
+        // 不能把整页留白，否则从结果页返回会像“什么都没有”。
+        if (query.isNotBlank() && suggestions.isNotEmpty()) {
             searchSuggestionItems(suggestions, colors, onPickKeyword)
             return@LazyColumn
         }
         // 顺序固定：热搜 → 搜索记录 → 搜索发现。
         searchHotItems(hot, colors, onPickKeyword)
-        searchHistoryItems(history, colors, onPickKeyword, onClearHistory)
+        searchHistoryItems(history, colors, onPickKeyword, onClearHistory, flatHistory, roomyHistory)
         searchDiscoveryItems(discovery, colors, onPickKeyword)
 
     }

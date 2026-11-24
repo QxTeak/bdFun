@@ -15,6 +15,14 @@ class PlayerObservedStateHolder(snapshot: State<PlaybackSnapshot>) {
     val positionMs = derivedStateOf { snapshot.value.positionMs }
     val bufferedMs = derivedStateOf { snapshot.value.bufferedMs }
     val durationMs = derivedStateOf { snapshot.value.durationMs }
+    val videoWidth = derivedStateOf { snapshot.value.videoWidth }
+    val videoHeight = derivedStateOf { snapshot.value.videoHeight }
+    /** 竖屏视频（高大于宽）进全屏时保持竖屏铺满，而不是强制横屏。 */
+    val portraitVideo = derivedStateOf {
+        val w = snapshot.value.videoWidth
+        val h = snapshot.value.videoHeight
+        w > 0 && h > 0 && h > w
+    }
 }
 
 @Composable

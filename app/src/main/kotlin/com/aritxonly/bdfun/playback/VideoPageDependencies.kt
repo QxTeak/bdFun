@@ -16,6 +16,7 @@ internal class VideoPageDependencies(
     private val sentHistoryProvider: () -> SentHistoryRepository,
     val background: BackgroundPlaybackStateHolder,
     val queue: PlaybackQueueStateHolder,
+    val localCollection: com.aritxonly.bdfun.core.application.LocalVideoCollectionStateHolder,
     val createPlayback: (Context, Int) -> VideoPlaybackPlatform,
     val log: (String, String) -> Unit,
     val comments: CommentDependencies,

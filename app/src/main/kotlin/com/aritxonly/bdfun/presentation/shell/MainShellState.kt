@@ -23,7 +23,11 @@ internal class MainShellUiStateHolder {
     var dynamicTab by mutableStateOf("")
     val dynamicTabPosition = mutableFloatStateOf(0f)
 
-    fun closeSearch() { showSearch = false; searchQuery = ""; searchSubmitted = null }
+    /**
+     * 只关页面，不立即清空输入/结果状态：收起动画期间查询内容还要继续绘制，
+     * 否则会先闪一下空白的搜索页再退出。下次打开时入口会主动重置。
+     */
+    fun closeSearch() { showSearch = false }
 }
 internal data class MainShellNavigation(
     val pager: androidx.compose.foundation.pager.PagerState, val destinations: List<Destination>,

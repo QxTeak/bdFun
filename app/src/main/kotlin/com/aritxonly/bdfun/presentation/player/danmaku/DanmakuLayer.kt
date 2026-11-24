@@ -63,6 +63,8 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
     val likeAction = rememberScrollingDanmakuLike(hit, page.cid)
     PrefetchScrollingDanmakuVotes(filtered, page.cid, positionMs, hit)
     val window = rememberDanmakuEngineWindow(filtered, likeAction)
+    // 只把本机发送的条目补进渲染器；服务端弹幕仍走正常时间线。
+    val selfItems = remember(merged) { merged.filter { it.self } }
     val config = danmakuEngineConfig(options.drawing, ui.viewSize, playbackSpeed)
     val masks = rememberDanmakuMasks(options.drawing.portraitGuard, ui.viewSize)
     val leadMs = hotDanmakuReservationLeadMs(
@@ -75,5 +77,5 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
         .onSizeChanged { ui.viewSize = it },
         update = { view -> view.alpha = options.drawing.opacity.coerceIn(0f, 1f) })
     BindDanmakuEngineEffects(renderView, window, masks, config, playing, positionMs, options.drawing.lowRefresh,
-        hotPresentation.reservedTopPx.toFloat())
+        hotPresentation.reservedTopPx.toFloat(), selfItems)
 }

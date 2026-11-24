@@ -25,7 +25,7 @@ internal fun FeedCardText(item: FeedItem, expanded: Boolean) {
     if (item.title.isNotBlank()) {
         Spacer(Modifier.height(8.dp))
         Text(
-            text = item.title,
+            text = item.title.trim(),
             color = colors.onBackground,
             fontSize = 15.5.sp,
             lineHeight = 22.sp,
@@ -39,7 +39,9 @@ internal fun FeedCardText(item: FeedItem, expanded: Boolean) {
         Spacer(Modifier.height(8.dp))
         EmoteText(
             content = EmoteTextContent(
-                text = item.text,
+                // 接口正文常以空行结尾；直接渲染会给最后一行再留一整行高度，
+                // 看起来就是文字和下面视频中间空了一大块。
+                text = item.text.trimEnd(),
             ),
             style = EmoteTextStyle(
                 color = colors.onBackground,

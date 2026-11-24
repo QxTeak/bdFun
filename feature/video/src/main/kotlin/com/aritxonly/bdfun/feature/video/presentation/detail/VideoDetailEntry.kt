@@ -16,6 +16,11 @@ fun VideoDetailEntry(
     pager: PagerState, ports: VideoDetailScreenPorts,
 ) {
     val holders = rememberVideoScreenStateHolders(request, ports.state)
+    // 稍后再看入口：按当前 bvid 取本地合集，塞进详情后选集/连播都走合集系统。
+    val localCollection = ports.localCollectionFor(request.video.bvid)
+    androidx.compose.runtime.LaunchedEffect(request.video.bvid, localCollection.first) {
+        holders.controllers.detail.setLocalCollection(localCollection.first, localCollection.second)
+    }
     val collected = observeVideoFeatureState(holders.controllers.detail, holders.controllers.selection,
         holders.controllers.interaction, holders.metadata)
     val (detail, selection, interaction, metadata) = collected
