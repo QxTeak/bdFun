@@ -16,6 +16,8 @@ internal data class MineScreenRequest(
 internal class MineDependencies(val createData: (UserProfile?) -> MineStateHolder, val recent: () -> List<SentRecord>,
     val layout: com.aritxonly.bdfun.core.application.MineLayoutStateHolder,
     val createPreview: (UserProfile?) -> MinePreviewStateHolder,
+    /** 预览卡里的视频也要先进播放队列，否则播完没有下一集可连。 */
+    val playbackQueue: com.aritxonly.bdfun.core.application.PlaybackQueueStateHolder,
 )
 internal class MineNavigation(
     val onLogin: () -> Unit, val onOpenSettings: () -> Unit, val onOpenLibrary: () -> Unit,

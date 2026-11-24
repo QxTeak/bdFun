@@ -81,9 +81,9 @@ private fun MinePage(
                 } else {
                     item { MineHero(shown, navigation) }
                     item { MineContentInset { MineShortcuts(navigation) } }
-                    if (layout.history) item { MineContentInset { MinePreviewCard(MinePreviewKind.History, previews[MinePreviewKind.History], navigation) { retry(MinePreviewKind.History) } } }
-                    if (layout.favorites) item { MineContentInset { MinePreviewCard(MinePreviewKind.Favorites, previews[MinePreviewKind.Favorites], navigation) { retry(MinePreviewKind.Favorites) } } }
-                    if (layout.watchLater) item { MineContentInset { MinePreviewCard(MinePreviewKind.WatchLater, previews[MinePreviewKind.WatchLater], navigation) { retry(MinePreviewKind.WatchLater) } } }
+                    if (layout.history) item { MineContentInset { MinePreviewCard(MinePreviewKind.History, previews[MinePreviewKind.History], navigation, dependencies.playbackQueue::set) { retry(MinePreviewKind.History) } } }
+                    if (layout.favorites) item { MineContentInset { MinePreviewCard(MinePreviewKind.Favorites, previews[MinePreviewKind.Favorites], navigation, dependencies.playbackQueue::set) { retry(MinePreviewKind.Favorites) } } }
+                    if (layout.watchLater) item { MineContentInset { MinePreviewCard(MinePreviewKind.WatchLater, previews[MinePreviewKind.WatchLater], navigation, dependencies.playbackQueue::set) { retry(MinePreviewKind.WatchLater) } } }
                     if (request.showSentHistory) item { MineContentInset { MineRecent(shape, dependencies.recent(), navigation) } }
 
                 }
@@ -102,7 +102,7 @@ private fun MinePageContent(
     val enabled = listOf(MinePreviewKind.History to layout.history,
         MinePreviewKind.Favorites to layout.favorites, MinePreviewKind.WatchLater to layout.watchLater)
     enabled.filter { it.second }.forEach { (kind, _) ->
-        MinePreviewCard(kind, previews[kind], navigation) { retry(kind) }
+        MinePreviewCard(kind, previews[kind], navigation, dependencies.playbackQueue::set) { retry(kind) }
     }
     if (request.showSentHistory) MineRecent(shape, dependencies.recent(), navigation)
 }

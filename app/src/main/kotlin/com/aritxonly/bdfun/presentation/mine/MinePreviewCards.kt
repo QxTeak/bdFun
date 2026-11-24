@@ -29,7 +29,8 @@ import com.aritxonly.bdfun.feature.mine.application.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-internal fun MinePreviewCard(kind: MinePreviewKind, section: MinePreviewSection, navigation: MineNavigation, retry: () -> Unit) {
+internal fun MinePreviewCard(kind: MinePreviewKind, section: MinePreviewSection, navigation: MineNavigation,
+    prepareQueue: (List<com.aritxonly.bdfun.core.model.video.VideoItem>, String) -> Unit, retry: () -> Unit) {
     val openAll = when (kind) {
         MinePreviewKind.History -> navigation.onOpenHistory
         MinePreviewKind.Favorites -> navigation.onOpenLibrary
@@ -64,13 +65,14 @@ internal fun MinePreviewCard(kind: MinePreviewKind, section: MinePreviewSection,
                 AppGlyph(MiuixIcons.Basic.ArrowRight, MiuixTheme.colorScheme.onBackgroundVariant, size = 12.dp)
             }
         }
-        MinePreviewBody(kind, section, navigation, openAll, retry)
+        MinePreviewBody(kind, section, navigation, openAll, prepareQueue, retry)
     }
 }
 
 @Composable
 private fun MinePreviewBody(kind: MinePreviewKind, section: MinePreviewSection, navigation: MineNavigation,
-    openAll: () -> Unit, retry: () -> Unit) {
+    openAll: () -> Unit, prepareQueue: (List<com.aritxonly.bdfun.core.model.video.VideoItem>, String) -> Unit,
+    retry: () -> Unit) {
     BoxWithConstraints(Modifier.fillMaxWidth()) {
         val videoWidth = ((maxWidth - 12.dp).coerceAtLeast(0.dp) / 2).coerceAtMost(180.dp)
         val density = LocalDensity.current
@@ -89,7 +91,7 @@ private fun MinePreviewBody(kind: MinePreviewKind, section: MinePreviewSection, 
                     verticalArrangement = Arrangement.spacedBy(14.dp)) { MineFolderPreviews(section, openAll) }
                 section.entries.isEmpty() -> MinePreviewMessage(
                     if (kind == MinePreviewKind.History) "还没有观看记录" else "还没有待看视频")
-                else -> MineVideoPreviews(section, kind == MinePreviewKind.History, navigation, videoWidth)
+                else -> MineVideoPreviews(section, kind == MinePreviewKind.History, navigation, prepareQueue, videoWidth)
             }
         }
     }
@@ -144,10 +146,17 @@ private fun MineFolderPreviews(section: MinePreviewSection, openAll: () -> Unit)
 }
 
 @Composable
-private fun MineVideoPreviews(section: MinePreviewSection, history: Boolean, navigation: MineNavigation, width: Dp) {
+private fun MineVideoPreviews(section: MinePreviewSection, history: Boolean, navigation: MineNavigation,
+    prepareQueue: (List<com.aritxonly.bdfun.core.model.video.VideoItem>, String) -> Unit, width: Dp) {
+    // 卡片里的顺序就是连播顺序：点开任意一条都先把整卡塞进播放队列。
+    val videos = section.entries.map { it.mineVideo(history) }
     LazyRow(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        itemsIndexed(section.entries, key = { index, entry -> "${entry.bvid}-$index" }) { _, entry ->
-            Column(Modifier.width(width).clickable { navigation.onOpenVideo(entry.mineVideo(history)) },
+        itemsIndexed(section.entries, key = { index, entry -> "${entry.bvid}-$index" }) { index, entry ->
+            val video = videos.getOrNull(index) ?: entry.mineVideo(history)
+            Column(Modifier.width(width).clickable {
+                prepareQueue(videos, video.bvid)
+                navigation.onOpenVideo(video)
+            },
                 verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f).clip(RoundedCornerShape(12.dp))
                     .background(MiuixTheme.colorScheme.surfaceContainerHigh)) {

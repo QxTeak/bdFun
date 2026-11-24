@@ -72,12 +72,17 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
             videoResultRows(
                 videos = rows,
                 keyPrefix = "library-${layout.mode}-",
+                // 队列必须在点击时、跳转前就准备好：一镜到底会由系统动画自己起 VideoActivity，
+                // onOpenVideo 只是动画失败时的兜底，正常路径根本不执行，写在那里等于没准备。
+                onBeforeOpen = { video ->
+                    if (!content.batchMode) {
+                        actions.onPrepareQueue(rows, video.bvid)
+                    }
+                },
                 onOpenVideo = { video ->
                     if (content.batchMode) {
                         actions.onToggleSelected(video.bvid)
                     } else {
-                        // 和原来一样先把当前列表放进播放队列，连播才不会丢。
-                        actions.onPrepareQueue(rows, video.bvid)
                         actions.onOpenVideo(video)
                     }
                 },
