@@ -37,15 +37,27 @@ fun BindPlayerContinuation(
         val index = fullscreenInfo.pages.indexOfFirst { it.cid == fullscreenInfo.currentCid }
         fsHasNext && index >= 0 && index + 1 < fullscreenInfo.partCount
     }
+    // 有合集才谈得上“合集放完回到合集开头”，单集视频仍然走来源列表。
+    val fsHasCollection = fullscreenInfo.collectionStartIndex >= 0 && fullscreenInfo.pages.size > 1
+    val fsCollectionStart = fullscreenInfo.collectionStartIndex.coerceIn(0, fullscreenInfo.pages.lastIndex.coerceAtLeast(0))
     LaunchedEffect(fsResizeMode) {
         playerViewRef?.resizeMode = fsResizeMode
     }
 
     // 播完往哪走由「循环播放」决定，策略在 core:domain 里单独测过。
-    LaunchedEffect(ended, fsLoopMode, fsAutoPlayNext, fsHasNext, fsHasNextPart) {
+    LaunchedEffect(ended, fsLoopMode, fsAutoPlayNext, fsHasNext, fsHasNextPart, fsHasCollection) {
         if (!ended) return@LaunchedEffect
         val queued = hasNext()
-        when (playbackContinuation(fsLoopMode, fsAutoPlayNext, fsHasNext, fsHasNextPart, queued)) {
+        when (
+            playbackContinuation(
+                loopMode = fsLoopMode,
+                autoPlayNext = fsAutoPlayNext,
+                hasNextPage = fsHasNext,
+                hasNextPart = fsHasNextPart,
+                hasNextInQueue = queued,
+                hasCollection = fsHasCollection,
+            )
+        ) {
             PlaybackContinuation.RepeatSingle -> {
                 playback.seekTo(0L)
                 playback.play()
@@ -57,6 +69,7 @@ fun BindPlayerContinuation(
                         .coerceAtMost(fullscreenInfo.pages.lastIndex)
                 ],
             )
+            PlaybackContinuation.RestartCollection -> onPageSelected(fullscreenInfo.pages[fsCollectionStart])
             PlaybackContinuation.NextInQueue -> {
                 playback.acknowledgeEnd()
                 page.requestAutoNext()
