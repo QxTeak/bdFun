@@ -57,6 +57,7 @@ private fun fullscreenPlayerInfo(content: VideoPlayerContent): FullscreenPlayerI
         media = FullscreenMediaInfo(
             qualityLabel = if (content.selection.autoQuality) "自动" else content.quality?.label ?: "",
             pages = detail?.let(::videoPlaybackPages).orEmpty(),
+            partCount = detail?.pages?.size ?: 0,
             currentCid = content.selection.cid,
             subtitles = metadata.subtitles,
             selectedSubtitle = metadata.selectedSubtitle,

@@ -41,6 +41,8 @@ data class FullscreenPlayerInfo(
     val qualityLabel get() = media.qualityLabel
     val cover get() = video.cover
     val pages get() = media.pages
+    /** 当前稿件自己的分 P 数量；[pages] 里排在它后面的都是合集/番剧的其它稿件。 */
+    val partCount get() = media.partCount
     val currentCid get() = media.currentCid
     val folders get() = interaction.folders
     val folderIds get() = interaction.folderIds
@@ -76,6 +78,8 @@ data class FullscreenInteractionInfo(
 data class FullscreenMediaInfo(
     val qualityLabel: String,
     val pages: List<VideoPage>,
+    /** 分 P 数量：pages 是「分 P + 合集条目」拼起来的，靠它区分下一项是同一稿件的下一 P 还是合集里的下一个稿件。 */
+    val partCount: Int = 0,
     val currentCid: Long,
     val subtitles: List<SubtitleTrack>,
     val selectedSubtitle: SubtitleTrack?,

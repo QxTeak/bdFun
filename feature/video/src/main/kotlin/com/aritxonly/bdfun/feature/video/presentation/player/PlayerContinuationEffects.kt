@@ -9,6 +9,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.aritxonly.bdfun.core.application.PlaybackController
+import com.aritxonly.bdfun.core.domain.PlaybackContinuation
+import com.aritxonly.bdfun.core.domain.playbackContinuation
 import kotlinx.coroutines.delay
 
 @Composable
@@ -29,32 +31,37 @@ fun BindPlayerContinuation(
         val index = pages.indexOfFirst { it.cid == fullscreenInfo.currentCid }
         pages.size > 1 && index >= 0 && index + 1 < pages.size
     }
+    // 分 P 属于同一个稿件，下一项仍是分 P 时才算“同稿件的下一集”；
+    // 越过 partCount 之后就是合集里的别的稿件，不能当分 P 处理。
+    val fsHasNextPart = run {
+        val index = fullscreenInfo.pages.indexOfFirst { it.cid == fullscreenInfo.currentCid }
+        fsHasNext && index >= 0 && index + 1 < fullscreenInfo.partCount
+    }
     LaunchedEffect(fsResizeMode) {
         playerViewRef?.resizeMode = fsResizeMode
     }
 
-    // 播完：单集循环 / 列表循环 / 自动连播（有下一集才切）
-    LaunchedEffect(ended, fsLoopMode, fsAutoPlayNext, fsHasNext) {
+    // 播完往哪走由「循环播放」决定，策略在 core:domain 里单独测过。
+    LaunchedEffect(ended, fsLoopMode, fsAutoPlayNext, fsHasNext, fsHasNextPart) {
         if (!ended) return@LaunchedEffect
-        when {
-            fsLoopMode == 1 -> {
+        val queued = hasNext()
+        when (playbackContinuation(fsLoopMode, fsAutoPlayNext, fsHasNext, fsHasNextPart, queued)) {
+            PlaybackContinuation.RepeatSingle -> {
                 playback.seekTo(0L)
                 playback.play()
                 playback.acknowledgeEnd()
             }
-            fsHasNext && (fsLoopMode == 2 || fsAutoPlayNext) -> {
-                onPageSelected(
-                    fullscreenInfo.pages[
-                        (fullscreenInfo.pages.indexOfFirst { it.cid == fullscreenInfo.currentCid } + 1)
-                            .coerceAtMost(fullscreenInfo.pages.lastIndex)
-                    ],
-                )
-            }
-            (fsLoopMode == 2 || fsAutoPlayNext) &&
-                hasNext() -> {
+            PlaybackContinuation.NextPage -> onPageSelected(
+                fullscreenInfo.pages[
+                    (fullscreenInfo.pages.indexOfFirst { it.cid == fullscreenInfo.currentCid } + 1)
+                        .coerceAtMost(fullscreenInfo.pages.lastIndex)
+                ],
+            )
+            PlaybackContinuation.NextInQueue -> {
                 playback.acknowledgeEnd()
                 page.requestAutoNext()
             }
+            PlaybackContinuation.Stop -> Unit
         }
     }
 
