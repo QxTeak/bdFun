@@ -24,9 +24,11 @@ internal fun RelationFooter(controller: RelationFeedStateHolder, state: Relation
         if (!state.loading && state.error == null && state.nextPage != null) scope.launch { controller.fetch() }
     }
     Column(Modifier.fillMaxWidth().padding(vertical = 28.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-        if (state.loading) TeakLoading(size = 28.dp)
+        if (state.loading) {
+            MiuixLoadingRow(verticalPadding = 0.dp)
+            return@Column
+        }
         Text(when {
-            state.loading -> "加载中…"
             state.error != null -> "${state.error}\n点击重试"
             state.items.isEmpty() -> if (fans) "还没有粉丝" else "还没有关注的人"
             state.nextPage != null -> "加载更多"

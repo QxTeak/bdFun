@@ -27,21 +27,14 @@ internal fun androidx.compose.foundation.layout.RowScope.CommentPreviewText(
         ),
         style = EmoteTextStyle(
             color = colors.onBackground,
-            // 折叠回复：普通用户用淡一点的主题色；大会员用完整主题色。
-            prefixColor = if (reply.isVip) {
-            colors.primary
-        } else {
-            colors.primary.copy(alpha = 0.72f)
-        },
+            // 折叠回复的用户名：大会员保持主题色，普通用户和主评论区用户名同一个灰色。
+            prefixColor = if (reply.isVip) colors.primary else colors.onBackgroundVariant,
             fontSize = CommentTypography.previewBodySize,
             lineHeight = CommentTypography.previewLineHeight,
             prefixFontSize = CommentTypography.previewNameSize,
             fontWeight = FontWeight.Normal,
-            mentionColor = if (reply.isVip) {
-            colors.primary
-        } else {
-            colors.primary.copy(alpha = 0.72f)
-        },
+            // 正文里 @ 到的人统一用「我的」页那几个快捷入口图标的蓝色，和主题色区分开。
+            mentionColor = MineBlue,
             trailingWidth = if (likeCount > 0) 56.sp else 26.sp,
         ),
         modifier = Modifier.weight(1f),

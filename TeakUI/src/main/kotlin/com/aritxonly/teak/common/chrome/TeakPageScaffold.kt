@@ -27,6 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.graphicsLayer
+import com.aritxonly.teak.common.interaction.blockTouches
+import com.aritxonly.teak.common.search.teakSearchUnderlay
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -362,6 +365,19 @@ fun TeakPageScaffold(
     overlay: @Composable BoxScope.() -> Unit = {},
     /** 画在顶栏按钮之上的浮层，给需要盖住顶栏的玻璃菜单用。 */
     menuOverlay: @Composable BoxScope.() -> Unit = {},
+    /** 最顶层全屏覆盖，画在顶栏之后；媒体库搜索等整页转场用。 */
+    topOverlay: @Composable BoxScope.() -> Unit = {},
+    /**
+     * 整页搜索的「一镜到底」：0 = 正常，1 = 页面已退到底。
+     *
+     * 只作用在内容采集层（含吸顶大标题），overlay / 顶栏不在其中：
+     * 顶栏按 [topBarAlpha] 单独淡出，并用同样的位移和模糊补偿采样。
+     */
+    underlayProgress: Float = 0f,
+    underlayAlpha: Float = 1f,
+    underlayBlurProgress: Float = 0f,
+    /** 顶栏整体透明度；一镜到底期间和内容同步淡出。 */
+    topBarAlpha: Float = 1f,
     titleAlwaysVisible: Boolean = false,
     /** 顶栏渐变模糊的显隐：0 = 完全透明，1 = 正常显示。 */
     barBlurFraction: Float = 1f,
@@ -392,19 +408,42 @@ fun TeakPageScaffold(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .layerBackdrop(backdrop)
-                    .then(contentModifier),
+                    .teakSearchUnderlay(underlayProgress, underlayAlpha, underlayBlurProgress)
+                    .then(if (underlayProgress > 0.001f) Modifier.blockTouches(true) else Modifier),
             ) {
-                if (title != null && limitContentWidth) {
-                    TeakScrollContainer(pageState.scrollableState, Modifier.fillMaxSize(), content = content)
-                } else content()
-                // 大标题固定副本画在滚动容器外，但在 backdrop 录制层内：
-                // 这样顶栏渐进模糊仍能采样到标题，标题不会在顶栏底边被一块硬边遮住。
-                TeakPinnedLargeTitle(largeTitleState, pageState, topInset = largeTitleTopInset)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .layerBackdrop(backdrop)
+                        .then(contentModifier),
+                ) {
+                    if (title != null && limitContentWidth) {
+                        TeakScrollContainer(pageState.scrollableState, Modifier.fillMaxSize(), content = content)
+                    } else content()
+                    // 大标题固定副本画在滚动容器外，但在 backdrop 录制层内：
+                    // 这样顶栏渐进模糊仍能采样到标题，标题不会在顶栏底边被一块硬边遮住。
+                    TeakPinnedLargeTitle(largeTitleState, pageState, topInset = largeTitleTopInset)
+                }
             }
             Box(modifier = Modifier.fillMaxSize()) { overlay() }
+            // 顶栏始终留在组合里：一镜到底时只改透明度，避免动画中途卸载/重建整棵顶栏
+            // 造成一帧跳动；搜索层画在 topOverlay，盖在顶栏之上，透明时也接不到点击。
             if (showTopBar) CompositionLocalProvider(LocalTopBarScrollProgress provides ((topBarMaterialProgress ?: pageState.materialProgress).coerceIn(0f, 1f) * barBlurFraction.coerceIn(0f, 1f))) {
-                ProgressiveTopBarMaterial {
+                // 只有做一镜到底时才开独立图层，普通页面保持原来的绘制路径。
+                val topBarLayer = if (topBarAlpha < 0.999f) {
+                    Modifier.graphicsLayer { alpha = topBarAlpha.coerceIn(0f, 1f) }
+                } else {
+                    Modifier
+                }
+                ProgressiveTopBarMaterial(
+                    modifier = topBarLayer,
+                    underlayLiftPx = with(androidx.compose.ui.platform.LocalDensity.current) {
+                        com.aritxonly.teak.common.search.TeakSearchTransitionDefaults.ContentLift.toPx() *
+                            underlayProgress.coerceIn(0f, 1f)
+                    },
+                    underlayBlurPx = com.aritxonly.teak.common.search.TeakSearchTransitionDefaults.UnderlayBlurPx *
+                        underlayBlurProgress.coerceIn(0f, 1f),
+                ) {
                     if (title != null && !wide) {
                         TeakTopBar(
                             title = title,
@@ -447,6 +486,9 @@ fun TeakPageScaffold(
             }
             Box(modifier = Modifier.fillMaxSize()) {
                 menuOverlay()
+            }
+            Box(modifier = Modifier.fillMaxSize()) {
+                topOverlay()
             }
         }
     }

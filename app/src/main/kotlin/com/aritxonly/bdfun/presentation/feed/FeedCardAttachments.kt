@@ -19,7 +19,7 @@ internal fun FeedCardAttachments(
         FeedLiveCard(live)
     }
     item.video?.let { video ->
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(8.dp))
         FeedVideoCard(
             video = video,
             isCollection = item.isCollection,

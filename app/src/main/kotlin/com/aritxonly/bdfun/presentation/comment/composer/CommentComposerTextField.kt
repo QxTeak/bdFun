@@ -55,7 +55,8 @@ internal fun CommentComposerTextField(content: CommentComposerContent, actions: 
                             color = if (com.aritxonly.teak.common.theme.LocalTeakControlEmphasis.current) {
                                 colors.onBackground.copy(alpha = 0.78f)
                             } else colors.onBackgroundVariant,
-                            fontSize = 13.sp,
+                            // 和输入态使用同一套字体度量，避免一输入文字就像换了个更细的输入框。
+                            style = ComposerTextStyle,
                             maxLines = 1,
                         )
                     }

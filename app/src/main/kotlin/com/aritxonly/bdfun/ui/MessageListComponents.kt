@@ -61,10 +61,15 @@ internal fun MessagePageFooter(loading: Boolean, error: String?, hasMore: Boolea
     // This is a real LazyColumn item, so entering the viewport starts the next page.
     // Keep failed requests manual to avoid a retry loop while offline.
     LaunchedEffect(loading, hasMore, error) { if (!loading && hasMore && error == null) onLoad() }
-    Text(when { loading -> "加载中…"; error != null -> "$error · 点击重试";
+    if (loading) {
+        // 和其它页面一致：加载态用 Miuix 的环形+圆点动画，而不是一行「加载中…」。
+        MiuixLoadingRow(modifier = Modifier.fillMaxWidth(), verticalPadding = 24.dp)
+        return
+    }
+    Text(when { error != null -> "$error · 点击重试";
         hasMore -> "加载更多"; empty -> "暂无消息"; else -> "没有更多了" },
         color = MiuixTheme.colorScheme.onBackgroundVariant, fontSize = 13.sp, textAlign = TextAlign.Center,
-        modifier = Modifier.fillMaxWidth().clickable(enabled = !loading && (error != null || hasMore), onClick = onLoad)
+        modifier = Modifier.fillMaxWidth().clickable(enabled = error != null || hasMore, onClick = onLoad)
             .padding(vertical = 24.dp))
 }
 

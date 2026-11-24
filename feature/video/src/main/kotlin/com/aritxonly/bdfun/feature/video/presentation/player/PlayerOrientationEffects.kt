@@ -11,7 +11,10 @@ import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 
 @Composable
-fun BindPlayerOrientation(fullscreen: Boolean, ui: VideoPlayerUiStateHolder, page: PlayerPageHost) {
+fun BindPlayerOrientation(
+    fullscreen: Boolean, ui: VideoPlayerUiStateHolder, page: PlayerPageHost,
+    portraitVideo: Boolean = false,
+) {
     val activity = LocalContext.current as? Activity
     var fsLockHint by ui.fsLockHint
     val fsLocked by ui.fsLocked
@@ -21,12 +24,16 @@ fun BindPlayerOrientation(fullscreen: Boolean, ui: VideoPlayerUiStateHolder, pag
             fsLockHint = false
         }
     }
-    LaunchedEffect(fsLocked, fullscreen) {
+    LaunchedEffect(fsLocked, fullscreen, portraitVideo) {
         page.orientationLocked = fsLocked && fullscreen
         if (fsLocked && fullscreen) {
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LOCKED
         } else if (fullscreen) {
-            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            activity?.requestedOrientation = if (portraitVideo) {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR
+            } else {
+                ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+            }
         }
     }
     DisposableEffect(Unit) {

@@ -14,4 +14,6 @@ data class HistoryItem(
     /** 稿件 aid：批量删除历史 / 稍后再看时要用；历史游标接口放在 history.oid 里。 */
     val aid: Long = 0,
     val cid: Long = 0,
+    /** 历史接口的 history.business：archive / article / live / pgc 等，用于分类。 */
+    val business: String = "",
 )

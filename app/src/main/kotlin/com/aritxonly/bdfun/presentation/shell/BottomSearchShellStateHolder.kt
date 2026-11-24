@@ -34,12 +34,13 @@ internal class BottomSearchShellStateHolder(
     // 底栏单独一条弹簧（0.97 / 0.3），和内容那条（0.97 / 0.4）不是同一个时间线。
     val bottomTabBarProgress = Animatable(0f)
     fun close() {
-        bottomQuery = ""
-        bottomSubmitted = null
+        // 输入/搜索结果在收起动画期间保持原样，避免动画中先闪出搜索首页。
         if (animationsEnabled()) {
             appScope.launch {
                 bottomSearchProgress.animateTo(0f, TeakSearchTransitionDefaults.spec())
                 showBottomSearch = false
+                bottomQuery = ""
+                bottomSubmitted = null
             }
             appScope.launch {
                 bottomUnderlayAlpha.animateTo(1f, tween(TeakSearchTransitionDefaults.UnderlayAlphaMs, easing = LinearEasing))
@@ -80,6 +81,8 @@ internal class BottomSearchShellStateHolder(
                 bottomWindowAlpha.snapTo(0f)
             }
             showBottomSearch = false
+            bottomQuery = ""
+            bottomSubmitted = null
         }
     }
     fun open() {

@@ -45,21 +45,22 @@ internal fun HistoryPill(
     word: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    roomy: Boolean = false,
 ) {
     val colors = MiuixTheme.colorScheme
     Box(
         modifier = modifier
-            .height(32.dp)
+            .height(if (roomy) 36.dp else 32.dp)
             .clip(Capsule())
             .background(colors.surfaceContainerHigh)
             .clickable(interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = if (roomy) 18.dp else 16.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = historyPillText(word),
             color = colors.onBackground,
-            fontSize = 13.sp,
+            fontSize = if (roomy) 13.5.sp else 13.sp,
             maxLines = 1,
             softWrap = false,
         )

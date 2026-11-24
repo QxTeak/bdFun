@@ -18,12 +18,14 @@ internal data class LibraryTransferSelection(val moving: Boolean, val ids: Set<S
 /** 搜索只提交修剪后的关键词；选择与本地显示页数保留 main 的计数规则。 */
 internal class LibraryInteractionStateHolder(
     private val settings: GeneralSettings, changes: Flow<Unit>, scope: CoroutineScope,
+    /** 页面级搜索记录的作用域：收藏 / 历史 / 稍后再看各自一条，不混进首页搜索历史。 */
+    private val historyScope: String,
 ) {
-    private val mutable = MutableStateFlow(LibraryInteractionState(settings.searchHistory))
+    private val mutable = MutableStateFlow(LibraryInteractionState(settings.searchHistory(historyScope)))
     val state = mutable.asStateFlow()
     private var closed = false
     private val observer = scope.launch { changes.collect {
-        if (!closed) mutable.update { it.copy(searchHistory = settings.searchHistory) }
+        if (!closed) mutable.update { it.copy(searchHistory = settings.searchHistory(historyScope)) }
     } }
     fun close() { closed = true; observer.cancel() }
     fun pageChanged() { update { it.copy(selected = emptySet(), batchMode = false) } }
@@ -50,11 +52,11 @@ internal class LibraryInteractionStateHolder(
     fun submitQuery(word: String) {
         if (closed) return
         val query = word.trim()
-        if (query.isNotEmpty()) { settings.addSearchHistory(query); update { it.copy(query = query) } }
+        if (query.isNotEmpty()) { settings.addSearchHistory(historyScope, query); update { it.copy(query = query) } }
     }
     fun clearSearchHistory() {
         if (closed) return
-        settings.clearSearchHistory(); update { it.copy(query = "") }
+        settings.clearSearchHistory(historyScope); update { it.copy(query = "") }
     }
     fun resetWatchLaterCount() { update { it.copy(watchLaterVisibleCount = 20) } }
     fun showMoreWatchLater(total: Int) { update { it.copy(watchLaterVisibleCount = (it.watchLaterVisibleCount + 20).coerceAtMost(total)) } }

@@ -38,7 +38,7 @@ internal fun CommentThreadTextField(
                     Text(
                         text = "回复 @${target.uname}：",
                         color = colors.outline,
-                        fontSize = 13.sp,
+                        style = ComposerTextStyle,
                     )
                 }
                 inner()

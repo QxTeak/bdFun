@@ -47,6 +47,7 @@ internal fun MessageSessionList(
     // 小电视只属于用户手动下拉：自动加载/后台补全都走骨架或列表自身，不弹指示器。
     var manualRefresh by remember { mutableStateOf(false) }
     LaunchedEffect(snapshot.loading) { if (!snapshot.loading) manualRefresh = false }
+    Box(Modifier.fillMaxSize()) {
     HomePullRefreshBox(
         refreshing = manualRefresh && snapshot.loading,
         topPadding = TeakChromeDefaults.TopBarHeight - 8.dp,
@@ -79,10 +80,6 @@ internal fun MessageSessionList(
             if (!loggedIn) {
                 item(key = "login") { MessageLoginPrompt(events.onNeedLogin) }
             } else {
-                // 首屏用 Miuix 默认加载动画；下拉刷新才由 App 层的小电视提示。
-                if (snapshot.loading && visibleSessions.isEmpty()) {
-                    item(key = "session-loading") { MiuixLoadingRow() }
-                }
                 itemsIndexed(visibleSessions, key = { _, session -> session.id }) { _, session ->
                     val anchor = remember { CardBoundsHolder() }
                     Box(Modifier.padding(bottom = 4.dp)
@@ -114,5 +111,10 @@ internal fun MessageSessionList(
                 }
             }
         }
+    }
+    // 首屏加载固定在屏幕中间，不受大标题/快捷入口占位影响。
+    if (loggedIn && snapshot.loading && visibleSessions.isEmpty()) {
+        PageCenteredLoading()
+    }
     }
 }

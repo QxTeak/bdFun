@@ -19,7 +19,8 @@ internal fun VideoActivityContent(
     val video = rememberVideoActivityEntry(route?.snapshot, requestedBvid, requestedAid, host, page.dependencies.controllers) ?: return
     val ui = remember { VideoActivityPageStateHolder(page.autoNextRequest) }
     BindVideoActivityQueue(video, ui, host, page.dependencies.queue) { page.autoNextRequest }
-    val fullscreen = page.playerUi.fullscreen || pipMode
+    val pipWindow = pipMode
+    val fullscreen = page.playerUi.fullscreen || pipWindow
     val alpha = rememberManualProgress(if (fullscreen) 0f else 1f, 200f)
     val commentRequest = remember { Triple(route?.commentRoot ?: 0L, route?.commentTarget ?: 0L, route?.seekMs ?: 0L) }
     val pager = androidx.compose.foundation.pager.rememberPagerState(
@@ -50,7 +51,8 @@ internal fun VideoActivityContent(
                 backRevealed = false,
                 showBackButton = false,
                 showTopBar = false,
-                showScrollTop = !pipMode,
+                // 全屏时评论页不可见，回到顶部控件也必须一起消失。
+                showScrollTop = !pipMode && !fullscreen,
             ),
             disc = ActivityDiscOptions(
                 showBackgroundDisc = false,

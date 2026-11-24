@@ -1,6 +1,9 @@
 package com.aritxonly.bdfun.ui
 
 import android.content.Context
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -8,7 +11,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.application.PlaybackController
 import com.aritxonly.bdfun.data.Quality
 import com.aritxonly.teak.common.modal.TeakActionSheet
@@ -30,7 +35,13 @@ internal fun PlayerInlineMore(
     var fsSleepAt by ui.fsSleepAt
     // 弹幕设置的二级 sheet：从「更多」里打开，跟「更多」是两个独立面板。
     var danmakuSheetOpen by remember { mutableStateOf(false) }
-    LaunchedEffect(fullscreen) { if (fullscreen) danmakuSheetOpen = false }
+    var cachePickerOpen by remember { mutableStateOf(false) }
+    // 选集缓存：面板里先切到“全部”，再点画质就把所有分 P / 单集一起排队。
+    var cacheAll by remember { mutableStateOf(false) }
+    LaunchedEffect(fullscreen) { if (fullscreen) { danmakuSheetOpen = false; cachePickerOpen = false; cacheAll = false } }
+    val cacheQualities = media.info?.qualities.orEmpty().let { list ->
+        list.filter { quality -> quality.id >= 64 }.ifEmpty { list }
+    }
     // 半屏「更多」：与全屏 MorePanel 同一套设置项，复用评论区同款底部弹簧面板。
     if (!fullscreen) {
         HalfScreenMoreSheet(
@@ -46,7 +57,9 @@ internal fun PlayerInlineMore(
                 subtitlesOn = fsSubtitlesOn,
                 sleepAtMs = fsSleepAt,
             ),
-            quick = inlineMoreQuickActions(context, media.quality, actions, fsActions, ui),
+            quick = inlineMoreQuickActions(context, cacheQualities.isNotEmpty(), actions, fsActions, ui) {
+                cachePickerOpen = true
+            },
             settings = inlineMoreSettingsActions(playback, ui, settings) {
                 danmakuSheetOpen = true
             },
@@ -65,17 +78,62 @@ internal fun PlayerInlineMore(
                 ) { DanmakuCloudRulesEntry({}) }
             }
         }
+        // 缓存画质：复用全 App 同一套底部 ActionSheet，不另起一个对话框样式。
+        CacheQualitySheet(
+            visible = cachePickerOpen,
+            cacheQualities = cacheQualities,
+            episodeCount = media.cacheEpisodeCount,
+            cacheAll = cacheAll,
+            onToggleAll = { cacheAll = !cacheAll },
+            onDismiss = { cachePickerOpen = false; cacheAll = false },
+            onPick = { item, all ->
+                if (all) actions.transport.onCacheAll(item) else actions.transport.onCacheVideo(item)
+                cachePickerOpen = false
+                cacheAll = false
+            },
+        )
     }
 }
 
-private fun inlineMoreQuickActions(
-    context: Context, quality: Quality?, actions: VideoPlayerActions,
-    fsActions: FullscreenActions, ui: VideoPlayerUiStateHolder,
+/** 缓存画质 / 选集面板：与全 App 共用同一套底部 ActionSheet 外壳。 */
+@Composable
+private fun CacheQualitySheet(
+    visible: Boolean,
+    cacheQualities: List<Quality>,
+    episodeCount: Int,
+    cacheAll: Boolean,
+    onToggleAll: () -> Unit,
+    onDismiss: () -> Unit,
+    onPick: (Quality, Boolean) -> Unit,
+) {
+    TeakActionSheet(
+        visible = visible,
+        onDismiss = onDismiss,
+        title = if (cacheAll) "缓存全部 $episodeCount 集" else "选择缓存画质",
+    ) {
+        if (episodeCount > 1) {
+            ActionSheetRow(
+                label = if (cacheAll) "改为只缓存当前集" else "改为缓存全部 $episodeCount 集",
+            ) { onToggleAll() }
+        }
+        if (cacheQualities.isEmpty()) {
+            androidx.compose.material3.Text(
+                "暂无可用清晰度",
+                modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp),
+            )
+        }
+        cacheQualities.forEach { item ->
+            ActionSheetRow(label = qualityMenuLabel(item.label)) { onPick(item, cacheAll) }
+        }
+    }
+}
+
+private fun inlineMoreQuickActions(    context: Context, hasCacheQuality: Boolean, actions: VideoPlayerActions,
+    fsActions: FullscreenActions, ui: VideoPlayerUiStateHolder, onRequestCache: () -> Unit,
 ): HalfMoreQuickActions {
     var halfMoreOpen by ui.halfMoreOpen
     val onDislikeClick = actions.interaction.onDislikeClick
     val onAddWatchLater = actions.interaction.onAddWatchLater
-    val onCacheVideo = actions.transport.onCacheVideo
     return HalfMoreQuickActions(
         onDislike = {
             onDislikeClick()
@@ -94,12 +152,7 @@ private fun inlineMoreQuickActions(
             halfMoreOpen = false
         },
         onCache = {
-            val item = quality
-            if (item == null) {
-                context.showToast("暂无可用清晰度")
-            } else {
-                onCacheVideo(item)
-            }
+            if (!hasCacheQuality) context.showToast("暂无可用清晰度") else onRequestCache()
             halfMoreOpen = false
         },
     )

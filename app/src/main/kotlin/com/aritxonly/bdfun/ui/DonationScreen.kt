@@ -2,7 +2,6 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +13,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -21,6 +21,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,14 +29,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.R
-import com.aritxonly.teak.common.settings.TeakSettingsCard
 import com.aritxonly.teak.common.settings.TeakSettingsPage
 import com.kyant.shapes.Capsule
 import kotlin.math.abs
+import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private val AlipayBlue = Color(0xFF1677FF)
@@ -72,73 +76,87 @@ fun DonationScreen() {
             DonationQrCard(method = method, onToggle = { method = 1 - method })
         }
 
+        item(key = "thanks") {
+            Box(modifier = Modifier.fillMaxWidth().padding(top = 24.dp, bottom = 16.dp), contentAlignment = Alignment.Center) {
+                Text(
+                    text = "感谢您对开源社区的支持与贡献",
+                    color = MiuixTheme.colorScheme.onBackgroundVariant,
+                    fontSize = 13.sp,
+                )
+            }
+        }
+
         item(key = "space") { Spacer(Modifier.height(24.dp)) }
     }
 }
 
-/** 收款码卡片：左右滑动可在微信/支付宝之间切换。 */
+/** 收款码区域：二维码不再套外层圆角矩形，按屏幕可用高度垂直居中。 */
 @Composable
 private fun DonationQrCard(method: Int, onToggle: () -> Unit) {
     var dragTotal by remember { mutableFloatStateOf(0f) }
-    TeakSettingsCard {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp)
-                .pointerInput(method) {
-                    detectHorizontalDragGestures(
-                        onDragStart = { dragTotal = 0f },
-                        onDragEnd = {
-                            if (abs(dragTotal) > 70f) onToggle()
-                            dragTotal = 0f
-                        },
-                        onHorizontalDrag = { change, amount ->
-                            change.consume()
-                            dragTotal += amount
-                        },
-                    )
-                },
-            contentAlignment = Alignment.Center,
-        ) {
-            if (method == 0) {
-                // 微信：两位作者的收款码左右并排，各自在二维码下面写名字。
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                ) {
-                    DonationQr(
-                        image = R.drawable.donation_qr,
-                        name = "绮锡Teak",
-                        description = "绮锡Teak 微信收款码",
-                        modifier = Modifier.weight(1f),
-                    )
-                    DonationQr(
-                        image = R.drawable.donation_qr_partner,
-                        name = "音唯AritxOnly",
-                        description = "音唯AritxOnly 微信收款码",
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-            } else {
+    val screenHeight = LocalConfiguration.current.screenHeightDp.dp
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height((screenHeight * 0.62f).coerceAtLeast(360.dp))
+            .pointerInput(method) {
+                detectHorizontalDragGestures(
+                    onDragStart = { dragTotal = 0f },
+                    onDragEnd = {
+                        if (abs(dragTotal) > 70f) onToggle()
+                        dragTotal = 0f
+                    },
+                    onHorizontalDrag = { change, amount ->
+                        change.consume()
+                        dragTotal += amount
+                    },
+                )
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (method == 0) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
                 DonationQr(
-                    image = R.drawable.donation_alipay,
+                    image = R.drawable.donation_qr,
                     name = "绮锡Teak",
-                    description = "绮锡Teak 支付宝收款码",
-                    modifier = Modifier.fillMaxWidth(0.72f),
+                    description = "绮锡Teak 微信收款码",
+                    accent = WeChatGreen,
+                    modifier = Modifier.weight(1f),
+                )
+                DonationQr(
+                    image = R.drawable.donation_qr_partner,
+                    name = "音唯AritxOnly",
+                    description = "音唯AritxOnly 微信收款码",
+                    accent = WeChatGreen,
+                    modifier = Modifier.weight(1f),
                 )
             }
+        } else {
+            DonationQr(
+                image = R.drawable.donation_alipay,
+                name = "绮锡Teak",
+                description = "绮锡Teak 支付宝收款码",
+                accent = AlipayBlue,
+                modifier = Modifier.fillMaxWidth(0.72f),
+            )
         }
     }
 }
 
-/** 一张收款码 + 下面一行的作者名字；不加圆角矩形底色，就是干净的二维码。 */
+/** 一张收款码 + 名字 + 对应颜色的「保存二维码」胶囊。 */
 @Composable
 private fun DonationQr(
     image: Int,
     name: String,
     description: String,
+    accent: Color,
     modifier: Modifier = Modifier,
 ) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -149,15 +167,39 @@ private fun DonationQr(
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(1f),
+                .aspectRatio(1f)
+                // 两张收款码统一圆角，避免外层圆角矩形改完后一张有一张没有。
+                .clip(RoundedCornerShape(16.dp)),
         )
-        Spacer(Modifier.height(6.dp))
+        Spacer(Modifier.height(8.dp))
         Text(
             text = name,
             color = MiuixTheme.colorScheme.onBackgroundVariant,
             fontSize = 12.sp,
             maxLines = 1,
         )
+        Spacer(Modifier.height(8.dp))
+        Box(
+            modifier = Modifier
+                .height(30.dp)
+                .clip(Capsule())
+                .background(accent)
+                .clickable(interactionSource = null, indication = null) {
+                    scope.launch {
+                        val ok = ImageSaver.saveDrawable(context, image, name + "_" + description)
+                        context.showToast(if (ok) "二维码已保存到相册" else "保存失败")
+                    }
+                }
+                .padding(horizontal = 14.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text(
+                text = "保存二维码",
+                color = Color.White,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+            )
+        }
     }
 }
 

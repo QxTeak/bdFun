@@ -148,4 +148,25 @@ internal class GeneralSettingsStateHolder(
         values.invalidate()
     }
 
+    // 页面级搜索记录：独立键，不迁移旧的首页历史，也不会被首页清空操作影响。
+    private fun scopedHistoryKey(scope: String) = "search_history_${scope}_json"
+
+    override fun searchHistory(scope: String): List<String> {
+        val raw = prefs.getString(scopedHistoryKey(scope), null)
+        if (raw.isNullOrBlank()) return emptyList()
+        return codec.decode(raw)
+    }
+
+    override fun addSearchHistory(scope: String, keyword: String) {
+        if (keyword.isBlank()) return
+        val next = (listOf(keyword) + searchHistory(scope).filterNot { it == keyword }).take(12)
+        prefs.edit().putString(scopedHistoryKey(scope), codec.encode(next)).apply()
+        values.invalidate()
+    }
+
+    override fun clearSearchHistory(scope: String) {
+        prefs.edit().remove(scopedHistoryKey(scope)).apply()
+        values.invalidate()
+    }
+
 }

@@ -197,7 +197,8 @@ internal fun commandCardPlacement(
     val minCardWidthPx = when (command.kind) {
         DanmakuCommandKind.Follow -> 216.dp.value * density
         DanmakuCommandKind.Vote -> 200.dp.value * density
-        DanmakuCommandKind.Grade -> 180.dp.value * density
+        // 5 颗星 + 间距需要完整放下，不能出现被裁掉/需要横向滑动的空间。
+        DanmakuCommandKind.Grade -> 232.dp.value * density
         else -> 120.dp.value * density
     }
     val widthPx = (contentWidth * 0.5f).coerceAtLeast(minCardWidthPx)
@@ -210,8 +211,9 @@ internal fun commandCardPlacement(
     val bottomLimit = contentTop + contentHeight - safeInsetPx
     return CommandCardPlacement(
         width = (widthPx / density).dp,
-        // 投票卡要一次完整展示所有选项，允许用满播放器高度；其它卡片仍限制在一半。
-        maxHeight = (if (command.kind == DanmakuCommandKind.Vote) {
+        // 投票/评分卡要一次完整展示所有选项，允许用满播放器高度；其它卡片仍限制在一半。
+        maxHeight = (if (command.kind == DanmakuCommandKind.Vote ||
+            command.kind == DanmakuCommandKind.Grade) {
             (contentHeight - safeInsetPx * 2f).coerceAtLeast(1f)
         } else {
             (contentHeight * 0.5f).coerceAtLeast(1f)
@@ -235,6 +237,9 @@ internal fun DanmakuCommandHost(
     videoHeight: Int,
     actions: VideoInteractionActions,
     videoLiked: Boolean,
+    authorFace: String = "",
+    followed: Boolean = false,
+    avatar: @Composable (String, Modifier) -> Unit = { _, _ -> },
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val density = LocalDensity.current
@@ -264,19 +269,31 @@ internal fun DanmakuCommandHost(
             offsetX = offsetX.coerceAtMost(placement.maxX)
         }
         DanmakuCommandCard(
-            command, session.selections[command.id] ?: command.selected, session.pending != null,
-            Modifier
+            command = command,
+            interaction = DanmakuCommandInteraction(
+                selected = session.selections[command.id] ?: command.selected,
+                busy = session.pending != null,
+                actions = actions,
+                videoLiked = videoLiked,
+                voteCounts = voteCounts,
+                showVoteRatio = showVoteRatio,
+                onLink = { session.openLink(command) },
+                onSubmit = { value ->
+                    session.submit(command, value, { showVoteRatio = true }, { voteCounts = it })
+                },
+                authorFace = authorFace,
+                followed = followed,
+                avatar = avatar,
+                onFollow = actions.onCommandFollow,
+            ),
+            modifier = Modifier
                 .offset { IntOffset(offsetX.roundToInt(), offsetY.roundToInt()) }
                 .width(placement.width)
                 .heightIn(max = placement.maxHeight)
                 .alpha(if (cardHeightPx == 0) 0f else 1f)
                 .onSizeChanged { cardHeightPx = it.height },
-            actions, videoLiked, voteCounts, showVoteRatio,
-            onLink = { session.openLink(command) },
             onDismiss = { session.dismiss(command.id) },
-        ) { value ->
-            session.submit(command, value, { showVoteRatio = true }, { voteCounts = it })
-        }
+        )
     }
 }
 

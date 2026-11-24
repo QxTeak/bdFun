@@ -28,6 +28,7 @@ internal fun mapHistoryPage(data: JSONObject): HistoryPage {
             danmaku = stat?.optInt("danmaku", 0) ?: 0,
             aid = history.l("oid"),
             cid = history.l("cid").coerceAtLeast(0L),
+            business = history.s("business"),
         )
     }
     val cursor = data.optJSONObject("cursor")
@@ -70,6 +71,7 @@ internal fun mapWatchLater(data: JSONObject): List<HistoryItem> =
             play = stat?.optInt("view", 0) ?: 0,
             danmaku = stat?.optInt("danmaku", 0) ?: 0,
             aid = item.l("aid"),
+            cid = item.l("cid").coerceAtLeast(0L),
         )
     }
 

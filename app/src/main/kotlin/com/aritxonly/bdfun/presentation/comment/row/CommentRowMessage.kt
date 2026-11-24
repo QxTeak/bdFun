@@ -23,7 +23,7 @@ internal fun CommentRowMessage(item: CommentItem) {
         content = EmoteTextContent(
             text = item.message,
             extraEmotes = item.emotes,
-            // 正文里 @ 到的人，和折叠回复的人名同色，点名字进对方主页。
+            // 正文里 @ 到的人：和折叠回复同色，统一用「我的」页图标蓝（见 EmoteTextStyle 默认值）。
             mentions = remember(item.mentions) {
             item.mentions.associate { it.name to it.mid }
         },
@@ -33,7 +33,6 @@ internal fun CommentRowMessage(item: CommentItem) {
             fontSize = CommentTypography.bodySize,
             lineHeight = CommentTypography.bodyLineHeight,
             fontWeight = FontWeight.Normal,
-            mentionColor = colors.primary.copy(alpha = 0.72f),
         ),
         onMentionClick = { mid ->
             if (mid > 0L) {

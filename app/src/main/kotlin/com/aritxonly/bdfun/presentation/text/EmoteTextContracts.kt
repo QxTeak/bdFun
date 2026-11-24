@@ -17,7 +17,9 @@ internal data class EmoteTextContent(val text: String, val prefix: String? = nul
 internal data class EmoteTextStyle(val color: Color, val fontSize: TextUnit, val lineHeight: TextUnit,
     val prefixColor: Color = color, val prefixWeight: FontWeight = FontWeight.Normal,
     val maxLines: Int = Int.MAX_VALUE, val trailingWidth: TextUnit = 40.sp,
-    val fontWeight: FontWeight = FontWeight.Normal, val mentionColor: Color = color,
+    val fontWeight: FontWeight = FontWeight.Normal,
+    // 正文里的 @提及统一用「我的」页快捷图标那支蓝色，所有调用方默认生效。
+    val mentionColor: Color = MineBlue,
     // 用户名字号可以和正文不同（例如折叠回复里名字比正文大 1sp）。
     val prefixFontSize: TextUnit = TextUnit.Unspecified)
 @androidx.compose.runtime.Immutable

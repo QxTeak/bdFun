@@ -28,6 +28,12 @@ internal fun MainSearchLayer(settings: SettingsBindings, shell: MainShellState, 
     val searchReveal = input.reveal
     // 搜索页收起后可能还留在组合里（收起动画期间），再打开会带着上次的列表位置；
     // 每次从关到开递增一次，让搜索首页自己把列表顶回顶部。
+    val pickKeyword = rememberSearchLinkSubmitter(context) { word ->
+        input.changeQuery(word)
+        settings.addSearchHistory(word)
+        input.changeSubmitted(word)
+        keyboard?.hide()
+    }
     var openTick by remember { mutableIntStateOf(0) }
     LaunchedEffect(input.active) {
         if (input.active) openTick++
@@ -55,12 +61,7 @@ internal fun MainSearchLayer(settings: SettingsBindings, shell: MainShellState, 
                     submitted = input.submitted,
                     reveal = searchReveal,
                     query = input.query,
-                    onPickKeyword = { word ->
-                        input.changeQuery(word)
-                        settings.addSearchHistory(word)
-                        input.changeSubmitted(word)
-                        keyboard?.hide()
-                    },
+                    onPickKeyword = pickKeyword,
                     onOpenVideo = { navigateToVideo(context, it) },
                     onOpenUser = { navigateToSpace(context, it.mid) },
                     landingResetKey = openTick,

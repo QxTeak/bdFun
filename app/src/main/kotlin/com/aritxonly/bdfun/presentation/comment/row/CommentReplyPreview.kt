@@ -36,7 +36,9 @@ internal fun ReplyBlock(item: CommentItem, actions: CommentPreviewActions) {
             }
         }
 
-        // 点这里打开大面板看全部回复
-        CommentPreviewOpenLink(item, actions.onOpen)
+        // 只有确实还有没展示的回复时才需要「展开」；1、2 条全部露出时不再多余地显示。
+        if (item.replyCount > preview.size) {
+            CommentPreviewOpenLink(item, actions.onOpen)
+        }
     }
 }

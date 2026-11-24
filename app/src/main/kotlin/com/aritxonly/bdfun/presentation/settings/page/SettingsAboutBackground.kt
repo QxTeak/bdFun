@@ -119,7 +119,7 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawAboutGradientFi
 
 /** 与 HyperIsland 一样按帧累积时间；关闭动画时停在 0，不产生无谓的重绘。 */
 @Composable
-private fun rememberAboutAnimationTime(animationsEnabled: Boolean): androidx.compose.runtime.MutableFloatState {
+internal fun rememberAboutAnimationTime(animationsEnabled: Boolean): androidx.compose.runtime.MutableFloatState {
     val time = remember { mutableFloatStateOf(0f) }
     LaunchedEffect(animationsEnabled) {
         if (!animationsEnabled) return@LaunchedEffect
@@ -136,7 +136,7 @@ private fun rememberAboutAnimationTime(animationsEnabled: Boolean): androidx.com
     return time
 }
 
-private fun animatedAboutColors(time: Float, dark: Boolean): List<Color> {
+internal fun animatedAboutColors(time: Float, dark: Boolean): List<Color> {
     val palettes = if (dark) DarkPalettes else LightPalettes
     val segmentValue = time / ABOUT_COLOR_CROSSFADE_SECONDS
     val segment = floor(segmentValue).toInt() % palettes.size

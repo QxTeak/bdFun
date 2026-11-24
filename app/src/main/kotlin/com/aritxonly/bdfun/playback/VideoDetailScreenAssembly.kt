@@ -14,5 +14,10 @@ internal fun videoDetailScreenPorts(): VideoDetailScreenPorts {
                     frame.holders, frame.content, frame.actions, frame.scope)
             },
             sheets = { ui, interaction, actions -> VideoDetailSheets(ui, interaction, actions) },
-        ))
+        ),
+        localCollectionFor = { bvid ->
+            val local = page.dependencies.localCollection.forBvid(bvid)
+            local.items to local.title
+        },
+    )
 }

@@ -24,7 +24,7 @@ fun VideoPlayerEntry(
     BindPlayerInitialEffects(playback, media, ui, ports.engine)
     val tracking = remember { ports.tracking() }
     val sponsor = rememberPlayerSponsor(media.bvid, tracking, observed, ports.sponsorSkipMode)
-    BindPlayerPresentationSetup(media, presentation, ui, ports.engine)
+    BindPlayerPresentationSetup(media, presentation, ui, ports.engine, observed.portraitVideo.value)
     val latencyMs = ports.bluetoothLatency()
     BindPlayerContinuation(playback, presentation.fullscreenInfo, actions.transport.onPageSelected, ui,
         ports.engine.page, ports.hasNext, ports.engine.diagnostics.toast)
@@ -34,7 +34,7 @@ fun VideoPlayerEntry(
     val playing by observed.playing
     BindPlayerHotDanmaku(playback, danmakuVisible, ui)
     BindPlayerDanmakuClock(playback, playing, danmakuVisible, ui)
-    BindPlayerSystemBars(presentation.fullscreen, presentation.immersiveStatusBar, ui)
+    BindPlayerSystemBars(presentation.fullscreen, presentation.immersiveStatusBar, ui, observed.portraitVideo.value)
     BindPlayerHdrWindow(media.quality, presentation.fullscreen)
     VideoPlayerLayout(playback, observed, media, presentation, actions, ui, danmakuVisible, latencyMs, sponsor, modifier,
         ports.render(playback, media, presentation, actions, ui))

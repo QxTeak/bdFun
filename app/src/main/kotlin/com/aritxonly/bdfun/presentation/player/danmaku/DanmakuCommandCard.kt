@@ -30,12 +30,26 @@ import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Add
 import top.yukonga.miuix.kmp.icon.extended.Close
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+/** 互动卡里随视频/弹幕变化的一组状态与回调；集中成一个对象，避免卡片函数参数超限。 */
+internal data class DanmakuCommandInteraction(
+    val selected: Int?,
+    val busy: Boolean,
+    val actions: VideoInteractionActions,
+    val videoLiked: Boolean,
+    val voteCounts: Map<Int, Long>,
+    val showVoteRatio: Boolean,
+    val onLink: () -> Unit,
+    val onSubmit: (Int) -> Unit,
+    val authorFace: String = "",
+    val followed: Boolean = false,
+    val avatar: @Composable (String, Modifier) -> Unit = { _, _ -> },
+    val onFollow: () -> Unit = {},
+)
+
 @Composable
 internal fun DanmakuCommandCard(
-    command: DanmakuCommand, selected: Int?, busy: Boolean, modifier: Modifier,
-    actions: VideoInteractionActions, videoLiked: Boolean,
-    voteCounts: Map<Int, Long>, showVoteRatio: Boolean,
-    onLink: () -> Unit, onDismiss: () -> Unit, onSubmit: (Int) -> Unit,
+    command: DanmakuCommand, interaction: DanmakuCommandInteraction, modifier: Modifier,
+    onDismiss: () -> Unit,
 ) {
     val shape = RoundedCornerShape(14.dp)
     val contentColor = Color.White
@@ -51,9 +65,7 @@ internal fun DanmakuCommandCard(
         verticalArrangement = Arrangement.spacedBy(if (vote) 6.dp else 6.dp),
     ) {
         CommandCardHeader(command, contentColor, onDismiss, if (vote) 15.sp else 12.sp)
-        CommandCardBody(
-            command, selected, busy, actions, videoLiked, voteCounts, showVoteRatio, onLink, onSubmit,
-        )
+        CommandCardBody(command, interaction)
     }
 }
 
@@ -85,29 +97,44 @@ private fun CommandCardHeader(command: DanmakuCommand, contentColor: Color, onDi
 @Composable
 private fun CommandCardBody(
     command: DanmakuCommand,
-    selected: Int?,
-    busy: Boolean,
-    actions: VideoInteractionActions,
-    videoLiked: Boolean,
-    voteCounts: Map<Int, Long>,
-    showVoteRatio: Boolean,
-    onLink: () -> Unit,
-    onSubmit: (Int) -> Unit,
+    interaction: DanmakuCommandInteraction,
 ) {
     val contentColor = Color.White
+    val selected = interaction.selected
+    val busy = interaction.busy
+    val actions = interaction.actions
+    val videoLiked = interaction.videoLiked
+    val voteCounts = interaction.voteCounts
+    val showVoteRatio = interaction.showVoteRatio
+    val onLink = interaction.onLink
+    val onSubmit = interaction.onSubmit
+    val authorFace = interaction.authorFace
+    val followed = interaction.followed
+    val avatar = interaction.avatar
+    val onFollow = interaction.onFollow
     when (command.kind) {
         DanmakuCommandKind.Notice -> Unit
         DanmakuCommandKind.Link -> CapsuleButton("打开关联视频", enabled = true, onClick = onLink)
         DanmakuCommandKind.Follow -> {
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // 互动项仍保留点赞/投币/收藏；只有「关注」这一项换成播放器同款头像胶囊。
                 if (command.attentionType in 1..2) {
-                    CapsuleIconButton(TeakIcon.like(videoLiked), if (videoLiked) MiuixTheme.colorScheme.primary else contentColor,
-                        description = if (videoLiked) "取消点赞视频" else "点赞视频", onClick = actions.onLikeClick)
-                    CapsuleIconButton(LucideIcons.CoinsFilled, contentColor, "投币", actions.onCommandCoin)
-                    CapsuleIconButton(LucideIcons.Star, contentColor, "收藏", actions.onCommandFavorite)
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        CapsuleIconButton(
+                            TeakIcon.like(videoLiked),
+                            if (videoLiked) MiuixTheme.colorScheme.primary else contentColor,
+                            description = if (videoLiked) "取消点赞视频" else "点赞视频",
+                            onClick = actions.onLikeClick,
+                        )
+                        CapsuleIconButton(LucideIcons.CoinsFilled, contentColor, "投币", actions.onCommandCoin)
+                        CapsuleIconButton(LucideIcons.Star, contentColor, "收藏", actions.onCommandFavorite)
+                    }
                 }
                 if (command.attentionType != 1) {
-                    CapsuleIconButton(MiuixIcons.Add, contentColor, "关注 UP 主", actions.onCommandFollow)
+                    UpFollowChip(
+                        authorFace = authorFace, followed = followed,
+                        avatar = avatar, onClick = onFollow,
+                    )
                 }
             }
         }

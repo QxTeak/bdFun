@@ -31,6 +31,30 @@ internal object ImageSaver {
         saved to targets.size
     }
 
+    /** 保存应用内打包的图片（例如捐赠二维码）。 */
+    suspend fun saveDrawable(context: Context, resId: Int, displayName: String): Boolean =
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val bitmap = android.graphics.BitmapFactory.decodeResource(context.resources, resId)
+                    ?: error("无法读取二维码")
+                val resolver = context.contentResolver
+                val values = ContentValues().apply {
+                    put(MediaStore.Images.Media.DISPLAY_NAME, "bdFun_$displayName.png")
+                    put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+                    put(MediaStore.Images.Media.RELATIVE_PATH, "${Environment.DIRECTORY_PICTURES}/bdFun")
+                    put(MediaStore.Images.Media.IS_PENDING, 1)
+                }
+                val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)
+                    ?: error("无法创建相册条目")
+                resolver.openOutputStream(uri)?.use { output ->
+                    bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, output)
+                } ?: error("无法写入相册")
+                values.clear()
+                values.put(MediaStore.Images.Media.IS_PENDING, 0)
+                resolver.update(uri, values, null, null)
+            }.isSuccess
+        }
+
     private fun saveOne(context: Context, url: String) {
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = 15_000
