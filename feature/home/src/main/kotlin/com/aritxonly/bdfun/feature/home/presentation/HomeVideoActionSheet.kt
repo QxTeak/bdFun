@@ -6,7 +6,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Rect
 import com.aritxonly.teak.common.modal.TeakVideoActionMenu
 import com.aritxonly.teak.common.modal.TeakVideoMenuItem
+import com.aritxonly.teak.common.navigation.TeakMorphMenuHost
 import com.aritxonly.teak.common.navigation.TeakMorphMenuState
+import top.yukonga.miuix.kmp.glass.GlassPopupItem
 
 @Immutable
 internal data class HomeActionSheetUiState(
@@ -62,4 +64,23 @@ internal fun HomeVideoActionMenu(
             TeakVideoMenuItem(label = item.label, enabled = item.enabled) { onAction(item.action) }
         },
     )
+}
+
+@Composable
+internal fun HomeVideoMorphMenu(
+    menuState: TeakMorphMenuState,
+    state: HomeActionSheetUiState,
+    onDismiss: () -> Unit,
+    onAction: (HomeVideoAction) -> Unit,
+) {
+    val items = remember(state) { menuItems(state) }
+    TeakMorphMenuHost(menuState, onDismiss = onDismiss) { dismiss ->
+        items.forEach { item ->
+            GlassPopupItem(
+                text = item.label,
+                enabled = item.enabled,
+                onClick = { if (item.enabled) dismiss { onAction(item.action) } },
+            )
+        }
+    }
 }

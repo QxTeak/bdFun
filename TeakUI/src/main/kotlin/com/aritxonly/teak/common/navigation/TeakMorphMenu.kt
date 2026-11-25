@@ -4,8 +4,9 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -16,8 +17,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.boundsInRoot
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted
@@ -30,6 +29,7 @@ import top.yukonga.miuix.kmp.glass.GlassPopupAnchor
 import top.yukonga.miuix.kmp.glass.GlassPopupDefaults
 import top.yukonga.miuix.kmp.glass.GlassPopupSizing
 import top.yukonga.miuix.kmp.glass.GlassTransformPopup
+import top.yukonga.miuix.kmp.glass.glassPopupAnchor
 import top.yukonga.miuix.kmp.glass.glassPopupAnchor
 
 /**
@@ -46,7 +46,7 @@ class TeakMorphMenuState {
     /** 是否绘制按钮副本：省略号点击时显示；长按卡片时同一套动画但不画省略号。 */
     internal var anchorCopyVisible by mutableStateOf(true)
 
-    /** 代码触发打开（长按卡片用）：和点击省略号同一套形变，可选择不画按钮副本。 */
+    /** 代码触发打开（长按用）：同一套形变，可选择不画按钮副本。 */
     fun openWithAnchorCopy(showAnchorCopy: Boolean) {
         anchorCopyVisible = showAnchorCopy
         open = true
@@ -112,6 +112,20 @@ fun TeakMorphMenuAnchor(
     }
 }
 
+/** 长按：把形变起点放在手指位置，不画按钮副本。 */
+@Composable
+fun TeakMorphPointAnchor(
+    state: TeakMorphMenuState,
+    position: androidx.compose.ui.geometry.Offset,
+) {
+    Box(
+        Modifier
+            .offset { androidx.compose.ui.unit.IntOffset(position.x.toInt(), position.y.toInt()) }
+            .size(1.dp)
+            .glassPopupAnchor(state.anchor, cornerRadius = 1.dp),
+    )
+}
+
 /**
  * 玻璃形变菜单宿主，必须和 [TeakMorphMenuAnchor] 放在同一个根 Box 里（根坐标一致）。
  *
@@ -126,11 +140,9 @@ fun TeakMorphMenuHost(
     maxWidth: Dp = GlassPopupDefaults.MaxWidth,
     maxHeight: Dp = GlassPopupDefaults.MaxHeight,
     onDismiss: (() -> Unit)? = null,
-    /** 页面本身已在主壳玻璃采样树里时传 false：避免弹层再采样包含自己的那棵树（RenderNode 递归）。 */
-    useBackdrop: Boolean = true,
     content: @Composable ColumnScope.(dismiss: (after: () -> Unit) -> Unit) -> Unit,
 ) {
-    val backdrop = if (useBackdrop) LocalTeakBackdrop.current else null
+    val backdrop = LocalTeakBackdrop.current
     val scope = rememberCoroutineScope()
 
     val dismiss: (after: () -> Unit) -> Unit = remember(scope) {
