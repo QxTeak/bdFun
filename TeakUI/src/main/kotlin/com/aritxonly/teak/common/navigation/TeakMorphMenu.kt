@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -29,7 +30,6 @@ import top.yukonga.miuix.kmp.glass.GlassPopupAnchor
 import top.yukonga.miuix.kmp.glass.GlassPopupDefaults
 import top.yukonga.miuix.kmp.glass.GlassPopupSizing
 import top.yukonga.miuix.kmp.glass.GlassTransformPopup
-import top.yukonga.miuix.kmp.glass.glassPopupAnchor
 import top.yukonga.miuix.kmp.glass.glassPopupAnchor
 
 /**
@@ -111,11 +111,18 @@ fun TeakMorphMenuAnchor(
         modifier = modifier
             .glassPopupAnchor(state.anchor, cornerRadius = cornerRadius),
     ) {
+        val scope = rememberCoroutineScope()
         content {
             onClick?.invoke()
             if (autoOpen) {
-                state.anchorCopyVisible = true
-                state.open = true
+                // 首次打开时宿主可能还没组合：先让关闭态画一帧，再张开，
+                // 否则第一次点省略号会直接出现在全展开位置、没有形变入场。
+                scope.launch {
+                    withFrameNanos { }
+                    withFrameNanos { }
+                    state.anchorCopyVisible = true
+                    state.open = true
+                }
             }
         }
     }

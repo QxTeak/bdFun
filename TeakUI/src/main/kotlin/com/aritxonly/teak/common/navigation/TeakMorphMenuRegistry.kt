@@ -27,8 +27,8 @@ data class TeakMorphMenuItem(
     val onClick: () -> Unit,
 )
 
-/** 收起动画结束到卸载宿主之间留一点余量，避免内容在回弹最后一帧被抽走。 */
-private const val OverlayReleaseDelayMillis = 400L
+/** 收起弹簧要等它真正落回锚点后再卸载；提前拆宿主会让超出回弹瞬间卡回原位。 */
+private const val OverlayReleaseDelayMillis = 1200L
 
 /**
  * 全 Activity 共用的形变菜单控制器：任意页面的省略号/长按只需要自己的
