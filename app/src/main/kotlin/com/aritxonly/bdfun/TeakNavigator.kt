@@ -40,14 +40,6 @@ fun navigateToMessageFeed(context: Context, kind: String) {
     )
 }
 
-fun navigateToPrivateChat(context: Context, session: com.aritxonly.bdfun.data.MessageSession) {
-    context.startActivity(
-        createRouteIntent(context,
-            com.aritxonly.bdfun.core.navigation.Route.PrivateChat(session.talkerId, session.sessionType,
-                session.name, session.avatar, session.unread, session.maxSeqno)),
-    )
-}
-
 fun navigateToLogin(context: Context) {
     context.startActivity(Intent(context, LoginActivity::class.java))
 }

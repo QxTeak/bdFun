@@ -110,19 +110,3 @@ fun teakGlassGlyphColor(): Color {
     val isDark = MaterialTheme.colorScheme.onSurface.luminance() > 0.5f
     return if (isDark) Color(0xFFF2F3F5) else Color(0xFF1B1C1F)
 }
-
-/** 页面里用的小圆钮（搜索 / 消息 / 播放器上的返回）。 */
-@Composable
-fun TeakGlassCircleButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    size: Dp = 38.dp,
-    content: @Composable BoxScope.() -> Unit,
-) {
-    TeakGlass(
-        modifier = modifier.size(size),
-        shape = CircleShape,
-        onClick = onClick,
-        content = content,
-    )
-}

@@ -60,27 +60,3 @@ internal fun LibraryHistoryCategoryBar(
         verticalPadding = 6.dp,
     )
 }
-
-@Composable
-internal fun LibraryBatchAction(
-    label: String,
-    color: Color,
-    enabled: Boolean = true,
-    onClick: () -> Unit,
-) {
-    Text(
-        text = label,
-        color = if (enabled) color else color.copy(alpha = 0.4f),
-        fontSize = 13.sp,
-        fontWeight = FontWeight.Normal,
-        modifier = Modifier
-            .clip(CircleShape)
-            .clickable(
-                enabled = enabled,
-                interactionSource = null,
-                indication = null,
-                onClick = onClick,
-            )
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-    )
-}

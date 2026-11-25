@@ -130,22 +130,3 @@ fun rememberStaggerProgress(ready: Boolean, order: Int): Float {
     }
     return rememberManualProgress(target, 60f)
 }
-
-@Composable
-internal fun StaggerLine(
-    ready: Boolean,
-    order: Int,
-    content: @Composable () -> Unit,
-) {
-    val progress = rememberStaggerProgress(ready, order)
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .graphicsLayer {
-                alpha = progress
-                translationY = (1f - progress) * 10.dp.toPx()
-            },
-    ) {
-        content()
-    }
-}

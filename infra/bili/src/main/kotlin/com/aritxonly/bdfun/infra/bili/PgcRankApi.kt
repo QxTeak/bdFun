@@ -8,10 +8,6 @@ import com.aritxonly.bdfun.infra.bili.mapper.mapRankVipSeasons
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/** 番剧页排行榜：番剧(1) / 国创(4) 两个 index。电影等其它 index 本页不接。 */
-internal const val PGC_RANK_INDEX_BANGUMI = 1
-internal const val PGC_RANK_INDEX_GUOCHUANG = 4
-
 private const val pgcRankReferer = "https://www.bilibili.com/anime/"
 
 /**

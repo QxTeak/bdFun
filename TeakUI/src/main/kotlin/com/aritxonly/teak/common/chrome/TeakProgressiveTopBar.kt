@@ -39,8 +39,6 @@ import top.yukonga.miuix.kmp.blur.progressiveTextureBlur
 import kotlin.math.ceil
 import kotlin.math.max
 
-val LocalImmersiveTopBarEnabled = staticCompositionLocalOf { false }
-
 val LocalProgressiveTopBarMaterialHosted = staticCompositionLocalOf { false }
 val LocalTopBarScrollProgress = staticCompositionLocalOf<Float?> { null }
 val LocalTopBarButtonMaterialProgress = staticCompositionLocalOf { 0f }

@@ -307,32 +307,3 @@ fun TeakSettingsDropdownRow(
         },
     )
 }
-
-@Composable
-private fun TeakChevronUpDown(color: Color) {    androidx.compose.foundation.Canvas(
-        modifier = Modifier
-            .width(10.dp)
-            .height(14.dp),
-    ) {
-        val w = size.width
-        val h = size.height
-        val stroke = 1.5.dp.toPx()
-        val path = androidx.compose.ui.graphics.Path().apply {
-            moveTo(w * 0.12f, h * 0.36f)
-            lineTo(w * 0.5f, h * 0.14f)
-            lineTo(w * 0.88f, h * 0.36f)
-            moveTo(w * 0.12f, h * 0.64f)
-            lineTo(w * 0.5f, h * 0.86f)
-            lineTo(w * 0.88f, h * 0.64f)
-        }
-        drawPath(
-            path = path,
-            color = color,
-            style = androidx.compose.ui.graphics.drawscope.Stroke(
-                width = stroke,
-                cap = androidx.compose.ui.graphics.StrokeCap.Round,
-                join = androidx.compose.ui.graphics.StrokeJoin.Round,
-            ),
-        )
-    }
-}

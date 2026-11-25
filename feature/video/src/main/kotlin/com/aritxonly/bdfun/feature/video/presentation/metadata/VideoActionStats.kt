@@ -43,31 +43,3 @@ internal fun ActionStat(
 }
 
 internal enum class ActionKind { ThumbUp, ThumbDown, Coin, Star, Share }
-
-@Composable
-internal fun MiniStat(text: String, playIcon: Boolean) {
-    val colors = MiuixTheme.colorScheme
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        androidx.compose.foundation.Canvas(modifier = Modifier.size(12.dp)) {
-            if (playIcon) {
-                val path = androidx.compose.ui.graphics.Path().apply {
-                    moveTo(size.width * 0.3f, size.height * 0.12f)
-                    lineTo(size.width * 0.3f, size.height * 0.88f)
-                    lineTo(size.width * 0.9f, size.height * 0.5f)
-                    close()
-                }
-                drawPath(path, colors.onBackgroundVariant)
-            } else {
-                drawRoundRect(
-                    color = colors.onBackgroundVariant,
-                    topLeft = androidx.compose.ui.geometry.Offset(0f, size.height * 0.15f),
-                    size = androidx.compose.ui.geometry.Size(size.width, size.height * 0.5f),
-                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(size.height * 0.15f),
-                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = size.width * 0.1f),
-                )
-            }
-        }
-        Spacer(Modifier.width(4.dp))
-        Text(text = text, color = colors.onBackgroundVariant, fontSize = 12.sp)
-    }
-}

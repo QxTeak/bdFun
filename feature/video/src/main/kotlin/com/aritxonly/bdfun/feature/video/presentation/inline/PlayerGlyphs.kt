@@ -38,14 +38,3 @@ internal fun InlineCastGlyph() {
 internal fun InlineMoreGlyph(tint: Color = Color.White) {
     AppGlyph(MiuixIcons.More, tint, size = 22.dp)
 }
-
-@Composable
-internal fun DanmakuSettingsGlyph(tint: Color) {
-    AppGlyph(MiuixIcons.Tune, tint, size = 19.dp)
-}
-
-/** 后台播放图标：耳机。 */
-@Composable
-internal fun BackgroundPlayGlyph(tint: Color) {
-    AppGlyph(LucideIcons.Headphones, tint, size = 19.dp)
-}

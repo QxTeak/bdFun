@@ -23,7 +23,6 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 internal val MessageGreen = Color(0xFF3CCF8E)
 internal val MessagePink = Color(0xFFF45B86)
-internal val MessageBlue = Color(0xFF3CA9E8)
 internal val MessageRed = Color(0xFFF04B4B)
 
 typealias MessageFeedKind = com.aritxonly.bdfun.feature.message.application.MessageFeedKind
@@ -52,24 +51,5 @@ internal fun MessageShortcut(
         }
         Spacer(Modifier.height(7.dp))
         Text(text = label, color = colors.onBackground, fontSize = 12.sp)
-    }
-}
-
-@Composable
-internal fun MessageTab(label: String, selected: Boolean, onClick: () -> Unit) {
-    val colors = MiuixTheme.colorScheme
-    Box(
-        modifier = Modifier
-            .clip(RoundedCornerShape(10.dp))
-            .background(if (selected) BrandPink.copy(alpha = 0.13f) else Color.Transparent)
-            .clickable(interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = 13.dp, vertical = 6.dp),
-    ) {
-        Text(
-            text = label,
-            color = if (selected) BrandPink else colors.onBackground,
-            fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.Normal else FontWeight.Normal,
-        )
     }
 }

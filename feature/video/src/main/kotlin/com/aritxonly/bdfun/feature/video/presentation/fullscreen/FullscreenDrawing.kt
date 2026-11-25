@@ -49,11 +49,6 @@ internal fun HeadphoneGlyph(tint: Color = Color.White) {
 }
 
 @Composable
-internal fun ClockGlyph(tint: Color = Color.White) {
-    AppGlyph(LucideIcons.Clock, tint, size = 24.dp)
-}
-
-@Composable
 internal fun PipGlyph(tint: Color = Color.White) {
     AppGlyph(LucideIcons.PictureInPicture2, tint, size = 24.dp)
 }

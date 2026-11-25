@@ -68,16 +68,6 @@ fun DislikeGlyph(tint: Color = Color.White, sizeDp: androidx.compose.ui.unit.Dp 
 }
 
 @Composable
-internal fun WatchLaterGlyph(tint: Color = Color.White, sizeDp: androidx.compose.ui.unit.Dp = 24.dp) {
-    AppGlyph(LucideIcons.ClockFading, tint, size = sizeDp)
-}
-
-@Composable
-internal fun CacheGlyphSmall(tint: Color = Color.White, sizeDp: androidx.compose.ui.unit.Dp = 24.dp) {
-    AppGlyph(MiuixIcons.Download, tint, size = sizeDp)
-}
-
-@Composable
 fun PipGlyphSmall(tint: Color = Color.White, sizeDp: androidx.compose.ui.unit.Dp = 24.dp) {
     AppGlyph(LucideIcons.PictureInPicture2, tint, size = sizeDp)
 }

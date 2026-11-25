@@ -45,8 +45,6 @@ class VideoActivity : OneTakeExitActivity() {
     private var pendingLandscape: Boolean? = null
     private var pendingSince = 0L
 
-    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
-
     /**
      * 系统是否锁定了方向（下拉快捷开关里的「方向锁定」/ 设置里的「自动旋转屏幕」关闭）。
      * 锁定后即使 App 内的「自动旋转」是开的也不能转。

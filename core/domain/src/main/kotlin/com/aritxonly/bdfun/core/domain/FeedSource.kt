@@ -12,7 +12,6 @@ const val DYNAMIC_PORTAL_PATH = "/x/polymer/web-dynamic/v1/portal"
 const val DYNAMIC_UP_LIST_PATH = "/x/polymer/web-dynamic/v1/uplist"
 const val DYNAMIC_FEED_FEATURES = "itemOpusStyle,listOnlyfans,opusBigCover,onlyfansVote,decorationCard,onlyfansAssetsV2,forwardListHidden,ugcDelete,onlyfansQaCard,commentsNewVersion,avatarAutoTheme,sunflowerStyle,cardsEnhance,eva3CardOpus,eva3CardVideo,eva3CardComment,eva3CardVote,eva3CardUser"
 val dynamicFeedTypes = listOf("all", "video", "pgc", "article", "up")
-val dynamicFeedLabels = listOf("全部", "投稿", "番剧", "专栏", "UP")
 val dynamicPortalParams = mapOf("up_list_more" to "1", "web_location" to "333.1365")
 
 fun dynamicFeedParams(type: String, offset: String, hostMid: Long?): Map<String, String> {

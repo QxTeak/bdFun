@@ -103,57 +103,6 @@ internal fun BackdropGlow(room: LiveRoomInfo, modifier: Modifier = Modifier) {
 
 
 @Composable
-internal fun LiveRoomTitleRow(
-    room: LiveRoomInfo,
-    following: Boolean,
-    onFollow: () -> Unit,
-    compact: Boolean = false,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = 14.dp,
-                end = 14.dp,
-                top = if (compact) 10.dp else 14.dp,
-                bottom = 8.dp,
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = room.title,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Spacer(Modifier.height(3.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = room.uname,
-                    color = Color.White.copy(alpha = 0.62f),
-                    fontSize = 13.2.sp,
-                    maxLines = 1,
-                )
-                if (room.onlineText.isNotBlank()) {
-                    Text(
-                        text = "  ·  ${room.onlineText}人气",
-                        color = Color.White.copy(alpha = 0.62f),
-                        fontSize = 13.2.sp,
-                        maxLines = 1,
-                    )
-                }
-            }
-        }
-        Spacer(Modifier.width(12.dp))
-        FollowButton(following = following, onClick = onFollow)
-    }
-}
-
-
-@Composable
 internal fun FollowButton(
     following: Boolean,
     onClick: () -> Unit,
