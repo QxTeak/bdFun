@@ -18,6 +18,7 @@ class DanmakuReportLayoutPolicyTest {
         assertTrue(layout.compactButtons)
         assertEquals(4, DanmakuReportReason.entries.chunked(layout.columns).size)
         assertTrue((layout.maxContentHeightDp ?: 0) in 140..240)
+        assertEquals(2, layout.summaryMaxLines)
     }
 
     @Test fun narrowLandscapeStillBoundsContentForScrolling() {
@@ -29,6 +30,7 @@ class DanmakuReportLayoutPolicyTest {
         assertEquals(3, layout.columns)
         assertTrue(layout.compactButtons)
         assertTrue((layout.maxContentHeightDp ?: 0) >= 140)
+        assertEquals(2, layout.summaryMaxLines)
     }
 
     @Test fun portraitKeepsExistingThreeColumnDialog() {
@@ -40,5 +42,6 @@ class DanmakuReportLayoutPolicyTest {
         assertEquals(3, layout.columns)
         assertFalse(layout.compactButtons)
         assertNull(layout.maxContentHeightDp)
+        assertEquals(2, layout.summaryMaxLines)
     }
 }

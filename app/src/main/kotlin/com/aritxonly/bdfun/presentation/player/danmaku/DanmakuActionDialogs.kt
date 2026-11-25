@@ -40,11 +40,17 @@ internal fun DanmakuReportDialog(
     WindowDialog(
         show = true,
         title = "举报弹幕",
-        summary = item.text,
+        summary = null,
         onDismissRequest = { if (!busy) onDismiss() },
         insideMargin = androidx.compose.ui.unit.DpSize(16.dp, if (layout.compactButtons) 12.dp else 16.dp),
     ) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                item.text,
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = layout.summaryMaxLines,
+                overflow = TextOverflow.Ellipsis,
+            )
             DanmakuReportReasonList(
                 selected = reason,
                 onSelect = { reason = it },
