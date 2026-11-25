@@ -59,17 +59,31 @@ class WbiSigner(
         val keys = keys()
         params["wts"] = (clock() / 1000).toString()
         val query = params.toSortedMap().entries.joinToString("&") { (key, value) ->
-            "${encode(key)}=${encode(value.replace(Regex("[!'()*]"), ""))}"
+            "${encode(key)}=${encode(value.replace(wbiUnsafeChars, ""))}"
         }
         return "$query&w_rid=${md5(query + keys.mixinKey)}"
     }
 
     companion object {
         private const val TTL_MS = 6 * 60 * 60 * 1000L
-        internal fun md5(value: String): String = MessageDigest.getInstance("MD5")
-            .digest(value.toByteArray(Charsets.UTF_8))
-            .joinToString("") { "%02x".format(it.toInt() and 0xff) }
+        internal fun md5(value: String): String {
+            val digest = MessageDigest.getInstance("MD5").digest(value.toByteArray(Charsets.UTF_8))
+            return hex(digest)
+        }
     }
+}
+
+private val wbiUnsafeChars = Regex("[!'()*]")
+private val HEX_DIGITS = "0123456789abcdef".toCharArray()
+
+internal fun hex(bytes: ByteArray): String {
+    val out = CharArray(bytes.size * 2)
+    for (i in bytes.indices) {
+        val v = bytes[i].toInt() and 0xFF
+        out[i * 2] = HEX_DIGITS[v ushr 4]
+        out[i * 2 + 1] = HEX_DIGITS[v and 0x0F]
+    }
+    return String(out)
 }
 
 class WbiKeys(val imgKey: String, val subKey: String) {

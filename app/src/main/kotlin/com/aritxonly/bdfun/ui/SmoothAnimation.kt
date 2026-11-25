@@ -51,13 +51,6 @@ fun rememberSmoothFloat(
     return value
 }
 
-/** 回弹/果冻感：先冲过 1 再落回来（用于弹窗弹出）。 */
-@Composable
-fun rememberJellyProgress(
-    target: Float,
-    durationMs: Float = 320f,
-): Float = rememberSmoothFloat(target, durationMs, JellyEasing)
-
 /**
  * 真弹簧：用简单的阻尼谐振子逐帧积分，有真实的过冲与回弹。
  * target 变化时从当前值和当前速度继续，所以中途打断也连贯。

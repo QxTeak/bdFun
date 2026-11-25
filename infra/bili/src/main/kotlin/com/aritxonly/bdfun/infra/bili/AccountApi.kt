@@ -134,13 +134,6 @@ internal fun BiliApiContext.logout() {
     buvidRetryAt = 0L
 }
 
-internal fun BiliApiContext.saveLoginCookies(url: String) {
-    val uri = Uri.parse(url)
-    listOf("SESSDATA", "bili_jct", "DedeUserID", "DedeUserID__ckMd5").forEach { name ->
-        uri.getQueryParameter(name)?.takeIf { it.isNotBlank() }?.let { cookieJar.put(name, it) }
-    }
-}
-
 // ---------------------------------------------------------------- feed
 
 internal suspend fun BiliApiContext.ensureBuvid() {

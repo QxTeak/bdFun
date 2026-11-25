@@ -36,25 +36,6 @@ fun isWideFoldTopBar(): Boolean {
     return usesFixedWideFoldTopBar(window.width / density, window.height / density)
 }
 
-/** Disable scroll consumption as well as the visual collapse; preserve the caller's gate. */
-@Composable
-fun AdaptiveMiuixScrollBehavior(canScroll: () -> Boolean = { true }): ScrollBehavior {
-    val fixed = isWideFoldTopBar()
-    val fixedState = rememberUpdatedState(fixed)
-    val callerCanScroll = rememberUpdatedState(canScroll)
-    val upstream = top.yukonga.miuix.kmp.basic.MiuixScrollBehavior(
-        canScroll = { !fixedState.value && callerCanScroll.value() },
-    )
-    // Upstream 0.9.4-rc01 onPostFling does not consult canScroll. A no-op connection
-    // in fixed mode also prevents fling settling from consuming list velocity.
-    return remember(upstream, fixed) {
-        if (fixed) object : ScrollBehavior by upstream {
-            override val isPinned = true
-            override val nestedScrollConnection = object : NestedScrollConnection {}
-        } else upstream
-    }
-}
-
 /** App-owned fixed variant of MIUIX 0.9.4-rc01; retains the surrounding glass host. */
 @Composable
 fun WideFoldTopAppBar(

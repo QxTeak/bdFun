@@ -27,12 +27,4 @@ internal fun Modifier.formContainerBackground(cornerRadius: Dp): Modifier = squi
     cornerRadius = cornerRadius,
 )
 
-/** These fields paint their shared fill once through formContainerBackground. */
-@Composable
-internal fun standardMaterialTextFieldColors(): androidx.compose.material3.TextFieldColors =
-    androidx.compose.material3.OutlinedTextFieldDefaults.colors(
-        focusedContainerColor = Color.Transparent,
-        unfocusedContainerColor = Color.Transparent,
-        disabledContainerColor = Color.Transparent,
-        errorContainerColor = Color.Transparent,
-    )
+

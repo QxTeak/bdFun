@@ -76,48 +76,6 @@ internal fun SpaceSectionHeader(
     }
 }
 
-@Composable
-internal fun SubmissionChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    com.aritxonly.bdfun.presentation.common.TeakCapsuleChip(
-        text = text,
-        selected = selected,
-        onClick = onClick,
-    )
-}
-
-@Composable
-internal fun SpaceSubmissionCard(
-    index: Int,
-    isLast: Boolean,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
-    val colors = MiuixTheme.colorScheme
-    val classic = TeakUiStyle.isClassic
-    val isFirst = index == 0
-    val shape = if (classic) androidx.compose.ui.graphics.RectangleShape else RoundedCornerShape(
-        topStart = if (isFirst) 16.dp else 0.dp,
-        topEnd = if (isFirst) 16.dp else 0.dp,
-        bottomStart = if (isLast) 16.dp else 0.dp,
-        bottomEnd = if (isLast) 16.dp else 0.dp,
-    )
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(
-                start = TeakUiStyle.design.contentInset(12.dp),
-                end = TeakUiStyle.design.contentInset(12.dp),
-                // 第一条视频和圆角卡片上边的距离再增加 2dp。
-                top = if (classic) 0.dp else if (isFirst) 15.dp else 0.dp,
-                bottom = if (classic) 0.dp else if (isLast) 6.dp else 0.dp,
-            )
-            .clip(shape)
-            .background(colors.surfaceContainer),
-    ) {
-        content()
-    }
-}
-
 /**
  * 投稿页的视频行：不再套圆角矩形卡片，直接铺在页面上。
  * 左右留白与搜索结果页一致（12dp），避免视频内容被卡片再加一层内缩。

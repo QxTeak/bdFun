@@ -44,17 +44,6 @@ private fun frameworkCornerRadiusPx(context: Context): Int {
     return if (id > 0) runCatching { context.resources.getDimensionPixelSize(id) }.getOrDefault(0) else 0
 }
 
-@Composable
-fun rememberDisplayCornerRadiusDp(): androidx.compose.ui.unit.Dp {
-    val context = LocalContext.current
-    val view = LocalView.current
-    val density = androidx.compose.ui.platform.LocalDensity.current.density
-    val radiusPx = remember(context, view) {
-        viewCornerRadiusPx(view).takeIf { it > 0 } ?: displayCornerRadiusPx(context)
-    }
-    return if (radiusPx > 0) (radiusPx / density).dp else 0.dp
-}
-
 private val ROUNDED_CORNER_POSITIONS = intArrayOf(
     RoundedCorner.POSITION_TOP_LEFT,
     RoundedCorner.POSITION_TOP_RIGHT,

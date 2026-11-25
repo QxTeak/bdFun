@@ -37,13 +37,15 @@ internal fun CommentRow(item: CommentItem, disliked: Boolean, actions: CommentRo
     // 菜单就会弹在手指按下的地方，而不是固定贴在这一行的省略号上。
     var pressPosition by remember { mutableStateOf(Offset.Zero) }
     val view = androidx.compose.ui.platform.LocalView.current
+    // 布局回调在滚动时每帧都会触发，坐标数组复用，避免逐行逐帧分配。
+    val location = remember { IntArray(2) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .onGloballyPositioned { coordinates ->
                 // 评论菜单是独立的 Dialog 窗口：锚点必须用屏幕坐标。
                 // 楼中楼窗口本身不贴屏幕顶部（平板上更明显），用窗口内坐标会整体错位。
-                val location = IntArray(2).also { view.getLocationOnScreen(it) }
+                view.getLocationOnScreen(location)
                 val bounds = coordinates.boundsInWindow()
                 ui.bounds = Rect(
                     left = bounds.left + location[0],

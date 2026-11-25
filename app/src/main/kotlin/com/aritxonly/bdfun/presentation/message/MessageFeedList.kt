@@ -47,7 +47,10 @@ internal fun MessageFeedList(
     val tabs = messageFeedTabs(kind)
     val key = if (ui.tab == 1) 0 else ui.tab
     val allItems = itemsByTab[key].orEmpty()
-    val pageItems = if (ui.tab == 1) allItems.filter { it.followed } else allItems
+    // 过滤只在列表或 tab 变化时重算，避免每次组合都重新分配一份列表。
+    val pageItems = remember(allItems, ui.tab) {
+        if (ui.tab == 1) allItems.filter { it.followed } else allItems
+    }
     val barHeight = if (isWideFoldTopBar()) TopAppBarDefaults.CollapsedHeight else TeakChromeDefaults.TopOverlayHeight
     val topInset = rememberStatusBarTop() + barHeight
     // 小电视只在手动下拉时出现；tab 切换/返回本页的自动加载不弹。

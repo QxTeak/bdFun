@@ -14,7 +14,8 @@ import java.util.concurrent.ConcurrentHashMap
 /** 进程下载队列；每个任务有独立身份，旧回调和 finally 不得覆盖同 id 的重下任务。 */
 class DownloadQueueStateHolder(private val storage: VideoCacheStorage, transfer: VideoCacheTransfer,
     private val scope: CoroutineScope, private val uiDispatcher: CoroutineDispatcher,
-    private val startService: () -> Unit, private val now: () -> Long = System::currentTimeMillis) {
+    private val startService: () -> Unit, private val now: () -> Long = System::currentTimeMillis,
+    private val persistDispatcher: CoroutineDispatcher = Dispatchers.IO) {
     private val mutable = MutableStateFlow<List<CachedVideo>>(emptyList())
     val state = mutable.asStateFlow()
     val items get() = state.value
@@ -103,7 +104,9 @@ class DownloadQueueStateHolder(private val storage: VideoCacheStorage, transfer:
             runner.run(request, current, { tokens[id] == null || tokens[id] === token },
                 publish = { entry -> withContext(uiDispatcher) {
                     if (current()) mutable.update { list -> list.map { if (it.id == id) entry else it } }
-                } }, persist = { withContext(uiDispatcher) { if (current()) persistNow() } })
+                } },
+                // 落盘只写本地 JSON，不需要占界面线程；发布节奏仍由 runner 的 5s 节流控制。
+                persist = { withContext(persistDispatcher) { if (current()) persistNow() } })
         } finally {
             tokens.remove(id, token)
             currentCoroutineContext()[Job]?.let { jobs.remove(id, it) }

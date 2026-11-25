@@ -24,5 +24,4 @@ internal data class CommentScreenLayout(
 )
 internal typealias CommentScreenHeader = LazyListScope.() -> Unit
 
-/** 评论区统一字号：固定为原来的「110%」档，不再提供调节。 */
-internal const val COMMENT_FONT_SCALE = 1.1f
+

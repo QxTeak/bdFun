@@ -88,6 +88,11 @@ internal fun parseFeedItem(item: JSONObject, allowOrig: Boolean = true): FeedIte
  * 动态 PGC 卡的季/集 id：优先用接口字段，缺失时从 `uri` 里取。
  * 字段名在不同版本会变，这里只是兜底，不改变其它字段的读取顺序。
  */
+private val pgcSeasonPathPattern = Regex("season/(\\d+)")
+private val pgcSeasonQueryPattern = Regex("[?&](?:season_id|seasonId)=(\\d+)")
+private val pgcEpisodePathPattern = Regex("(?:ep|epid|episode)/(\\d+)")
+private val pgcEpisodeQueryPattern = Regex("[?&](?:ep_id|epid)=(\\d+)")
+
 private fun pgcId(pgc: JSONObject?, vararg keys: String): Long {
     if (pgc == null) return 0L
     for (key in keys) {
@@ -97,10 +102,8 @@ private fun pgcId(pgc: JSONObject?, vararg keys: String): Long {
     val uri = pgc.s("uri").ifBlank { pgc.s("jump_url") }
     if (uri.isBlank()) return 0L
     val pattern = when (keys.first()) {
-        "season_id" -> Regex("season/(\\d+)").find(uri)
-            ?: Regex("[?&](?:season_id|seasonId)=(\\d+)").find(uri)
-        else -> Regex("(?:ep|epid|episode)/(\\d+)").find(uri)
-            ?: Regex("[?&](?:ep_id|epid)=(\\d+)").find(uri)
+        "season_id" -> pgcSeasonPathPattern.find(uri) ?: pgcSeasonQueryPattern.find(uri)
+        else -> pgcEpisodePathPattern.find(uri) ?: pgcEpisodeQueryPattern.find(uri)
     }
     return pattern?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0L
 }

@@ -17,9 +17,14 @@ class SentHistoryStore(context: Context) : com.aritxonly.bdfun.core.domain.SentH
     private val prefs = context.applicationContext
         .getSharedPreferences("sent_history", Context.MODE_PRIVATE)
 
+    // 列表会随组合反复读取；整份 JSON 解析一次后缓存，写入时同步维护。
+    @Volatile
+    private var cache: List<SentRecord>? = null
+
     override fun all(): List<SentRecord> {
-        val raw = prefs.getString(KEY_RECORDS, null) ?: return emptyList()
-        return runCatching {
+        cache?.let { return it }
+        val raw = prefs.getString(KEY_RECORDS, null)
+        val parsed = if (raw == null) emptyList() else runCatching {
             val array = JSONArray(raw)
             buildList {
                 for (i in 0 until array.length()) {
@@ -38,6 +43,8 @@ class SentHistoryStore(context: Context) : com.aritxonly.bdfun.core.domain.SentH
                 }
             }
         }.getOrDefault(emptyList())
+        cache = parsed
+        return parsed
     }
 
     /** 记录一条本机发出的评论 / 弹幕；重复 id 会覆盖。 */
@@ -65,6 +72,7 @@ class SentHistoryStore(context: Context) : com.aritxonly.bdfun.core.domain.SentH
 
     override fun add(record: SentRecord) {
         val next = (listOf(record) + all().filterNot { it.id == record.id }).take(MAX_RECORDS)
+        cache = next
         val array = JSONArray()
         next.forEach { item ->
             array.put(
@@ -83,6 +91,7 @@ class SentHistoryStore(context: Context) : com.aritxonly.bdfun.core.domain.SentH
     }
 
     override fun clear() {
+        cache = emptyList()
         prefs.edit().remove(KEY_RECORDS).apply()
     }
 

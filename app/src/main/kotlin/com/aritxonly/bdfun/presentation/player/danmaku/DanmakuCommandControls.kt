@@ -149,37 +149,6 @@ internal fun GradeStarRow(
 private val GradeStarColor = Color(0xFFFFC63C)
 
 @Composable
-internal fun RowScope.CapsuleOption(
-    label: String,
-    selected: Boolean,
-    enabled: Boolean,
-    onClick: () -> Unit,
-) {
-    val shape = Capsule()
-    Box(
-        modifier = Modifier
-            .weight(1f)
-            .clip(shape)
-            .border(
-                width = 1.dp,
-                color = Color.White.copy(alpha = if (selected) 0.95f else 0.42f),
-                shape = shape,
-            )
-            .clickable(enabled = enabled, interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 6.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = if (selected) "✓ $label" else label,
-            color = Color.White.copy(alpha = if (enabled || selected) 0.92f else 0.45f),
-            fontSize = 11.5.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
-    }
-}
-
-@Composable
 internal fun CapsuleButton(label: String, enabled: Boolean, onClick: () -> Unit) {
     val shape = Capsule()
     Box(

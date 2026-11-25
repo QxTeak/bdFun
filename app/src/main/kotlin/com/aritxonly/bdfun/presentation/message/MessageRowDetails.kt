@@ -64,16 +64,6 @@ internal fun QuoteBlock(name: String, text: String) {
 }
 
 @Composable
-internal fun SmallMessageAction(icon: Int, label: String, onClick: () -> Unit) {
-    val colors = MiuixTheme.colorScheme
-    Row(modifier = Modifier.clickable(onClick = onClick).padding(vertical = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-        ResourceGlyph(res = icon, tint = colors.onBackgroundVariant, size = 14.dp)
-        Spacer(Modifier.width(3.dp))
-        Text(text = label, color = colors.onBackgroundVariant, fontSize = 11.sp)
-    }
-}
-
-@Composable
 internal fun MessageAvatar(url: String, size: androidx.compose.ui.unit.Dp = 44.dp) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current

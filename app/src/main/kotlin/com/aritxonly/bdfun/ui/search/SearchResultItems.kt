@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -271,11 +272,13 @@ private fun SearchPgcRow(item: SearchPgcItem) {
                 overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             )
             Spacer(Modifier.height(6.dp))
-            val meta = listOfNotNull(
-                item.typeName.takeIf { it.isNotBlank() },
-                item.score.takeIf { it.isNotBlank() }?.let { "评分 $it" },
-                item.areas.takeIf { it.isNotBlank() },
-            ).joinToString(" · ")
+            val meta = remember(item.typeName, item.score, item.areas) {
+                listOfNotNull(
+                    item.typeName.takeIf { it.isNotBlank() },
+                    item.score.takeIf { it.isNotBlank() }?.let { "评分 $it" },
+                    item.areas.takeIf { it.isNotBlank() },
+                ).joinToString(" · ")
+            }
             if (meta.isNotBlank()) {
                 Text(
                     text = meta,
@@ -285,10 +288,12 @@ private fun SearchPgcRow(item: SearchPgcItem) {
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                 )
             }
-            val extra = listOfNotNull(
-                item.styles.takeIf { it.isNotBlank() },
-                item.indexShow.takeIf { it.isNotBlank() },
-            ).joinToString(" · ")
+            val extra = remember(item.styles, item.indexShow) {
+                listOfNotNull(
+                    item.styles.takeIf { it.isNotBlank() },
+                    item.indexShow.takeIf { it.isNotBlank() },
+                ).joinToString(" · ")
+            }
             if (extra.isNotBlank()) {
                 Spacer(Modifier.height(4.dp))
                 Text(

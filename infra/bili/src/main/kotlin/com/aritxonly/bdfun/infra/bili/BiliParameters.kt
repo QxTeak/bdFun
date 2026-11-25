@@ -43,7 +43,7 @@ internal fun encodeBiliParameter(value: String): String = Uri.encode(value, "-_.
 
 internal fun biliMd5(value: String): String {
     val digest = MessageDigest.getInstance("MD5").digest(value.toByteArray(Charsets.UTF_8))
-    return digest.joinToString("") { "%02x".format(it.toInt() and 0xff) }
+    return hex(digest)
 }
 
 internal fun biliImage(url: String, width: Int = 0): String =

@@ -33,9 +33,12 @@ internal suspend fun buildLiveEmoteDanmaku(
     textSizePx: Float,
     emotes: Map<String, String>,
     emoteHeights: Map<String, Int> = emptyMap(),
+    extraEmotes: Map<String, String> = emptyMap(),
+    extraEmote: Pair<String, String>? = null,
 ): DanmakuItem? {
-    if (text.isBlank() || emotes.isEmpty()) return null
-    val segments = splitLiveEmotes(text, emotes)
+    if (text.isBlank()) return null
+    if (emotes.isEmpty() && extraEmotes.isEmpty() && extraEmote == null) return null
+    val segments = splitLiveEmotes(text, emotes, extraEmotes, extraEmote)
     if (segments.none { it is LiveDmSegment.Emote }) return null
 
     val paint = TextPaint().apply {
@@ -109,30 +112,60 @@ private suspend fun loadLiveEmoteBitmap(context: Context, url: String, targetHei
 /**
  * 表情弹幕的正则按「当前直播间表情快照」缓存：每条弹幕都重新排序 + 编译
  * 在刷屏直播间里是实打实的卡顿来源；快照替换（换房间/刷新表情）时自然失效。
+ *
+ * 消息自带的单条表情（extraEmote）不参与合并 Map，避免每条消息新建一份大 Map
+ * 把缓存冲掉；只有真的带额外表情的消息才会重新编译一次。
  */
 private class CompiledLiveEmotes(
     val source: Map<String, String>,
+    val extraSource: Map<String, String>,
+    val extraToken: String?,
+    val urls: Map<String, String>,
     val keys: Set<String>,
     val pattern: Regex,
 )
 private var compiledLiveEmotes: CompiledLiveEmotes? = null
 
 @Synchronized
-private fun liveEmoteMatcher(emotes: Map<String, String>): CompiledLiveEmotes {
-    compiledLiveEmotes?.let { if (it.source === emotes) return it }
-    val keys = emotes.filter { it.key.isNotEmpty() && it.value.isNotBlank() }.keys
+private fun liveEmoteMatcher(
+    emotes: Map<String, String>,
+    extraEmotes: Map<String, String>,
+    extraEmote: Pair<String, String>?,
+): CompiledLiveEmotes {
+    compiledLiveEmotes?.let {
+        if (it.source === emotes && it.extraSource === extraEmotes &&
+            it.extraToken == extraEmote?.first
+        ) return it
+    }
+    val urls = if (extraEmotes.isEmpty() && extraEmote == null) {
+        emotes
+    } else {
+        buildMap {
+            putAll(emotes)
+            putAll(extraEmotes)
+            extraEmote?.let { put(it.first, it.second) }
+        }
+    }
+    val keys = urls.filter { it.key.isNotEmpty() && it.value.isNotBlank() }.keys
     val pattern = Regex(
         (keys.sortedByDescending { it.length }.map { Regex.escape(it) } + "\\[(.*?)\\]")
             .joinToString("|"),
     )
-    return CompiledLiveEmotes(emotes, keys, pattern).also { compiledLiveEmotes = it }
+    return CompiledLiveEmotes(emotes, extraEmotes, extraEmote?.first, urls, keys, pattern)
+        .also { compiledLiveEmotes = it }
 }
 
-private fun splitLiveEmotes(text: String, emotes: Map<String, String>): List<LiveDmSegment> {
-    val compiled = liveEmoteMatcher(emotes)
+private fun splitLiveEmotes(
+    text: String,
+    emotes: Map<String, String>,
+    extraEmotes: Map<String, String>,
+    extraEmote: Pair<String, String>?,
+): List<LiveDmSegment> {
+    val compiled = liveEmoteMatcher(emotes, extraEmotes, extraEmote)
     val keys = compiled.keys
+    val urls = compiled.urls
     if (keys.isEmpty()) return listOf(LiveDmSegment.Text(text))
-    if (text in keys) return listOf(LiveDmSegment.Emote(text, emotes.getValue(text)))
+    if (text in keys) return listOf(LiveDmSegment.Emote(text, urls.getValue(text)))
     val result = mutableListOf<LiveDmSegment>()
     var offset = 0
     compiled.pattern.findAll(text).forEach { match ->
@@ -147,7 +180,7 @@ private fun splitLiveEmotes(text: String, emotes: Map<String, String>): List<Liv
             else -> null
         }
         if (key != null) {
-            result += LiveDmSegment.Emote(key, emotes.getValue(key))
+            result += LiveDmSegment.Emote(key, urls.getValue(key))
         } else {
             result += LiveDmSegment.Text(token)
         }
