@@ -1,36 +1,20 @@
 package com.aritxonly.bdfun.ui
 
-import top.yukonga.miuix.kmp.icon.extended.More
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.aritxonly.teak.common.navigation.TeakMorphMenuState
 
 @Composable
-internal fun CommentRowMore(onMore: () -> Unit) {
-    val colors = MiuixTheme.colorScheme
-    Box(
-        modifier = Modifier
-            .size(24.dp)
-            .clip(CircleShape)
-            .clickable(
-                interactionSource = null,
-                indication = null,
-                onClick = { onMore() },
-            ),
-        contentAlignment = Alignment.Center,
-    ) {
-        top.yukonga.miuix.kmp.basic.Icon(
-            imageVector = top.yukonga.miuix.kmp.icon.MiuixIcons.More,
-            contentDescription = "更多",
-            tint = colors.onBackgroundVariant,
-            modifier = Modifier.size(17.5.dp),
-        )
-    }
+internal fun CommentRowMore(onMore: () -> Unit, morphState: TeakMorphMenuState? = null) {
+    // 和视频卡片右下角完全同一颗 Miuix `More`：24dp 点击区、无涟漪；
+    // 传入锚点时走 Activity 根部的形变菜单，从图标位置展开。
+    VideoCardMoreButton(
+        onClick = onMore,
+        onCover = false,
+        touchSize = 24.dp,
+        iconSize = 17.5.dp,
+        morphState = morphState,
+        onMorphTrigger = onMore,
+        morphAutoOpen = false,
+    )
 }

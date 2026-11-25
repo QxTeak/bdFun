@@ -77,6 +77,8 @@ fun TeakMorphMenuAnchor(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 20.dp,
     onClick: (() -> Unit)? = null,
+    /** false 时只上报锚点并由 onClick 自行打开菜单（注册表模式），不在这里直接 open。 */
+    autoOpen: Boolean = true,
     content: @Composable (onClick: () -> Unit) -> Unit,
 ) {
     // 副本必须继承触发按钮所在的顶栏材质状态；否则在菜单层里会退回默认值，
@@ -111,8 +113,10 @@ fun TeakMorphMenuAnchor(
     ) {
         content {
             onClick?.invoke()
-            state.anchorCopyVisible = true
-            state.open = true
+            if (autoOpen) {
+                state.anchorCopyVisible = true
+                state.open = true
+            }
         }
     }
 }

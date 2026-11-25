@@ -10,7 +10,7 @@ import com.aritxonly.teak.common.theme.TeakTheme
 import com.aritxonly.bdfun.data.SettingsStore
 
 @Composable
-fun BdFunApp(settings: SettingsStore) {
+fun BdFunApp(settings: SettingsStore, overlay: @Composable () -> Unit = {}) {
     com.aritxonly.bdfun.ui.PageChromeScope {
         val theme = rememberMainShellTheme(settings)
         val shell = rememberMainShellState(theme.materialColors.background)
@@ -30,6 +30,9 @@ fun BdFunApp(settings: SettingsStore) {
                 com.aritxonly.bdfun.ui.LocalRichTextDependencies provides AppGraph.richTextDependencies) {
                 MainShellEffects(settings, shell)
                 MainScaffold(settings, shell, theme.dark, theme.materialColors.background)
+                // 全局形变菜单宿主：在 LocalTeakBackdrop（主壳玻璃底片）作用域内，
+                // 但和 MainScaffold 平级，不会被主壳自己的录制层包含。
+                overlay()
             }
         }
     }

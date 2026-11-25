@@ -32,6 +32,19 @@ internal fun VideoLargeCard(
     val colors = MiuixTheme.colorScheme
     val bounds = remember { CardBoundsHolder() }
     val press = remember { androidx.compose.runtime.mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    val localMorph = LocalVideoCardMorphMenu.current
+    val morphState = moreMorphState ?: if (localMorph != null) {
+        remember(video.bvid) { com.aritxonly.teak.common.navigation.TeakMorphMenuState() }
+    } else null
+    val morphTrigger = onMoreMorphTrigger ?: if (localMorph != null && morphState != null) {
+        { localMorph.show(video, morphState, null) }
+    } else null
+    val pointState = if (localMorph != null && moreMorphState == null) {
+        remember(video.bvid) { com.aritxonly.teak.common.navigation.TeakMorphMenuState() }
+    } else null
+    val longPressRect = onLongPressRect ?: if (localMorph != null && pointState != null) {
+        { rect -> localMorph.show(video, pointState, androidx.compose.ui.geometry.Offset(rect.left, rect.top)) }
+    } else null
 
     Box(
         modifier = modifier.fillMaxWidth().onGloballyPositioned { bounds.value = it.boundsInWindow() },
@@ -55,7 +68,7 @@ internal fun VideoLargeCard(
                     onClick = onClick,
                     onLongClick = {
                         when {
-                            onLongPressRect != null -> run { val b = bounds.value; val p = androidx.compose.ui.geometry.Offset(b.left + press.value.x, b.top + press.value.y); onLongPressRect(androidx.compose.ui.geometry.Rect(p.x, p.y, p.x, p.y)) }
+                            longPressRect != null -> run { val b = bounds.value; val p = androidx.compose.ui.geometry.Offset(b.left + press.value.x, b.top + press.value.y); longPressRect(androidx.compose.ui.geometry.Rect(p.x, p.y, p.x, p.y)) }
                             else -> onLongClick?.invoke()
                         }
                     },
@@ -65,8 +78,8 @@ internal fun VideoLargeCard(
             LargeVideoContent(
                 video,
                 onMoreClick = onMoreClick?.let { more -> { more(bounds.value) } },
-                moreMorphState = moreMorphState,
-                onMoreMorphTrigger = onMoreMorphTrigger,
+                moreMorphState = morphState,
+                onMoreMorphTrigger = morphTrigger,
             )
         }
     }

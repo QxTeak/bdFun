@@ -34,6 +34,7 @@ internal fun VideoCardMoreButton(
     iconSize: Dp = 16.dp,
     morphState: TeakMorphMenuState? = null,
     onMorphTrigger: (() -> Unit)? = null,
+    morphAutoOpen: Boolean = true,
 ) {
     if (morphState != null) {
         TeakMorphMenuAnchor(
@@ -41,6 +42,7 @@ internal fun VideoCardMoreButton(
             modifier = modifier,
             cornerRadius = touchSize / 2,
             onClick = onMorphTrigger,
+            autoOpen = morphAutoOpen,
         ) { open ->
             MoreButtonContent(onCover, touchSize, iconSize, open)
         }

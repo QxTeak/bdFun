@@ -13,13 +13,15 @@ class HistoryActivity : ComponentActivity() {
         AppGraph.ensure(applicationContext)
         val settings = AppGraph.settings
         setContent {
-            LibraryPageShell(
-                context = this,
-                settings = settings,
-                title = "历史",
-                fixedMode = 1,
-                onBack = { finish() },
-            )
+            com.aritxonly.teak.common.navigation.TeakMorphMenuProvider {
+                LibraryPageShell(
+                    context = this,
+                    settings = settings,
+                    title = "历史",
+                    fixedMode = 1,
+                    onBack = { finish() },
+                )
+            }
         }
     }
 }

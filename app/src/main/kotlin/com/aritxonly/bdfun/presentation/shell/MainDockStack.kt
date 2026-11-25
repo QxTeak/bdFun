@@ -22,7 +22,6 @@ import androidx.compose.ui.zIndex
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
 import com.aritxonly.bdfun.ui.BackgroundPlayDisc
-import com.aritxonly.bdfun.ui.BackgroundPlayback
 import com.aritxonly.bdfun.ui.DiscShadowRoom
 import com.aritxonly.teak.common.interaction.blockTouches
 import com.aritxonly.teak.common.material.teakGlassControlShadow
@@ -94,7 +93,9 @@ internal fun MainDockStack(
                     slotPx = slotPx,
                     tapSlop = tapSlop,
                     onTapSearch = onSearch,
-                    onTapDisc = { BackgroundPlayback.video?.let(onOpenVideo) },
+                    // 唱片自己的 pointer input 已经负责「点一下开原视频」（带一镜到底），
+                    // 这里再调一次 onOpenVideo 会同时启动两个 VideoActivity，返回时要按两次。
+                    onTapDisc = {},
                 )
             },
     ) {

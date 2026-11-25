@@ -59,10 +59,12 @@ class FeedDetailActivity : OneTakeExitActivity() {
             return
         }
         setContent {
-            com.aritxonly.bdfun.ui.PhotoViewerRoot(
-                animationsEnabled = AppGraph.settings.animationsEnabled,
-            ) {
-                FeedDetailContent(dynamic, onBack = { finish() })
+            com.aritxonly.teak.common.navigation.TeakMorphMenuProvider {
+                com.aritxonly.bdfun.ui.PhotoViewerRoot(
+                    animationsEnabled = AppGraph.settings.animationsEnabled,
+                ) {
+                    FeedDetailContent(dynamic, onBack = { finish() })
+                }
             }
         }
 

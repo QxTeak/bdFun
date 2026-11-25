@@ -87,7 +87,14 @@ internal fun TeakActivityScaffold(
                 overlay()
                 BackgroundDiscOverlay(settings, showBackgroundDisc, discLift, discEndPadding, showScrollTop)
             },
-            menuOverlay = menuOverlay,
+            menuOverlay = {
+                menuOverlay()
+                // 全局形变菜单宿主放在页面骨架里：能拿到当前页 Backdrop（玻璃材质），
+                // 又在录制层之外，不会让页面采样到自己。
+                com.aritxonly.teak.common.navigation.LocalTeakMorphMenu.current?.let {
+                    com.aritxonly.teak.common.navigation.TeakMorphMenuOverlay(it)
+                }
+            },
             topOverlay = topOverlay,
             underlayProgress = contentUnderlayProgress,
             underlayAlpha = contentUnderlayAlpha,

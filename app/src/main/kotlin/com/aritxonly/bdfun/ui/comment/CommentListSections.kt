@@ -112,17 +112,17 @@ internal fun CommentCardRow(item: CommentItem, disliked: Boolean, actions: Comme
                                 onLike = { actions.onLike(item) },
                                 onDislike = { actions.onDislike(item) },
                                 onReply = { actions.onReply(item) },
-                                onLongPress = { bounds ->
-                                    actions.onMenu(item, bounds)
+                                onLongPress = { bounds, state ->
+                                    actions.onMenu(item, state, androidx.compose.ui.geometry.Offset(bounds.left, bounds.top))
                                 },
-                                onMore = { bounds ->
-                                    actions.onMenu(item, bounds)
+                                onMore = { _, state ->
+                                    actions.onMenu(item, state, null)
                                 },
                                 onOpenReplies = { actions.onOpenReplies(item, 0L) },
                                 // 点折叠回复：不弹回复框，直接展开回复页并定位、闪灰。
                                 onReplyToReply = { reply -> actions.onOpenReplies(item, reply.rpid) },
-                                onLongPressReply = { reply, bounds ->
-                                    actions.onMenu(reply, bounds)
+                                onLongPressReply = { reply, bounds, state ->
+                                    actions.onMenu(reply, state, androidx.compose.ui.geometry.Offset(bounds.left, bounds.top))
                                 },
                                 onPreviewLike = { reply -> actions.onLike(reply) },
                             ),

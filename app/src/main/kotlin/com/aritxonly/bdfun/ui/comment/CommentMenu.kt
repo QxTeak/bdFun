@@ -1,16 +1,27 @@
 package com.aritxonly.bdfun.ui
 
 import android.content.Context
-import androidx.compose.runtime.*
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
 import com.aritxonly.bdfun.core.model.comment.CommentItem
 import com.aritxonly.bdfun.feature.comment.application.CommentActionsStateHolder
-import kotlinx.coroutines.*
-import top.yukonga.miuix.kmp.theme.MiuixTheme
+import com.aritxonly.teak.common.navigation.LocalTeakMorphMenu
+import com.aritxonly.teak.common.navigation.TeakMorphMenuItem
+import com.aritxonly.teak.common.navigation.TeakMorphMenuState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
-/** 菜单延时清理与页面同生命周期；复制/分享的系统交互留在表现层。 */
+/**
+ * 评论长按 / 行尾省略号的操作菜单。
+ *
+ * 和首页视频卡片、收藏页共用 Activity 根部的玻璃形变菜单：省略号从图标展开，
+ * 长按从手指位置展开。这里只保存当前目标与菜单项。
+ */
 internal class CommentMenuStateHolder(
     private val context: Context, private val scope: CoroutineScope,
     private val actions: CommentActionsStateHolder, private val bvid: String,
@@ -18,47 +29,51 @@ internal class CommentMenuStateHolder(
 ) {
     var target by mutableStateOf<CommentItem?>(null)
         private set
-    var visible by mutableStateOf(false)
+    var morphState by mutableStateOf<TeakMorphMenuState?>(null)
         private set
-    var anchor by mutableStateOf(Rect.Zero)
+    var point by mutableStateOf<Offset?>(null)
+        private set
+
+    /** 每次打开加一：同一个锚点重复点击也要重新播入场动画。 */
+    var requestId by mutableIntStateOf(0)
         private set
     /** 自由复制弹层当前展示的评论。 */
     var copySheet by mutableStateOf<CommentItem?>(null)
         private set
-    fun open(item: CommentItem, bounds: Rect) {
+
+    fun open(item: CommentItem, state: TeakMorphMenuState, point: Offset?) {
         if (!actions.isActive) return
-        anchor = bounds
-        target = item
-        visible = true
+        this.target = item
+        morphState = state
+        this.point = point
+        requestId += 1
     }
-    fun hide() { visible = false }
-    fun dismiss() {
-        if (!actions.isActive) return
-        hide()
-        scope.launch { delay(360); if (!visible) target = null }
+
+    fun hide() {
+        target = null
+        morphState = null
+        point = null
     }
+
+    fun dismiss() = hide()
+
     fun closeCopySheet() { copySheet = null }
     fun reply(item: CommentItem) {
         if (!actions.isActive) return
         hide()
-        scope.launch { delay(360); target = null; if (actions.isActive) onReply(item) }
+        onReply(item)
     }
     fun copy(item: CommentItem, withName: Boolean) {
         if (!actions.isActive) return
         hide()
         context.copyToClipboard("评论", if (withName) "${item.uname}：${item.message}" else item.message)
         context.showToast("已复制")
-        scope.launch { delay(360); target = null }
     }
     /** 自由复制：弹层里展示原文，文本可以按住自由拖选。 */
     fun freeCopy(item: CommentItem) {
         if (!actions.isActive) return
         hide()
-        scope.launch {
-            delay(320)
-            target = null
-            copySheet = item
-        }
+        copySheet = item
     }
     /** 评论附图整批存相册。 */
     fun savePictures(item: CommentItem) {
@@ -74,8 +89,6 @@ internal class CommentMenuStateHolder(
                     else -> "保存失败"
                 },
             )
-            delay(360)
-            target = null
         }
     }
     fun share(item: CommentItem) {
@@ -88,7 +101,6 @@ internal class CommentMenuStateHolder(
             }
             context.startActivity(android.content.Intent.createChooser(intent, "分享评论"))
         }
-        scope.launch { delay(360); target = null }
     }
     fun report(item: CommentItem) {
         if (!actions.isActive) return
@@ -97,7 +109,6 @@ internal class CommentMenuStateHolder(
             val ok = actions.report(item.rpid)
             if (!actions.isActive) return@launch
             context.showToast(if (ok) "已举报" else "举报失败")
-            delay(360); target = null
         }
     }
     fun block(item: CommentItem) {
@@ -107,7 +118,6 @@ internal class CommentMenuStateHolder(
             val ok = actions.block(item.mid)
             if (!actions.isActive) return@launch
             context.showToast(if (ok) "已加入黑名单" else "操作失败")
-            delay(360); target = null
         }
     }
     fun delete(item: CommentItem) {
@@ -117,37 +127,45 @@ internal class CommentMenuStateHolder(
             val ok = actions.delete(item.rpid)
             if (!actions.isActive) return@launch
             if (ok) { onDelete(item.rpid); context.showToast("已删除") } else context.showToast("删除失败")
-            delay(360); target = null
         }
     }
 }
 
 @Composable
 internal fun CommentMenu(menu: CommentMenuStateHolder, myMid: Long) {
-    val colors = MiuixTheme.colorScheme
+    val controller = LocalTeakMorphMenu.current
     val target = menu.target
-    TeakGlassMenu(
-        visible = menu.visible && target != null, onDismiss = menu::dismiss,
-        anchorInWindow = menu.anchor, minWidth = 168.dp, maxWidth = 216.dp, maxHeight = 420.dp,
-    ) {
-        if (target != null) {
-            CommentMenuRow("回复", MenuGlyphKind.Reply, colors.onBackground) { menu.reply(target) }
-            CommentMenuRow("复制", MenuGlyphKind.Copy, colors.onBackground) { menu.copy(target, false) }
-            CommentMenuRow("自由复制", MenuGlyphKind.Copy, colors.onBackground) { menu.freeCopy(target) }
-            CommentMenuRow("分享", null, colors.onBackground) { menu.share(target) }
-            if (target.pictures.isNotEmpty()) {
-                CommentMenuRow("保存全部图片", MenuGlyphKind.Copy, colors.onBackground) {
-                    menu.savePictures(target)
-                }
-            }
-            CommentMenuRow("举报", MenuGlyphKind.Report, Color(0xFFE5484D)) { menu.report(target) }
-            CommentMenuRow("加入黑名单", MenuGlyphKind.Block, Color(0xFFE5484D)) { menu.block(target) }
-            if (myMid > 0 && target.mid == myMid) {
-                CommentMenuRow("删除", MenuGlyphKind.Delete, Color(0xFFE5484D), danger = true) { menu.delete(target) }
-            }
-        }
+    val state = menu.morphState
+    val point = menu.point
+    LaunchedEffect(menu.requestId) {
+        val item = target ?: return@LaunchedEffect
+        val anchor = state ?: return@LaunchedEffect
+        val morph = controller ?: return@LaunchedEffect
+        morph.show(
+            state = anchor,
+            items = commentMorphItems(menu, item, myMid),
+            onDismiss = menu::hide,
+            showAnchorCopy = point == null,
+            point = point,
+        )
     }
     // 自由复制弹层：独立的可选择文本窗口。
     CommentCopySheet(menu.copySheet, menu::closeCopySheet)
 }
 
+private fun commentMorphItems(
+    menu: CommentMenuStateHolder, target: CommentItem, myMid: Long,
+): List<TeakMorphMenuItem> = buildList {
+    add(TeakMorphMenuItem("回复") { menu.reply(target) })
+    add(TeakMorphMenuItem("复制") { menu.copy(target, false) })
+    add(TeakMorphMenuItem("自由复制") { menu.freeCopy(target) })
+    add(TeakMorphMenuItem("分享") { menu.share(target) })
+    if (target.pictures.isNotEmpty()) {
+        add(TeakMorphMenuItem("保存全部图片") { menu.savePictures(target) })
+    }
+    add(TeakMorphMenuItem("举报", danger = true) { menu.report(target) })
+    add(TeakMorphMenuItem("加入黑名单", danger = true) { menu.block(target) })
+    if (myMid > 0 && target.mid == myMid) {
+        add(TeakMorphMenuItem("删除", danger = true) { menu.delete(target) })
+    }
+}

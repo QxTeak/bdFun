@@ -37,6 +37,9 @@ import com.aritxonly.bdfun.navigateToVideo
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullUi
 import com.aritxonly.bdfun.ui.BoundedVideoGridCells
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
+import com.aritxonly.bdfun.ui.LocalVideoCardMorphMenu
+import com.aritxonly.bdfun.ui.rememberVideoCardMorphMenuHandler
+import com.aritxonly.bdfun.ui.rememberVideoShareMorphItems
 import com.aritxonly.bdfun.ui.VideoActionMenu
 import com.aritxonly.bdfun.ui.VideoMenuItem
 import com.aritxonly.bdfun.ui.showToast
@@ -63,11 +66,8 @@ internal fun PopularPage(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val morphMenu = com.aritxonly.teak.common.navigation.LocalTeakMorphMenu.current
-    var actionVideo by remember { mutableStateOf<com.aritxonly.bdfun.core.model.video.VideoItem?>(null) }
-    // 菜单项要活到收起动画结束：actionVideo 关掉后仍用最后一次的视频数据渲染 items。
-    var menuVideo by remember { mutableStateOf<com.aritxonly.bdfun.core.model.video.VideoItem?>(null) }
-    var actionAnchor by remember { mutableStateOf(Rect.Zero) }
+    // 省略号 / 长按统一走 Activity 根部的形变菜单，和首页同一套动画。
+    val morphMenu = rememberVideoCardMorphMenuHandler(rememberVideoShareMorphItems())
     val colors = MiuixTheme.colorScheme
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     val wide = LocalConfiguration.current.screenWidthDp >= 600
@@ -82,6 +82,7 @@ internal fun PopularPage(
     val pull = rememberPopularPullSession(state, pullUi)
     PopularPageEffects(state, pull, pullUi)
 
+    androidx.compose.runtime.CompositionLocalProvider(LocalVideoCardMorphMenu provides morphMenu) {
     TeakScrollContainer(gridState, Modifier.fillMaxSize()) {
         LazyVerticalGrid(
             columns = if (wide) BoundedVideoGridCells(280.dp, 420.dp) else GridCells.Fixed(1),
@@ -114,44 +115,6 @@ internal fun PopularPage(
             videoResultRows(
                 videos, "popular-",
                 onOpenVideo = { navigateToVideo(context, it) },
-                onVideoMenu = { video, rect ->
-                    actionAnchor = rect
-                    menuVideo = video
-                    actionVideo = video
-                },
-                onVideoMorph = { video, state, point ->
-                    morphMenu?.show(
-                        state,
-                        listOf(
-                            com.aritxonly.teak.common.navigation.TeakMorphMenuItem("添加至稍后再看") {
-                                actionVideo = null
-                                scope.launch {
-                                    val result = AppGraph.videoActions.watchLater(video.aid)
-                                    context.showToast(
-                                        if (result is com.aritxonly.bdfun.core.common.Outcome.Failure) "添加失败，请稍后重试"
-                                        else "已添加至稍后再看",
-                                    )
-                                }
-                            },
-                            com.aritxonly.teak.common.navigation.TeakMorphMenuItem("分享") {
-                                actionVideo = null
-                                runCatching {
-                                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                                        type = "text/plain"
-                                        putExtra(
-                                            android.content.Intent.EXTRA_TEXT,
-                                            "${video.title}\nhttps://www.bilibili.com/video/${video.bvid}",
-                                        )
-                                    }
-                                    context.startActivity(android.content.Intent.createChooser(intent, "分享视频"))
-                                }
-                            },
-                        ),
-                        onDismiss = { actionVideo = null },
-                        showAnchorCopy = point == null,
-                        point = point,
-                    )
-                },
             )
             if (loadedOnce && !loading && videos.isEmpty() && error == null) {
                 item(key = "popular-empty", span = { GridItemSpan(maxLineSpan) }) {
@@ -161,16 +124,7 @@ internal fun PopularPage(
             videoResultFooter(loadingMore = loadingMore, end = end, colors = colors)
         }
     }
-    // 保持菜单常驻：visible=false 时 Miuix 才能播完收起动画。以前用 actionVideo?.let
-    // 包住，关闭时会立刻解除组合，动画被直接截断。
-    PopularVideoMenu(
-        video = menuVideo,
-        visible = actionVideo != null,
-        anchor = actionAnchor,
-        onDismiss = { actionVideo = null },
-        scope = scope,
-        context = context,
-    )
+    }
 }
 
 @Composable
@@ -186,47 +140,6 @@ private fun PopularStatus(
         modifier = Modifier
             .padding(top = 24.dp)
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
-    )
-}
-
-@Composable
-private fun PopularVideoMenu(
-    video: com.aritxonly.bdfun.core.model.video.VideoItem?,
-    visible: Boolean,
-    anchor: Rect,
-    onDismiss: () -> Unit,
-    scope: kotlinx.coroutines.CoroutineScope,
-    context: android.content.Context,
-) {
-    VideoActionMenu(
-        visible = visible,
-        anchor = anchor,
-        onDismiss = onDismiss,
-        items = video?.let { item ->
-            listOf(
-                VideoMenuItem("添加至稍后再看") {
-                    onDismiss()
-                    scope.launch {
-                        val result = AppGraph.videoActions.watchLater(item.aid)
-                        if (result is com.aritxonly.bdfun.core.common.Outcome.Failure) {
-                            context.showToast("添加失败，请稍后重试")
-                        } else {
-                            context.showToast("已添加至稍后再看")
-                        }
-                    }
-                },
-                VideoMenuItem("分享") {
-                    onDismiss()
-                    runCatching {
-                        val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                            type = "text/plain"
-                            putExtra(android.content.Intent.EXTRA_TEXT, "${item.title}\nhttps://www.bilibili.com/video/${item.bvid}")
-                        }
-                        context.startActivity(android.content.Intent.createChooser(intent, "分享视频"))
-                    }
-                },
-            )
-        }.orEmpty(),
     )
 }
 

@@ -41,6 +41,6 @@ internal fun HomeFeedCard(
     } else {
         VideoGridCard(video = video, modifier = oneTake.modifier, onClick = openCard,
             onLongPressRect = onLongClick, onMoreClick = onMoreClick,
-            moreMorphState = moreMorphState, onMoreMorphTrigger = onMoreMorphTrigger)
+            more = VideoCardMorph(moreMorphState, onMoreMorphTrigger))
     }
 }

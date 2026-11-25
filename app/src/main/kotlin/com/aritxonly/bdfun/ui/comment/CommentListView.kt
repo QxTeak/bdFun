@@ -57,7 +57,8 @@ internal data class CommentListViewLayout(
 )
 internal class CommentListViewActions(
     val onSort: () -> Unit, val onLike: (CommentItem) -> Unit, val onDislike: (CommentItem) -> Unit,
-    val onReply: (CommentItem) -> Unit, val onMenu: (CommentItem, androidx.compose.ui.geometry.Rect) -> Unit,
+    val onReply: (CommentItem) -> Unit,
+    val onMenu: (CommentItem, com.aritxonly.teak.common.navigation.TeakMorphMenuState, androidx.compose.ui.geometry.Offset?) -> Unit,
     val onOpenReplies: (CommentItem, Long) -> Unit,
 )
 

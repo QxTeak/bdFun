@@ -22,6 +22,9 @@ import androidx.compose.runtime.getValue
 internal fun CommentPreviewRow(reply: CommentItem, actions: CommentPreviewActions) {
     val likes = LocalVideoPageState.current.dependencies.comments.likes
     val ui = remember(reply.rpid) { CommentRowPresentationStateHolder() }
+    val pointState = remember(reply.rpid) {
+        com.aritxonly.teak.common.navigation.TeakMorphMenuState()
+    }
     val view = androidx.compose.ui.platform.LocalView.current
     Row(
         modifier = Modifier
@@ -41,7 +44,7 @@ internal fun CommentPreviewRow(reply: CommentItem, actions: CommentPreviewAction
                 interactionSource = null,
                 indication = null,
                 onClick = { actions.onReplyToReply(reply) },
-                onLongClick = { actions.onLongPressReply(reply, ui.bounds) },
+                onLongClick = { actions.onLongPressReply(reply, ui.bounds, pointState) },
             )
             .padding(vertical = 3.dp),
         verticalAlignment = Alignment.Top,

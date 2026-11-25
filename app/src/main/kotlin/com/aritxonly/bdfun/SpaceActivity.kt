@@ -72,6 +72,9 @@ class SpaceActivity : ComponentActivity() {
                 ),
                 label = "space-search-underlay-alpha",
             )
+            com.aritxonly.teak.common.navigation.TeakMorphMenuProvider {
+            val videoMorph = com.aritxonly.bdfun.ui.rememberVideoCardMorphMenuHandler(com.aritxonly.bdfun.ui.rememberVideoShareMorphItems())
+            androidx.compose.runtime.CompositionLocalProvider(com.aritxonly.bdfun.ui.LocalVideoCardMorphMenu provides videoMorph) {
             com.aritxonly.bdfun.ui.PhotoViewerRoot(animationsEnabled = settings.animationsEnabled) {
             TeakActivityScaffold(
                 settings = settings,
@@ -108,6 +111,8 @@ class SpaceActivity : ComponentActivity() {
                         onTitleChange = {}, chrome = chrome,
                         onBarBlurFractionChange = {}, onBannerDarkChange = { chrome.bannerIsDark = it })
                 }
+            }
+            }
             }
             }
         }
