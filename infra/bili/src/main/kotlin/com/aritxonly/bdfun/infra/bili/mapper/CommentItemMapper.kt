@@ -31,7 +31,11 @@ internal fun parseComment(
     val mentions = content?.optJSONArray("members")?.objects()?.mapNotNull { m ->
         val name = m.s("uname").ifBlank { m.s("name") }
         val memberMid = m.l("mid")
-        if (name.isBlank() || memberMid <= 0L) null else CommentMention(memberMid, name)
+        if (name.isBlank() || memberMid <= 0L) null else CommentMention(
+            memberMid, name,
+            // 和评论作者同一套字段：members[].vip.vipStatus。
+            isVip = m.optJSONObject("vip")?.optInt("vipStatus", 0) == 1,
+        )
     }.orEmpty()
     return CommentItem(
         rpid = reply.l("rpid"),

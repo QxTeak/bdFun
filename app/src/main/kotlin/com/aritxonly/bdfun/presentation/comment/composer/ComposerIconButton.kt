@@ -18,9 +18,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.BrandPink
+import com.aritxonly.teak.common.icons.LucideIcons
 import com.kyant.shapes.Capsule
 
-enum class ComposerIcon { Send, Image }
+enum class ComposerIcon { Send, Image, Emoji }
 
 /** 输入框内的两个小按钮：尺寸完全一致，按压时统一变粉。 */
 @Composable
@@ -44,10 +45,11 @@ fun ComposerIconButton(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        if (kind == ComposerIcon.Send) {
-            AppGlyph(TeakIcon.Send, color, size = 19.dp)
-        } else {
-            AppGlyph(MiuixIcons.Image, color, size = 19.dp)
+        when (kind) {
+            ComposerIcon.Send -> AppGlyph(TeakIcon.Send, color, size = 19.dp)
+            ComposerIcon.Image -> AppGlyph(MiuixIcons.Image, color, size = 19.dp)
+            // 楼中楼输入栏的表情入口：和主评论区用同一个笑脸图标。
+            ComposerIcon.Emoji -> AppGlyph(LucideIcons.FaceGrinning, color, size = 19.dp)
         }
     }
 }

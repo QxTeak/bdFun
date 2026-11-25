@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,7 +36,6 @@ import coil.compose.AsyncImage
 import com.aritxonly.bdfun.core.model.live.LiveArea
 import com.aritxonly.bdfun.core.model.live.LiveCard
 import com.aritxonly.bdfun.presentation.live.LivePageStateHolder
-import com.aritxonly.bdfun.presentation.common.FullBleedRow
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverErrorState
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverSectionTitle
 import com.aritxonly.bdfun.navigateToLogin
@@ -45,7 +45,8 @@ import com.aritxonly.bdfun.ui.FeedCardShape
 import com.aritxonly.bdfun.ui.LiveAvatar
 import com.aritxonly.bdfun.ui.TeakLoading
 import com.aritxonly.bdfun.ui.rememberImageRequest
-import com.kyant.shapes.Capsule
+import com.aritxonly.teak.common.navigation.TeakChip
+import com.aritxonly.teak.common.navigation.TeakSlidingChipRow
 import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -88,29 +89,43 @@ internal fun LazyGridScope.liveAreaSection(
     item(key = "live-areas", span = { GridItemSpan(maxLineSpan) }) {
         Column {
             Spacer(Modifier.height(if (state.followers.isEmpty()) 0.dp else 4.dp))
-            FullBleedRow(
-                sidePadding = 12.dp,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalPadding = 4.dp,
-            ) {
-                item(key = "area-all") {
-                    LiveAreaChip(
-                        text = "推荐",
-                        selected = state.selectedKey == 0L,
-                        onClick = { scope.launch { state.selectArea(LiveArea(0L, "推荐")) } },
-                    )
-                }
-                items(state.areas, key = { "${it.parentAreaId}-${it.id}" }) { area ->
-                    LiveAreaChip(
-                        text = area.name,
-                        selected = state.selectedKey == area.id,
-                        onClick = { scope.launch { state.selectArea(area) } },
-                    )
-                }
-            }
+            LiveAreaChips(state, scope)
         }
     }
 }
+
+/**
+ * 分区标签：选中底色由 TeakUI 的分段同款弹簧在胶囊之间滑动，
+ * 不再是「点谁谁瞬间变粉、上一个瞬间变白」的两段硬切。
+ */
+@Composable
+private fun LiveAreaChips(state: LivePageStateHolder, scope: kotlinx.coroutines.CoroutineScope) {
+    val areas = state.areas
+    val chips = remember(areas) {
+        buildList {
+            add(TeakChip(RecommendedAreaKey, "推荐"))
+            areas.forEach { add(TeakChip(it.id, it.name)) }
+        }
+    }
+    val areasById = remember(areas) { areas.associateBy { it.id } }
+    TeakSlidingChipRow(
+        chips = chips,
+        // LiveArea.id 已按「area_v2_id 为 0 时退回 parent id」保证唯一，直接当选中键用。
+        selectedKey = state.selectedKey,
+        onSelect = { chip ->
+            scope.launch {
+                val from = chips.indexOfFirst { it.key == state.selectedKey }
+                val to = chips.indexOfFirst { it.key == chip.key }
+                state.selectArea(areasById[chip.key] ?: LiveArea(RecommendedAreaKey, "推荐"), to - from)
+            }
+        },
+        // 和原来 FullBleedRow 一样：抵消网格的 12dp 内容边距，能滚到屏幕边缘再被裁切。
+        bleed = 12.dp,
+        verticalPadding = 4.dp,
+    )
+}
+
+private const val RecommendedAreaKey = 0L
 
 /** 网格里的加载 / 空态 / 未登录提示。 */
 internal fun LazyGridScope.livePageStateItems(
@@ -155,36 +170,12 @@ internal fun LazyGridScope.livePageStateItems(
     }
 }
 
-@Composable
-private fun LiveAreaChip(text: String, selected: Boolean, onClick: () -> Unit) {
-    val colors = MiuixTheme.colorScheme
-    // 形状/尺寸和顶栏分段指示器保持一致：32dp 高、全圆角、选中粉色填充 + 白字。
-    Box(
-        modifier = Modifier
-            .height(32.dp)
-            .clip(Capsule())
-            .background(
-                if (selected) colors.primary.copy(alpha = 0.92f) else colors.surfaceContainer,
-            )
-            .clickable(interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = 16.dp),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(
-            text = text,
-            color = if (selected) Color.White else colors.onBackgroundVariant,
-            fontSize = 13.sp,
-            maxLines = 1,
-        )
-    }
-}
-
 /** 直播卡片：结构同首页视频卡片，统计行换成「xx人看过」+ 直播内容。 */
 @Composable
-internal fun LiveGridCard(live: LiveCard, onClick: () -> Unit) {
+internal fun LiveGridCard(live: LiveCard, modifier: Modifier = Modifier, onClick: () -> Unit) {
     val colors = MiuixTheme.colorScheme
     Column(
-        modifier = Modifier
+        modifier = modifier
             .clip(FeedCardShape)
             .background(colors.surfaceContainer)
             .clickable(interactionSource = null, indication = null, onClick = onClick),

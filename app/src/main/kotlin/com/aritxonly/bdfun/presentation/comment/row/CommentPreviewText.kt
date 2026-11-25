@@ -16,6 +16,9 @@ internal fun androidx.compose.foundation.layout.RowScope.CommentPreviewText(
 ) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
+    // B 站给楼中楼回复自动拼「 回复 @某人 :」。折叠预览里把它读成一句话「某某回复 @某人：…」，
+    // 所以这种正文前面不再补名字后的冒号；直接回复楼主时正文没有这段前缀，仍保留「某某：」的写法。
+    val replyPrefix = remember(reply.message) { reply.message.trimStart().startsWith("回复 @") }
     EmoteText(
         content = EmoteTextContent(
             text = reply.message,
@@ -23,6 +26,10 @@ internal fun androidx.compose.foundation.layout.RowScope.CommentPreviewText(
             extraEmotes = reply.emotes,
             mentions = remember(reply.mentions) {
             reply.mentions.associate { it.name to it.mid }
+        },
+            // 被 @ 的人是大会员时，引用目标用主题色（和大会员名字一致），不要灰/黑。
+            vipMentions = remember(reply.mentions) {
+            reply.mentions.filter { it.isVip }.map { it.name }.toSet()
         },
         ),
         style = EmoteTextStyle(
@@ -33,12 +40,16 @@ internal fun androidx.compose.foundation.layout.RowScope.CommentPreviewText(
             lineHeight = CommentTypography.previewLineHeight,
             prefixFontSize = CommentTypography.previewNameSize,
             fontWeight = FontWeight.Normal,
-            // 正文里 @ 到的人统一用「我的」页那几个快捷入口图标的蓝色，和主题色区分开。
+            // 正文里的 @ 仍用「我的」页快捷入口那支蓝色；只有「回复 @某人」的引用目标改成普通用户名的灰。
             mentionColor = MineBlue,
+            // 只有正文确实是「 回复 @某人 :」时，开头的 @ 才是引用目标；直接回复楼主的正文不算。
+            replyTargetMentionColor = if (replyPrefix) colors.onBackgroundVariant else null,
+            vipMentionColor = colors.primary,
             trailingWidth = if (likeCount > 0) 56.sp else 26.sp,
         ),
         modifier = Modifier.weight(1f),
         decorations = EmoteTextDecorations(
+            prefixColon = !replyPrefix,
             prefixBadge = if (reply.isUp) {
             { UpBadge() }
         } else {

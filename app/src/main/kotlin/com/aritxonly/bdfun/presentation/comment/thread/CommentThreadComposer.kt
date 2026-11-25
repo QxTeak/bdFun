@@ -32,6 +32,14 @@ internal fun androidx.compose.foundation.layout.BoxScope.CommentThreadComposer(
                 bottom = if (imeVisible) 8.dp else 8.dp + navBottom)
             .imePadding(),
     ) {
+        // 展开楼中楼时输入栏仍留在最上面一层，表情面板直接挂在这里，
+        // 不再需要回到主评论区的输入栏才能发表情（issue #144）。
+        if (transient.showEmoji) {
+            EmojiPanel(
+                onPick = { transient.draft += it },
+                modifier = Modifier.padding(bottom = 6.dp),
+            )
+        }
         if (sendError != null) androidx.compose.material3.Text(
             sendError, color = MiuixTheme.colorScheme.primary,
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
@@ -63,10 +71,17 @@ private fun CommentThreadComposerField(
         ) {
             Box(Modifier.fillMaxWidth()) {
                 Box(
-                    Modifier.fillMaxWidth().padding(start = 16.dp, end = if (sending) 76.dp else 44.dp,
+                    Modifier.fillMaxWidth().padding(start = 16.dp, end = if (sending) 76.dp else 80.dp,
                         top = 12.dp, bottom = 12.dp),
                     contentAlignment = Alignment.CenterStart,
                 ) { CommentThreadTextField(transient, target, focusRequester) }
+                Box(Modifier.align(Alignment.CenterEnd).padding(end = 40.dp)) {
+                    ComposerIconButton(
+                        kind = ComposerIcon.Emoji,
+                        tint = if (transient.showEmoji) BrandPink else colors.outline,
+                        onClick = { transient.showEmoji = !transient.showEmoji },
+                    )
+                }
                 Box(Modifier.align(Alignment.CenterEnd).padding(end = 8.dp)) {
                     if (sending) androidx.compose.material3.Text("发送中…")
                     else ComposerIconButton(
