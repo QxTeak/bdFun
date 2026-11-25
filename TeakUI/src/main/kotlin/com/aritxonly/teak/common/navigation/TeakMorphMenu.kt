@@ -43,6 +43,15 @@ import top.yukonga.miuix.kmp.glass.glassPopupAnchor
 class TeakMorphMenuState {
     internal var open by mutableStateOf(false)
 
+    /** 是否绘制按钮副本：省略号点击时显示；长按卡片时同一套动画但不画省略号。 */
+    internal var anchorCopyVisible by mutableStateOf(true)
+
+    /** 代码触发打开（长按卡片用）：和点击省略号同一套形变，可选择不画按钮副本。 */
+    fun openWithAnchorCopy(showAnchorCopy: Boolean) {
+        anchorCopyVisible = showAnchorCopy
+        open = true
+    }
+
     internal val anchor = GlassPopupAnchor()
 
     /** 触发按钮的可复用副本；形变起点由 Miuix 使用。 */
@@ -97,6 +106,7 @@ fun TeakMorphMenuAnchor(
     ) {
         content {
             onClick?.invoke()
+            state.anchorCopyVisible = true
             state.open = true
         }
     }
@@ -155,7 +165,7 @@ fun TeakMorphMenuHost(
             anchorContent = {
                 val copy = state.triggerContent
                 Box(Modifier.fillMaxSize()) {
-                    if (copy != null) copy()
+                    if (copy != null && state.anchorCopyVisible) copy()
                 }
             },
             cornerRadius = GlassPopupDefaults.CornerRadius,

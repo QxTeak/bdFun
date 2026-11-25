@@ -20,11 +20,11 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.homeVideoItems(
         val cardMenu = androidx.compose.runtime.remember(video.bvid) {
             com.aritxonly.teak.common.navigation.TeakMorphMenuState()
         }
-        // 长按与省略号共用同一份菜单内容和选中视频；省略号额外走玻璃形变动画。
-        val openMenu: (androidx.compose.ui.geometry.Rect) -> Unit = { anchor ->
-            ui.actionAnchor = anchor
-            ui.actionVideo = video
-            ui.moreViaLongPress = true
+        // 长按与省略号走同一套形变；长按不画省略号副本，点击省略号时画。
+        val openMenu: (androidx.compose.ui.geometry.Rect) -> Unit = {
+            state.menuVideo = video
+            state.menuState = cardMenu
+            cardMenu.openWithAnchorCopy(false)
         }
         host.card(
             video, largeCards,
