@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
@@ -45,20 +46,30 @@ internal fun DanmakuReportDialog(
         insideMargin = androidx.compose.ui.unit.DpSize(16.dp, if (layout.compactButtons) 12.dp else 16.dp),
     ) {
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(
-                item.text,
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = layout.summaryMaxLines,
-                overflow = TextOverflow.Ellipsis,
-            )
-            DanmakuReportReasonList(
-                selected = reason,
-                onSelect = { reason = it },
-                layout = layout,
-                otherVisible = reason == DanmakuReportReason.Other,
-                content = content,
-                onContentChange = { content = it },
-            )
+            Column(
+                Modifier.fillMaxWidth()
+                    .then(layout.maxContentHeightDp?.let { Modifier.heightIn(max = it.dp) } ?: Modifier)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    item.text,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MiuixTheme.colorScheme.onBackground,
+                    maxLines = layout.summaryMaxLines,
+                    overflow = TextOverflow.Ellipsis,
+                    textAlign = TextAlign.Center,
+                    fontSize = 13.sp,
+                )
+                DanmakuReportReasonList(
+                    selected = reason,
+                    onSelect = { reason = it },
+                    layout = layout,
+                    otherVisible = reason == DanmakuReportReason.Other,
+                    content = content,
+                    onContentChange = { content = it },
+                )
+            }
             DanmakuReportDialogActions(
                 cancelEnabled = !busy,
                 submitEnabled = !busy && reason != null &&
@@ -88,9 +99,7 @@ private fun DanmakuReportReasonList(
 ) {
     val colors = MiuixTheme.colorScheme
     Column(
-        Modifier.fillMaxWidth()
-            .then(layout.maxContentHeightDp?.let { Modifier.heightIn(max = it.dp) } ?: Modifier)
-            .verticalScroll(rememberScrollState()),
+        Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(if (layout.compactButtons) 4.dp else 6.dp),
     ) {
         DanmakuReportReason.entries.chunked(layout.columns).forEach { row ->
@@ -99,22 +108,19 @@ private fun DanmakuReportReasonList(
                     Button(
                         onClick = { onSelect(option) },
                         modifier = Modifier.weight(1f).heightIn(min = if (layout.compactButtons) 35.dp else 42.dp),
+                        minHeight = if (layout.compactButtons) 35.dp else 42.dp,
+                        insideMargin = if (layout.compactButtons) {
+                            PaddingValues(horizontal = 6.dp, vertical = 4.dp)
+                        } else {
+                            PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        },
                     ) {
-                        Row(
-                            modifier = if (layout.compactButtons) {
-                                Modifier.padding(horizontal = 6.dp, vertical = 5.dp)
-                            } else {
-                                Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                            },
-                            horizontalArrangement = Arrangement.Center,
-                        ) {
-                            Text(
-                                if (selected == option) "✓ ${option.title}" else option.title,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                fontSize = if (layout.compactButtons) 12.sp else 13.sp,
-                            )
-                        }
+                        Text(
+                            if (selected == option) "✓ ${option.title}" else option.title,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSize = if (layout.compactButtons) 12.sp else 13.sp,
+                        )
                     }
                 }
                 repeat(layout.columns - row.size) { Spacer(Modifier.weight(1f)) }
@@ -146,8 +152,20 @@ private fun DanmakuReportDialogActions(
     onSubmit: () -> Unit,
 ) {
     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-        Button(onClick = onCancel, enabled = cancelEnabled, modifier = Modifier.weight(1f)) { Text("取消") }
-        Button(enabled = submitEnabled, modifier = Modifier.weight(1f), onClick = onSubmit) { Text("提交举报") }
+        Button(
+            onClick = onCancel,
+            enabled = cancelEnabled,
+            modifier = Modifier.weight(1f).heightIn(min = 42.dp),
+            minHeight = 42.dp,
+            insideMargin = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+        ) { Text("取消") }
+        Button(
+            enabled = submitEnabled,
+            modifier = Modifier.weight(1f).heightIn(min = 42.dp),
+            minHeight = 42.dp,
+            insideMargin = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
+            onClick = onSubmit,
+        ) { Text("提交举报") }
     }
 }
 
