@@ -7,6 +7,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import com.android.purebilibili.danmaku.engine.DanmakuRenderView
+import com.aritxonly.bdfun.core.common.Outcome
+import com.aritxonly.bdfun.core.common.messageOr
 import com.aritxonly.bdfun.core.model.video.DanmakuItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -86,9 +88,11 @@ private fun BindDanmakuSelection(layout: DanmakuClickLayout, view: DanmakuRender
     LaunchedEffect(item.id, cid) { hit.loadVotes?.invoke(listOf(item.id)) }
     if (layout.reporting) {
         DanmakuReportDialog(item, onDismiss = dismiss) { reason, text ->
-            val ok = page.cid == cid && page.danmakuReporter?.invoke(item.id, reason, text) == true
-            context.showToast(if (ok) "举报已提交" else "举报失败")
-            ok
+            if (page.cid != cid) return@DanmakuReportDialog false
+            val result = page.danmakuReporter?.invoke(item.id, reason, text)
+                ?: Outcome.Failure(com.aritxonly.bdfun.core.common.AppError.Unknown("弹幕举报入口已关闭"))
+            context.showToast(result.toReportMessage())
+            result is Outcome.Success
         }
     } else DanmakuActionPopup(selection.position, vote?.liked == true, vote?.likes ?: item.likeCount, item, dismiss,
         onLike = { hit.like?.invoke(item.id) },
@@ -111,8 +115,19 @@ private fun bindDanmakuVoteActions(page: VideoPagePresentationState, hit: Player
     hit.sendSame = { text -> page.cid == activeCid && page.danmakuSender?.invoke(text, 1, 25, 0xFFFFFF) == true }
     hit.like = { id ->
         if (page.cid == activeCid) scope.launch {
-            val ok = page.danmakuLiker?.invoke(id) == true
-            if (page.cid == activeCid && !ok) Toast.makeText(context, "操作失败，请确认已登录", Toast.LENGTH_SHORT).show()
+            val result = page.danmakuLiker?.invoke(id)
+                ?: Outcome.Failure(com.aritxonly.bdfun.core.common.AppError.Unknown("弹幕点赞入口已关闭"))
+            if (page.cid == activeCid) Toast.makeText(context, result.toLikeMessage(), Toast.LENGTH_SHORT).show()
         }
     }
+}
+
+private fun Outcome<Boolean>.toLikeMessage(): String = when (this) {
+    is Outcome.Success -> if (value) "已点赞" else "已取消点赞"
+    is Outcome.Failure -> error.messageOr("点赞失败")
+}
+
+private fun Outcome<Unit>.toReportMessage(): String = when (this) {
+    is Outcome.Success -> "举报已提交"
+    is Outcome.Failure -> error.messageOr("举报失败")
 }
