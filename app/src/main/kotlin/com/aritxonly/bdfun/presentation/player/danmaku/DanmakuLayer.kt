@@ -51,12 +51,37 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
         }
     }
     val merged = remember(items, feedRevision, cid, feed) {
-        if (feed == null) items else (feed.items(cid) + items)
-            .distinctBy { if (it.id > 0L) "id:${it.id}" else "${it.timeMs}:${it.mode}:${it.text}" }
-            .sortedBy { it.timeMs }
+        if (feed == null) {
+            items
+        } else {
+            val feedItems = feed.items(cid)
+            val capacity = feedItems.size + items.size
+            val out = ArrayList<BiliDanmakuItem>(capacity)
+            val ids = HashSet<Long>(capacity)
+            val texts = HashSet<String>(capacity)
+            fun add(item: BiliDanmakuItem) {
+                if (item.id > 0L) {
+                    if (ids.add(item.id)) out += item
+                } else {
+                    // 无 id 的本地/特殊弹幕按内容去重，避免每条都拼一次带前缀的字符串。
+                    if (texts.add("${item.timeMs}:${item.mode}:${item.text}")) out += item
+                }
+            }
+            for (item in feedItems) add(item)
+            for (item in items) add(item)
+            out.sortBy { it.timeMs }
+            out
+        }
     }
     val filtered = remember(merged, options.filters, matcher, moderation.recalled, page.cid) {
-        filterDanmaku(merged.filterNot { matcher.blocks(it) || (page.cid to it.id) in moderation.recalled }, options.filters)
+        val recalled = moderation.recalled
+        val kept = ArrayList<BiliDanmakuItem>(merged.size)
+        for (item in merged) {
+            if (matcher.blocks(item)) continue
+            if (recalled.isNotEmpty() && (page.cid to item.id) in recalled) continue
+            kept += item
+        }
+        filterDanmaku(kept, options.filters)
     }
     LaunchedEffect(hit, filtered) { hit.filteredSnapshot.value = filtered }
     DisposableEffect(hit) { onDispose { hit.filteredSnapshot.value = emptyList() } }

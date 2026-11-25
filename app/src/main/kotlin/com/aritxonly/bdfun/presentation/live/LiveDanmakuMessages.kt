@@ -53,17 +53,15 @@ internal fun LiveDanmakuMessages(engine: com.android.purebilibili.danmaku.engine
             if (pending.isNotEmpty()) {
                 lastSeenId = pending.last().id
                 if (latestPlaying) {
+                    // 直播间表情快照在整批内保持同一引用，正则缓存才能命中。
+                    val roomEmotes = latestRoomEmotes
                     pending.forEach { message ->
                         val rgb = message.nameColor?.toInt()?.and(0xFFFFFF) ?: 0xFFFFFF
                         val textColor = 0xFF000000.toInt() or rgb
-                        val emotes = buildMap {
-                            putAll(latestRoomEmotes)
-                            putAll(message.emotes)
-                            message.emoteUrl
-                                ?.takeIf { it.isNotBlank() }
-                                ?.let { put(message.text, it) }
-                        }
-                        if (emotes.isNotEmpty()) {
+                        val extraEmote = message.emoteUrl
+                            ?.takeIf { it.isNotBlank() }
+                            ?.let { message.text to it }
+                        if (roomEmotes.isNotEmpty() || message.emotes.isNotEmpty() || extraEmote != null) {
                             scope.launch {
                                 emoteLoadBudget.withPermit {
                                     val item = withContext(Dispatchers.IO) {
@@ -72,8 +70,10 @@ internal fun LiveDanmakuMessages(engine: com.android.purebilibili.danmaku.engine
                                             text = message.text,
                                             textColor = textColor,
                                             textSizePx = latestTextSizePx,
-                                            emotes = emotes,
+                                            emotes = roomEmotes,
                                             emoteHeights = message.emoteHeights,
+                                            extraEmotes = message.emotes,
+                                            extraEmote = extraEmote,
                                         )
                                     }
                                     if (item != null) engine.addImmediate(item)

@@ -19,10 +19,9 @@ data class RichTextAnalysis(
 
 /** 优先级、去重与首次 indexOf 均保留原逻辑；这里只决定区间，不依赖 Compose。 */
 fun analyzeRichText(text: String, emotes: Map<String, String>, mentions: Map<String, Long>, mentionClick: Boolean): RichTextAnalysis {
-    // mentions 只在开启提及点击时才需要排序结果，避免每条评论都白排一遍。
-    val mentionList = if (mentionClick) mentions.entries.sortedByDescending { it.key.length } else emptyList()
-    val mentionRegex = if (mentionList.isEmpty()) null
-        else Regex("@(" + mentionList.joinToString("|") { Regex.escape(it.key) } + ")")
+    val compiled = mentionPattern(mentions, mentionClick)
+    val mentionRegex = compiled.pattern
+    val mentionList = compiled.list
     val hits = collectRichLinks(text).toMutableList()
     addRichEmotes(hits, text, emotes)
     if (mentionRegex != null) addRichMentions(hits, text, mentionRegex, mentions)
@@ -68,8 +67,7 @@ private fun emotePattern(emotes: Map<String, String>): Regex? {
     return pattern
 }
 
-private fun addRichEmotes(hits: MutableList<RichTextHit>, text: String, emotes: Map<String, String>) {
-    val pattern = emotePattern(emotes) ?: return
+private fun addRichEmotes(hits: MutableList<RichTextHit>, text: String, emotes: Map<String, String>) {    val pattern = emotePattern(emotes) ?: return
     for (match in pattern.findAll(text)) {
         val token = match.value.removeSurrounding("[", "]")
         val url = emotes[token] ?: emotes[match.value] ?: continue
@@ -77,6 +75,26 @@ private fun addRichEmotes(hits: MutableList<RichTextHit>, text: String, emotes: 
         if (hits.any { it.start < end && start < it.end }) continue
         hits += RichTextHit(start, end, emoteToken = token, emoteUrl = url)
     }
+}
+
+/** 提及名单同样按账号快照缓存：一屏评论共用一份 map，不该每条都重排 + 编译。 */
+private class CompiledMentions(
+    val source: Map<String, Long>,
+    val enabled: Boolean,
+    val list: List<Map.Entry<String, Long>>,
+    val pattern: Regex?,
+)
+private var compiledMentions: CompiledMentions? = null
+
+@Synchronized
+private fun mentionPattern(mentions: Map<String, Long>, mentionClick: Boolean): CompiledMentions {
+    compiledMentions?.let {
+        if (it.enabled == mentionClick && it.source === mentions) return it
+    }
+    val list = if (mentionClick) mentions.entries.sortedByDescending { it.key.length } else emptyList()
+    val pattern = if (list.isEmpty()) null
+        else Regex("@(" + list.joinToString("|") { Regex.escape(it.key) } + ")")
+    return CompiledMentions(mentions, mentionClick, list, pattern).also { compiledMentions = it }
 }
 
 private fun addRichMentions(hits: MutableList<RichTextHit>, text: String, regex: Regex, mentions: Map<String, Long>) {

@@ -45,9 +45,14 @@ open class TextDrawItem: DrawItem<TextData>() {
     private val mUpBadgePaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.DITHER_FLAG)
     private val mSelfPaint = Paint(Paint.ANTI_ALIAS_FLAG or Paint.DITHER_FLAG)
     private val mUpBadgeRect = android.graphics.RectF()
+    private val mUpBadgeMetrics = Paint.FontMetrics()
 
     // UP 徽章随文字缩放；宽度计入 measure，避免弹幕轨道排布时与后续弹幕重叠。
     private var upBadgeAdvance = 0f
+    private var upBadgeTextWidth = 0f
+    private var upBadgeHeight = 0f
+    private var upBadgeWidth = 0f
+    private var upBadgeBaselineOffset = 0f
     private var textWidth = 0f
 
     private val gradientMatrix = Matrix()
@@ -138,28 +143,27 @@ open class TextDrawItem: DrawItem<TextData>() {
         mUpBadgePaint.textSize = badgeTextSize
         mUpBadgePaint.typeface = Typeface.DEFAULT_BOLD
         val badgeTextWidth = mUpBadgePaint.measureText(UP_BADGE_TEXT)
+        mUpBadgePaint.getFontMetrics(mUpBadgeMetrics)
+        upBadgeTextWidth = badgeTextWidth
+        upBadgeHeight = badgeHeight
+        upBadgeWidth = badgeTextWidth + badgeHeight * UP_BADGE_H_PADDING_RATIO * 2f
+        upBadgeBaselineOffset = (badgeHeight - mUpBadgeMetrics.bottom - mUpBadgeMetrics.top) / 2f
         return badgeTextWidth + badgeHeight + UP_BADGE_TEXT_GAP_RATIO * textHeight
     }
 
     private fun drawUpBadge(canvas: Canvas) {
-        val badgeHeight = height * UP_BADGE_HEIGHT_RATIO
+        val badgeHeight = upBadgeHeight
+        if (badgeHeight <= 0f) return
         // 徽章与文字在行内垂直居中
         val badgeTop = y + (height - badgeHeight) / 2f
-        val badgeTextSize = badgeHeight * UP_BADGE_TEXT_RATIO
-        mUpBadgePaint.textSize = badgeTextSize
-        mUpBadgePaint.typeface = Typeface.DEFAULT_BOLD
-        val badgeTextWidth = mUpBadgePaint.measureText(UP_BADGE_TEXT)
-        val badgeWidth = badgeTextWidth + badgeHeight * UP_BADGE_H_PADDING_RATIO * 2f
         mUpBadgePaint.color = UP_BADGE_COLOR
-        mUpBadgeRect.set(x, badgeTop, x + badgeWidth, badgeTop + badgeHeight)
+        mUpBadgeRect.set(x, badgeTop, x + upBadgeWidth, badgeTop + badgeHeight)
         canvas.drawRoundRect(mUpBadgeRect, badgeHeight * 0.22f, badgeHeight * 0.22f, mUpBadgePaint)
         mUpBadgePaint.color = UP_BADGE_TEXT_COLOR
-        val metrics = mUpBadgePaint.fontMetrics
-        val badgeBaseline = badgeTop + (badgeHeight - metrics.bottom - metrics.top) / 2f
         canvas.drawText(
             UP_BADGE_TEXT,
-            x + (badgeWidth - badgeTextWidth) / 2f,
-            badgeBaseline,
+            x + (upBadgeWidth - upBadgeTextWidth) / 2f,
+            badgeTop + upBadgeBaselineOffset,
             mUpBadgePaint,
         )
     }

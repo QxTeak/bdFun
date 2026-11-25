@@ -12,6 +12,10 @@ class AndroidPlaybackProgressRepository(context: Context?, private val clock: ()
     private val prefs = context?.applicationContext?.getSharedPreferences("playback_progress", Context.MODE_PRIVATE)
     @Volatile private var writesSincePrune = 0
     @Volatile private var pruned = false
+    // SharedPreferences 的整份读写不贵但不该占界面线程；写和清理串行到同一条后台线程。
+    private val writer = java.util.concurrent.Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "playback-progress").apply { isDaemon = true }
+    }
     // 清理旧进度放到第一次写入时做：构造期在 App 启动主线程上，不能在这里读整份 XML。
     private fun pruneOnce(store: SharedPreferences) {
         if (pruned) return
@@ -26,14 +30,16 @@ class AndroidPlaybackProgressRepository(context: Context?, private val clock: ()
     override fun save(bvid: String, positionMs: Long, durationMs: Long) {
         val store = prefs ?: return
         if (bvid.isBlank()) return
-        pruneOnce(store)
-        when (playbackProgressDecision(positionMs, durationMs)) {
-            ProgressSaveDecision.Skip -> return
-            ProgressSaveDecision.Clear -> { clear(bvid); return }
-            ProgressSaveDecision.Write -> store.edit().putString("p_$bvid", "$positionMs,$durationMs,${clock()}").apply()
+        writer.execute {
+            pruneOnce(store)
+            when (playbackProgressDecision(positionMs, durationMs)) {
+                ProgressSaveDecision.Skip -> return@execute
+                ProgressSaveDecision.Clear -> { clear(bvid); return@execute }
+                ProgressSaveDecision.Write -> store.edit().putString("p_$bvid", "$positionMs,$durationMs,${clock()}").apply()
+            }
+            writesSincePrune++
+            if (writesSincePrune >= 100) { writesSincePrune = 0; prune(store) }
         }
-        writesSincePrune++
-        if (writesSincePrune >= 100) { writesSincePrune = 0; prune(store) }
     }
     override fun clear(bvid: String) {
         if (bvid.isNotBlank()) prefs?.edit()?.remove("p_$bvid")?.apply()

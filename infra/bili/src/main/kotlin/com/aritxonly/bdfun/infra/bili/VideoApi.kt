@@ -140,28 +140,20 @@ internal suspend fun BiliApiContext.playInfo(
             "accept=${parsed.acceptQuality}",
     )
     if (parsed.fallbackUrl == null && parsed.qualities.isNotEmpty()) {
-        // DASH 解码失败时的兜底：优先 1080P，再 720P，最后才 480P。
-        // 以前固定 480P，4K 解码一出错就整段变糊，看起来像“4K 没用”。
-        var fallbackUrl = ""
-        for (qn in listOf("80", "64", "32")) {
-            val fallbackData = cancellableCatching {
-                dataRequest(
-                    "/x/player/playurl",
-                    mapOf(
-                        "bvid" to detail.bvid,
-                        "cid" to cid.toString(),
-                        "qn" to qn,
-                        "fnval" to "1",
-                        "fnver" to "0",
-                    ),
-                )
-            }.getOrNull() ?: continue
-            val candidate = readProgressiveFallback(fallbackData)
-            if (candidate.isNotBlank()) {
-                fallbackUrl = candidate
-                break
-            }
-        }
+        // DASH 解码失败时的兜底。只取 1080P：原来会串行再试 720P/480P，
+        // 但绝大多数视频 1080P 就能拿到，失败时再靠播放器降档，不必每次都多发两个请求。
+        val fallbackUrl = cancellableCatching {
+            dataRequest(
+                "/x/player/playurl",
+                mapOf(
+                    "bvid" to detail.bvid,
+                    "cid" to cid.toString(),
+                    "qn" to "80",
+                    "fnval" to "1",
+                    "fnver" to "0",
+                ),
+            )
+        }.getOrNull()?.let(::readProgressiveFallback).orEmpty()
         if (fallbackUrl.isNotBlank()) parsed.copy(fallbackUrl = fallbackUrl) else parsed
     } else {
         parsed

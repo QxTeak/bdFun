@@ -103,7 +103,9 @@ class DownloadQueueStateHolder(private val storage: VideoCacheStorage, transfer:
             runner.run(request, current, { tokens[id] == null || tokens[id] === token },
                 publish = { entry -> withContext(uiDispatcher) {
                     if (current()) mutable.update { list -> list.map { if (it.id == id) entry else it } }
-                } }, persist = { withContext(uiDispatcher) { if (current()) persistNow() } })
+                } },
+                // 落盘只写本地 JSON，不需要占界面线程；发布节奏仍由 runner 的 5s 节流控制。
+                persist = { withContext(Dispatchers.IO) { if (current()) persistNow() } })
         } finally {
             tokens.remove(id, token)
             currentCoroutineContext()[Job]?.let { jobs.remove(id, it) }

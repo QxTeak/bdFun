@@ -168,7 +168,8 @@ internal suspend fun BiliApiContext.messageSessions(
     val needResolve = quick
         .filter { it.name.isBlank() && it.sessionType == 1 && !it.isSystem }
     val resolved = if (needResolve.isEmpty()) quick else kotlinx.coroutines.coroutineScope {
-        val limit = kotlinx.coroutines.sync.Semaphore(4)
+        // 首屏最多 25 条；并发 8 比 4 少一半往返，名字仍然全部补齐后再返回。
+        val limit = kotlinx.coroutines.sync.Semaphore(8)
         val names = needResolve.map { session -> async {
             limit.acquire()
             try {

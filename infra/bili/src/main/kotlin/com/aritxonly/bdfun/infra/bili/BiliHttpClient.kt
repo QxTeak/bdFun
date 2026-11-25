@@ -18,6 +18,9 @@ import java.io.IOException
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+private val playUrlPattern = Regex("https?://[^\"\\s]+")
+private val playUrlSecretPattern = Regex("\"(e|upsig|sign|deadline|trid|w_rid|uipk|qn_dyeid)\":\"[^\"]*\"")
+
 /** 只负责 HTTP 执行与原有重试；Cookie、连接池由启动层传入。 */
 class BiliHttpClient(
     private val client: OkHttpClient,
@@ -99,13 +102,9 @@ class BiliHttpClient(
             throw BiliException(response.code, "网络错误 HTTP ${response.code}")
         }
         val body = response.body?.string().orEmpty()
-        if (request.url.encodedPath.contains("playurl")) {
-            val safeBody = body
-                .replace(Regex("https?://[^\"\\s]+"), "[url]")
-                .replace(
-                    Regex("\"(e|upsig|sign|deadline|trid|w_rid|uipk|qn_dyeid)\":\"[^\"]*\""),
-                    "\"\$1\":\"[redacted]\"",
-                )
+        if (debug && request.url.encodedPath.contains("playurl")) {
+            val safeBody = body.replace(playUrlPattern, "[url]")
+                .replace(playUrlSecretPattern, "\"\$1\":\"[redacted]\"")
                 .take(1600)
             log(
                 "API",
