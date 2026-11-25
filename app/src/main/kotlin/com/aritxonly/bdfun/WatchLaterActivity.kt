@@ -13,13 +13,15 @@ class WatchLaterActivity : ComponentActivity() {
         AppGraph.ensure(applicationContext)
         val settings = AppGraph.settings
         setContent {
-            LibraryPageShell(
-                context = this,
-                settings = settings,
-                title = "稍后再看",
-                fixedMode = 2,
-                onBack = { finish() },
-            )
+            com.aritxonly.teak.common.navigation.TeakMorphMenuProvider {
+                LibraryPageShell(
+                    context = this,
+                    settings = settings,
+                    title = "稍后再看",
+                    fixedMode = 2,
+                    onBack = { finish() },
+                )
+            }
         }
     }
 }

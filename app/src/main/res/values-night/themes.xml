@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 深色模式：系统开屏和首帧窗口都用 App 真实的深色底，避免先闪一下白屏。 -->
+    <style name="Theme.BdFun" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">#FF000000</item>
+        <item name="android:windowSplashScreenBackground">#FF000000</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
+    </style>
+</resources>

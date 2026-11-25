@@ -4,6 +4,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
@@ -28,6 +30,7 @@ import top.yukonga.miuix.kmp.glass.GlassPopupDefaults
 import top.yukonga.miuix.kmp.glass.GlassPopupSizing
 import top.yukonga.miuix.kmp.glass.GlassTransformPopup
 import top.yukonga.miuix.kmp.glass.glassPopupAnchor
+import top.yukonga.miuix.kmp.glass.glassPopupAnchor
 
 /**
  * 顶栏“省略号 / 更多”这类按钮弹出二级菜单的状态。
@@ -39,6 +42,20 @@ import top.yukonga.miuix.kmp.glass.glassPopupAnchor
 @Stable
 class TeakMorphMenuState {
     internal var open by mutableStateOf(false)
+
+    /** 是否绘制按钮副本：省略号点击时显示；长按卡片时同一套动画但不画省略号。 */
+    internal var anchorCopyVisible by mutableStateOf(true)
+
+    /** 代码触发打开（长按用）：同一套形变，可选择不画按钮副本。 */
+    fun openWithAnchorCopy(showAnchorCopy: Boolean) {
+        anchorCopyVisible = showAnchorCopy
+        open = true
+    }
+
+    /** 由外部控制器收起。 */
+    fun close() {
+        open = false
+    }
 
     internal val anchor = GlassPopupAnchor()
 
@@ -59,6 +76,9 @@ fun TeakMorphMenuAnchor(
     state: TeakMorphMenuState,
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 20.dp,
+    onClick: (() -> Unit)? = null,
+    /** false 时只上报锚点并由 onClick 自行打开菜单（注册表模式），不在这里直接 open。 */
+    autoOpen: Boolean = true,
     content: @Composable (onClick: () -> Unit) -> Unit,
 ) {
     // 副本必须继承触发按钮所在的顶栏材质状态；否则在菜单层里会退回默认值，
@@ -91,8 +111,28 @@ fun TeakMorphMenuAnchor(
         modifier = modifier
             .glassPopupAnchor(state.anchor, cornerRadius = cornerRadius),
     ) {
-        content { state.open = true }
+        content {
+            onClick?.invoke()
+            if (autoOpen) {
+                state.anchorCopyVisible = true
+                state.open = true
+            }
+        }
     }
+}
+
+/** 长按：把形变起点放在手指位置，不画按钮副本。 */
+@Composable
+fun TeakMorphPointAnchor(
+    state: TeakMorphMenuState,
+    position: androidx.compose.ui.geometry.Offset,
+) {
+    Box(
+        Modifier
+            .offset { androidx.compose.ui.unit.IntOffset(position.x.toInt(), position.y.toInt()) }
+            .size(1.dp)
+            .glassPopupAnchor(state.anchor, cornerRadius = 1.dp),
+    )
 }
 
 /**
@@ -108,6 +148,7 @@ fun TeakMorphMenuHost(
     minWidth: Dp = GlassPopupDefaults.MinWidth,
     maxWidth: Dp = GlassPopupDefaults.MaxWidth,
     maxHeight: Dp = GlassPopupDefaults.MaxHeight,
+    onDismiss: (() -> Unit)? = null,
     content: @Composable ColumnScope.(dismiss: (after: () -> Unit) -> Unit) -> Unit,
 ) {
     val backdrop = LocalTeakBackdrop.current
@@ -128,18 +169,24 @@ fun TeakMorphMenuHost(
         }
     }
 
-    BackHandler(enabled = state.open) { state.open = false }
+    BackHandler(enabled = state.open) {
+        state.open = false
+        onDismiss?.invoke()
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         GlassTransformPopup(
             show = state.open,
-            onDismissRequest = { state.open = false },
+            onDismissRequest = {
+                state.open = false
+                onDismiss?.invoke()
+            },
             anchor = state.anchor,
             backdrop = if (TeakUiStyle.isClassic) null else backdrop,
             anchorContent = {
                 val copy = state.triggerContent
                 Box(Modifier.fillMaxSize()) {
-                    if (copy != null) copy()
+                    if (copy != null && state.anchorCopyVisible) copy()
                 }
             },
             cornerRadius = GlassPopupDefaults.CornerRadius,

@@ -40,6 +40,21 @@ class MainActivity : ComponentActivity() {
         AppGraph.ensure(applicationContext)
         incomingLinks = AppGraph.incomingVideoLinks()
         settings = AppGraph.settings
+        // App 内深浅色不一定跟随系统：首帧窗口背景按用户设置先铺好，避免深色模式闪白。
+        runCatching {
+            val dark = when (settings.darkMode) {
+                1 -> false
+                2 -> true
+                else -> resources.configuration.uiMode and
+                    android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
+                    android.content.res.Configuration.UI_MODE_NIGHT_YES
+            }
+            window.setBackgroundDrawable(
+                android.graphics.drawable.ColorDrawable(
+                    if (dark) android.graphics.Color.BLACK else 0xFFF3F3F3.toInt(),
+                ),
+            )
+        }
         // 默认保留玻璃录制的 60Hz 预算；0 表示由系统自行选择。
         lifecycleScope.launch {
             settings.state.map { settings.repository.appearance.feedRefreshRate }
@@ -54,12 +69,31 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) checkUpdateOnStartup()
         handleIntent(intent)
         setContent {
+            val splashDark = when (settings.darkMode) {
+                1 -> false
+                2 -> true
+                else -> androidx.compose.foundation.isSystemInDarkTheme()
+            }
+            val morphMenu = androidx.compose.runtime.remember {
+                com.aritxonly.teak.common.navigation.TeakMorphMenuController()
+            }
+            // 搜索 / 热门之外、主壳里所有复用视频行的页面也统一接入同一套形变菜单。
+            val videoMorph = com.aritxonly.bdfun.ui.rememberVideoCardMorphMenuHandler(
+                com.aritxonly.bdfun.ui.rememberVideoShareMorphItems(),
+            )
+            androidx.compose.runtime.CompositionLocalProvider(
+                com.aritxonly.teak.common.navigation.LocalTeakMorphMenu provides morphMenu,
+                com.aritxonly.bdfun.ui.LocalVideoCardMorphMenu provides videoMorph,
+            ) {
             // 图片查看器挂在窗口最外层，才能盖住底栏、顶栏和状态栏（和 Telegram 一致）。
             com.aritxonly.bdfun.ui.PhotoViewerRoot(animationsEnabled = settings.animationsEnabled) {
                 androidx.compose.foundation.layout.Box {
-                    BdFunApp(settings = settings)
-                    com.aritxonly.bdfun.ui.SplashWallpaper(settings.splashWallpaper)
+                    BdFunApp(settings = settings) {
+                        com.aritxonly.teak.common.navigation.TeakMorphMenuOverlay(morphMenu)
+                    }
+                    com.aritxonly.bdfun.ui.SplashWallpaper(settings.splashWallpaper, dark = splashDark)
                 }
+            }
             }
         }
     }

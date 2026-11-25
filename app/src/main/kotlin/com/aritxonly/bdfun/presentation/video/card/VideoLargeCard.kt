@@ -10,6 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
@@ -25,9 +26,25 @@ internal fun VideoLargeCard(
     onLongClick: (() -> Unit)? = null,
     onLongPressRect: ((Rect) -> Unit)? = null,
     onMoreClick: ((Rect) -> Unit)? = null,
+    moreMorphState: com.aritxonly.teak.common.navigation.TeakMorphMenuState? = null,
+    onMoreMorphTrigger: (() -> Unit)? = null,
 ) {
     val colors = MiuixTheme.colorScheme
     val bounds = remember { CardBoundsHolder() }
+    val press = remember { androidx.compose.runtime.mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    val localMorph = LocalVideoCardMorphMenu.current
+    val morphState = moreMorphState ?: if (localMorph != null) {
+        remember(video.bvid) { com.aritxonly.teak.common.navigation.TeakMorphMenuState() }
+    } else null
+    val morphTrigger = onMoreMorphTrigger ?: if (localMorph != null && morphState != null) {
+        { localMorph.show(video, morphState, null) }
+    } else null
+    val pointState = if (localMorph != null && moreMorphState == null) {
+        remember(video.bvid) { com.aritxonly.teak.common.navigation.TeakMorphMenuState() }
+    } else null
+    val longPressRect = onLongPressRect ?: if (localMorph != null && pointState != null) {
+        { rect -> localMorph.show(video, pointState, androidx.compose.ui.geometry.Offset(rect.left, rect.top)) }
+    } else null
 
     Box(
         modifier = modifier.fillMaxWidth().onGloballyPositioned { bounds.value = it.boundsInWindow() },
@@ -37,20 +54,33 @@ internal fun VideoLargeCard(
                 .fillMaxWidth()
                 .clip(ContinuousCornerShape(14.dp))
                 .background(colors.surfaceContainer)
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                            event.changes.firstOrNull { it.pressed }?.let { press.value = it.position }
+                        }
+                    }
+                }
                 .combinedClickable(
                     interactionSource = null,
                     indication = null,
                     onClick = onClick,
                     onLongClick = {
                         when {
-                            onLongPressRect != null -> onLongPressRect(bounds.value)
+                            longPressRect != null -> run { val b = bounds.value; val p = androidx.compose.ui.geometry.Offset(b.left + press.value.x, b.top + press.value.y); longPressRect(androidx.compose.ui.geometry.Rect(p.x, p.y, p.x, p.y)) }
                             else -> onLongClick?.invoke()
                         }
                     },
                 ),
         ) {
             LargeVideoCover(video, progress)
-            LargeVideoContent(video, onMoreClick = onMoreClick?.let { more -> { more(bounds.value) } })
+            LargeVideoContent(
+                video,
+                onMoreClick = onMoreClick?.let { more -> { more(bounds.value) } },
+                moreMorphState = morphState,
+                onMoreMorphTrigger = morphTrigger,
+            )
         }
     }
 }

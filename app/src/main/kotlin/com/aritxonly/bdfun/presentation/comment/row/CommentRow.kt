@@ -36,6 +36,13 @@ internal fun CommentRow(item: CommentItem, disliked: Boolean, actions: CommentRo
     // combinedClickable 的 onLongClick 不给坐标，这里单独记一下按下的位置，
     // 菜单就会弹在手指按下的地方，而不是固定贴在这一行的省略号上。
     var pressPosition by remember { mutableStateOf(Offset.Zero) }
+    // 每行一个锚点：省略号从图标形变展开，长按用独立锚点从手指位置展开。
+    val menuState = remember(item.rpid) {
+        com.aritxonly.teak.common.navigation.TeakMorphMenuState()
+    }
+    val pointState = remember(item.rpid) {
+        com.aritxonly.teak.common.navigation.TeakMorphMenuState()
+    }
     val view = androidx.compose.ui.platform.LocalView.current
     // 布局回调在滚动时每帧都会触发，坐标数组复用，避免逐行逐帧分配。
     val location = remember { IntArray(2) }
@@ -77,6 +84,7 @@ internal fun CommentRow(item: CommentItem, disliked: Boolean, actions: CommentRo
                             right = ui.bounds.left + pressPosition.x,
                             bottom = ui.bounds.top + pressPosition.y,
                         ),
+                        pointState,
                     )
                 },
             )
@@ -85,6 +93,6 @@ internal fun CommentRow(item: CommentItem, disliked: Boolean, actions: CommentRo
                 vertical = 10.dp,
             ),
     ) {
-        CommentRowBody(item, disliked, liked, like, ui, actions)
+        CommentRowBody(item, disliked, liked, like, ui, actions, menuState)
     }
 }

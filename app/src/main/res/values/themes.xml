@@ -2,6 +2,7 @@
 <resources>
     <style name="Theme.BdFun" parent="android:Theme.Material.NoActionBar">
         <item name="android:windowBackground">#FFF4F5F7</item>
+        <item name="android:windowSplashScreenBackground">#FFF4F5F7</item>
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>

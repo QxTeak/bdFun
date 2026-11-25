@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
@@ -107,6 +108,9 @@ internal fun SearchResultRow(
     /** 长按/省略号共用：传入整行窗口坐标，下拉菜单据此定位。 */
     onLongPressRect: ((Rect) -> Unit)? = null,
     onMoreClick: ((Rect) -> Unit)? = null,
+    /** 省略号形变菜单：每行独立锚点，点击后由页面决定菜单内容。 */
+    morphState: com.aritxonly.teak.common.navigation.TeakMorphMenuState? = null,
+    onMorphOpen: (() -> Unit)? = null,
     /** 批量管理：null 表示不显示勾选，true/false 表示已选/未选。 */
     selection: Boolean? = null,
     /** 播放量那一行是否带上发布时间。 */
@@ -117,6 +121,7 @@ internal fun SearchResultRow(
     val coverWidth = 150.dp
     val coverHeight = coverWidth * 9f / 16f
     val bounds = remember { CardBoundsHolder() }
+    val morph = rememberSearchRowMorph(video, morphState, onMorphOpen, onLongPressRect)
     // 指针位置每帧都会变，用普通数组记录；菜单锚点同时换算到屏幕坐标。
     val pressPosition = remember { FloatArray(2) }
     val view = LocalView.current
@@ -144,27 +149,7 @@ internal fun SearchResultRow(
                     }
                 }
             }
-            .then(
-                if (onLongClick == null && onLongPressRect == null) {
-                    Modifier.clickable(interactionSource = null, indication = null, onClick = onClick)
-                } else {
-                    Modifier.combinedClickable(
-                        interactionSource = null,
-                        indication = null,
-                        onClick = onClick,
-                        onLongClick = {
-                            onLongPressRect?.invoke(
-                                Rect(
-                                    bounds.value.left + pressPosition[0],
-                                    bounds.value.top + pressPosition[1],
-                                    bounds.value.left + pressPosition[0],
-                                    bounds.value.top + pressPosition[1],
-                                ),
-                            ) ?: onLongClick?.invoke()
-                        },
-                    )
-                },
-            )
+            .searchRowClicks(onClick, onLongClick, morph.longPress, bounds, pressPosition)
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.Top,
     ) {
@@ -172,11 +157,14 @@ internal fun SearchResultRow(
         Spacer(Modifier.width(10.dp))
         // 高度只给下限：字号放大、两行标题时右列可撑高，UP 行不会被挤出容器裁掉。
         SearchResultInfo(video, showDate, metaLabel, Modifier.weight(1f).heightIn(min = coverHeight))
-        if (onMoreClick != null) {
+        if (onMoreClick != null || morph.state != null) {
             // 和评论行末尾同款的 Miuix More 图标，挂在整行右下角。
             VideoCardMoreButton(
-                onClick = { onMoreClick(bounds.value) },
+                onClick = { onMoreClick?.invoke(bounds.value) },
                 modifier = Modifier.align(Alignment.Bottom).padding(start = 2.dp),
+                morphState = morph.state,
+                onMorphTrigger = morph.open,
+                morphAutoOpen = false,
             )
         }
         // 批量管理勾选直接复用 Miuix 的 Checkbox（和选收藏夹的面板同款）。
@@ -300,4 +288,61 @@ private fun SearchVideoCover(video: VideoItem, coverWidth: androidx.compose.ui.u
         }
         VideoChargeBadge(video.isCharge)
     }
+}
+
+private class SearchRowMorph(
+    val state: com.aritxonly.teak.common.navigation.TeakMorphMenuState?,
+    val open: (() -> Unit)?,
+    val longPress: ((Rect) -> Unit)?,
+)
+
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+private fun Modifier.searchRowClicks(
+    onClick: () -> Unit,
+    onLongClick: (() -> Unit)?,
+    longPress: ((Rect) -> Unit)?,
+    bounds: CardBoundsHolder,
+    press: FloatArray,
+): Modifier = if (onLongClick == null && longPress == null) {
+    clickable(interactionSource = null, indication = null, onClick = onClick)
+} else {
+    combinedClickable(
+        interactionSource = null,
+        indication = null,
+        onClick = onClick,
+        onLongClick = {
+            longPress?.invoke(
+                Rect(
+                    bounds.value.left + press[0],
+                    bounds.value.top + press[1],
+                    bounds.value.left + press[0],
+                    bounds.value.top + press[1],
+                ),
+            ) ?: onLongClick?.invoke()
+        },
+    )
+}
+
+/** 解析这一行的形变锚点：显式接线优先，否则复用页面提供的本地菜单。 */
+@Composable
+private fun rememberSearchRowMorph(
+    video: com.aritxonly.bdfun.data.VideoItem,
+    state: com.aritxonly.teak.common.navigation.TeakMorphMenuState?,
+    open: (() -> Unit)?,
+    longPress: ((Rect) -> Unit)?,
+): SearchRowMorph {
+    val local = LocalVideoCardMorphMenu.current
+    val moreState = state ?: if (local != null) {
+        remember(video.bvid) { com.aritxonly.teak.common.navigation.TeakMorphMenuState() }
+    } else null
+    val pointState = if (local != null && state == null) {
+        remember(video.bvid) { com.aritxonly.teak.common.navigation.TeakMorphMenuState() }
+    } else null
+    val resolvedLongPress = longPress ?: if (local != null && pointState != null) {
+        { rect: Rect -> local.show(video, pointState, Offset(rect.left, rect.top)) }
+    } else null
+    val resolvedOpen = open ?: if (local != null && moreState != null) {
+        { local.show(video, moreState, null) }
+    } else null
+    return SearchRowMorph(moreState, resolvedOpen, resolvedLongPress)
 }

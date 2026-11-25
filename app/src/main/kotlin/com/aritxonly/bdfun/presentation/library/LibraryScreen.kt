@@ -56,14 +56,6 @@ private fun LibraryContent(runtime: LibraryRuntime, searchOverlayHost: LibrarySe
         }
 
         LibraryTransferSheet(runtime, data, interaction)
-        // 长按视频：和首页同款底部操作面板，选项复用批量管理。
-        LibraryVideoMenu(
-            show = runtime.presentation.sheetVideo != null,
-            anchor = runtime.presentation.sheetAnchor,
-            allowTransfer = runtime.currentMode == 0,
-            onDismiss = runtime::dismissSheet,
-            onAction = { kind -> runtime.presentation.sheetVideo?.let { runtime.sheetAction(kind, it) } },
-        )
     }
 }
 
@@ -71,6 +63,23 @@ private fun LibraryContent(runtime: LibraryRuntime, searchOverlayHost: LibrarySe
 internal fun LibraryPagerPage(
     runtime: LibraryRuntime, data: LibraryUiState, interaction: LibraryInteractionState, progress: State<Float>, mode: Int,
 ) {
+    val allowTransfer = mode == 0
+    val morphMenu = rememberVideoCardMorphMenuHandler { video ->
+        buildList {
+            add(com.aritxonly.teak.common.navigation.TeakMorphMenuItem("删除", danger = true) {
+                runtime.sheetAction("delete", video)
+            })
+            if (allowTransfer) {
+                add(com.aritxonly.teak.common.navigation.TeakMorphMenuItem("移动到收藏夹") {
+                    runtime.sheetAction("move", video)
+                })
+                add(com.aritxonly.teak.common.navigation.TeakMorphMenuItem("复制到收藏夹") {
+                    runtime.sheetAction("copy", video)
+                })
+            }
+        }
+    }
+    androidx.compose.runtime.CompositionLocalProvider(LocalVideoCardMorphMenu provides morphMenu) {
     LibraryModePage(
         content = libraryModeContent(runtime.interaction, data, interaction, mode),
         layout = LibraryModeLayout(mode, runtime.request.title, runtime.request.fixedMode == null,
@@ -78,13 +87,13 @@ internal fun LibraryPagerPage(
         actions = LibraryModeActions(runtime.data, runtime::selectMode, runtime.interaction::toggleSelected,
             runtime::selectFolder, runtime.navigation.onOpenVideo, { runtime.loadMore(mode) },
             runtime.dependencies.playbackQueue::set,
-            onVideoMenu = runtime::openSheet,
             onPrepareCollection = { items, bvid, title ->
                 runtime.dependencies.playbackQueue.set(items, bvid, title)
                 runtime.dependencies.localCollection.set(bvid, items, title)
             },
         ),
     )
+    }
 }
 internal fun libraryModeContent(
     interaction: LibraryInteractionStateHolder, data: LibraryUiState, ui: LibraryInteractionState, mode: Int,

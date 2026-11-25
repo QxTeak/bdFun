@@ -1,6 +1,5 @@
 package com.aritxonly.bdfun.ui
 
-import top.yukonga.miuix.kmp.icon.extended.More
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
@@ -9,11 +8,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.model.comment.CommentItem
+import com.aritxonly.teak.common.navigation.TeakMorphMenuState
 
 @Composable
 internal fun CommentRowFooter(
     item: CommentItem, disliked: Boolean, liked: Boolean, like: Int,
     ui: CommentRowPresentationStateHolder, actions: CommentRowActions,
+    menuState: TeakMorphMenuState,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         CommentRowMetadata(item, actions.onReply)
@@ -25,7 +26,10 @@ internal fun CommentRowFooter(
         // 点踩：整体略下移
         CommentRowDislike(disliked, actions.onDislike)
         Spacer(Modifier.width(10.dp))
-        // 省略号：直接使用 Miuix 的 More 图标，尺寸和返回键箭头一致。
-        CommentRowMore { actions.onMore(ui.bounds) }
+        // 省略号：和视频卡片同一套形变菜单，从图标位置展开。
+        CommentRowMore(
+            onMore = { actions.onMore(ui.bounds, menuState) },
+            morphState = menuState,
+        )
     }
 }

@@ -303,9 +303,19 @@ class VideoActivity : OneTakeExitActivity() {
         }
         setContent {
             com.aritxonly.bdfun.ui.PhotoViewerRoot(animationsEnabled = settings.animationsEnabled) {
+            val morphMenu = androidx.compose.runtime.remember {
+                com.aritxonly.teak.common.navigation.TeakMorphMenuController()
+            }
+            // 相关推荐复用搜索结果的视频行，也走同一套省略号/长按形变菜单。
+            val videoMorph = com.aritxonly.bdfun.ui.rememberVideoCardMorphMenuHandler(
+                com.aritxonly.bdfun.ui.rememberVideoShareMorphItems(),
+            )
             androidx.compose.runtime.CompositionLocalProvider(LocalVideoPageState provides pageState,
                 com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings provides settings,
+                com.aritxonly.teak.common.navigation.LocalTeakMorphMenu provides morphMenu,
+                com.aritxonly.bdfun.ui.LocalVideoCardMorphMenu provides videoMorph,
                 com.aritxonly.bdfun.ui.LocalRichTextDependencies provides AppGraph.richTextDependencies) {
+            androidx.compose.foundation.layout.Box {
             com.aritxonly.bdfun.ui.VideoActivityContent(isLoggedIn, settings, route, requestedBvid, requestedAid, pipMode,
                 com.aritxonly.bdfun.ui.VideoActivityHostActions(
                     onBack = ::exitVideoPage,
@@ -317,6 +327,7 @@ class VideoActivity : OneTakeExitActivity() {
                     openedFromVideoPage = { intent?.getBooleanExtra("fromVideoPage", false) == true },
                     hasWindow = { window != null },
                 ))
+            }
             }
             }
         }

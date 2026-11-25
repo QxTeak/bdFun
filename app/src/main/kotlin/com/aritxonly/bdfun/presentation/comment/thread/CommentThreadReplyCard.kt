@@ -31,19 +31,19 @@ internal fun CommentThreadReplyCard(
                         transient.dislikedIds[reply.rpid] != true
                 },
                 onReply = { transient.replyTarget = reply },
-                onLongPress = { bounds ->
+                onLongPress = { bounds, _ ->
                     transient.menuAnchor = bounds
                     transient.menuReply = reply
                     transient.menuVisible = true
                 },
-                onMore = { bounds ->
+                onMore = { bounds, _ ->
                     transient.menuAnchor = bounds
                     transient.menuReply = reply
                     transient.menuVisible = true
                 },
                 onOpenReplies = {},
                 onReplyToReply = { transient.replyTarget = it },
-                onLongPressReply = { reply, bounds ->
+                onLongPressReply = { reply, bounds, _ ->
                     transient.menuAnchor = bounds
                     transient.menuReply = reply
                     transient.menuVisible = true

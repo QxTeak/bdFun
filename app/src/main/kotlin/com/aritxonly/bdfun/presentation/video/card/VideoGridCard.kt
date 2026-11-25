@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import com.aritxonly.bdfun.core.model.video.VideoItem
@@ -32,9 +33,26 @@ internal fun VideoGridCard(
     /** 长按/省略号共用：传入卡片窗口坐标，下拉菜单据此定位。 */
     onLongPressRect: ((Rect) -> Unit)? = null,
     onMoreClick: ((Rect) -> Unit)? = null,
+    more: VideoCardMorph? = null,
 ) {
     val colors = MiuixTheme.colorScheme
     val bounds = remember { CardBoundsHolder() }
+    val press = remember { androidx.compose.runtime.mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    // 页面没有显式接线时使用本地形变菜单（空间等直接复用这张卡片的页面）。
+    val localMorph = LocalVideoCardMorphMenu.current
+    val moreMorphState = more?.state
+    val morphState = moreMorphState ?: if (localMorph != null) {
+        remember(video.bvid) { com.aritxonly.teak.common.navigation.TeakMorphMenuState() }
+    } else null
+    val morphTrigger = more?.onTrigger ?: if (localMorph != null && morphState != null) {
+        { localMorph.show(video, morphState, null) }
+    } else null
+    val pointState = if (localMorph != null && moreMorphState == null) {
+        remember(video.bvid) { com.aritxonly.teak.common.navigation.TeakMorphMenuState() }
+    } else null
+    val longPressRect = onLongPressRect ?: if (localMorph != null && pointState != null) {
+        { rect -> localMorph.show(video, pointState, androidx.compose.ui.geometry.Offset(rect.left, rect.top)) }
+    } else null
 
     Box(
         modifier = modifier.onGloballyPositioned { bounds.value = it.boundsInWindow() },
@@ -43,20 +61,33 @@ internal fun VideoGridCard(
             modifier = Modifier
                 .clip(FeedCardShape)
                 .background(colors.surfaceContainer)
+                .pointerInput(Unit) {
+                    awaitPointerEventScope {
+                        while (true) {
+                            val event = awaitPointerEvent(androidx.compose.ui.input.pointer.PointerEventPass.Initial)
+                            event.changes.firstOrNull { it.pressed }?.let { press.value = it.position }
+                        }
+                    }
+                }
                 .combinedClickable(
                     interactionSource = null,
                     indication = null,
                     onClick = onClick,
                     onLongClick = {
                         when {
-                            onLongPressRect != null -> onLongPressRect(bounds.value)
+                            longPressRect != null -> run { val b = bounds.value; val p = androidx.compose.ui.geometry.Offset(b.left + press.value.x, b.top + press.value.y); longPressRect(androidx.compose.ui.geometry.Rect(p.x, p.y, p.x, p.y)) }
                             else -> onLongClick?.invoke()
                         }
                     },
                 ),
         ) {
             GridVideoCover(video, progress, selectionEnabled, selected, reserveMeta)
-            GridVideoContent(video, showOwner, onMoreClick = onMoreClick?.let { more -> { more(bounds.value) } })
+            GridVideoContent(
+                video, showOwner,
+                onMoreClick = onMoreClick?.let { more -> { more(bounds.value) } },
+                moreMorphState = morphState,
+                onMoreMorphTrigger = morphTrigger,
+            )
         }
     }
 }

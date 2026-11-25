@@ -43,7 +43,9 @@ private fun CommentPageList(
             onSort = { runtime.scope.launch { runtime.list.reset(state.query.copy(sortHot = !state.query.sortHot)) } },
             onLike = runtime::toggleLike,
             onDislike = { ui.disliked[it.rpid] = ui.disliked[it.rpid] != true },
-            onReply = runtime::startReply, onMenu = runtime.menu::open, onOpenReplies = runtime::openReplySheet,
+            onReply = runtime::startReply,
+            onMenu = { item, state, point -> runtime.menu.open(item, state, point) },
+            onOpenReplies = runtime::openReplySheet,
         ),
         listState = runtime.listState,
     )

@@ -45,16 +45,19 @@ fun HomeScreen(state: HomeFeedState, onOpenVideo: (VideoItem) -> Unit, cardStyle
     HomeExposureEffect(state, interactive && ui.actionVideo == null)
     val refreshConnection = remember(state) { pull.connection() }
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        if (ui.pressPoint != androidx.compose.ui.geometry.Offset.Zero) {
+            com.aritxonly.teak.common.navigation.TeakMorphPointAnchor(ui.pointMenuState, ui.pressPoint)
+        }
         HomeVideoGrid(state, cardStyle == 1, maxWidth, statusBarTop, ui, refreshConnection, scope, onOpenVideo, host)
         HomeFeedStatus(state, scope, host)
     }
-    HomeVideoActions(
-        video = ui.actionVideo,
-        anchor = ui.actionAnchor,
-        state = state,
-        onDismiss = { ui.actionVideo = null },
-        onMessage = host.onMessage,
-    )
+    androidx.compose.runtime.LaunchedEffect(ui.openPointMenu, state.menuVideo) {
+        if (ui.openPointMenu) {
+            androidx.compose.runtime.withFrameNanos { }
+            ui.pointMenuState.openWithAnchorCopy(false)
+            ui.openPointMenu = false
+        }
+    }
 }
 
 @Composable

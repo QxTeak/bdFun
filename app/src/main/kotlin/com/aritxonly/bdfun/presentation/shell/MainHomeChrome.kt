@@ -11,6 +11,7 @@ import com.aritxonly.bdfun.feature.settings.presentation.SettingsBindings
 import com.aritxonly.bdfun.ui.HomePullIndicator
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
 import com.aritxonly.bdfun.ui.homeTopBarHeight
+import com.aritxonly.bdfun.ui.showToast
 
 @Composable
 internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
@@ -54,6 +55,12 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
             settings, shell,
             tabsCollapseProgress = tabsAway,
         )
+    }
+
+    // 省略号形变菜单：宿主挂在玻璃采样树外，面板从卡片图标处展开且不会 RenderNode 递归。
+    val menuContext = androidx.compose.ui.platform.LocalContext.current
+    com.aritxonly.bdfun.feature.home.presentation.HomeVideoMorphHost(homeFeed) {
+        menuContext.showToast(it)
     }
 
     if (pageFloat < 0.99f) {

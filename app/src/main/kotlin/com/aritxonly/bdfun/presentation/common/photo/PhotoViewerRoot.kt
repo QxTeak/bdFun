@@ -37,9 +37,9 @@ import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 @Composable
 internal fun PhotoViewerRoot(
     animationsEnabled: Boolean,
+    state: PhotoViewerStateHolder = remember { PhotoViewerStateHolder() },
     content: @Composable () -> Unit,
 ) {
-    val state = remember { PhotoViewerStateHolder() }
     val view = remember { PhotoViewerTransitionState() }
     val incoming = state.request
     val durationMs = if (animationsEnabled) PhotoViewerDurationMs else 0L

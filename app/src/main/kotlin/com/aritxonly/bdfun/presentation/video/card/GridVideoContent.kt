@@ -32,6 +32,8 @@ internal fun GridVideoContent(
     video: VideoItem,
     showOwner: Boolean,
     onMoreClick: (() -> Unit)? = null,
+    moreMorphState: com.aritxonly.teak.common.navigation.TeakMorphMenuState? = null,
+    onMoreMorphTrigger: (() -> Unit)? = null,
 ) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
@@ -86,11 +88,13 @@ internal fun GridVideoContent(
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
-                if (onMoreClick != null) {
+                if (onMoreClick != null || moreMorphState != null) {
                     VideoCardMoreButton(
-                        onClick = onMoreClick,
+                        onClick = onMoreClick ?: {},
                         touchSize = 20.dp,
                         iconSize = 14.dp,
+                        morphState = moreMorphState,
+                        onMorphTrigger = onMoreMorphTrigger,
                     )
                 }
             }

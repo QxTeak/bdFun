@@ -22,7 +22,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * 开屏：默认使用内置品牌图居中展示；用户自定义壁纸时优先用壁纸铺满。
@@ -31,7 +30,7 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
  * 首页在下面直接显影，不做横向滑出，也不改变 logo 位置。
  */
 @Composable
-fun SplashWallpaper(uri: String) {
+fun SplashWallpaper(uri: String, dark: Boolean = androidx.compose.foundation.isSystemInDarkTheme()) {
     val custom = uri.isNotBlank()
     var visible by remember(uri) { mutableStateOf(true) }
     val alpha by animateFloatAsState(
@@ -44,12 +43,15 @@ fun SplashWallpaper(uri: String) {
         visible = false
     }
     if (alpha <= 0.01f && !visible) return
+    // 开屏在 TeakTheme 之外组合，不能读 MiuixTheme（拿不到宿主深浅色），
+    // 因此由 MainActivity 显式传入当前主题，避免深色模式仍闪白底。
+    val background = if (dark) androidx.compose.ui.graphics.Color.Black else androidx.compose.ui.graphics.Color(0xFFF3F3F3)
     Box(
         modifier = Modifier
             .fillMaxSize()
             .graphicsLayer { this.alpha = alpha }
             // 图片是透明 PNG：浅色模式跟页面白底，深色模式跟黑底。
-            .background(MiuixTheme.colorScheme.background),
+            .background(background),
         contentAlignment = Alignment.Center,
     ) {
         if (custom) {
