@@ -67,10 +67,16 @@ class VideoMetadataStateHolderTest {
         var calls = 0
         val fake = Fake().apply { send = { calls++; Outcome.Success(Unit) } }
         val holder = VideoMetadataStateHolder(fake)
-        assertFalse(holder.reportDanmaku(DanmakuReport(1, 2, DanmakuReportReason.Other)))
+        assertFalse(holder.reportDanmaku(DanmakuReport(1, 2, DanmakuReportReason.Other)) is Outcome.Success)
         assertEquals(0, calls)
-        assertTrue(holder.reportDanmaku(DanmakuReport(1, 2, DanmakuReportReason.Spam)))
+        assertEquals(Outcome.Success(Unit), holder.reportDanmaku(DanmakuReport(1, 2, DanmakuReportReason.Spam)))
         assertEquals(1, calls)
+    }
+
+    @Test fun reportFailureKeepsActionableServerError() = runBlocking {
+        val error = AppError.RiskControl("请求被 B 站风控拦截，请稍后再试（-352）")
+        val holder = VideoMetadataStateHolder(Fake().apply { send = { Outcome.Failure(error) } })
+        assertEquals(Outcome.Failure(error), holder.reportDanmaku(DanmakuReport(1, 2, DanmakuReportReason.Spam)))
     }
 
     @Test fun serverTotalAlreadyIncludesAccountLikeAndCanBeUnliked() = runBlocking {
@@ -82,7 +88,7 @@ class VideoMetadataStateHolderTest {
             fake.votes = mapOf(10L to DanmakuVote(35, false))
             Outcome.Success(Unit)
         }
-        assertTrue(holder.likeDanmaku(1, 10))
+        assertEquals(Outcome.Success(false), holder.likeDanmaku(1, 10))
         assertEquals(listOf(false), fake.likeOperations)
         assertEquals(DanmakuVote(35, false), holder.danmakuVotes.value[1L to 10L])
     }
@@ -91,13 +97,25 @@ class VideoMetadataStateHolderTest {
         var calls = 0
         val fake = Fake().apply { send = { calls++; Outcome.Success(Unit) } }
         val holder = VideoMetadataStateHolder(fake)
-        assertFalse(holder.likeDanmaku(0, 1))
-        assertTrue(holder.likeDanmaku(1, 10))
-        assertTrue(holder.likeDanmaku(1, 10))
-        assertTrue(holder.likeDanmaku(2, 10))
+        assertFalse(holder.likeDanmaku(0, 1) is Outcome.Success)
+        assertEquals(Outcome.Success(true), holder.likeDanmaku(1, 10))
+        assertEquals(Outcome.Success(false), holder.likeDanmaku(1, 10))
+        assertEquals(Outcome.Success(true), holder.likeDanmaku(2, 10))
         assertEquals(3, calls)
         assertEquals(setOf(2L to 10L), holder.danmakuVotes.value.filterValues { it.liked }.keys)
         assertEquals(listOf(true, false, true), fake.likeOperations)
+    }
+
+    @Test fun likeFailureRollsBackAndKeepsActionableServerError() = runBlocking {
+        val error = AppError.LoginExpired
+        val fake = Fake().apply {
+            votes = mapOf(10L to DanmakuVote(37, false))
+            send = { Outcome.Failure(error) }
+        }
+        val holder = VideoMetadataStateHolder(fake)
+        holder.loadDanmakuVotes(1, listOf(10))
+        assertEquals(Outcome.Failure(error), holder.likeDanmaku(1, 10))
+        assertEquals(DanmakuVote(37, false), holder.danmakuVotes.value[1L to 10L])
     }
 
     @Test fun cancelledLikeCanRetry() = runBlocking {
@@ -107,7 +125,7 @@ class VideoMetadataStateHolderTest {
         val job = launch(start = CoroutineStart.UNDISPATCHED) { holder.likeDanmaku(1, 10) }
         job.cancelAndJoin()
         gate.complete(Unit)
-        assertTrue(holder.likeDanmaku(1, 10))
+        assertEquals(Outcome.Success(true), holder.likeDanmaku(1, 10))
     }
 
     @Test fun oldCuesCannotReappearAfterSubtitlesAreDisabled() = runBlocking {
