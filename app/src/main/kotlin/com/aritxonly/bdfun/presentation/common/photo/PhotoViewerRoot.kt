@@ -1,4 +1,4 @@
-﻿package com.aritxonly.bdfun.ui
+package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
