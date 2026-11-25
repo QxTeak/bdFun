@@ -12,6 +12,8 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.unit.Dp
 import com.aritxonly.bdfun.AppGraph
 import androidx.compose.runtime.snapshotFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 
 @Composable
 internal fun FeedContent(
@@ -31,14 +33,14 @@ internal fun FeedContent(
             return@LaunchedEffect
         }
         androidx.compose.runtime.snapshotFlow {
+            // 滚动过程中不计算最近项：每帧 minBy 的结果一定会被丢掉。
+            if (state.listState.isScrollInProgress) return@snapshotFlow null
             val info = state.listState.layoutInfo
             val center = (info.viewportStartOffset + info.viewportEndOffset) / 2f
-            val nearest = info.visibleItemsInfo.minByOrNull {
+            info.visibleItemsInfo.minByOrNull {
                 kotlin.math.abs(it.offset.y + it.size.height / 2f - center)
             }?.key
-            state.listState.isScrollInProgress to nearest
-        }.collect { (scrolling, index) ->
-            if (scrolling) return@collect
+        }.filterNotNull().distinctUntilChanged().collect { index ->
             // Stable item keys identify the nearest visible card independently of its lane.
             ui.autoPlayId = visible.firstOrNull { it.id == index }
                 ?.takeIf { it.video != null || it.orig?.video != null }

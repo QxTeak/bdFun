@@ -122,11 +122,12 @@ internal fun SearchResultRow(
     // 指针位置每帧都会变，用普通数组记录，避免滚动/滑动时逐帧写快照状态。
     val pressPosition = remember { FloatArray(2) }
     val view = LocalView.current
+    val location = remember { IntArray(2) }
     Row(
         modifier = modifier
             .fillMaxWidth()
             .onGloballyPositioned { coordinates ->
-                val location = IntArray(2).also { view.getLocationOnScreen(it) }
+                view.getLocationOnScreen(location)
                 val windowBounds = coordinates.boundsInWindow()
                 bounds.value = Rect(
                     windowBounds.left + location[0],

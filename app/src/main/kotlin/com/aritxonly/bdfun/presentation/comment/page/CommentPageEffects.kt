@@ -26,7 +26,9 @@ internal fun CommentPageEffects(runtime: CommentPageRuntime, layout: CommentScre
 private fun CommentPaginationEffect(runtime: CommentPageRuntime) {
     val state by key(runtime.list) { runtime.list.state.collectAsState() }
     val listState = runtime.listState
-    LaunchedEffect(runtime.list, listState, state.items.size, state.end, state.query.sortHot) {
+    // 键里不再带 items.size/end：否则每翻一页都会重启 snapshotFlow，
+    // 首帧还会重复触发一次加载判断；最新页码/结束态由 shouldLoadMore 在读时判断。
+    LaunchedEffect(runtime.list, listState, state.query.sortHot) {
         snapshotFlow {
             val info = listState.layoutInfo
             (info.visibleItemsInfo.lastOrNull()?.index ?: -1) to info.totalItemsCount

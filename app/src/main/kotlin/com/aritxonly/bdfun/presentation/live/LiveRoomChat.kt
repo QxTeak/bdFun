@@ -53,8 +53,11 @@ internal fun LiveChatList(
     }
     val listState = rememberLazyListState()
     LaunchedEffect(messages.size) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.lastIndex)
+        if (messages.isEmpty()) return@LaunchedEffect
+        // 刷屏时每条消息都 animate 一次会被不停取消重来；直接跳到底，且用户往上翻时不打扰。
+        val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: -1
+        if (lastVisible < 0 || lastVisible >= messages.lastIndex - 2) {
+            listState.scrollToItem(messages.lastIndex)
         }
     }
     LazyColumn(

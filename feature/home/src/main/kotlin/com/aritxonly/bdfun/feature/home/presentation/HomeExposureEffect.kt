@@ -11,15 +11,18 @@ internal fun HomeExposureEffect(state: HomeFeedState, interactive: Boolean) {
     val view = LocalView.current
     LaunchedEffect(state, interactive, view) {
         val since = mutableMapOf<String, Long>()
+        val exposed = HashSet<String>()
         var previousTicket = state.exposureTicket()
         while (true) {
-            delay(100)
+            // 停留判定只需要 800ms 的粒度；200ms 轮询足够，也少一半空转。
+            delay(200)
             val ticket = state.exposureTicket()
             if (!interactive || !view.hasWindowFocus() || !view.isShown || !state.optimizationEnabled || ticket == null) {
                 since.clear()
+                exposed.clear()
                 continue
             }
-            if (ticket != previousTicket) { since.clear(); previousTicket = ticket }
+            if (ticket != previousTicket) { since.clear(); exposed.clear(); previousTicket = ticket }
             val layout = state.gridState.layoutInfo
             val time = SystemClock.elapsedRealtime()
             val visible = layout.visibleItemsInfo.filter { item ->
@@ -30,8 +33,10 @@ internal fun HomeExposureEffect(state: HomeFeedState, interactive: Boolean) {
             }.mapNotNull { it.key as? String }.toSet()
             since.keys.retainAll(visible)
             for (bvid in visible) {
+                if (bvid in exposed) continue
                 val started = since.getOrPut(bvid) { time }
                 if (time - started >= 800) {
+                    exposed += bvid
                     state.videos.firstOrNull { it.bvid == bvid }?.let { state.expose(it, ticket) }
                 }
             }
