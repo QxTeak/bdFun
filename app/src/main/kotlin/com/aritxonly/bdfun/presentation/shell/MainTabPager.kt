@@ -13,7 +13,6 @@ import com.aritxonly.bdfun.navigateToCache
 import com.aritxonly.teak.common.navigation.TeakPageSwitchSpec
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
@@ -163,11 +162,6 @@ private fun HomeSectionPager(
         modifier = Modifier.fillMaxSize(),
         beyondViewportPageCount = 0,
         overscrollEffect = null,
-        // 手滑松手吸附也走官方的 350ms 三次方减速，和点选完全同一套手感。
-        flingBehavior = PagerDefaults.flingBehavior(
-            state = sectionPager,
-            snapAnimationSpec = TeakPageSwitchSpec(),
-        ),
     ) { page ->
         val section = channels[page].ordinal
         HomeSectionContent(section, homeFeed, session, settings, topBarHeight, interactive, context)

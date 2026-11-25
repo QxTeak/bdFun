@@ -6,7 +6,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -87,11 +86,6 @@ fun FeedScreen(
         modifier = Modifier.fillMaxSize(),
         beyondViewportPageCount = 0,
         overscrollEffect = null,
-        // 手滑松手吸附和点选共用官方的 350ms 三次方减速。
-        flingBehavior = PagerDefaults.flingBehavior(
-            state = pager,
-            snapAnimationSpec = com.aritxonly.teak.common.navigation.TeakPageSwitchSpec(),
-        ),
     ) { page ->
         val tab = tabs.getOrNull(page) ?: return@HorizontalPager
         androidx.compose.runtime.key(tab.key) {
