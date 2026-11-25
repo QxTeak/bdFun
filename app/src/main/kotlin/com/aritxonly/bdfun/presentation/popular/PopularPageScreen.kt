@@ -63,6 +63,7 @@ internal fun PopularPage(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val morphMenu = com.aritxonly.teak.common.navigation.LocalTeakMorphMenu.current
     var actionVideo by remember { mutableStateOf<com.aritxonly.bdfun.core.model.video.VideoItem?>(null) }
     // 菜单项要活到收起动画结束：actionVideo 关掉后仍用最后一次的视频数据渲染 items。
     var menuVideo by remember { mutableStateOf<com.aritxonly.bdfun.core.model.video.VideoItem?>(null) }
@@ -117,6 +118,37 @@ internal fun PopularPage(
                     actionAnchor = rect
                     menuVideo = video
                     actionVideo = video
+                },
+                onVideoMorph = { video, state ->
+                    morphMenu?.show(
+                        state,
+                        listOf(
+                            com.aritxonly.teak.common.navigation.TeakMorphMenuItem("添加至稍后再看") {
+                                actionVideo = null
+                                scope.launch {
+                                    val result = AppGraph.videoActions.watchLater(video.aid)
+                                    context.showToast(
+                                        if (result is com.aritxonly.bdfun.core.common.Outcome.Failure) "添加失败，请稍后重试"
+                                        else "已添加至稍后再看",
+                                    )
+                                }
+                            },
+                            com.aritxonly.teak.common.navigation.TeakMorphMenuItem("分享") {
+                                actionVideo = null
+                                runCatching {
+                                    val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                                        type = "text/plain"
+                                        putExtra(
+                                            android.content.Intent.EXTRA_TEXT,
+                                            "${video.title}\nhttps://www.bilibili.com/video/${video.bvid}",
+                                        )
+                                    }
+                                    context.startActivity(android.content.Intent.createChooser(intent, "分享视频"))
+                                }
+                            },
+                        ),
+                        onDismiss = { actionVideo = null },
+                    )
                 },
             )
             if (loadedOnce && !loading && videos.isEmpty() && error == null) {

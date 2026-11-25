@@ -54,12 +54,20 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) checkUpdateOnStartup()
         handleIntent(intent)
         setContent {
+            val morphMenu = androidx.compose.runtime.remember {
+                com.aritxonly.teak.common.navigation.TeakMorphMenuController()
+            }
+            androidx.compose.runtime.CompositionLocalProvider(
+                com.aritxonly.teak.common.navigation.LocalTeakMorphMenu provides morphMenu,
+            ) {
             // 图片查看器挂在窗口最外层，才能盖住底栏、顶栏和状态栏（和 Telegram 一致）。
             com.aritxonly.bdfun.ui.PhotoViewerRoot(animationsEnabled = settings.animationsEnabled) {
                 androidx.compose.foundation.layout.Box {
                     BdFunApp(settings = settings)
                     com.aritxonly.bdfun.ui.SplashWallpaper(settings.splashWallpaper)
+                    com.aritxonly.teak.common.navigation.TeakMorphMenuOverlay(morphMenu)
                 }
+            }
             }
         }
     }

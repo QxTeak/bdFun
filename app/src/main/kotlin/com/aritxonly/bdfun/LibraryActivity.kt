@@ -13,13 +13,23 @@ class LibraryActivity : ComponentActivity() {
         AppGraph.ensure(applicationContext)
         val settings = AppGraph.settings
         setContent {
-            LibraryPageShell(
-                context = this,
-                settings = settings,
-                title = "收藏",
-                fixedMode = 0,
-                onBack = { finish() },
-            )
+            val morphMenu = androidx.compose.runtime.remember {
+                com.aritxonly.teak.common.navigation.TeakMorphMenuController()
+            }
+            androidx.compose.runtime.CompositionLocalProvider(
+                com.aritxonly.teak.common.navigation.LocalTeakMorphMenu provides morphMenu,
+            ) {
+                androidx.compose.foundation.layout.Box {
+                    LibraryPageShell(
+                        context = this@LibraryActivity,
+                        settings = settings,
+                        title = "收藏",
+                        fixedMode = 0,
+                        onBack = { finish() },
+                    )
+                    com.aritxonly.teak.common.navigation.TeakMorphMenuOverlay(morphMenu)
+                }
+            }
         }
     }
 }

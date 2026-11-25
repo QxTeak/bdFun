@@ -107,6 +107,9 @@ internal fun SearchResultRow(
     /** 长按/省略号共用：传入整行窗口坐标，下拉菜单据此定位。 */
     onLongPressRect: ((Rect) -> Unit)? = null,
     onMoreClick: ((Rect) -> Unit)? = null,
+    /** 省略号形变菜单：每行独立锚点，点击后由页面决定菜单内容。 */
+    morphState: com.aritxonly.teak.common.navigation.TeakMorphMenuState? = null,
+    onMorphOpen: (() -> Unit)? = null,
     /** 批量管理：null 表示不显示勾选，true/false 表示已选/未选。 */
     selection: Boolean? = null,
     /** 播放量那一行是否带上发布时间。 */
@@ -172,11 +175,13 @@ internal fun SearchResultRow(
         Spacer(Modifier.width(10.dp))
         // 高度只给下限：字号放大、两行标题时右列可撑高，UP 行不会被挤出容器裁掉。
         SearchResultInfo(video, showDate, metaLabel, Modifier.weight(1f).heightIn(min = coverHeight))
-        if (onMoreClick != null) {
+        if (onMoreClick != null || morphState != null) {
             // 和评论行末尾同款的 Miuix More 图标，挂在整行右下角。
             VideoCardMoreButton(
-                onClick = { onMoreClick(bounds.value) },
+                onClick = { onMoreClick?.invoke(bounds.value) },
                 modifier = Modifier.align(Alignment.Bottom).padding(start = 2.dp),
+                morphState = morphState,
+                onMorphTrigger = onMorphOpen,
             )
         }
         // 批量管理勾选直接复用 Miuix 的 Checkbox（和选收藏夹的面板同款）。

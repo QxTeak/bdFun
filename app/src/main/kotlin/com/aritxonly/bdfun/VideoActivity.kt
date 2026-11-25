@@ -303,9 +303,14 @@ class VideoActivity : OneTakeExitActivity() {
         }
         setContent {
             com.aritxonly.bdfun.ui.PhotoViewerRoot(animationsEnabled = settings.animationsEnabled) {
+            val morphMenu = androidx.compose.runtime.remember {
+                com.aritxonly.teak.common.navigation.TeakMorphMenuController()
+            }
             androidx.compose.runtime.CompositionLocalProvider(LocalVideoPageState provides pageState,
                 com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings provides settings,
+                com.aritxonly.teak.common.navigation.LocalTeakMorphMenu provides morphMenu,
                 com.aritxonly.bdfun.ui.LocalRichTextDependencies provides AppGraph.richTextDependencies) {
+            androidx.compose.foundation.layout.Box {
             com.aritxonly.bdfun.ui.VideoActivityContent(isLoggedIn, settings, route, requestedBvid, requestedAid, pipMode,
                 com.aritxonly.bdfun.ui.VideoActivityHostActions(
                     onBack = ::exitVideoPage,
@@ -317,6 +322,8 @@ class VideoActivity : OneTakeExitActivity() {
                     openedFromVideoPage = { intent?.getBooleanExtra("fromVideoPage", false) == true },
                     hasWindow = { window != null },
                 ))
+            com.aritxonly.teak.common.navigation.TeakMorphMenuOverlay(morphMenu)
+            }
             }
             }
         }

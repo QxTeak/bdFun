@@ -81,10 +81,17 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows
     onBeforeOpen: ((com.aritxonly.bdfun.data.VideoItem) -> Unit)? = null,
     /** 页内标签切换动画：由页面传入 contentSwitchItem()，卡片读同一份进度一起滑入。 */
     itemModifier: Modifier = Modifier,
+    /** 省略号形变菜单：页面提供菜单内容并把它挂到 Activity 根部的控制器上。 */
+    onVideoMorph: ((com.aritxonly.bdfun.data.VideoItem, com.aritxonly.teak.common.navigation.TeakMorphMenuState) -> Unit)? = null,
 ) {
     // 搜索/热门接口会返回重复 bvid（同一稿件多个入口），只用 bvid 当 key 会直接崩 LazyGrid。
     itemsIndexed(items = videos, key = { index, video -> keyPrefix + index + "-" + video.bvid }) { _, video ->
         val oneTake = rememberOneTakeAnchor()
+        val morphState = if (onVideoMorph != null) {
+            androidx.compose.runtime.remember(video.bvid) {
+                com.aritxonly.teak.common.navigation.TeakMorphMenuState()
+            }
+        } else null
         val itemContext = LocalContext.current
         val cardRadiusPx = with(LocalDensity.current) { 10.dp.toPx() }
         val open = {
@@ -102,6 +109,10 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows
             onLongClick = onLongPressVideo?.let { longPress -> { longPress(video) } },
             onLongPressRect = onVideoMenu?.let { menu -> { rect -> menu(video, rect) } },
             onMoreClick = onVideoMenu?.let { menu -> { rect -> menu(video, rect) } },
+            morphState = morphState,
+            onMorphOpen = if (morphState != null && onVideoMorph != null) {
+                { onVideoMorph(video, morphState) }
+            } else null,
             selection = if (showSelection) video.bvid in selectedIds else null,
         )
     }

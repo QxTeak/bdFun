@@ -52,6 +52,11 @@ class TeakMorphMenuState {
         open = true
     }
 
+    /** 由外部控制器收起。 */
+    fun close() {
+        open = false
+    }
+
     internal val anchor = GlassPopupAnchor()
 
     /** 触发按钮的可复用副本；形变起点由 Miuix 使用。 */
