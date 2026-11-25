@@ -25,6 +25,8 @@ internal fun VideoLargeCard(
     onLongClick: (() -> Unit)? = null,
     onLongPressRect: ((Rect) -> Unit)? = null,
     onMoreClick: ((Rect) -> Unit)? = null,
+    moreMorphState: com.aritxonly.teak.common.navigation.TeakMorphMenuState? = null,
+    onMoreMorphTrigger: (() -> Unit)? = null,
 ) {
     val colors = MiuixTheme.colorScheme
     val bounds = remember { CardBoundsHolder() }
@@ -50,7 +52,12 @@ internal fun VideoLargeCard(
                 ),
         ) {
             LargeVideoCover(video, progress)
-            LargeVideoContent(video, onMoreClick = onMoreClick?.let { more -> { more(bounds.value) } })
+            LargeVideoContent(
+                video,
+                onMoreClick = onMoreClick?.let { more -> { more(bounds.value) } },
+                moreMorphState = moreMorphState,
+                onMoreMorphTrigger = onMoreMorphTrigger,
+            )
         }
     }
 }

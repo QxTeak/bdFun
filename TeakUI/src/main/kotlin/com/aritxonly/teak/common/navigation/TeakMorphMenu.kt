@@ -59,6 +59,7 @@ fun TeakMorphMenuAnchor(
     state: TeakMorphMenuState,
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 20.dp,
+    onClick: (() -> Unit)? = null,
     content: @Composable (onClick: () -> Unit) -> Unit,
 ) {
     // 副本必须继承触发按钮所在的顶栏材质状态；否则在菜单层里会退回默认值，
@@ -91,7 +92,10 @@ fun TeakMorphMenuAnchor(
         modifier = modifier
             .glassPopupAnchor(state.anchor, cornerRadius = cornerRadius),
     ) {
-        content { state.open = true }
+        content {
+            onClick?.invoke()
+            state.open = true
+        }
     }
 }
 
@@ -108,6 +112,7 @@ fun TeakMorphMenuHost(
     minWidth: Dp = GlassPopupDefaults.MinWidth,
     maxWidth: Dp = GlassPopupDefaults.MaxWidth,
     maxHeight: Dp = GlassPopupDefaults.MaxHeight,
+    onDismiss: (() -> Unit)? = null,
     content: @Composable ColumnScope.(dismiss: (after: () -> Unit) -> Unit) -> Unit,
 ) {
     val backdrop = LocalTeakBackdrop.current
@@ -128,12 +133,18 @@ fun TeakMorphMenuHost(
         }
     }
 
-    BackHandler(enabled = state.open) { state.open = false }
+    BackHandler(enabled = state.open) {
+        state.open = false
+        onDismiss?.invoke()
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         GlassTransformPopup(
             show = state.open,
-            onDismissRequest = { state.open = false },
+            onDismissRequest = {
+                state.open = false
+                onDismiss?.invoke()
+            },
             anchor = state.anchor,
             backdrop = if (TeakUiStyle.isClassic) null else backdrop,
             anchorContent = {

@@ -17,6 +17,8 @@ internal fun HomeFeedCard(
     onOpen: () -> Unit,
     onLongClick: (Rect) -> Unit,
     onMoreClick: (Rect) -> Unit,
+    moreMorphState: com.aritxonly.teak.common.navigation.TeakMorphMenuState? = null,
+    onMoreMorphTrigger: (() -> Unit)? = null,
 ) {
     val density = LocalDensity.current
     val context = LocalContext.current
@@ -34,9 +36,11 @@ internal fun HomeFeedCard(
     }
     if (largeCards) {
         VideoLargeCard(video = video, modifier = oneTake.modifier, onClick = openCard,
-            onLongPressRect = onLongClick, onMoreClick = onMoreClick)
+            onLongPressRect = onLongClick, onMoreClick = onMoreClick,
+            moreMorphState = moreMorphState, onMoreMorphTrigger = onMoreMorphTrigger)
     } else {
         VideoGridCard(video = video, modifier = oneTake.modifier, onClick = openCard,
-            onLongPressRect = onLongClick, onMoreClick = onMoreClick)
+            onLongPressRect = onLongClick, onMoreClick = onMoreClick,
+            moreMorphState = moreMorphState, onMoreMorphTrigger = onMoreMorphTrigger)
     }
 }

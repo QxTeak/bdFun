@@ -32,6 +32,8 @@ internal fun VideoGridCard(
     /** 长按/省略号共用：传入卡片窗口坐标，下拉菜单据此定位。 */
     onLongPressRect: ((Rect) -> Unit)? = null,
     onMoreClick: ((Rect) -> Unit)? = null,
+    moreMorphState: com.aritxonly.teak.common.navigation.TeakMorphMenuState? = null,
+    onMoreMorphTrigger: (() -> Unit)? = null,
 ) {
     val colors = MiuixTheme.colorScheme
     val bounds = remember { CardBoundsHolder() }
@@ -56,7 +58,12 @@ internal fun VideoGridCard(
                 ),
         ) {
             GridVideoCover(video, progress, selectionEnabled, selected, reserveMeta)
-            GridVideoContent(video, showOwner, onMoreClick = onMoreClick?.let { more -> { more(bounds.value) } })
+            GridVideoContent(
+                video, showOwner,
+                onMoreClick = onMoreClick?.let { more -> { more(bounds.value) } },
+                moreMorphState = moreMorphState,
+                onMoreMorphTrigger = onMoreMorphTrigger,
+            )
         }
     }
 }
