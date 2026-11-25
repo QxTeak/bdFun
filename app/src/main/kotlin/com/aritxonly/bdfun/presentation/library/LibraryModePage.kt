@@ -114,53 +114,8 @@ private fun LibraryGridBody(
     }
 }
 
-/** 列表项：首屏骨架、视频行、空态和分页尾巴。 */
-private fun androidx.compose.foundation.lazy.grid.LazyGridScope.libraryModeGridItems(
-    content: LibraryModeContent, layout: LibraryModeLayout, actions: LibraryModeActions,
-    historyCategory: HistoryCategory, rows: List<com.aritxonly.bdfun.data.VideoItem>,
-    queueRows: List<com.aritxonly.bdfun.data.VideoItem>, itemModifier: Modifier,
-) {
-    val emptyFirstLoad = content.loading && rows.isEmpty()
-    if (emptyFirstLoad) {
-        videoResultSkeleton(keyPrefix = "library-skeleton-${layout.mode}")
-    }
-    videoResultRows(
-        videos = rows,
-        keyPrefix = "library-${layout.mode}-",
-        // 队列必须在点击时、跳转前就准备好：一镜到底会由系统动画自己起 VideoActivity，
-        // onOpenVideo 只是动画失败时的兜底，正常路径根本不执行，写在那里等于没准备。
-        onBeforeOpen = { video ->
-            if (!content.batchMode) {
-                // 稍后再看把整页当成一个本地合集；收藏/历史只保留普通连播队列。
-                if (layout.mode == 2) {
-                    actions.onPrepareCollection(queueRows, video.bvid, "稍后再看")
-                } else {
-                    actions.onPrepareQueue(queueRows, video.bvid, "")
-                }
-            }
-        },
-        onOpenVideo = { video ->
-            if (content.batchMode) {
-                actions.onToggleSelected(video.bvid)
-            } else {
-                actions.onOpenVideo(video)
-            }
-        },
-        onVideoMenu = if (content.batchMode) null else actions.onVideoMenu,
-        showSelection = content.batchMode,
-        selectedIds = content.selected,
-        // 批量勾选时不要一镜到底放大动画。
-        enableOneTake = !content.batchMode,
-        itemModifier = itemModifier,
-    )
-    if (!emptyFirstLoad && rows.isEmpty() && !content.loading && content.error == null) {
-        libraryEmptyItem(layout.mode, historyCategory)
-    }
-    libraryGridFooter(content, layout, actions)
-}
-
 /** 空列表提示：放在内容区中间，而不是缩在左上角。 */
-private fun androidx.compose.foundation.lazy.grid.LazyGridScope.libraryEmptyItem(
+internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.libraryEmptyItem(
     mode: Int, historyCategory: HistoryCategory,
 ) {
     item(key = "library-empty", span = { GridItemSpan(maxLineSpan) }) {
