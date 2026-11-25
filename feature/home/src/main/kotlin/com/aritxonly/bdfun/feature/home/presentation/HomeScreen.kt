@@ -51,7 +51,6 @@ fun HomeScreen(state: HomeFeedState, onOpenVideo: (VideoItem) -> Unit, cardStyle
     HomeVideoActions(
         video = ui.actionVideo,
         anchor = ui.actionAnchor,
-        menuState = ui.menuState,
         showRectMenu = ui.actionVideo != null && ui.moreViaLongPress,
         state = state,
         onDismiss = { ui.actionVideo = null },

@@ -1,4 +1,4 @@
-package com.aritxonly.teak.common.modal
+﻿package com.aritxonly.teak.common.modal
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
@@ -32,10 +32,10 @@ import top.yukonga.miuix.kmp.glass.GlassDropdownPopup
 import top.yukonga.miuix.kmp.glass.GlassPopupSizing
 
 /**
- * 锚定在页面上的 Miuix 玻璃下拉菜单外壳。
+ * 閿氬畾鍦ㄩ〉闈笂鐨?Miuix 鐜荤拑涓嬫媺鑿滃崟澶栧３銆?
  *
- * 视频操作菜单、设置/评论区长按菜单共用这一份 Dialog 窗口、坐标换算与退场保活；
- * 各业务只提供内容，避免每个调用点各写一遍 mounted/orientation/origin 逻辑。
+ * 瑙嗛鎿嶄綔鑿滃崟銆佽缃?璇勮鍖洪暱鎸夎彍鍗曞叡鐢ㄨ繖涓€浠?Dialog 绐楀彛銆佸潗鏍囨崲绠椾笌閫€鍦轰繚娲伙紱
+ * 鍚勪笟鍔″彧鎻愪緵鍐呭锛岄伩鍏嶆瘡涓皟鐢ㄧ偣鍚勫啓涓€閬?mounted/orientation/origin 閫昏緫銆?
  */
 @Composable
 fun TeakAnchoredGlassMenu(
@@ -48,12 +48,12 @@ fun TeakAnchoredGlassMenu(
     maxHeight: Dp = 420.dp,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    // 菜单项要活到收起动画结束：visible 关掉后仍保留 Dialog，Miuix 才能播完弹簧。
+    // 鑿滃崟椤硅娲诲埌鏀惰捣鍔ㄧ敾缁撴潫锛歷isible 鍏虫帀鍚庝粛淇濈暀 Dialog锛孧iuix 鎵嶈兘鎾畬寮圭哀銆?
     var mounted by remember { mutableStateOf(false) }
     if (visible) mounted = true
     LaunchedEffect(visible) {
         if (!visible && mounted) {
-            delay(320)
+            delay(480)
             if (!visible) mounted = false
         }
     }

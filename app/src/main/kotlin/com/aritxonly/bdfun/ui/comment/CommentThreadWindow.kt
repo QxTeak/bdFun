@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 @Composable
 internal fun ConfigureCommentThreadWindow(
     playerBottomDp: androidx.compose.ui.unit.Dp?, minTopPx: Float, paneWidth: androidx.compose.ui.unit.Dp?,
-    viewerOpen: Boolean = false,
 ) {
     val VideoPageBus = LocalVideoPageState.current
         val view = androidx.compose.ui.platform.LocalView.current
@@ -58,25 +57,16 @@ internal fun ConfigureCommentThreadWindow(
         val panelHeightPx = (screenHeightPx - panelTopPx).toInt().coerceAtLeast(1)
         val lastPanelGeometry = remember { intArrayOf(Int.MIN_VALUE, 0, 0, 0) }
         androidx.compose.runtime.SideEffect {
-            val geometry = intArrayOf(panelTopInt, paneWidthPx, panelHeightPx, paneEndPx, if (viewerOpen) 1 else 0)
+            val geometry = intArrayOf(panelTopInt, paneWidthPx, panelHeightPx, paneEndPx)
             if (lastPanelGeometry.contentEquals(geometry)) return@SideEffect
             geometry.copyInto(lastPanelGeometry)
             val window = dialogWindow ?: return@SideEffect
             val lp = window.attributes ?: return@SideEffect
-            if (viewerOpen) {
-                // 图片查看器要铺满整块屏幕：临时把弹窗撑成全屏，关闭后恢复播放器下沿的几何。
-                lp.gravity = android.view.Gravity.TOP or android.view.Gravity.START
-                lp.width = android.view.ViewGroup.LayoutParams.MATCH_PARENT
-                lp.height = android.view.ViewGroup.LayoutParams.MATCH_PARENT
-                lp.x = 0
-                lp.y = 0
-            } else {
-                lp.gravity = android.view.Gravity.TOP or android.view.Gravity.RIGHT
-                lp.width = paneWidthPx
-                lp.height = panelHeightPx
-                lp.x = paneEndPx
-                lp.y = panelTopInt
-            }
+            lp.gravity = android.view.Gravity.TOP or android.view.Gravity.RIGHT
+            lp.width = paneWidthPx
+            lp.height = panelHeightPx
+            lp.x = paneEndPx
+            lp.y = panelTopInt
             window.attributes = lp
         }
 

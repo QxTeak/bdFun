@@ -15,6 +15,10 @@ class HomeFeedState internal constructor(private val controller: HomeFeedStateHo
     private val optimizer: com.aritxonly.bdfun.core.application.RecommendationOptimizer? = null,
 ) {
     val gridState = LazyGridState()
+    /** 省略号形变菜单：每张卡片自己的锚点 + 当前打开的视频。宿主挂在主壳采样树外。 */
+    var menuState by mutableStateOf<com.aritxonly.teak.common.navigation.TeakMorphMenuState?>(null)
+    var menuVideo by mutableStateOf<VideoItem?>(null)
+    var menuViaLongPress by mutableStateOf(false)
     val optimizationEnabled get() = optimizer?.state?.value?.enabled == true
     internal fun exposureTicket() = controller.exposureTicket()
     internal fun expose(video: VideoItem, ticket: com.aritxonly.bdfun.core.application.RecommendationTicket) = controller.expose(video, ticket)

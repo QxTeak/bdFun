@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
@@ -15,6 +16,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted
@@ -113,9 +116,11 @@ fun TeakMorphMenuHost(
     maxWidth: Dp = GlassPopupDefaults.MaxWidth,
     maxHeight: Dp = GlassPopupDefaults.MaxHeight,
     onDismiss: (() -> Unit)? = null,
+    /** 页面本身已在主壳玻璃采样树里时传 false：避免弹层再采样包含自己的那棵树（RenderNode 递归）。 */
+    useBackdrop: Boolean = true,
     content: @Composable ColumnScope.(dismiss: (after: () -> Unit) -> Unit) -> Unit,
 ) {
-    val backdrop = LocalTeakBackdrop.current
+    val backdrop = if (useBackdrop) LocalTeakBackdrop.current else null
     val scope = rememberCoroutineScope()
 
     val dismiss: (after: () -> Unit) -> Unit = remember(scope) {

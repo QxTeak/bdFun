@@ -6,9 +6,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Rect
 import com.aritxonly.teak.common.modal.TeakVideoActionMenu
 import com.aritxonly.teak.common.modal.TeakVideoMenuItem
-import com.aritxonly.teak.common.navigation.TeakMorphMenuHost
 import com.aritxonly.teak.common.navigation.TeakMorphMenuState
-import top.yukonga.miuix.kmp.glass.GlassPopupItem
 
 @Immutable
 internal data class HomeActionSheetUiState(
@@ -24,13 +22,13 @@ internal data class HomeActionSheetUiState(
 
 internal typealias HomeVideoAction = com.aritxonly.bdfun.feature.home.application.HomeVideoAction
 
-private data class HomeMenuItem(
+internal data class HomeMenuItem(
     val label: String,
     val enabled: Boolean,
     val action: HomeVideoAction,
 )
 
-private fun menuItems(state: HomeActionSheetUiState): List<HomeMenuItem> {
+internal fun menuItems(state: HomeActionSheetUiState): List<HomeMenuItem> {
     val busy = state.busy
     val categoryLabel = state.category.ifBlank {
         if (state.categoryLoading) "分类加载中…" else "分类暂不可用"
@@ -64,23 +62,4 @@ internal fun HomeVideoActionMenu(
             TeakVideoMenuItem(label = item.label, enabled = item.enabled) { onAction(item.action) }
         },
     )
-}
-
-@Composable
-internal fun HomeVideoMorphMenu(
-    menuState: TeakMorphMenuState,
-    state: HomeActionSheetUiState,
-    onDismiss: () -> Unit,
-    onAction: (HomeVideoAction) -> Unit,
-) {
-    val items = remember(state) { menuItems(state) }
-    TeakMorphMenuHost(menuState, onDismiss = onDismiss) { dismiss ->
-        items.forEach { item ->
-            GlassPopupItem(
-                text = item.label,
-                enabled = item.enabled,
-                onClick = { if (item.enabled) dismiss { onAction(item.action) } },
-            )
-        }
-    }
 }

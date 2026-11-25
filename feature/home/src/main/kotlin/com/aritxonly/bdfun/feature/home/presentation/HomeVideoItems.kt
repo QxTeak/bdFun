@@ -16,6 +16,10 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.homeVideoItems(
     onOpenVideo: (VideoItem) -> Unit, host: HomePresentationHost,
 ) {
     items(items = state.videos, key = { it.bvid }) { video ->
+        // 每张卡片独立锚点；打开时把该卡片的锚点交给页面唯一的菜单宿主。
+        val cardMenu = androidx.compose.runtime.remember(video.bvid) {
+            com.aritxonly.teak.common.navigation.TeakMorphMenuState()
+        }
         // 长按与省略号共用同一份菜单内容和选中视频；省略号额外走玻璃形变动画。
         val openMenu: (androidx.compose.ui.geometry.Rect) -> Unit = { anchor ->
             ui.actionAnchor = anchor
@@ -27,10 +31,11 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.homeVideoItems(
             { state.open(video); onOpenVideo(video) },
             openMenu,
             openMenu,
-            ui.menuState,
+            cardMenu,
             {
-                ui.actionVideo = video
-                ui.moreViaLongPress = false
+                state.menuVideo = video
+                state.menuState = cardMenu
+                state.menuViaLongPress = false
             },
         )
     }
