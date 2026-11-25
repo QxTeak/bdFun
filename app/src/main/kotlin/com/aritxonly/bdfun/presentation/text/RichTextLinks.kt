@@ -85,6 +85,14 @@ private fun AnnotatedString.Builder.appendVideoPlayGlyph(
 internal fun AnnotatedString.Builder.appendRichMention(runtime: RichTextRenderContext, inline: MutableMap<String, InlineTextContent>, hit: RichTextHit) {
     val text = runtime.content.text
     val mentionColor = runtime.style.mentionColor
+    // 只有正文里第一个 @ 可能是「回复 @某人」的引用目标；正文自身的 @ 不受影响。
+    val leadingMention = runtime.analysis.hits.firstOrNull { it.mentionName != null }?.start == hit.start
+    val color = when {
+        leadingMention && hit.mentionName in runtime.content.vipMentions ->
+            runtime.style.vipMentionColor ?: mentionColor
+        leadingMention -> runtime.style.replyTargetMentionColor ?: mentionColor
+        else -> mentionColor
+    }
     val onMentionClick = runtime.actions.onMentionClick
     val mid = hit.mentionMid
     val name = hit.mentionName.orEmpty()
@@ -93,7 +101,7 @@ internal fun AnnotatedString.Builder.appendRichMention(runtime: RichTextRenderCo
             tag = "mention-${hit.start}",
             styles = androidx.compose.ui.text.TextLinkStyles(
                 style = SpanStyle(
-                    color = mentionColor,
+                    color = color,
                     fontWeight = FontWeight.Normal,
                 ),
             ),

@@ -46,8 +46,11 @@ internal fun AnnotatedString.Builder.appendRichPrefix(runtime: RichTextRenderCon
                 }
             }
         }
-        withStyle(SpanStyle(color = prefixColor, fontWeight = prefixWeight, fontSize = prefixSize)) {
-            append("：")
+        if (runtime.decorations.prefixColon) {
+            // 冒号是正文标点，不跟用户名一起染色：大会员的名字是主题色，冒号再跟着变粉会显得整段在发光。
+            withStyle(SpanStyle(color = runtime.style.color, fontWeight = prefixWeight, fontSize = prefixSize)) {
+                append("：")
+            }
         }
     }
 }

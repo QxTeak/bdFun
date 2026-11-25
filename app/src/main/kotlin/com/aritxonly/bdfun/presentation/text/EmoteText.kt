@@ -35,8 +35,9 @@ internal fun EmoteText(content: EmoteTextContent, style: EmoteTextStyle, modifie
         RichTextActions({ dependencies.openVideo(context, it) }, { uriHandler.openUri(it) }, onMentionClick),
         linkColor, biliTitles, analysis)
     val annotated = remember(map, text, content.prefix, style.prefixColor, style.prefixWeight,
-        decorations.prefixBadge != null, style.fontSize, decorations.trailingContent != null,
-        analysis.mentionList, style.mentionColor, onMentionClick != null, analysis.hasUrl, linkColor, biliTitles) {
+        decorations.prefixBadge != null, decorations.prefixColon, style.fontSize, decorations.trailingContent != null,
+        analysis.mentionList, style.mentionColor, style.replyTargetMentionColor, style.vipMentionColor,
+        content.vipMentions, onMentionClick != null, analysis.hasUrl, linkColor, biliTitles) {
         buildRichText(runtime, inline)
     }
     AnnotatedEmoteText(annotated, inline, style, modifier)

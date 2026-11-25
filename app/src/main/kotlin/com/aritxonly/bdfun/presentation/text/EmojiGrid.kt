@@ -1,6 +1,8 @@
 package com.aritxonly.bdfun.ui
 
-import com.aritxonly.teak.common.material.TeakGlassPanel
+import com.aritxonly.teak.common.material.LocalTeakBackdrop
+import top.yukonga.miuix.kmp.glass.GlassShape
+import top.yukonga.miuix.kmp.glass.glassPanel
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background
 import androidx.compose.runtime.remember
@@ -35,7 +37,17 @@ import com.aritxonly.bdfun.core.application.*
 internal fun EmojiGlassPanel(layout: EmojiGridLayout, spring: Float, onPick: (String) -> Unit,
     tabs: @Composable () -> Unit) {
     val panelHeight = layout.panelHeight
-    TeakGlassPanel(
+    val backdrop = LocalTeakBackdrop.current
+    val shape = remember {
+        GlassShape(
+            androidx.compose.foundation.shape.CornerSize(24.dp),
+            androidx.compose.foundation.shape.CornerSize(24.dp),
+            androidx.compose.foundation.shape.CornerSize(24.dp),
+            androidx.compose.foundation.shape.CornerSize(24.dp),
+        )
+    }
+    Box(
+        // Miuix 自己的玻璃面板（glassPanel），不是 TeakUI 那一套玻璃。
         modifier = Modifier
             .fillMaxWidth()
             .height(panelHeight)
@@ -46,17 +58,14 @@ internal fun EmojiGlassPanel(layout: EmojiGridLayout, spring: Float, onPick: (St
                 translationY = (1f - spring) * 10f
                 transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 1f)
             }
-            .dropShadow(
-                shape = RoundedCornerShape(24.dp),
-                shadow = androidx.compose.ui.graphics.shadow.Shadow(
-                    radius = 8.dp,
-                    color = Color.Black,
-                    alpha = 0.10f,
+            .glassPanel(
+                backdrop = backdrop,
+                shape = shape,
+                fallback = Modifier.background(
+                    top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainer,
+                    RoundedCornerShape(24.dp),
                 ),
             ),
-        shape = RoundedCornerShape(24.dp),
-        // 和设置二级菜单/投币面板同一套底灰
-        tintAlpha = 0.3f,
     ) {
         Column(Modifier.fillMaxSize().clipToBounds()) {
             tabs()
