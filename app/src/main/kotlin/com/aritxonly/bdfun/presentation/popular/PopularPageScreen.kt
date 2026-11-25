@@ -119,7 +119,7 @@ internal fun PopularPage(
                     menuVideo = video
                     actionVideo = video
                 },
-                onVideoMorph = { video, state ->
+                onVideoMorph = { video, state, point ->
                     morphMenu?.show(
                         state,
                         listOf(
@@ -148,6 +148,8 @@ internal fun PopularPage(
                             },
                         ),
                         onDismiss = { actionVideo = null },
+                        showAnchorCopy = point == null,
+                        point = point,
                     )
                 },
             )
