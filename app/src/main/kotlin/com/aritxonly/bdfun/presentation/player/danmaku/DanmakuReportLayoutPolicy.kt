@@ -4,6 +4,7 @@ internal data class DanmakuReportLayout(
     val columns: Int,
     val compactButtons: Boolean,
     val maxContentHeightDp: Int?,
+    val summaryMaxLines: Int,
 )
 
 internal fun danmakuReportLayout(
@@ -11,7 +12,14 @@ internal fun danmakuReportLayout(
     screenWidthDp: Int,
     screenHeightDp: Int,
 ): DanmakuReportLayout {
-    if (!landscape) return DanmakuReportLayout(columns = 3, compactButtons = false, maxContentHeightDp = null)
+    if (!landscape) {
+        return DanmakuReportLayout(
+            columns = 3,
+            compactButtons = false,
+            maxContentHeightDp = null,
+            summaryMaxLines = 2,
+        )
+    }
     val columns = when {
         screenWidthDp >= 600 -> 4
         else -> 3
@@ -20,5 +28,6 @@ internal fun danmakuReportLayout(
         columns = columns,
         compactButtons = true,
         maxContentHeightDp = (screenHeightDp - 190).coerceIn(140, 240),
+        summaryMaxLines = 2,
     )
 }
