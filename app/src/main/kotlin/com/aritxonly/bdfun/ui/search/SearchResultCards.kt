@@ -116,10 +116,8 @@ internal fun SearchResultRow(
 ) {
     val coverWidth = 150.dp
     val coverHeight = coverWidth * 9f / 16f
-    // 菜单要弹在手指按下的位置（和评论区一致），combinedClickable 不给坐标，
-    // 这里旁听指针位置；bounds 同时换算到屏幕坐标，弹窗锚点才不会偏到状态栏。
     val bounds = remember { CardBoundsHolder() }
-    // 指针位置每帧都会变，用普通数组记录，避免滚动/滑动时逐帧写快照状态。
+    // 指针位置每帧都会变，用普通数组记录；菜单锚点同时换算到屏幕坐标。
     val pressPosition = remember { FloatArray(2) }
     val view = LocalView.current
     val location = remember { IntArray(2) }

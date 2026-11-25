@@ -51,27 +51,7 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
         }
     }
     val merged = remember(items, feedRevision, cid, feed) {
-        if (feed == null) {
-            items
-        } else {
-            val feedItems = feed.items(cid)
-            val capacity = feedItems.size + items.size
-            val out = ArrayList<BiliDanmakuItem>(capacity)
-            val ids = HashSet<Long>(capacity)
-            val texts = HashSet<String>(capacity)
-            fun add(item: BiliDanmakuItem) {
-                if (item.id > 0L) {
-                    if (ids.add(item.id)) out += item
-                } else {
-                    // 无 id 的本地/特殊弹幕按内容去重，避免每条都拼一次带前缀的字符串。
-                    if (texts.add("${item.timeMs}:${item.mode}:${item.text}")) out += item
-                }
-            }
-            for (item in feedItems) add(item)
-            for (item in items) add(item)
-            out.sortBy { it.timeMs }
-            out
-        }
+        if (feed == null) items else mergeDanmaku(items, feed.items(cid))
     }
     val filtered = remember(merged, options.filters, matcher, moderation.recalled, page.cid) {
         val recalled = moderation.recalled
@@ -103,4 +83,26 @@ fun DanmakuLayer(items: List<BiliDanmakuItem>, positionMs: () -> Long, playing: 
         update = { view -> view.alpha = options.drawing.opacity.coerceIn(0f, 1f) })
     BindDanmakuEngineEffects(renderView, window, masks, config, playing, positionMs, options.drawing.lowRefresh,
         hotPresentation.reservedTopPx.toFloat(), selfItems)
+}
+
+/** 合并分段弹幕与详情首屏弹幕：按 id 去重，无 id 的本地条目按内容去重后统一按时间排序。 */
+private fun mergeDanmaku(
+    items: List<BiliDanmakuItem>,
+    feedItems: List<BiliDanmakuItem>,
+): List<BiliDanmakuItem> {
+    val capacity = feedItems.size + items.size
+    val out = ArrayList<BiliDanmakuItem>(capacity)
+    val ids = HashSet<Long>(capacity)
+    val texts = HashSet<String>(capacity)
+    fun add(item: BiliDanmakuItem) {
+        if (item.id > 0L) {
+            if (ids.add(item.id)) out += item
+        } else if (texts.add("${item.timeMs}:${item.mode}:${item.text}")) {
+            out += item
+        }
+    }
+    for (item in feedItems) add(item)
+    for (item in items) add(item)
+    out.sortBy { it.timeMs }
+    return out
 }
