@@ -28,6 +28,9 @@ import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.presentation.live.LivePageStateHolder
 import com.aritxonly.bdfun.navigateToLiveRoom
 import com.aritxonly.bdfun.ui.HomeTopBarHeight
+import com.aritxonly.bdfun.ui.LocalContentSwitch
+import com.aritxonly.bdfun.ui.contentSwitchItem
+import com.aritxonly.bdfun.ui.rememberContentSwitch
 import com.aritxonly.bdfun.presentation.common.discover.DiscoverPullUi
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.launch
@@ -51,7 +54,10 @@ internal fun LivePage(
     val pullUi = remember { DiscoverPullUi() }
     val pull = rememberLivePullSession(state, pullUi)
     LivePageEffects(state, pull, pullUi)
+    // 切分区时只有下面的卡片滑进来，关注行和分区标签留在原地。
+    val contentSwitch = rememberContentSwitch(state.selectedKey, state.contentDirection)
 
+    androidx.compose.runtime.CompositionLocalProvider(LocalContentSwitch provides contentSwitch) {
     LazyVerticalGrid(
         columns = if (LocalConfiguration.current.screenWidthDp >= 600) {
             com.aritxonly.bdfun.ui.BoundedVideoGridCells(
@@ -78,9 +84,12 @@ internal fun LivePage(
         liveFollowSection(state) { navigateToLiveRoom(context, it) }
         liveAreaSection(state, scope)
         items(state.cards, key = { it.roomId }) { live ->
-            LiveGridCard(live) { navigateToLiveRoom(context, live.roomId) }
+            LiveGridCard(live, modifier = Modifier.contentSwitchItem()) {
+                navigateToLiveRoom(context, live.roomId)
+            }
         }
         livePageStateItems(state, scope, loggedIn)
+    }
     }
 }
 

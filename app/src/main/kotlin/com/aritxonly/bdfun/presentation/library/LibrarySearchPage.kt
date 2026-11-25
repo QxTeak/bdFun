@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -29,8 +28,8 @@ import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-/** 搜索栏内容高度（不含状态栏）：8 + 38 + 10。 */
-private val SearchBarHeight = 56.dp
+/** 搜索栏高度：和首页「点搜索后」的顶栏同一份尺寸（见 [HomeTopBarHeight]）。 */
+private val SearchBarHeight = HomeTopBarHeight
 
 /**
  * 媒体库搜索页。
@@ -111,9 +110,8 @@ internal fun LibrarySearchPage(
                     ProgressiveTopBarMaterial(
                         modifier = Modifier.align(Alignment.TopCenter),
                     ) {
-                        Box(Modifier.statusBarsPadding()) {
-                            LibrarySearchHeader(content.title, state, events, onBack = actions.onBack)
-                        }
+                        // 顶栏自己带状态栏避让，和首页搜索态完全同一棵树。
+                        LibrarySearchHeader(content.title, state, events, onBack = actions.onBack)
                     }
                 }
             }

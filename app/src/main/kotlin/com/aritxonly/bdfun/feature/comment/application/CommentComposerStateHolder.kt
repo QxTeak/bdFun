@@ -37,6 +37,49 @@ internal class CommentComposerStateHolder(private val images: CommentImageReposi
     fun setEditing(value: Boolean) { if (!closed) mutable.update { it.copy(editing = value) } }
     fun toggleEmoji() { if (!closed) mutable.update { it.copy(showEmoji = !it.showEmoji, editing = true) } }
 
+    /**
+     * 按「回复对象」记住草稿（issue #144）：同一个视频里给 A 打了一半的话，
+     * 走开去回复 B、再回来找 A，输入框要把上次对 A 写的内容捞回来。
+     */
+    private val drafts = mutableMapOf<String, String>()
+    private var activeKey: String? = null
+
+    fun bindTarget(key: String) {
+        if (closed || activeKey == key) return
+        activeKey?.let { drafts[it] = mutable.value.draft }
+        activeKey = key
+        mutable.update { it.copy(draft = drafts[key].orEmpty()) }
+    }
+
+    /** 退出输入栏：先把当前草稿记在它对应的回复对象下面，再把界面状态清干净。 */
+    fun saveAndDetach() {
+        if (closed) return
+        activeKey?.let { drafts[it] = mutable.value.draft }
+        activeKey = null
+        mutable.update {
+            it.copy(
+                draft = "", showEmoji = false, editing = false,
+                pendingPictures = null, pendingPreview = null,
+                uploading = false, failed = false,
+            )
+        }
+    }
+
+    /** 发送成功：这份草稿已经用掉，不能下次再被捞回来。 */
+    private fun forgetActiveDraft() {
+        activeKey?.let { drafts.remove(it) }
+    }
+
+    /**
+     * 整体退出输入：草稿、图片、表情面板、编辑态一起清掉。
+     * 退出后再打开不应该「记得」上一次的内容和回复对象（issue #144）。
+     */
+    fun reset() {
+        if (closed) return
+        saveAndDetach()
+        drafts.clear()
+    }
+
     fun dismiss(onDismissEditor: () -> Unit, onClearTarget: () -> Unit) {
         if (closed) return
         mutable.update { it.copy(showEmoji = false, editing = false) }
@@ -95,8 +138,10 @@ internal class CommentComposerStateHolder(private val images: CommentImageReposi
             currentCoroutineContext().ensureActive()
             if (closed) return false
             mutable.update { it.copy(sending = false) }
-            if (ok) mutable.update { it.copy(draft = "", pendingPictures = null, pendingPreview = null) }
-            else mutable.update { it.copy(failed = true) }
+            if (ok) {
+                forgetActiveDraft()
+                mutable.update { it.copy(draft = "", pendingPictures = null, pendingPreview = null) }
+            } else mutable.update { it.copy(failed = true) }
             return ok
         } finally {
             if (!closed) mutable.update { it.copy(sending = false) }

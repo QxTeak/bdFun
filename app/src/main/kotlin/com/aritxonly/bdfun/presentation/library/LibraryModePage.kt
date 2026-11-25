@@ -55,6 +55,11 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
         // 骨架、分页尾巴也直接复用那两份实现，不再单独维护一套卡片。
         val wide = maxWidth >= 600.dp
         var historyCategory by remember { mutableStateOf(HistoryCategory.All) }
+        // 收藏夹/历史分类切换的滑动方向：按标签索引差给出，内容从切换那一侧滑进来。
+        var switchDirection by remember { mutableStateOf(1) }
+        val switch = rememberContentSwitch(
+            Triple(layout.mode, content.folderIndex, historyCategory), switchDirection,
+        )
         // 列表滚动时 LazyGrid 的内容 lambda 会反复执行，过滤/映射放在外面只算一次。
         val rows = remember(
             content.folderVideos, content.historyEntries, content.watchLaterEntries,
@@ -70,6 +75,9 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
         }
         // 稍后再看进视频时用完整列表建队列，历史/收藏仍按当前可见结果。
         val queueRows = if (layout.mode == 2 && content.allWatchLater.isNotEmpty()) content.allWatchLater else rows
+        androidx.compose.runtime.CompositionLocalProvider(LocalContentSwitch provides switch) {
+        // 组合期取好：LazyGrid 的 scope 不是 @Composable，不能在里面读 CompositionLocal。
+        val switchItem = Modifier.contentSwitchItem()
         LazyVerticalGrid(
             state = gridState,
             columns = if (wide) BoundedVideoGridCells(280.dp, 420.dp) else GridCells.Fixed(1),
@@ -78,7 +86,18 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
                 bottom = if (content.batchMode) 92.dp else TeakChromeDefaults.ContentBottomPadding),
             horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(4.dp),
         ) {
-            libraryGridHeader(content, layout, actions, historyCategory) { historyCategory = it }
+            libraryGridHeader(content, layout, actions, historyCategory,
+                onHistoryCategory = { category ->
+                    val from = HistoryCategory.entries.indexOf(historyCategory)
+                    val to = HistoryCategory.entries.indexOf(category)
+                    switchDirection = if (to >= from) 1 else -1
+                    historyCategory = category
+                },
+                onFolderSelect = { index ->
+                    switchDirection = if (index >= content.folderIndex) 1 else -1
+                    actions.onFolderSelect(index)
+                },
+            )
             val emptyFirstLoad = content.loading && rows.isEmpty()
             if (emptyFirstLoad) {
                 videoResultSkeleton(keyPrefix = "library-skeleton-${layout.mode}")
@@ -110,11 +129,13 @@ private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, 
                 selectedIds = content.selected,
                 // 批量勾选时不要一镜到底放大动画。
                 enableOneTake = !content.batchMode,
+                itemModifier = switchItem,
             )
             if (!emptyFirstLoad && rows.isEmpty() && !content.loading && content.error == null) {
                 libraryEmptyItem(layout.mode, historyCategory)
             }
             libraryGridFooter(content, layout, actions)
+        }
         }
     }
 }
@@ -165,10 +186,12 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.libraryGridHead
     content: LibraryModeContent, layout: LibraryModeLayout, actions: LibraryModeActions,
     historyCategory: HistoryCategory = HistoryCategory.All,
     onHistoryCategory: (HistoryCategory) -> Unit = {},
+    onFolderSelect: ((Int) -> Unit)? = null,
 ) {
     val title = layout.title; val mode = layout.mode; val showModeTabs = layout.showModeTabs
     val modeProgress = layout.modeProgress; val folders = content.folders; val foldersReady = content.foldersReady
-    val folderIndex = content.folderIndex; val onSelectMode = actions.onSelectMode; val onFolderSelect = actions.onFolderSelect
+    val folderIndex = content.folderIndex; val onSelectMode = actions.onSelectMode
+    val selectFolder = onFolderSelect ?: actions.onFolderSelect
             item(key = "title", span = { GridItemSpan(maxLineSpan) }) {
                 TeakLargeTitle(
                     title = title,
@@ -208,7 +231,7 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.libraryGridHead
                     LibraryFolderBar(
                         folders = folders,
                         selectedIndex = folderIndex,
-                        onSelect = onFolderSelect,
+                        onSelect = selectFolder,
                     )
                 }
             }

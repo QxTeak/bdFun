@@ -35,6 +35,9 @@ internal class LivePageStateHolder(private val repository: LiveDiscoverRepositor
         private set
     var selectedKey by mutableStateOf(0L)
         private set
+    /** 切分区时新内容从哪边滑进来：+1 从左往右，-1 从右往左。 */
+    var contentDirection by mutableIntStateOf(1)
+        private set
     var loading by mutableStateOf(false)
         private set
     var refreshing by mutableStateOf(false)
@@ -67,8 +70,9 @@ internal class LivePageStateHolder(private val repository: LiveDiscoverRepositor
         try { load() } finally { refreshing = false }
     }
 
-    suspend fun selectArea(area: LiveArea) {
+    suspend fun selectArea(area: LiveArea, direction: Int = 1) {
         if (area.id == selectedKey) return
+        contentDirection = if (direction >= 0) 1 else -1
         selectedKey = area.id
         selectedParent = area.parentAreaId
         selectedSub = area.areaId

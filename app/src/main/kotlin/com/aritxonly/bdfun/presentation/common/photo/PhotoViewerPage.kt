@@ -15,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -32,6 +33,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.aritxonly.bdfun.core.common.biliImageThumbUrl
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 /**
@@ -85,6 +88,31 @@ internal fun PhotoViewerPage(
     // Contain 尺寸只随宽高比变化，是组合期常量；动画帧不再重新测量布局。
     val imageWidthPx = if (screenWidth / screenHeight > aspect) screenHeight * aspect else screenWidth
     val imageHeightPx = imageWidthPx / aspect
+    val scope = rememberCoroutineScope()
+    var zoomJob by remember(url) { mutableStateOf<Job?>(null) }
+    // 双击：被点到的位置移动到画面中心，倍率和原来一致；缩放/平移一起补间，不会瞬跳。
+    val onDoubleTap: (Offset) -> Unit = { tap ->
+        val center = Offset(screenWidth / 2f, screenHeight / 2f)
+        val targetZoom = if (page.zoom > 1.01f) 1f else PhotoDoubleTapZoom
+        val targetPan = if (targetZoom <= 1.01f) {
+            Offset.Zero
+        } else {
+            clampPan(doubleTapZoomPan(tap, center, targetZoom), targetZoom, view.size)
+        }
+        zoomJob?.cancel()
+        zoomJob = scope.launch {
+            val startZoom = page.zoom
+            val startPan = page.pan
+            androidx.compose.animation.core.animate(
+                initialValue = 0f,
+                targetValue = 1f,
+                animationSpec = tween(PhotoZoomDurationMs),
+            ) { fraction, _ ->
+                page.zoom = startZoom + (targetZoom - startZoom) * fraction
+                page.pan = startPan + (targetPan - startPan) * fraction
+            }
+        }
+    }
     val spec = PhotoStageSpec(
         aspect = aspect,
         imageWidth = with(density) { imageWidthPx.toDp() },
@@ -96,8 +124,12 @@ internal fun PhotoViewerPage(
         originRadiusPx = originRadiusPx,
         screenWidth = screenWidth,
         screenHeight = screenHeight,
+        rotationQuarter = view.rotationQuarter,
+        rotationFitScale = photoRotationFitScale(
+            view.rotationQuarter, imageWidthPx, imageHeightPx, screenWidth, screenHeight,
+        ),
     )
-    PhotoViewerStage(url, page, view, spec, onDismiss, onLongPress) { width, height ->
+    PhotoViewerStage(url, page, view, spec, onDismiss, onLongPress, onDoubleTap) { width, height ->
         if (width > 0 && height > 0) page.aspect = width.toFloat() / height
         fullReady = true
     }
@@ -119,6 +151,10 @@ private data class PhotoStageSpec(
     val originRadiusPx: Float,
     val screenWidth: Float,
     val screenHeight: Float,
+    /** 旋转了第几个 90°：图片层据此绕自身中心旋转。 */
+    val rotationQuarter: Int,
+    /** 旋转后仍要装进屏幕的额外缩放系数。 */
+    val rotationFitScale: Float,
 ) {
     fun morphAt(progress: Float): PhotoMorphFrame = photoMorphFrame(
         progress = progress,
@@ -141,6 +177,7 @@ private fun PhotoViewerStage(
     spec: PhotoStageSpec,
     onDismiss: () -> Unit,
     onLongPress: (String, Offset) -> Unit,
+    onDoubleTap: (Offset) -> Unit,
     onFullLoaded: (Int, Int) -> Unit,
 ) {
     Box(
@@ -152,7 +189,7 @@ private fun PhotoViewerStage(
                 detectTapGestures(
                     // 点画面任意位置都是关闭（不再要求必须点到图片外的空白）。
                     onTap = { onDismiss() },
-                    onDoubleTap = { tap -> page.zoom = toggleZoom(page.zoom, tap, view.size) },
+                    onDoubleTap = { tap -> onDoubleTap(tap) },
                     onLongPress = { tap -> onLongPress(url, tap) },
                 )
             }
@@ -246,9 +283,11 @@ private fun PhotoMorphImage(
             .size(spec.imageWidth, spec.imageHeight)
             .graphicsLayer {
                 val morph = spec.morphAt(view.progress.value)
-                val scale = morph.imageScale * zoom()
+                val scale = morph.imageScale * spec.rotationFitScale * zoom()
                 scaleX = scale
                 scaleY = scale
+                // 旋转绕图片自身中心；90° 的奇数倍会换掉显示宽高，所以上面再乘一个装入屏幕的系数。
+                rotationZ = 90f * spec.rotationQuarter
                 // 图片布局在 (0,0)，把它平移到当前帧的中心。
                 translationX = morph.imageCenterX - size.width / 2f + pan().x
                 translationY = morph.imageCenterY - size.height / 2f + pan().y
@@ -284,10 +323,9 @@ private fun Modifier.photoMorphClip(
     clipPath(path) { this@drawWithContent.drawContent() }
 }
 
-private fun toggleZoom(zoom: Float, tap: Offset, size: IntSize): Float {
-    if (zoom > 1.01f) return 1f
-    return if (size.width > 0 && size.height > 0) 2.5f else zoom
-}
+/** 双击放大倍率：和改版前保持一致。 */
+private const val PhotoDoubleTapZoom = 2.5f
+private const val PhotoZoomDurationMs = 220
 
 /** 双指缩放/平移。原始比例下的单指横向拖动不消费，交给 Pager 翻页。 */
 private fun Modifier.photoZoomGestures(
@@ -308,8 +346,13 @@ private fun Modifier.photoZoomGestures(
                 onPan(if (next > 1.01f) clampPan(currentPan() + event.calculatePan(), next, size()) else Offset.Zero)
                 event.changes.forEach { it.consume() }
             } else if (currentZoom() > 1.01f) {
-                onPan(clampPan(currentPan() + event.calculatePan(), currentZoom(), size()))
-                event.changes.forEach { it.consume() }
+                // 只有真的在拖动才消费事件：一旦无条件 consume，双击/单击会被吞掉，
+                // 放大后就再也双击不回去了。
+                val delta = event.calculatePan()
+                if (delta != Offset.Zero) {
+                    onPan(clampPan(currentPan() + delta, currentZoom(), size()))
+                    event.changes.forEach { it.consume() }
+                }
             }
             if (event.changes.none { it.pressed }) break
         }

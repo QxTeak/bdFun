@@ -42,6 +42,11 @@ internal fun CommentThreadSheet(
             runtime.transient.flashRpid, runtime.transient.flashSeq,
         ),
     ) {
+    val targetRpid = runtime.transient.replyTarget?.rpid
+    // 切到另一个回复对象时先把上一条草稿存好、再取回这一条上次写的内容（issue #144）。
+    LaunchedEffect(runtime.transient, targetRpid) {
+        if (targetRpid != null) runtime.transient.bindDraft(targetRpid)
+    }
     CommentThreadDialog(
         content = ThreadSheetContent(input.comment, allReplies, state.extra.size, input.loading, input.end,
             input.sortHot, actions.sending, actions.sendError?.messageOr("发送失败，请重试")),

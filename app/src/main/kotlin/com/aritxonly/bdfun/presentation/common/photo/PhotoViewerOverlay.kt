@@ -7,8 +7,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -41,6 +43,7 @@ import kotlin.math.max
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.Close
+import top.yukonga.miuix.kmp.icon.extended.RotateLeft
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
@@ -169,9 +172,42 @@ private fun PhotoViewerChrome(
         Box(Modifier.align(Alignment.TopCenter).fillMaxWidth()) {
             PhotoViewerTopBar(onDismiss)
         }
-        request.footer?.let { footer ->
-            Box(Modifier.align(Alignment.BottomCenter)) { footer(onDismiss) }
+        // 底部中间是手动旋转键（Miuix 图标），下面接发起方自己的操作区。
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .then(if (request.footer == null) Modifier.navigationBarsPadding() else Modifier),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            PhotoViewerRotateButton(onClick = {
+                view.rotationQuarter = (view.rotationQuarter + 1) % 4
+            })
+            request.footer?.let { footer ->
+                Box(Modifier.fillMaxWidth()) { footer(onDismiss) }
+            }
         }
+    }
+}
+
+/** 底部旋转键：黑底上一枚白色 Miuix 旋转图标，点一次顺时针转 90°。 */
+@Composable
+private fun PhotoViewerRotateButton(onClick: () -> Unit) {
+    Box(
+        modifier = Modifier
+            .padding(bottom = 10.dp)
+            .size(44.dp)
+            .clip(CircleShape)
+            .background(Color.Black.copy(alpha = 0.28f))
+            .clickable(interactionSource = null, indication = null, onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
+        Icon(
+            imageVector = MiuixIcons.RotateLeft,
+            contentDescription = "旋转图片",
+            tint = Color.White,
+            modifier = Modifier.size(23.dp),
+        )
     }
 }
 

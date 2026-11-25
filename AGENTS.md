@@ -848,10 +848,28 @@ bdFun 对应调整：`Media3PlayerBuilder` 恢复 `setEnableAudioTrackPlaybackPa
 查看器不再用 Dialog：`PhotoViewerRoot` 直接画在当前窗口最上层，楼中楼在自己的 Dialog 内容里再包一层宿主。入场/退场由 `PhotoMorphView`（一个自定义 View + 一个 ValueAnimator）用列表已缓存的缩略图 bitmap 跑 200ms AccelerateDecelerate；动画期间不组合 pager、不解码原图。动画结束后缩略图继续盖住查看器，等 `fullAlpha` 真正到 1 再淡出盖层（`markCoverReady`），避免原图首次加载时闪一帧；超时 4s 兜底。列表缩略图在 `PhotoThumbCache` 里按原始 URL 缓存（LruCache 上限 64MB，sizeOf 单位是 KB）。不要改回 Dialog 或“先显示 pager 再等原图”。
 
 ### 2026-11-23 评论 AI 人格屏蔽（大肥鱼规则）
-
 评论区新增 AI 人格账号屏蔽，规则移植自 ybyz2/bilibili-dafeiyu-blocker（MIT，提交与边界见 `docs/DAFEIYU_BLOCK_PROVENANCE.md`）。纯判定在 `core:domain` 的 `CommentAiBlockPolicy`（账号名含肥鱼 → 品牌词 → 真 @ → 单字 → 全角标点，档位切段，置顶跳过，简繁靠字符类），过滤发生在 `CommentListStateHolder.fetch`：主评论与楼中楼（`root>0`）共用同一状态容器，因此一处接线两边都生效。整页被屏蔽时最多补取 3 页再结束，避免首屏空白。
 
 设置落在 `MessageSettings`：`comment_ai_block` / `comment_ai_block_strength` / `comment_ai_block_reply_mode`，默认关闭（未开启前行为与上一版完全一致）。`CommentStateFactory` 收 `() -> CommentAiBlockConfig`，由 AppContainer 在每次拉取时现读 `settings.repository.message`，不做组合期快照。删除/拉黑、计数横幅、自定义屏蔽词/用户名都没有接入，不要顺手把写操作接进来。
+
+### 2026-11-25 标签胶囊滑动指示器 / 页内内容切换 / 查看器与楼中楼输入
+
+`TeakUI/navigation/TeakSlidingChipRow` 是可复用的「分开胶囊 + 会滑动的选中底色」控件，已在直播分区、收藏夹、历史分类、空间投稿（视频/图文/合集与系列）接入。实现要点，改它之前先读：
+
+- 位置在组合期用 `TextMeasurer` 量好（`LocalTextStyle` 合并后的样式，不能另 new 一个），坐标是内容坐标，滚动时不需要重新测量；胶囊宽度用 px 写死（`chipSize`），px→dp→px 会逐枚累计误差，粉色块就和胶囊对不齐。
+- 灰底与粉色块都由 Row 的 `drawBehind` 画，粉色块按**每枚胶囊的圆角路径裁切**：标签之间的空隙必须被盖住，不能在整行上直接擦过去；高度始终等于胶囊高度，禁止再压缩高度（会在标签内留出上下白边）。
+- 动效：位置用一根带回弹的弹簧（距离越远阻尼越大），位移速度换算成横向拉伸（对称鼓出、停下收回），选中时**整枚胶囊**先缩到 0.94 再回原尺寸（不是放大、也不是只缩文字）；高度始终等于胶囊高度，不做纵向压缩。
+- 首帧不播动画；`TeakMotion.enabled=false` 时所有值直接落到目标。
+
+分段控件（`AdaptiveScrollableTabs` / `TeakPagerTabs`）是另一套实现，本轮没有改、也不要为了这个胶囊去改它。
+
+页内标签切换的内容过渡在 `presentation/common/ContentSwitch`：`rememberContentSwitch(key, direction)` 只按 key 变化重播一次 320ms 的滑入 + 淡入，列表项通过 `Modifier.contentSwitchItem()` 读取**同一份**进度；不要把动画写进每个列表项，否则滚动时新组合出来的卡片会再播一次。直播、收藏/历史/稍后再看已接入，顶部标签与关注行保持不动。
+
+图片查看器：双击以点击点为中心放大（倍率仍 2.5，补间 220ms，公式见 `PhotoViewerRotation.kt` 与单测）；已删除打开时强制 `SCREEN_ORIENTATION_SENSOR` 的自动旋转，改为底部中间的手动旋转键（`MiuixIcons.RotateLeft`），旋转角度存在 `PhotoViewerTransitionState.rotationQuarter`，翻页/关闭时归零。
+
+楼中楼仍是独立 Dialog 窗口（`CommentThreadDialog` + `ui/comment/CommentThreadWindow.kt` 负责窗口起点）：曾试过改成页面覆盖层（`CommentThreadOverlay`）让输入栏浮在最上层，但展开后顶部标题/关闭键会被页面 Tab 行压住、输入栏层级与玻璃采样也出问题，已整体回退。不要再把它改成页内覆盖层，除非能同时解决 Tab 遮挡和玻璃自采样。表情输入保留在楼中楼自己的输入栏里（`ComposerIcon.Emoji` + `EmojiPanel`）。
+
+标签胶囊的选中反馈是整枚胶囊一起缩（先缩到 0.93 再回原尺寸），不是只缩文字、也不是放大：灰底和粉色块都画在每枚标签自己的 draw 里，否则胶囊不跟着缩放。
 
 
 

@@ -30,8 +30,11 @@ internal class CommentThreadRuntime(
 ) {
     val actions get() = controller.actions
     fun exitReply() {
+        // 先记住草稿，再收输入框：再见同一个人时还能接着写（issue #144）。
+        transient.saveDraft()
         transient.replyTarget = null
         transient.draft = ""
+        transient.showEmoji = false
         focusManager.clearFocus()
         keyboard?.hide()
     }
@@ -59,7 +62,9 @@ internal class CommentThreadRuntime(
             if (result != null) {
                 dependencies.sentHistory.record("comment", text, input.bvid, input.videoTitle)
                 if (transient.draft.trim() == text && transient.replyTarget?.rpid == target.rpid) {
+                    transient.forgetDraft(target.rpid)
                     transient.draft = ""
+                    transient.showEmoji = false
                     transient.replyTarget = null
                 }
                 keyboard?.hide()
