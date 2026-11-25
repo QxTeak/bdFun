@@ -8,15 +8,15 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class DanmakuReportLayoutPolicyTest {
-    @Test fun wideLandscapeCompactsThirteenReasonsIntoThreeRows() {
+    @Test fun wideLandscapeUsesFourColumnsToKeepReasonTextReadable() {
         val layout = danmakuReportLayout(
             landscape = true,
             screenWidthDp = 800,
             screenHeightDp = 360,
         )
-        assertEquals(5, layout.columns)
+        assertEquals(4, layout.columns)
         assertTrue(layout.compactButtons)
-        assertEquals(3, DanmakuReportReason.entries.chunked(layout.columns).size)
+        assertEquals(4, DanmakuReportReason.entries.chunked(layout.columns).size)
         assertTrue((layout.maxContentHeightDp ?: 0) in 140..240)
     }
 

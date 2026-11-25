@@ -104,7 +104,7 @@ private fun DanmakuReportReasonList(
                         ) {
                             Text(
                                 if (selected == option) "✓ ${option.title}" else option.title,
-                                maxLines = if (layout.compactButtons) 1 else 2,
+                                maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                                 fontSize = if (layout.compactButtons) 12.sp else 13.sp,
                             )
