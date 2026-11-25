@@ -29,8 +29,18 @@ class DanmakuReportLayoutPolicyTest {
         )
         assertEquals(3, layout.columns)
         assertTrue(layout.compactButtons)
-        assertTrue((layout.maxContentHeightDp ?: 0) >= 140)
+        assertTrue((layout.maxContentHeightDp ?: 0) >= 80)
         assertEquals(2, layout.summaryMaxLines)
+    }
+
+    @Test fun shortLandscapeKeepsActionsInsideWindow() {
+        val layout = danmakuReportLayout(
+            landscape = true,
+            screenWidthDp = 640,
+            screenHeightDp = 288,
+        )
+        assertEquals(80, layout.maxContentHeightDp)
+        assertTrue(layout.compactButtons)
     }
 
     @Test fun portraitKeepsExistingThreeColumnDialog() {

@@ -27,7 +27,7 @@ internal fun danmakuReportLayout(
     return DanmakuReportLayout(
         columns = columns,
         compactButtons = true,
-        maxContentHeightDp = (screenHeightDp - 190).coerceIn(140, 240),
+        maxContentHeightDp = (screenHeightDp - 220).coerceIn(80, 180),
         summaryMaxLines = 2,
     )
 }
