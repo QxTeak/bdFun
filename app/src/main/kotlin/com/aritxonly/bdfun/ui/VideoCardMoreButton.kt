@@ -46,7 +46,7 @@ internal fun VideoCardMoreButton(
         }
         return
     }
-    MoreButtonContent(onCover, touchSize, iconSize, onClick)
+    MoreButtonContent(onCover, touchSize, iconSize, onClick, modifier)
 }
 
 @Composable
@@ -55,10 +55,11 @@ private fun MoreButtonContent(
     touchSize: Dp,
     iconSize: Dp,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val colors = MiuixTheme.colorScheme
     Box(
-        modifier = Modifier
+        modifier = modifier
             .size(touchSize)
             .clip(CircleShape)
             .then(
