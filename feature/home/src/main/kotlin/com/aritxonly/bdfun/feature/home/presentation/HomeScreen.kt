@@ -54,6 +54,7 @@ fun HomeScreen(state: HomeFeedState, onOpenVideo: (VideoItem) -> Unit, cardStyle
     androidx.compose.runtime.LaunchedEffect(ui.openPointMenu, state.menuVideo) {
         if (ui.openPointMenu) {
             androidx.compose.runtime.withFrameNanos { }
+            androidx.compose.runtime.withFrameNanos { }
             ui.pointMenuState.openWithAnchorCopy(false)
             ui.openPointMenu = false
         }

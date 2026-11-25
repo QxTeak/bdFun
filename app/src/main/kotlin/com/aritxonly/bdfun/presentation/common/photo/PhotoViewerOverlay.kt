@@ -108,7 +108,7 @@ internal fun PhotoViewerOverlay(
     val dismissMenu: () -> Unit = {
         menuState.close()
         scope.launch {
-            kotlinx.coroutines.delay(420)
+            kotlinx.coroutines.delay(1200)
             view.menuVisible = false
         }
     }
@@ -146,7 +146,7 @@ private fun PhotoImageMenu(
             state.openWithAnchorCopy(false)
         } else if (mounted) {
             state.close()
-            kotlinx.coroutines.delay(400)
+            kotlinx.coroutines.delay(1200)
             mounted = false
         }
     }
