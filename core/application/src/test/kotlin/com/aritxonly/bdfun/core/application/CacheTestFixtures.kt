@@ -79,4 +79,5 @@ internal open class CacheTransferFake(val storage: CacheFilesFake) : VideoCacheT
 }
 internal fun cacheQueue(storage: CacheFilesFake, transfer: CacheTransferFake,
     scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined), start: () -> Unit = {}) =
-    DownloadQueueStateHolder(storage, transfer, scope, Dispatchers.Unconfined, start, { transfer.clock })
+    DownloadQueueStateHolder(storage, transfer, scope, Dispatchers.Unconfined, start, { transfer.clock },
+        persistDispatcher = Dispatchers.Unconfined)
