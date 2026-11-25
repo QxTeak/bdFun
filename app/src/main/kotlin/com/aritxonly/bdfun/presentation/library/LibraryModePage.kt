@@ -166,49 +166,49 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.libraryGridHead
     val modeProgress = layout.modeProgress; val folders = content.folders; val foldersReady = content.foldersReady
     val folderIndex = content.folderIndex; val onSelectMode = actions.onSelectMode
     val selectFolder = onFolderSelect ?: actions.onFolderSelect
-            item(key = "title", span = { GridItemSpan(maxLineSpan) }) {
-                TeakLargeTitle(
-                    title = title,
-                    modifier = Modifier.padding(bottom = 10.dp),
+    item(key = "title", span = { GridItemSpan(maxLineSpan) }) {
+        TeakLargeTitle(
+            title = title,
+            modifier = Modifier.padding(bottom = 10.dp),
+        )
+    }
+    if (showModeTabs) {
+        item(key = "modes", span = { GridItemSpan(maxLineSpan) }) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 6.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                TeakPagerTabs(
+                    options = MODES,
+                    selected = mode,
+                    onSelect = onSelectMode,
+                    itemWidth = 96.dp,
+                    backdrop = null,
+                    plain = true,
+                    position = modeProgress,
                 )
             }
-            if (showModeTabs) {
-                item(key = "modes", span = { GridItemSpan(maxLineSpan) }) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 6.dp),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        TeakPagerTabs(
-                            options = MODES,
-                            selected = mode,
-                            onSelect = onSelectMode,
-                            itemWidth = 96.dp,
-                            backdrop = null,
-                            plain = true,
-                            position = modeProgress,
-                        )
-                    }
-                }
-            }
+        }
+    }
 
-            if (mode == 1) {
-                item(key = "history-categories", span = { GridItemSpan(maxLineSpan) }) {
-                    LibraryHistoryCategoryBar(historyCategory, onHistoryCategory)
-                }
-            }
+    if (mode == 1) {
+        item(key = "history-categories", span = { GridItemSpan(maxLineSpan) }) {
+            LibraryHistoryCategoryBar(historyCategory, onHistoryCategory)
+        }
+    }
 
-            if (mode == 0 && folders.isNotEmpty() && foldersReady) {
-                item(key = "folders", span = { GridItemSpan(maxLineSpan) }) {
-                    // 首次加载完成后再出现；之后切换收藏夹、重载列表时保持原位，不重播动画。
-                    LibraryFolderBar(
-                        folders = folders,
-                        selectedIndex = folderIndex,
-                        onSelect = selectFolder,
-                    )
-                }
-            }
+    if (mode == 0 && folders.isNotEmpty() && foldersReady) {
+        item(key = "folders", span = { GridItemSpan(maxLineSpan) }) {
+            // 首次加载完成后再出现；之后切换收藏夹、重载列表时保持原位，不重播动画。
+            LibraryFolderBar(
+                folders = folders,
+                selectedIndex = folderIndex,
+                onSelect = selectFolder,
+            )
+        }
+    }
 
 
 }
@@ -219,34 +219,34 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.libraryGridFoot
     val mode = layout.mode; val canLoadMore = content.canLoadMore
     val folderVideos = content.folderVideos; val historyEntries = content.historyEntries; val watchLaterEntries = content.watchLaterEntries
     val error = content.error; val onLoadMore = actions.onLoadMore
-            if (canLoadMore) {
-                item(key = "load-more", span = { GridItemSpan(maxLineSpan) }) {
-                    // 滑到底时这个哨兵会被组合，随即请求下一页；用列表长度做 key，
-                    // 新数据到达后如果还没到底，会再次触发。
-                    val dataSize = if (mode == 0) folderVideos.size else if (mode == 1) {
-                        historyEntries.size
-                    } else {
-                        watchLaterEntries.size
-                    }
-                    LaunchedEffect(actions.owner, dataSize) {
-                        com.aritxonly.bdfun.data.LogCollector.record(
-                            "HISTORY",
-                            "bottom sentinel mode=$mode size=$dataSize canLoadMore=$canLoadMore",
-                        )
-                        onLoadMore()
-                    }
-                    Spacer(Modifier.height(1.dp))
-                }
+    if (canLoadMore) {
+        item(key = "load-more", span = { GridItemSpan(maxLineSpan) }) {
+            // 滑到底时这个哨兵会被组合，随即请求下一页；用列表长度做 key，
+            // 新数据到达后如果还没到底，会再次触发。
+            val dataSize = if (mode == 0) folderVideos.size else if (mode == 1) {
+                historyEntries.size
+            } else {
+                watchLaterEntries.size
             }
+            LaunchedEffect(actions.owner, dataSize) {
+                com.aritxonly.bdfun.data.LogCollector.record(
+                    "HISTORY",
+                    "bottom sentinel mode=$mode size=$dataSize canLoadMore=$canLoadMore",
+                )
+                onLoadMore()
+            }
+            Spacer(Modifier.height(1.dp))
+        }
+    }
 
-            error?.let { message ->
-                item(key = "error", span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        text = message,
-                        modifier = Modifier.padding(vertical = 20.dp),
-                        color = MiuixTheme.colorScheme.onBackgroundVariant,
-                        fontSize = 13.sp,
-                    )
-                }
-            }
+    error?.let { message ->
+        item(key = "error", span = { GridItemSpan(maxLineSpan) }) {
+            Text(
+                text = message,
+                modifier = Modifier.padding(vertical = 20.dp),
+                color = MiuixTheme.colorScheme.onBackgroundVariant,
+                fontSize = 13.sp,
+            )
+        }
+    }
 }
