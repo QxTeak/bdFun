@@ -13,7 +13,6 @@ internal fun danmakuReportLayout(
 ): DanmakuReportLayout {
     if (!landscape) return DanmakuReportLayout(columns = 3, compactButtons = false, maxContentHeightDp = null)
     val columns = when {
-        screenWidthDp >= 720 -> 5
         screenWidthDp >= 600 -> 4
         else -> 3
     }
