@@ -41,8 +41,8 @@ internal fun MineTopAppBar(showSettings: Boolean, onSettings: () -> Unit) {
                         modifier = Modifier.size(20.dp))
                 }
             } else {
-                TeakGlassIconButton(onClick = { haptics.tap(); onSettings() }, size = 40.dp, recipe = recipe,
-                    backdrop = LocalTeakBackdrop.current, materialAlpha = 1f) {
+                TeakGlassIconButton(onClick = { haptics.tap(); onSettings() }, size = com.aritxonly.teak.common.chrome.teakTopBarActionSize(), recipe = recipe,
+                    backdrop = LocalTeakBackdrop.current, materialAlpha = 1f, materialAlphaProvider = null) {
                     Icon(MiuixIcons.Settings, "设置", tint = MiuixTheme.colorScheme.onSurfaceContainer,
                         modifier = Modifier.size(20.dp))
                 }

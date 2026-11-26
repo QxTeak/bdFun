@@ -64,6 +64,14 @@ internal fun isCompactPortraitTopBar(): Boolean {
         configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
 }
 
+/** 顶栏动作圆钮尺寸：紧凑竖屏与返回键同为 44dp，宽屏保持 40dp。 */
+@Composable
+fun teakTopBarActionSize(): Dp = if (isCompactPortraitTopBar()) {
+    TeakChromeDefaults.CompactBackButtonSize
+} else {
+    40.dp
+}
+
 
 /**
  * 页面 chrome 的统一尺寸 / 动画常量。
