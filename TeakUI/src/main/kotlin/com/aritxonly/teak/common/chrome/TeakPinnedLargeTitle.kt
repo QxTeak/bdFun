@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,6 +39,16 @@ internal class TeakLargeTitleAnchorState {
     /** 组合期直接写入的普通字段，保证同一帧里外壳就能读到文案。 */
     var data: TeakLargeTitleData? = null
 
+    /**
+     * 页面内容自己在局部做「一镜到底」时的退让参数（设置页搜索等）。
+     *
+     * 内容只把列表包在退让层里，吸顶大标题却画在顶栏前景，两者不在同一棵子树，
+     * 所以由调用方显式登记一份，标题在绘制阶段按同一份位移 / 淡出 / 模糊跟随。
+     */
+    val searchUnderlayProgress = mutableFloatStateOf(0f)
+    val searchUnderlayAlpha = mutableFloatStateOf(1f)
+    val searchUnderlayBlur = mutableFloatStateOf(0f)
+
     fun register() { present++ }
 
     fun unregister() {
@@ -46,6 +58,27 @@ internal class TeakLargeTitleAnchorState {
 }
 
 internal val LocalTeakLargeTitleAnchor = compositionLocalOf<TeakLargeTitleAnchorState?> { null }
+
+/**
+ * 页面内容自己只对**局部内容**做「一镜到底」时（如设置页搜索：底部搜索框要留在原地，
+ * 只有列表退让），把当前退让参数登记给页面外壳，让吸顶大标题和内容走同一份位移 / 淡出 / 模糊。
+ *
+ * 走 [TeakPageScaffold] 的 `underlayProgress` 那一套的页面不需要调用它，
+ * 外壳会直接用自己那份参数；两者同时存在时按叠加处理。
+ */
+@Composable
+fun TeakLargeTitleSearchUnderlay(
+    progress: Float,
+    alpha: Float = 1f,
+    blur: Float = 0f,
+) {
+    val anchor = LocalTeakLargeTitleAnchor.current ?: return
+    SideEffect {
+        anchor.searchUnderlayProgress.floatValue = progress.coerceIn(0f, 1f)
+        anchor.searchUnderlayAlpha.floatValue = alpha.coerceIn(0f, 1f)
+        anchor.searchUnderlayBlur.floatValue = blur.coerceIn(0f, 1f)
+    }
+}
 
 /**
  * 固定大标题：位置只取页面统一 chrome 的（状态栏 + 内容顶距、统一左右内边距），

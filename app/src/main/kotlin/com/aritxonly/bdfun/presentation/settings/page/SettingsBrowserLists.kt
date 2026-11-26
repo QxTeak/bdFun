@@ -10,7 +10,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.model.settings.*
 import com.aritxonly.bdfun.feature.settings.application.*
@@ -106,19 +108,37 @@ internal fun SettingsCategoryContent(session: SettingsBrowserSession, values: Ma
 internal fun SettingsSearchResults(session: SettingsBrowserSession, hits: List<SettingsSearchHit>, modifier: Modifier, runtime: SettingsPageRuntime) {
     val list = rememberLazyListState()
     if (session.navigation.searching) TrackTeakPageScroll(list)
-    LazyColumn(modifier.imePadding().background(MiuixTheme.colorScheme.surface), state = list, contentPadding = settingsListPadding()) {
-        item { TeakLargeTitle("搜索设置") }
-        if (session.navigation.query.isBlank()) {
-            item { Text("搜索名称、说明或关键词", Modifier.padding(20.dp), color = MiuixTheme.colorScheme.onSurfaceVariantSummary) }
-        } else if (hits.isEmpty()) {
-            item { Text("没有找到相关设置", Modifier.padding(20.dp), color = MiuixTheme.colorScheme.onSurfaceVariantSummary) }
-        } else {
-            items(hits, key = { it.setting.prefName }) { hit ->
-                TeakSettingsCard {
-                    if (hit.category.layout == "root_footer") IndexedActionComponent(hit.setting, runtime)
-                    else ArrowPreference(title = hit.setting.title, summary = "${hit.category.name} · ${hit.group.title}",
-                        onClick = { session.browser.open(hit.category.route, hit.setting.prefName) })
-                }
+    val query = session.navigation.query
+    val background = MiuixTheme.colorScheme.surface
+    // 搜索页没有标题：空态（还没输入 / 没搜到）直接放在屏幕中间，
+    // 不再用「搜索设置」占一个大标题的位置，顶栏只留返回键。
+    if (query.isBlank() || hits.isEmpty()) {
+        Box(modifier.fillMaxSize().imePadding().background(background), contentAlignment = Alignment.Center) {
+            Text(
+                if (query.isBlank()) "搜索名称、说明或关键词" else "没有找到相关设置",
+                Modifier.padding(horizontal = 24.dp),
+                color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
+            )
+        }
+        return
+    }
+    val insets = settingsListPadding()
+    LazyColumn(
+        modifier.fillMaxSize().imePadding().background(background),
+        state = list,
+        // 没有大标题了，列表从顶栏下面开始；否则第一条结果会被返回键压住。
+        contentPadding = PaddingValues(
+            start = insets.calculateLeftPadding(LocalLayoutDirection.current),
+            end = insets.calculateRightPadding(LocalLayoutDirection.current),
+            top = insets.calculateTopPadding() + TeakChromeDefaults.TopBarHeight - TeakChromeDefaults.ContentTopPadding,
+            bottom = insets.calculateBottomPadding(),
+        ),
+    ) {
+        items(hits, key = { it.setting.prefName }) { hit ->
+            TeakSettingsCard {
+                if (hit.category.layout == "root_footer") IndexedActionComponent(hit.setting, runtime)
+                else ArrowPreference(title = hit.setting.title, summary = "${hit.category.name} · ${hit.group.title}",
+                    onClick = { session.browser.open(hit.category.route, hit.setting.prefName) })
             }
         }
     }

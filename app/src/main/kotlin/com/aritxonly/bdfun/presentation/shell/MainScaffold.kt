@@ -81,6 +81,8 @@ private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellStat
 
             MainSearchLayer(settings, shell)
         }
+        // 点顶栏回顶：常开。画在顶栏之前（下面），搜索框 / 分段 / 图标照常优先拿到点击。
+        MainStatusBarScrollToTop(shell)
         // 两个顶栏都挂在采集层之外：底栏搜索的一镜到底会把内容整体上移并模糊，
         // 顶栏只跟着缩放和淡出，不应该再跟着上下位移一次，否则会双重运动。
         MainHomeChrome(settings, shell, pageFloat)
@@ -98,4 +100,25 @@ private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellStat
         // 换页时返回键回到"纯箭头"状态（pageKey / pageEnter 在上面声明）
 
     }
+}
+
+/**
+ * 点顶栏回顶：取当前可见页自己的滚动容器（搜索页用搜索列表的状态）。
+ * 只铺状态栏 + 顶栏高度，并且画在顶栏按钮之前，点击优先级不变。
+ */
+@Composable
+private fun MainStatusBarScrollToTop(shell: MainShellState) {
+    val ui = shell.ui
+    val page = shell.navigation.pager.currentPage
+    com.aritxonly.teak.common.chrome.TeakStatusBarScrollToTop(
+        pageState = when {
+            ui.showSearch -> shell.chrome.search
+            page == 1 -> shell.chrome.dynamic
+            page == 2 -> shell.chrome.mine
+            ui.homeSection == 2 -> shell.chrome.popular
+            ui.homeSection == 3 -> shell.chrome.bangumi
+            else -> shell.chrome.home
+        },
+        belowStatusBar = TeakChromeDefaults.TopBarHeight,
+    )
 }

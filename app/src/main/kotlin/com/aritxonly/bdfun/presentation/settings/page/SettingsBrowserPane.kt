@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.model.settings.SettingValue
 import com.aritxonly.bdfun.feature.settings.application.*
+import com.aritxonly.teak.common.chrome.TeakLargeTitleSearchUnderlay
 import com.aritxonly.teak.common.chrome.TeakPageScaffold
 import com.aritxonly.teak.common.chrome.centeredListWidth
 import com.aritxonly.teak.common.chrome.rememberTeakPageScrollState
@@ -50,9 +51,10 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
         val searching = session.navigation.searching && (pane == SettingsPane.Single ||
             (session.navigation.searchRoute == null) == (pane == SettingsPane.Categories))
         val local = session.copy(navigation = session.navigation.copy(searching = searching))
+        val search = rememberSettingsSearchMotion(searching, runtime.settings.animationsEnabled)
         val categories = pane == SettingsPane.Categories || pane == SettingsPane.Single && session.selected == null
         val detail = session.navigation.detail?.takeIf { pane != SettingsPane.Categories }?.let { SettingsDestination.valueOf(it) }
-        val title = if (detail != null) settingsDetailTitle(detail) else if (searching) "搜索设置" else if (categories) "设置" else session.selected?.name ?: "设置"
+        val title = if (detail != null) settingsDetailTitle(detail) else if (categories) "设置" else session.selected?.name ?: "设置"
         val dispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
         val back = {
             if (pane == SettingsPane.Categories) {
@@ -79,25 +81,66 @@ internal fun SettingsBrowserPane(session: SettingsBrowserSession, values: Map<St
                     discLift = if (categories) BackgroundDiscDockLift else 0.dp,
                     discEndPadding = if (categories) 0.dp else null,
                 ),
+                // 搜索的退让由 SettingsPaneBody 只作用在列表上（底部搜索框和结果面板都得留在原地），
+                // 外壳这里只接标题交叉淡出；把 progress 也交给外壳会把整页内容一起抬走。
+                searchTitle = search.title,
+                searchTitleProgress = search.titleProgress,
             ) {
                 if (detail != null) {
                     // 宽屏右栏可能远宽于 680dp；详情页仍按阅读宽度居中，和独立 Activity 保持一致。
                     Box(Modifier.fillMaxSize().centeredListWidth(maxWidth = 680.dp)) {
                         SettingsDetailContent(detail, back)
                     }
-                } else SettingsPaneBody(local, values, localRuntime, controller, categories)
+                } else SettingsPaneBody(local, values, localRuntime, controller, categories, search.progress, search.alpha)
                 if (categories) SettingsLogoutDialog(session.browser, runtime.navigation.onLogout)
             }
         }
     }
 }
 
+/** 设置页搜索的一条时间线：列表、吸顶大标题和顶栏 chrome 共用。 */
+private data class SettingsSearchMotion(
+    val progress: Float,
+    val alpha: Float,
+    /** 非 null 代表"搜索页自己的 chrome 要淡入"；搜索页没有标题，用空串占位。 */
+    val title: String?,
+    /** 宽屏顶栏常驻，只能等进场动画落定再换文案。 */
+    val titleProgress: Float,
+)
+
+@Composable
+private fun rememberSettingsSearchMotion(searching: Boolean, animationsEnabled: Boolean): SettingsSearchMotion {
+    val progress by animateFloatAsState(if (searching) 1f else 0f,
+        if (animationsEnabled) TeakSearchTransitionDefaults.spec() else tween(0),
+        label = "settingsSearchMotion")
+    val alpha by animateFloatAsState(if (searching) 0f else 1f,
+        tween(if (animationsEnabled) TeakSearchTransitionDefaults.UnderlayAlphaMs else 0),
+        label = "settingsSearchAlpha")
+    val layer = searching || alpha > 0.001f
+    return SettingsSearchMotion(
+        progress = progress,
+        alpha = alpha,
+        title = if (layer) "" else null,
+        titleProgress = if (searching) {
+            if (progress >= 0.999f) 1f else 0f
+        } else {
+            progress
+        },
+    )
+}
+
 @Composable
 private fun SettingsPaneScaffold(runtime: SettingsPageRuntime, pane: SettingsPane, title: String,
     back: () -> Unit, detail: Boolean, fullWidth: Boolean, search: (() -> Unit)?,
-    disc: ActivityDiscOptions, content: @Composable () -> Unit) {
+    disc: ActivityDiscOptions, searchTitle: String?, searchTitleProgress: Float,
+    content: @Composable () -> Unit) {
     if (pane == SettingsPane.Single) {
-        TeakActivityScaffold(runtime.settings, back, options = ActivityPageOptions(title = title, limitContentWidth = !fullWidth),
+        TeakActivityScaffold(runtime.settings, back,
+            options = ActivityPageOptions(title = title, limitContentWidth = !fullWidth,
+                underlay = PageUnderlayOptions(
+                    searchTitle = searchTitle,
+                    searchTitleProgress = searchTitleProgress,
+                )),
             disc = disc,
             slots = ActivityPageSlots(topBarActions = { if (search != null) SettingsCategorySearchButton(search) }), content = content)
     } else PageChromeScope {
@@ -106,20 +149,21 @@ private fun SettingsPaneScaffold(runtime: SettingsPageRuntime, pane: SettingsPan
             pageState = rememberTeakPageScrollState(), backgroundColor = MiuixTheme.colorScheme.surface,
             contentModifier = Modifier.background(MiuixTheme.colorScheme.surface).smartRefresh(runtime.settings.smartRefresh),
             topBarActions = { if (search != null) SettingsCategorySearchButton(search) },
+            searchTitle = searchTitle, searchTitleProgress = searchTitleProgress,
             overlay = { ScrollTopButton(runtime.settings) }, content = content)
     }
 }
 
 @Composable
 private fun SettingsPaneBody(session: SettingsBrowserSession, values: Map<String, SettingValue>, runtime: SettingsPageRuntime,
-    controller: IndexedSettingsStateHolder, categories: Boolean) {
+    controller: IndexedSettingsStateHolder, categories: Boolean, searchProgress: Float, searchAlpha: Float) {
     val background = MiuixTheme.colorScheme.surface
     val backdrop = rememberLayerBackdrop { drawRect(background); drawContent() }
     CompositionLocalProvider(LocalTeakBackdrop provides backdrop) {
         Scaffold(containerColor = Color.Transparent, contentWindowInsets = WindowInsets(0, 0, 0, 0)) {
             Box(Modifier.fillMaxSize().background(background)) {
                 Box(Modifier.fillMaxSize().layerBackdrop(backdrop)) {
-                    Box(Modifier.fillMaxSize().settingsUnderlay(session.navigation.searching, runtime.settings.animationsEnabled)) {
+                    Box(Modifier.fillMaxSize().settingsUnderlay(session.navigation.searching, searchProgress, searchAlpha)) {
                         if (categories) SettingsCategoryList(session, Modifier.fillMaxSize(), runtime)
                         else SettingsCategoryContent(session, values, runtime, controller, Modifier.fillMaxSize())
                     }
@@ -147,10 +191,9 @@ private fun SettingsPaneBody(session: SettingsBrowserSession, values: Map<String
 }
 
 @Composable
-private fun Modifier.settingsUnderlay(hidden: Boolean, animationsEnabled: Boolean): Modifier {
-    val progress by animateFloatAsState(if (hidden) 1f else 0f,
-        if (animationsEnabled) TeakSearchTransitionDefaults.spec() else tween(0), label = "settingsSearchMotion")
-    val alpha by animateFloatAsState(if (hidden) 0f else 1f,
-        tween(if (animationsEnabled) TeakSearchTransitionDefaults.UnderlayAlphaMs else 0), label = "settingsSearchAlpha")
+private fun Modifier.settingsUnderlay(hidden: Boolean, progress: Float, alpha: Float): Modifier {
+    // 底部搜索框和搜索面板都不在退让层里，吸顶大标题却画在页面顶栏前景：
+    // 这里把同一份退让参数登记给页面外壳，标题才会和列表一起上移 / 淡出 / 模糊。
+    TeakLargeTitleSearchUnderlay(progress = progress, alpha = alpha, blur = progress)
     return blockTouches(hidden).then(if (hidden) Modifier.clearAndSetSemantics { } else Modifier).teakSearchUnderlay(progress, alpha)
 }
