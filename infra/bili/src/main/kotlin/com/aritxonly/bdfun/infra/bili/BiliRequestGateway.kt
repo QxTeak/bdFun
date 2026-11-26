@@ -69,18 +69,7 @@ class BiliRequestGateway(
         referer: String?, tolerateEmptyBody: Boolean, userAgent: String?, headers: Map<String, String>,
     ): JSONObject {
         val request = buildBiliRequest(
-            base = base,
-            path = path,
-            params = params,
-            signed = signed,
-            method = method,
-            referer = referer,
-            userAgent = userAgent,
-            headers = headers,
-            signQuery = signQuery,
-            encode = encode,
-            defaultUserAgent = defaultUserAgent,
-            passportBase = passportBase,
+            path, params, signed, base, method, referer, userAgent, headers,
         )
         if (debug) android.util.Log.d("BiliApi", "request ${request.url.encodedPath}")
 
@@ -103,49 +92,44 @@ class BiliRequestGateway(
         return result.optJSONObject("data") ?: JSONObject()
     }
 
-}
-
-/**
- * POST 的业务字段只能放在表单里；签名参数也不能顺带把 csrf/登录凭据拼到查询串。
- * 查询串只用于无请求体的 GET，或由签名器单独返回的 GET 签名。
- */
-internal suspend fun buildBiliRequest(
-    base: String,
-    path: String,
-    params: Map<String, String>,
-    signed: Boolean,
-    method: String,
-    referer: String?,
-    userAgent: String?,
-    headers: Map<String, String>,
-    signQuery: suspend (MutableMap<String, String>) -> String,
-    encode: (String) -> String,
-    defaultUserAgent: String = BILI_UA,
-    passportBase: String = BILI_PASSPORT,
-): Request {
-    val bodyParams = if (method == "POST") params else emptyMap()
-    val queryParams = if (method == "POST") emptyMap() else params.toMutableMap()
-    var url = "$base$path"
-    if (signed && method != "POST") {
-        url = "$url?${signQuery(queryParams.toMutableMap())}"
-    } else if (queryParams.isNotEmpty()) {
-        val query = queryParams.entries.joinToString("&") { (key, value) ->
-            "${encode(key)}=${encode(value)}"
+    /**
+     * POST 的业务字段只能放在表单里；签名参数也不能顺带把 csrf/登录凭据拼到查询串。
+     * 查询串只用于无请求体的 GET，或由签名器单独返回的 GET 签名。
+     */
+    private suspend fun buildBiliRequest(
+        path: String,
+        params: Map<String, String>,
+        signed: Boolean,
+        base: String,
+        method: String,
+        referer: String?,
+        userAgent: String?,
+        headers: Map<String, String>,
+    ): Request {
+        val bodyParams = if (method == "POST") params else emptyMap()
+        val queryParams = if (method == "POST") emptyMap() else params.toMutableMap()
+        var url = "$base$path"
+        if (signed && method != "POST") {
+            url = "$url?${signQuery(queryParams.toMutableMap())}"
+        } else if (queryParams.isNotEmpty()) {
+            val query = queryParams.entries.joinToString("&") { (key, value) ->
+                "${encode(key)}=${encode(value)}"
+            }
+            url = "$url?$query"
         }
-        url = "$url?$query"
+        val builder = Request.Builder()
+            .url(url)
+            .header("User-Agent", userAgent ?: defaultUserAgent)
+            .header("Referer", referer ?: if (base == passportBase) "https://passport.bilibili.com/" else "https://www.bilibili.com/")
+            .header("Accept", "application/json, text/plain, */*")
+            .header("Accept-Language", "zh-CN,zh;q=0.9")
+        headers.forEach { (key, value) -> builder.header(key, value) }
+        if (method == "POST") {
+            val form = FormBody.Builder()
+            bodyParams.forEach { (key, value) -> form.add(key, value) }
+            builder.post(form.build())
+                .header("Origin", "https://www.bilibili.com")
+        }
+        return builder.build()
     }
-    val builder = Request.Builder()
-        .url(url)
-        .header("User-Agent", userAgent ?: defaultUserAgent)
-        .header("Referer", referer ?: if (base == passportBase) "https://passport.bilibili.com/" else "https://www.bilibili.com/")
-        .header("Accept", "application/json, text/plain, */*")
-        .header("Accept-Language", "zh-CN,zh;q=0.9")
-    headers.forEach { (key, value) -> builder.header(key, value) }
-    if (method == "POST") {
-        val form = FormBody.Builder()
-        bodyParams.forEach { (key, value) -> form.add(key, value) }
-        builder.post(form.build())
-            .header("Origin", "https://www.bilibili.com")
-    }
-    return builder.build()
 }
