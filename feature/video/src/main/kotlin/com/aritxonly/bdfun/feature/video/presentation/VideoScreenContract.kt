@@ -29,4 +29,6 @@ data class VideoScreenPresentation(
 class VideoScreenEvents(
     val onOpenComments: (VideoDetail) -> Unit = {},
     val onBack: () -> Unit,
+    /** 详情接口的 stat.reply 变化时上报，供覆盖层的 Tab 显示评论数。 */
+    val onCommentCount: (Long) -> Unit = {},
 )

@@ -19,5 +19,6 @@ internal fun androidx.compose.foundation.layout.BoxScope.VideoActivityTabs(
             settings.danmakuOn = !settings.danmakuOn
             page.danmakuOn = settings.danmakuOn
         },
+        commentCount = ui.commentCount.value,
     )
 }
