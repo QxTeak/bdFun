@@ -130,6 +130,12 @@ interface GeneralSettings {
     val searchHistory: List<String>
     fun addSearchHistory(keyword: String)
     fun clearSearchHistory()
+
+    /**
+     * 批量移除首页搜索记录：按关键词精确匹配，一次写入落盘。
+     * 全删完时直接清空键，与 [clearSearchHistory] 结果一致。
+     */
+    fun removeSearchHistory(keywords: Collection<String>)
     /**
      * 页面级搜索记录（收藏 / 历史 / 稍后再看等）：和首页搜索历史互相隔离，
      * 只记录发生在该页面的关键词，不读写 `searchHistory`。

@@ -98,9 +98,11 @@ internal fun LibrarySearchPage(
                             suggestions = emptyList(),
                             onPickKeyword = events::chooseHistory,
                             onClearHistory = events::clearHistory,
-                            topContentPadding = SearchBarHeight,
-                            flatHistory = true,
-                            roomyHistory = true,
+                            style = SearchLandingStyle(
+                                topContentPadding = SearchBarHeight,
+                                flatHistory = true,
+                                roomyHistory = true,
+                            ),
                         )
                     } else {
                         LibrarySearchResults(content, actions, topInset = statusTop + SearchBarHeight + 6.dp)

@@ -148,6 +148,17 @@ internal class GeneralSettingsStateHolder(
         values.invalidate()
     }
 
+    override fun removeSearchHistory(keywords: Collection<String>) {
+        if (keywords.isEmpty()) return
+        val removed = keywords.toSet()
+        val next = searchHistory.filterNot { it in removed }
+        if (next.isEmpty()) clearSearchHistory()
+        else {
+            prefs.edit().putString("search_history_json", codec.encode(next)).remove("search_history").apply()
+            values.invalidate()
+        }
+    }
+
     // 页面级搜索记录：独立键，不迁移旧的首页历史，也不会被首页清空操作影响。
     private fun scopedHistoryKey(scope: String) = "search_history_${scope}_json"
 
