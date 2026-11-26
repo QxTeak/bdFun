@@ -6,10 +6,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.aritxonly.bdfun.core.domain.isTabletDevice
 import com.aritxonly.bdfun.core.model.video.Quality
 
 /**
@@ -37,8 +39,9 @@ fun BindPlayerSystemBars(
     portraitVideo: Boolean = false,
 ) {
     val activity = LocalContext.current as? Activity
+    val tablet = isTabletDevice(LocalConfiguration.current.smallestScreenWidthDp)
     var inlineOrientation by ui.inlineOrientation
-    DisposableEffect(fullscreen, immersiveStatusBar, portraitVideo) {
+    DisposableEffect(fullscreen, immersiveStatusBar, portraitVideo, tablet) {
         val window = activity?.window
         val controller = window?.let { WindowCompat.getInsetsController(it, it.decorView) }
         if (fullscreen) {
@@ -75,7 +78,8 @@ fun BindPlayerSystemBars(
             if (fullscreen) {
                 val current = activity?.requestedOrientation
                 activity?.requestedOrientation = if (current in playerForcedOrientations) {
-                    ActivityInfo.SCREEN_ORIENTATION_USER
+                    if (tablet) ActivityInfo.SCREEN_ORIENTATION_USER
+                    else ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                 } else {
                     inlineOrientation
                 }

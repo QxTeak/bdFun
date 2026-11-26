@@ -3,7 +3,6 @@ package com.aritxonly.bdfun
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.aritxonly.bdfun.core.model.pgc.BangumiRankTab
@@ -16,7 +15,7 @@ import com.aritxonly.bdfun.ui.TeakActivityScaffold
  * 单榜全量页（「查看更多」的目标）。对齐官方：排行榜是独立页面，参数是 rank_id + oid。
  * 入参走 Intent 显式传，不写 AppGraph.pendingXxx。
  */
-class BangumiRankBoardActivity : ComponentActivity() {
+class BangumiRankBoardActivity : BdFunActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

@@ -1,14 +1,13 @@
 package com.aritxonly.bdfun
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.aritxonly.bdfun.core.navigation.Route
 import com.aritxonly.bdfun.navigation.readRouteIntent
 import com.aritxonly.bdfun.navigation.finishForMissingRoute
 
-class MessageToolsActivity : ComponentActivity() {
+class MessageToolsActivity : BdFunActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

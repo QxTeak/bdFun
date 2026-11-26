@@ -1,6 +1,5 @@
 package com.aritxonly.bdfun
 
-import androidx.activity.ComponentActivity
 
 /**
  * 需要「非小米退出动画」的 Activity 基类。
@@ -9,7 +8,7 @@ import androidx.activity.ComponentActivity
  * 抽到这里，避免每个页面各抄一份 finish 守卫（漏一处就会出现有的页面能收、有的不能收）。
  * 小米机型或没有起飞点时 [OneTakeExit.begin] 返回 false，保持系统原行为。
  */
-abstract class OneTakeExitActivity : ComponentActivity() {
+abstract class OneTakeExitActivity : BdFunActivity() {
 
     private var handoffInFlight = false
 

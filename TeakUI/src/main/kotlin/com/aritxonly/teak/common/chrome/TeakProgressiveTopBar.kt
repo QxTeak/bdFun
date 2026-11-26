@@ -201,7 +201,7 @@ private fun ProgressiveTopBarBackground(
     val advancedMaterial = LocalTeakMaterialSpec.current
     val backdrop = LocalTeakBackdrop.current
     if (advancedMaterial.useOfficialMiuixGlass && advancedMaterial.textureBlurEnabled &&
-        backdrop != null && top.yukonga.miuix.kmp.blur.isRuntimeShaderSupported()) {
+        backdrop != null && top.yukonga.miuix.kmp.material.isRuntimeShaderSupported()) {
         // Keep the app's edge fade and scroll ownership, with the official action-bar body.
         Box(modifier.then(samplingShift).graphicsLayer {
             alpha = materialProgress

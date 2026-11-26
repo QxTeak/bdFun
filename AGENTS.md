@@ -18,7 +18,7 @@
 
 - **bdFun**：第三方哔哩哔哩 Android 客户端（非官方，仅学习研究）。
 - **包名**：`com.aritxonly.bdfun`（debug 构建会自动加 `.debug` 后缀，两者可共存）。
-- **技术栈**：Kotlin 2.4.21 + Jetpack Compose 1.12.2 + Miuix（HyperOS 风格组件库）+ OkHttp + Media3/ExoPlayer + Coil。
+- **技术栈**：Kotlin 2.4.21 + Jetpack Compose 1.13.0-rc01 + Miuix 0.9.5-rc01（HyperOS 风格组件库）+ OkHttp + Media3/ExoPlayer + Coil。
 - **系统要求**：`minSdk 33` / `compileSdk 37` / JDK 21。
 - **界面语言**：简体中文，文案直接写在 Kotlin 里（**历史现状，暂不引入 `strings.xml`**，见 §5）。
 
@@ -36,7 +36,7 @@ gradlew.bat :danmaku-engine:test
 
 **构建前必须知道的三件事**：
 
-1. 本项目用**本地 Miuix 源码**参与 composite build。源码放在 `../miuix-src/miuix-45645854cd46c32275c5666e3aafa9980d8f104e`，或用环境变量 `MIUIX_SOURCE` 指定。也可运行 `python3 tools/setup-miuix.py` 准备 `.local/` 下的固定快照；找不到时回退到 Maven 依赖，但**版本必须对齐**（AGP 9.5.1 不能和别的 AGP 混用）。
+1. 本项目用**本地 Miuix 源码**参与 composite build。源码固定在上游 `bc1024d78a154f5167efff262ae5ed66264c481e`（0.9.5 线，AGP 9.5.3 / Kotlin 2.4.21 / Compose 1.13.0-rc01），放在 `../miuix-src/miuix-bc1024d78a154f5167efff262ae5ed66264c481e`，或用环境变量 `MIUIX_SOURCE` 指定。也可运行 `python3 tools/setup-miuix.py` 准备 `.local/` 下的固定快照；找不到时回退到 Maven 依赖，但**版本必须对齐**（AGP 9.5.3 不能和别的 AGP 混用）。composite build 不继承主工程的 `local.properties`，快照目录需要单独的 `sdk.dir`，`setup-miuix.py` 会按 `ANDROID_HOME` / 根工程 `local.properties` 自动写入。
 2. 每次构建会把时间戳写进 `BuildConfig.BUILD_STAMP` 和 `versionName`，所以**每次构建产物的版本号都不同**，这是故意的，别当 bug 修。
 3. 可以用 `-Ppkg=com.example.app` 覆盖包名做实验，不加时 debug 包名是 `com.aritxonly.bdfun.debug`。
 
@@ -871,10 +871,18 @@ bdFun 对应调整：`Media3PlayerBuilder` 恢复 `setEnableAudioTrackPlaybackPa
 
 标签胶囊的选中反馈是整枚胶囊一起缩（先缩到 0.93 再回原尺寸），不是只缩文字、也不是放大：灰底和粉色块都画在每枚标签自己的 draw 里，否则胶囊不跟着缩放。
 
+### 2026-11-26 设备分类、菜单跟手与加载态
 
+设备分类统一用 `core:domain/DeviceClassPolicy.kt` 的 `isTabletDevice(smallestScreenWidthDp)`（sw600dp；不要用旋转后的 `screenWidthDp`）。`BdFunActivity` 在手机创建时锁竖屏，平板/展开折叠屏不干预；视频页退出全屏由 `PlayerWindowEffects` 恢复手机竖屏、平板 `USER`。视频 70/30 分栏现在同时要求 `smallestWidthDp >= 600`，手机横屏只能进入全屏播放器，不能再出现平板分栏。
 
+`TeakAnchoredGlassMenu` 的退场保活窗口在 `visible=false` 时加 `FLAG_NOT_TOUCHABLE|FLAG_NOT_FOCUSABLE`，动画继续播但下一次触摸/输入法焦点立即交还页面；评论菜单的回复和自由复制改为先执行动作、只延迟清理 target，不要再在动作前 `delay(360)`。
 
+视频页评论输入栏改为按 `pager.currentPage + currentPageOffsetFraction` 连续平移，位移必须在 `graphicsLayer` 里读，不能把 pager 偏移读进组合期。评论 @ 统一普通用户灰、大会员主题色；折叠回复在用户名和「回复」之间补空格。
 
+图片查看器把状态读取收进 `PhotoViewerHost`，打开时只重组 Host，不带着整页 content；双击缩放改用与搜索一镜到底相同的弹簧曲线（0.97 / 247），缩放过程直接写 `view.zoom`，不要恢复 `LaunchedEffect(page.zoom)` 逐帧重启。首次打开仍需在真机看帧，不能再新增常驻全屏 AndroidView 除非有测量收益。
 
+首页分页 footer 用 `TeakLoadingIndicator` + “正在刷新…”；`TeakLoadingRow`/`TeakLoadingArea`/`PageCenteredLoading` 默认带“正在加载…”，按钮和卡片内的小图标传 `label = null`。空间投稿分类标签补 12dp 起始内边距以对齐收藏夹；评分选中星用 `MiuixIcons.FavoritesFill`；消息页点进“回复与@”先本地清 reply/at 红点，不调服务端。\n
+### 2026-11-26 Miuix 0.9.5 升级与图片查看器动效
 
-
+Miuix 源码固定到上游 \c1024d78a154f5167efff262ae5ed66264c481e\（0.9.5 线，AGP 9.5.3 / Kotlin 2.4.21 / Compose 1.13.0-rc01）；\miuix-shader\ 已并入 \miuix-material\，\GlassDefaults/GlassShape/GlassMaterials/EdgeStroke/RuntimeShader\ 改从 \	op.yukonga.miuix.kmp.material\ 导入，\overScrollVertical\ 的 estedScrollToParent\ 参数移除。主工程与所有 Android 库模块统一 \compileSdk 37.2\（\minorApiLevel = 2\），否则 Compose 1.13 的 AAR 元数据会拒绝构建。两个本地补丁（NavDisplay 的 \predictiveBackPreview\、GlassPopupSurface 退场立即释放输入）已按新文件重新生成，升级快照时必须同步刷新 \	ools/miuix-patches\。
+图片查看器：入场改为 HyperOS 4 搜索展开同款 \spring(0.97, 0.4s)\ 非线性速率（\PhotoViewerMotion\，归一化到 0/1），关闭用同一曲线 0.3s；\PhotoMorphView\ 预创建为 1dp 热视图，首次打开不再现场实例化。长按菜单收起时通过 Dialog \FLAG_NOT_TOUCHABLE\ 立即释放输入，GlassPopupSurface 非交互态不再挂全屏消费层；查看器退出会先撤菜单与 backdrop 再回落，消除闪一帧。

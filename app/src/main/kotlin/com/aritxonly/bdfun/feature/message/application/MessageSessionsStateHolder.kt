@@ -72,6 +72,14 @@ internal class MessageSessionsStateHolder(private val repository: MessageSession
         }
     }
 
+    /** 点进“回复与@”后本地先清红点；不调服务端，刷新后仍可能以后端未读为准。 */
+    fun markRepliesRead() {
+        if (!ownerIsCurrent()) return
+        mutable.update {
+            it.copy(unread = it.unread + ("reply" to 0) + ("at" to 0))
+        }
+    }
+
     suspend fun clearUnread(): String? {
         val current = mutable.value
         if (!ownerIsCurrent() || current.busy || current.loading) return null

@@ -27,7 +27,9 @@ internal fun VideoActivityContent(
         initialPage = if (commentRequest.first > 0L) 1 else 0, pageCount = { 2 },
     )
     val scope = rememberCoroutineScope()
-    val screenWidthDp = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+    val smallestWidthDp = configuration.smallestScreenWidthDp
     val statusBarDp = rememberStatusBarTop()
     val playerHeightDp = (screenWidthDp * 9f / 16f).dp
     val immersiveStatus = settings.videoImmersiveStatusBar
@@ -41,7 +43,7 @@ internal fun VideoActivityContent(
         drawContent()
     }
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val paneLayout = resolveVideoPaneLayout(maxWidth.value, maxHeight.value)
+        val paneLayout = resolveVideoPaneLayout(maxWidth.value, maxHeight.value, smallestWidthDp)
         val layout = VideoActivityLayout(paneLayout, statusBarDp, fullscreen, pipMode, alpha, playerTopInset)
         androidx.compose.runtime.SideEffect { host.syncSystemBars(layout.splitPanes) }
         TeakActivityScaffold(

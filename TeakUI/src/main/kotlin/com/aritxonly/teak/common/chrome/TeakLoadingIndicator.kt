@@ -1,6 +1,8 @@
 package com.aritxonly.teak.common.chrome
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -19,21 +21,46 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * Miuix 默认尺寸（20dp）的「环形 + 环绕圆点」加载动画。
  *
- * 不放大、不加文字；列表/详情页的加载占位统一用它，替代原来的骨架屏。
+ * 页面/列表级占位统一带一行加载文案；按钮、卡片内的小图标传 `label = null` 保持紧凑。
  */
 @Composable
 fun TeakLoadingIndicator(
     modifier: Modifier = Modifier,
     size: Dp = 20.dp,
+    label: String? = null,
 ) {
-    InfiniteProgressIndicator(size = size, color = MiuixTheme.colorScheme.onBackgroundVariant, modifier = modifier)
+    if (label == null) {
+        InfiniteProgressIndicator(
+            size = size,
+            color = MiuixTheme.colorScheme.onBackgroundVariant,
+            modifier = modifier,
+        )
+        return
+    }
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        InfiniteProgressIndicator(
+            size = size,
+            color = MiuixTheme.colorScheme.onBackgroundVariant,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+            text = label,
+            color = MiuixTheme.colorScheme.onBackgroundVariant,
+            fontSize = 12.sp,
+        )
+    }
 }
 
 /** 列表里的整行加载占位：水平居中并留上下空白。 */
@@ -42,12 +69,13 @@ fun TeakLoadingRow(
     modifier: Modifier = Modifier,
     size: Dp = 20.dp,
     verticalPadding: Dp = 36.dp,
+    label: String? = "正在加载…",
 ) {
     Box(
         modifier = modifier.fillMaxWidth().padding(vertical = verticalPadding),
         contentAlignment = Alignment.Center,
     ) {
-        TeakLoadingIndicator(size = size)
+        TeakLoadingIndicator(size = size, label = label)
     }
 }
 
@@ -63,6 +91,7 @@ fun TeakLoadingArea(
     modifier: Modifier = Modifier,
     size: Dp = 20.dp,
     @Suppress("UNUSED_PARAMETER") extraTopInset: Dp = 0.dp,
+    label: String? = "正在加载…",
 ) {
     val density = LocalDensity.current
     val windowHeightPx = LocalWindowInfo.current.containerSize.height
@@ -83,6 +112,6 @@ fun TeakLoadingArea(
             },
         contentAlignment = Alignment.Center,
     ) {
-        TeakLoadingIndicator(size = size)
+        TeakLoadingIndicator(size = size, label = label)
     }
 }

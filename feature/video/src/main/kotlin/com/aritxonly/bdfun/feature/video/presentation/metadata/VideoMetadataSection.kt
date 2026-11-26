@@ -71,7 +71,7 @@ fun VideoMetadataSection(
             Modifier.fillMaxWidth().height(areaHeight),
             contentAlignment = androidx.compose.ui.Alignment.Center,
         ) {
-            com.aritxonly.teak.common.chrome.TeakLoadingIndicator()
+            com.aritxonly.teak.common.chrome.TeakLoadingIndicator(label = "正在加载…")
         }
         return
     }

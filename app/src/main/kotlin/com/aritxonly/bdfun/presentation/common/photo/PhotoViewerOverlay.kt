@@ -108,7 +108,8 @@ internal fun PhotoViewerOverlay(
     val dismissMenu: () -> Unit = {
         menuState.close()
         scope.launch {
-            kotlinx.coroutines.delay(1200)
+            // 回弹约 200ms；只多留一帧余量就卸载窗口，避免一个不可触摸的 Dialog 长时间挂在查看器上面。
+            kotlinx.coroutines.delay(400)
             view.menuVisible = false
         }
     }
@@ -139,6 +140,9 @@ private fun PhotoImageMenu(
 ) {
     var mounted by remember { mutableStateOf(visible) }
     if (visible) mounted = true
+    // 收起动画一开始 state.open 就变 false；Dialog 仍要留着画完回弹，
+    // 但输入必须立刻还给查看器。
+    val menuOpen = state.isOpen
     LaunchedEffect(visible) {
         if (visible) {
             // 先以关闭态组合一帧，再张开，Miuix 才能播形变入场。
@@ -146,7 +150,7 @@ private fun PhotoImageMenu(
             state.openWithAnchorCopy(false)
         } else if (mounted) {
             state.close()
-            kotlinx.coroutines.delay(1200)
+            kotlinx.coroutines.delay(400)
             mounted = false
         }
     }
@@ -169,6 +173,10 @@ private fun PhotoImageMenu(
                 android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT),
             )
             dialogWindow?.setWindowAnimations(0)
+            // 退场一开始就释放窗口输入，菜单继续播回弹，但下一次点击能立即落到查看器/页面上。
+            val releaseInput = android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+            if (menuOpen) dialogWindow?.clearFlags(releaseInput) else dialogWindow?.addFlags(releaseInput)
         }
         Box(Modifier.fillMaxSize()) {
             com.aritxonly.teak.common.navigation.TeakMorphPointAnchor(

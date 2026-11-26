@@ -80,7 +80,7 @@ APP_PACKAGE = Path('app/src/main/kotlin/com/aritxonly/bdfun')
 def violations(root):
     errors = []
     def check(path, pattern, message, diagnostics=False):
-        code = code_only(path.read_text())
+        code = code_only(path.read_text(encoding='utf-8'))
         if diagnostics: code = DIAGNOSTICS.sub(lambda m: ' ' * len(m[0]), code)
         for line, text in enumerate(code.splitlines(), 1):
             if re.search(pattern, text): errors.append(f'{path}:{line}: {message}：{text.strip()}')
@@ -91,7 +91,7 @@ def violations(root):
         for path in feature_root.rglob('*.kt'):
             parts = path.relative_to(feature_root).parts
             feature = parts[0]
-            code = code_only(path.read_text())
+            code = code_only(path.read_text(encoding='utf-8'))
             for line, text in enumerate(code.splitlines(), 1):
                 for match in re.finditer(r'\bcom\.aritxonly\.bdfun\.feature\.(\w+)', text):
                     if match[1] != feature:

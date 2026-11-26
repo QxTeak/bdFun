@@ -3,7 +3,6 @@ package com.aritxonly.bdfun
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
@@ -11,7 +10,7 @@ import androidx.compose.runtime.*
 import com.aritxonly.bdfun.ui.*
 import com.aritxonly.teak.common.chrome.*
 
-class RelationActivity : ComponentActivity() {
+class RelationActivity : BdFunActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

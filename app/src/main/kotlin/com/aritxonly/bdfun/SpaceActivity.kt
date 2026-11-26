@@ -6,7 +6,6 @@ import com.aritxonly.bdfun.ui.ActivityPageOptions
 import com.aritxonly.bdfun.ui.ActivityPageSlots
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.getValue
@@ -18,7 +17,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.aritxonly.bdfun.feature.space.presentation.SpacePageViewModel
 import com.aritxonly.bdfun.ui.TeakActivityScaffold
 
-class SpaceActivity : ComponentActivity() {
+class SpaceActivity : BdFunActivity() {
     private var lightStatusIcons = false
 
     internal fun syncSpaceStatusIcons(light: Boolean = lightStatusIcons) {

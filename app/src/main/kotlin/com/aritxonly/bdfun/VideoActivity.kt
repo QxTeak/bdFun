@@ -136,7 +136,7 @@ class VideoActivity : OneTakeExitActivity() {
         runCatching {
             syncVideoSystemBars()
         }
-        if (!PlayerUiState.fullscreen) requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER
+        if (!PlayerUiState.fullscreen) applyIdleOrientation()
         if (autoRotateAllowed()) {
             startOrientationTracking()
         } else {
@@ -236,7 +236,7 @@ class VideoActivity : OneTakeExitActivity() {
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
-        if (!PlayerUiState.fullscreen) requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER
+        if (!PlayerUiState.fullscreen) applyIdleOrientation()
         if (BuildConfig.DEBUG) {
             android.util.Log.d(
                 "ROTDBG",

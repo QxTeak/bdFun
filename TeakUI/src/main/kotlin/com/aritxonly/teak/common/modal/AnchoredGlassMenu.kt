@@ -78,6 +78,16 @@ fun TeakAnchoredGlassMenu(
                 dialogWindow?.setBackgroundDrawable(
                     android.graphics.drawable.ColorDrawable(android.graphics.Color.TRANSPARENT),
                 )
+                // 退场期间窗口还要留着播完 Miuix 弹簧，但不能再吞下一次触摸：
+                // 只把窗口标记为不可触摸，绘制和动画都不受影响。
+                // 同时放开焦点，避免菜单项一执行“回复”就把焦点/输入法留在旧窗口里。
+                val releaseInput = android.view.WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                    android.view.WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+                if (visible) {
+                    dialogWindow?.clearFlags(releaseInput)
+                } else {
+                    dialogWindow?.addFlags(releaseInput)
+                }
                 matchSystemBars(dialogWindow, hostActivity?.window)
             }
             Box(modifier = Modifier.fillMaxSize()) {

@@ -39,7 +39,7 @@ internal fun VideoCollectionEpisodes(
             modifier = Modifier
                 .fillMaxSize()
                 .nestedScroll(presentation.keepInsideCollection)
-                .overScrollVertical(nestedScrollToParent = false),
+                .overScrollVertical(),
         ) {
             itemsIndexed(episodes, key = { index, episode -> "$index:${episode.cid}" }) { _, episode ->
                 val active = episode.cid == currentCid

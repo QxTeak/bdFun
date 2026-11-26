@@ -127,7 +127,8 @@ internal fun GradeStarRow(
                 // 评分用星星，不用收藏/喜欢的心形；实心星星表示已选中。
                 if (filled) {
                     AppGlyph(
-                        icon = com.aritxonly.bdfun.R.drawable.fs_star,
+                        // fs_star 是带内轮廓的收藏星，填色后仍然像空心；选中态直接用 Miuix 实心星。
+                        icon = MiuixIcons.FavoritesFill,
                         tint = GradeStarColor,
                         size = 23.dp,
                         contentDescription = option.label,

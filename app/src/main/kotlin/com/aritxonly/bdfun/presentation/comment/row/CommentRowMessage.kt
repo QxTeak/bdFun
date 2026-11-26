@@ -23,9 +23,12 @@ internal fun CommentRowMessage(item: CommentItem) {
         content = EmoteTextContent(
             text = item.message,
             extraEmotes = item.emotes,
-            // 正文里 @ 到的人：和折叠回复同色，统一用「我的」页图标蓝（见 EmoteTextStyle 默认值）。
+            // 评论区 @ 不再用蓝色：普通用户灰、大会员主题色，和用户名同一套规则。
             mentions = remember(item.mentions) {
             item.mentions.associate { it.name to it.mid }
+        },
+            vipMentions = remember(item.mentions) {
+            item.mentions.filter { it.isVip }.map { it.name }.toSet()
         },
         ),
         style = EmoteTextStyle(
@@ -33,6 +36,8 @@ internal fun CommentRowMessage(item: CommentItem) {
             fontSize = CommentTypography.bodySize,
             lineHeight = CommentTypography.bodyLineHeight,
             fontWeight = FontWeight.Normal,
+            mentionColor = colors.onBackgroundVariant,
+            vipMentionColor = colors.primary,
         ),
         onMentionClick = { mid ->
             if (mid > 0L) {

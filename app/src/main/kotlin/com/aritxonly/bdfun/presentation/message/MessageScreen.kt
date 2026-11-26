@@ -30,7 +30,15 @@ fun MessageScreen(
     val listState = rememberLazyListState()
     val ui = remember { MessageSessionsPresentationStateHolder(chrome.readAllRequest, chrome.moreRequest) }
     val menu = remember(controller) { MessageSessionMenuStateHolder() }
-    val events = MessageScreenEvents(onNeedLogin, onOpenReplies, onOpenLikes, onOpenFans)
+    val events = MessageScreenEvents(
+        onNeedLogin,
+        onOpenReplies = {
+            controller.markRepliesRead()
+            onOpenReplies()
+        },
+        onOpenLikes,
+        onOpenFans,
+    )
     val actions = MessageSessionActions(controller, scope, context, loggedIn, menu)
     RegisterScrollTop(listState, "message")
     MessageSessionsEffects(controller, loggedIn, ui, menu, scope)

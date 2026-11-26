@@ -28,7 +28,7 @@ jobs:
         # Runner自带新版sdkmanager，API37的包名包含次版本号。
         run: |
           set +o pipefail
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-37.0' 'build-tools;37.0.0'
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-37.2' 'build-tools;37.0.0'
       - name: Prepare pinned Miuix source
         run: python3 tools/setup-miuix.py
       - name: Prepare pinned Robolectric SDK

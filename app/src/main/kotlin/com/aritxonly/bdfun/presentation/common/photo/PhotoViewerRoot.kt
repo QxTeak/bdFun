@@ -2,11 +2,11 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -17,7 +17,9 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import android.graphics.Bitmap
 import android.graphics.Rect
@@ -26,13 +28,13 @@ import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 
 /**
- * 褰撳墠绐楀彛鍐呯殑鍥剧墖鏌ョ湅鍣ㄥ涓汇€?
+ * 当前窗口内的图片查看器宿主。
  *
- * 鍜?Telegram 鐨?PhotoViewer 涓€鏍风洿鎺ョ敾鍦ㄧ獥鍙ｆ渶涓婂眰锛屼笉鍒涘缓 Dialog锛涘叆鍦?閫€鍦虹敤
- * 鍒楄〃閲屽凡缁忕紦瀛樼殑缂╃暐鍥?bitmap 璺戜竴娆?[PhotoMorphView]锛屾湡闂翠笉缁勫悎 pager銆佷笉瑙ｇ爜鍘熷浘銆?
- * 鍔ㄧ敾缁撴潫鍚庢墠鏄剧ず鍙氦浜掔殑 Compose 鏌ョ湅鍣ㄥ苟鍔犺浇鍘熷浘銆?
+ * 和 Telegram 的 PhotoViewer 一样直接画在窗口最上层，不创建 Dialog；入场/退场用
+ * 列表里已经缓存的缩略图 bitmap 跑一次 [PhotoMorphView]，期间不组合 pager、不解码原图。
+ * 动画结束后才显示可交互的 Compose 查看器并加载原图。
  *
- * 妤间腑妤艰繖绫荤嫭绔?Dialog 浼氬湪鑷繁鐨勫唴瀹归噷鍐嶅寘涓€灞傛湰瀹夸富锛屾煡鐪嬪櫒鐢诲湪寮圭獥鑷繁鐨勭獥鍙ｉ噷銆?
+ * 楼中楼这类独立 Dialog 会在自己的内容里再包一层本宿主，查看器画在弹窗自己的窗口里。
  */
 @Composable
 internal fun PhotoViewerRoot(
@@ -41,47 +43,21 @@ internal fun PhotoViewerRoot(
     content: @Composable () -> Unit,
 ) {
     val view = remember { PhotoViewerTransitionState() }
-    val incoming = state.request
-    val durationMs = if (animationsEnabled) PhotoViewerDurationMs else 0L
+    val openDurationMs = if (animationsEnabled) PhotoViewerMotion.OpenDurationMs else 0L
+    val closeDurationMs = if (animationsEnabled) PhotoViewerMotion.CloseDurationMs else 0L
     val viewerBackdrop = rememberLayerBackdrop {
         drawRect(androidx.compose.ui.graphics.Color.Black)
         drawContent()
     }
-    var morphViewRef by remember { mutableStateOf<PhotoMorphView?>(null) }
 
-    LaunchedEffect(incoming) {
-        val request = incoming
-        val current = view.displayed
-        when {
-            request != null && current == null -> {
-                // 涓婁竴娆℃嫋鍔ㄥ叧闂彲鑳界暀涓嬩綅绉?缂╂斁锛涗笉閲嶇疆浼氳鍐嶆鎵撳紑鏃朵綅缃拰鑳屾櫙閮戒笉瀵广€?
-                view.resetTransient()
-                view.displayed = request
-                view.pageIndex = request.index
-                view.settled = false
-                view.progress.floatValue = 0f
-                view.startMorph(request, request.index, open = true, durationMs)
-            }
-            request == null && current != null -> {
-                view.settled = false
-                view.startMorph(current, view.pageIndex, open = false, durationMs)
-            }
-        }
-    }
-    // 鍘熷浘/缂╃暐鍥捐繜杩熸病鐢诲嚭鏉ャ€佹垨 Compose 灞傛姤鍛婅兘鐢讳簡锛氱粺涓€鐢辫繖涓?effect 澶勭悊鐩栧眰娣″嚭銆?
-    PhotoMorphCoverFallback(view) { morphViewRef }
-
-    // 鍏ュ満鍔ㄧ敾/缂╃暐鍥剧洊灞傛湡闂寸偣鍑讳篃瑕佽兘绔嬪埢鍏抽棴锛屼笉鑳界瓑鍘熷浘鍔犺浇瀹屻€?
-    val dismissOnTap = view.displayed != null && (!view.settled || view.morphCovering)
+    // 查看器状态只在 Host 里读取：打开大图时只重组 Host，不带着整页 content() 一起重组。
+    // 这是首次打开卡顿里最容易被忽略的一块：页面越大，宿主重组越贵。
     Box(
         Modifier.fillMaxSize()
-            .onSizeChanged { view.size = it }
-            .then(if (dismissOnTap) Modifier.pointerInput(Unit) {
-                detectTapGestures { state.close() }
-            } else Modifier),
+            .onSizeChanged { view.size = it },
     ) {
-        // 搴曞眰椤甸潰锛氭墦寮€鏃堕殢杩涘害鏀惧ぇ涓€鐐圭偣锛屽叧闂椂鎸夊悓鏍峰€嶆暟缂╁洖锛?
-        // 璺熸墜鎷栧姩鏃跺啀缂╁埌 0.9銆?
+        // 底层页面：打开时随进度放大一点点，关闭时按同样倍数缩回；
+        // 跟手拖动时再缩到 0.9。
         Box(
             modifier = Modifier.fillMaxSize().graphicsLayer {
                 val scale = photoBackdropScaleAt(view.progress.value, view.dismissProgress)
@@ -91,25 +67,150 @@ internal fun PhotoViewerRoot(
         ) {
             CompositionLocalProvider(LocalPhotoViewer provides state) { content() }
         }
-        view.displayed?.let { request ->
-            if (view.settled) {
-                PhotoViewerSettledLayer(request, view, state, viewerBackdrop)
+        PhotoViewerHost(state, view, openDurationMs, closeDurationMs, viewerBackdrop)
+    }
+}
+
+@Composable
+private fun androidx.compose.foundation.layout.BoxScope.PhotoViewerHost(
+    state: PhotoViewerStateHolder,
+    view: PhotoViewerTransitionState,
+    openDurationMs: Long,
+    closeDurationMs: Long,
+    viewerBackdrop: top.yukonga.miuix.kmp.blur.LayerBackdrop,
+) {
+    // 提前创建形变 View：首次打开时只改尺寸和启动动画，不再现场 inflate/类加载，
+    // 这是首次打开卡顿里最确定的一笔。空闲时保持 1dp 且不可见。
+    val morphView = rememberPhotoMorphView(state, view)
+    PhotoViewerMorphEffect(state, view, openDurationMs, closeDurationMs)
+    // 原图/缩略图迟迟没画出来、或 Compose 层已能画了：统一由这个 effect 处理盖层淡出。
+    PhotoMorphCoverFallback(view) { morphView }
+    // 入场动画/缩略图盖层期间点击也要能立即关闭，不能等原图加载完。
+    val dismissOnTap = view.displayed != null && (!view.settled || view.morphCovering)
+    if (dismissOnTap) {
+        Box(
+            Modifier.fillMaxSize().pointerInput(Unit) {
+                detectTapGestures { state.close() }
+            },
+        )
+    }
+    view.displayed?.let { request ->
+        // 关闭时继续保留一帧，直到形变层报告已经画出内容。
+        if (view.settled || (view.closing && !view.morphDrawn)) {
+            PhotoViewerSettledLayer(request, view, state, viewerBackdrop)
+        }
+    }
+    val morphActive = view.displayed != null && view.morphParams != null &&
+        (!view.settled || view.morphCovering)
+    BindMorphAnimation(view, morphView)
+    AndroidView(
+        factory = { morphView },
+        modifier = if (morphActive) {
+            Modifier.fillMaxSize()
+        } else {
+            Modifier.size(1.dp).graphicsLayer { alpha = 0f }
+        },
+    )
+}
+
+@Composable
+private fun rememberPhotoMorphView(
+    state: PhotoViewerStateHolder,
+    view: PhotoViewerTransitionState,
+): PhotoMorphView {
+    val context = LocalContext.current
+    return remember(context) {
+        PhotoMorphView(context).apply {
+            onProgress = {
+                view.progress.floatValue = it
+                // 形变层真正画出第一帧后，才允许撤掉下面的 Compose 查看器，避免中间露一帧页面。
+                view.morphDrawn = true
             }
-            // 鍔ㄧ敾缁撴潫鍚庣缉鐣ュ浘浠嶇洊鍦ㄦ渶涓婇潰锛岀洿鍒?Compose 灞傜湡姝ｆ妸鍘熷浘/缂╃暐鍥剧敾鍑烘潵銆?
-            if ((!view.settled || view.morphCovering) && view.morphParams != null) {
-                PhotoMorphLayer(view, state) { morphViewRef = it }
+            onFinished = {
+                if (state.request == null) {
+                    view.displayed = null
+                    view.progress.floatValue = 0f
+                    view.morphParams = null
+                    view.morphCovering = false
+                    view.closing = false
+                    view.morphDrawn = false
+                    view.resetTransient()
+                } else {
+                    view.settled = true
+                    view.progress.floatValue = 1f
+                    view.closing = false
+                }
             }
         }
     }
 }
 
-/** 缂╃暐鍥剧洊灞傜殑涓ょ娣″嚭鏃舵満锛氱瓑澶箙鍏滃簳锛屾垨 Compose 灞傛姤鍛婂凡缁忚兘鐢汇€?*/
+/** 监听打开/关闭请求；退场先保留 Compose 层，等形变层画出首帧再撤。 */
+@Composable
+private fun PhotoViewerMorphEffect(
+    state: PhotoViewerStateHolder,
+    view: PhotoViewerTransitionState,
+    openDurationMs: Long,
+    closeDurationMs: Long,
+) {
+    val incoming = state.request
+    LaunchedEffect(incoming) {
+        val request = incoming
+        val current = view.displayed
+        when {
+            request != null && current == null -> {
+                // 上一次拖动关闭可能留下位移/缩放；不重置会让再次打开时位置和背景都不对。
+                view.resetTransient()
+                view.closing = false
+                view.morphDrawn = false
+                view.displayed = request
+                view.pageIndex = request.index
+                view.settled = false
+                view.progress.floatValue = 0f
+                view.startMorph(request, request.index, open = true, openDurationMs)
+            }
+            request == null && current != null -> {
+                view.settled = false
+                // 退出时先保留 Compose 查看器，等形变层画出第一帧再撤；
+                // 否则 AndroidView 重新布局的那一两帧会先露出底层页面，看起来就是闪一下。
+                view.closing = true
+                view.morphDrawn = false
+                // 查看器退出时菜单不能继续挂在自己的录制层上：先撤掉菜单与背板录制，
+                // 再走形变回落，否则会看到一帧没有采样源的玻璃面板（闪一下）。
+                view.menuVisible = false
+                view.startMorph(current, view.pageIndex, open = false, closeDurationMs)
+            }
+        }
+    }
+}
+
+/** session 变化后启动；start() 里会等到 View 真正铺满窗口再开始，避免在 1dp 预热点上跑动画。 */
+@Composable
+private fun BindMorphAnimation(
+    view: PhotoViewerTransitionState,
+    morphView: PhotoMorphView,
+) {
+    LaunchedEffect(view.morphSession) {
+        val params = view.morphParams ?: return@LaunchedEffect
+        morphView.start(
+            params.bitmap,
+            params.origin,
+            params.radius,
+            params.open,
+            durationMs = params.duration,
+            dragOffsetY = params.dragOffsetY,
+            startDim = params.startDim,
+        )
+    }
+}
+
+/** 缩略图盖层的两种淡出时机：等太久兜底，或 Compose 层报告已经能画。 */
 @Composable
 private fun PhotoMorphCoverFallback(
     view: PhotoViewerTransitionState,
     overlay: () -> PhotoMorphView?,
 ) {
-    // 鍘熷浘/缂╃暐鍥捐繜杩熸病鐢诲嚭鏉ユ椂锛岀缉鐣ュ浘涓嶈兘姘歌繙鐩栫潃锛涜秴鏃跺悗闇插嚭 Compose 灞傘€?
+    // 原图/缩略图迟迟没画出来时，缩略图不能永远盖着；超时后露出 Compose 层。
     LaunchedEffect(view.settled, view.morphCovering) {
         if (view.settled && view.morphCovering) {
             kotlinx.coroutines.delay(600)
@@ -119,7 +220,7 @@ private fun PhotoMorphCoverFallback(
             }
         }
     }
-    // Compose 灞傝鍥惧凡缁忚兘鐢讳簡锛氱瓑瀹冪湡姝ｇ敾鍑轰竴涓ゅ抚鍚庡啀娣″嚭鐩栧眰锛屾潨缁濅腑闂撮棯涓€甯с€?
+    // Compose 层说图已经能画了：等它真正画出几帧后再淡出盖层，杜绝中间闪一帧空。
     PhotoCoverReadyEffect(view, overlay)
 }
 
@@ -127,7 +228,8 @@ private fun PhotoMorphCoverFallback(
 private fun PhotoCoverReadyEffect(
     view: PhotoViewerTransitionState,
     overlay: () -> PhotoMorphView?,
-) {    LaunchedEffect(view.settled, view.coverReadyToken) {
+) {
+    LaunchedEffect(view.settled, view.coverReadyToken) {
         if (view.settled && view.morphCovering && view.coverReadyToken > 0) {
             kotlinx.coroutines.delay(120)
             if (!view.morphCovering) return@LaunchedEffect
@@ -148,7 +250,7 @@ private fun PhotoViewerSettledLayer(
     state: PhotoViewerStateHolder,
     viewerBackdrop: top.yukonga.miuix.kmp.blur.LayerBackdrop,
 ) {
-    // 鍜?Telegram 涓€鏍风敾鍦ㄥ悓涓€涓獥鍙ｉ噷锛涙ゼ涓ゼ鏈夎嚜宸辩殑涓€灞傚涓汇€?
+    // 和 Telegram 一样画在同一个窗口里；楼中楼有自己的宿主层。
     CompositionLocalProvider(LocalTeakBackdrop provides viewerBackdrop) {
         Box(
             Modifier.fillMaxSize().then(
@@ -161,7 +263,7 @@ private fun PhotoViewerSettledLayer(
                 onDismiss = state::close,
                 onPageChanged = {
                     view.pageIndex = it
-                    // 鎹竴寮犲浘浠庛€屾湭鏃嬭浆銆嶅紑濮嬶紝閬垮厤涓婁竴寮犵殑鏃嬭浆甯﹀埌涓嬩竴寮犮€?
+                    // 换一张图从「未旋转」开始，避免上一张的旋转带到下一张。
                     view.rotationQuarter = 0
                 },
             )
@@ -169,54 +271,22 @@ private fun PhotoViewerSettledLayer(
     }
 }
 
-@Composable
-private fun PhotoMorphLayer(
-    view: PhotoViewerTransitionState,
-    state: PhotoViewerStateHolder,
-    onView: (PhotoMorphView?) -> Unit,
-) {
-    val params = view.morphParams ?: return
-    key(view.morphSession) {
-        AndroidView(
-            factory = { context ->
-                PhotoMorphView(context).apply {
-                    onView(this)
-                    onProgress = { view.progress.floatValue = it }
-                    onFinished = {
-                        if (state.request == null) {
-                            view.displayed = null
-                            view.progress.floatValue = 0f
-                            view.morphParams = null
-                            view.morphCovering = false
-                            // 鍏抽棴鍔ㄧ敾缁撴潫鍚庢竻鎺夋墜鍔挎畫鐣欙紝涓嬩竴娆℃墦寮€浠庡共鍑€鐘舵€佸紑濮嬨€?
-                            view.resetTransient()
-                        } else {
-                            view.settled = true
-                            view.progress.floatValue = 1f
-                        }
-                    }
-                    start(params.bitmap, params.origin, params.radius, params.open,
-                        durationMs = params.duration, dragOffsetY = params.dragOffsetY, startDim = params.startDim)
-                }
-            },
-            modifier = Modifier.fillMaxSize(),
-        )
-    }
-}
-
-/** Telegram 鐨勫叆鍦?閫€鍦烘槸 200ms 鐨?AccelerateDecelerate锛屾病鏈夊洖寮广€佹病鏈夎繃鍐层€?*/
-internal const val PhotoViewerDurationMs = 200L
+/** 与 [PhotoViewerMotion] 保持一致，具体时长由打开/关闭方向分别决定。 */
 
 
 /**
- * 涓€娆℃墦寮€/鍏抽棴杩囩▼涓殑鍏ㄩ儴鐬椂鐘舵€併€?
+ * 一次打开/关闭过程中的全部瞬时状态。
  *
- * 鍏ュ満/閫€鍦虹敱 [PhotoMorphView] 鐨勫崟涓?ValueAnimator 椹卞姩锛沺rogress 鍙槸缁欏簳灞傞〉闈?
- * 缂╂斁鍜?Compose 灞傝鍙栫殑闀滃儚锛屼笉鍐嶇敤 Compose 鍔ㄧ敾閫愬抚閲嶇粍鏌ョ湅鍣ㄣ€?
+ * 入场/退场由 [PhotoMorphView] 的单个 ValueAnimator 驱动；progress 只是给底层页面
+ * 缩放和 Compose 层读取的镜像，不再用 Compose 动画逐帧重组查看器。
  */
 internal class PhotoViewerTransitionState {
     var displayed by mutableStateOf<PhotoViewerRequest?>(null)
     var settled by mutableStateOf(false)
+    /** 正在播退场：Compose 查看器要留到形变层画出第一帧。 */
+    var closing by mutableStateOf(false)
+    /** 形变层是否已经真正绘制过内容。 */
+    var morphDrawn by mutableStateOf(false)
     var pageIndex by mutableIntStateOf(0)
     val progress = mutableFloatStateOf(0f)
     var dragY by mutableFloatStateOf(0f)
@@ -224,27 +294,29 @@ internal class PhotoViewerTransitionState {
     var chromeVisible by mutableStateOf(true)
     var size by mutableStateOf(IntSize.Zero)
     var menuVisible by mutableStateOf(false)
-    /** 鐢ㄦ埛鎵嬪姩鏃嬭浆鐨勭鍑犱釜 90掳锛氬浘鐗囨煡鐪嬪櫒涓嶅啀璺熼殢浼犳劅鍣ㄨ浆鍚戯紝鍙杩欎釜鍊笺€?*/
+    /** 用户手动旋转的第几个 90°：图片查看器不再跟随传感器转向，只认这个值。 */
     var rotationQuarter by mutableIntStateOf(0)
     var morphParams by mutableStateOf<PhotoMorphParams?>(null)
     var morphSession by mutableIntStateOf(0)
-    /** 缂╃暐鍥剧户缁洊鍦ㄦ煡鐪嬪櫒涓婏紝鐩村埌鍘熷浘/缂╃暐鍥剧湡姝ｇ敾鍑烘潵锛岄伩鍏嶄腑闂撮棯涓€甯х┖銆?*/
+    /** 缩略图继续盖在查看器上，直到原图/缩略图真正画出来，避免中间闪一帧空。 */
     var morphCovering by mutableStateOf(false)
-    /** Compose 灞傛姤鍛娾€滃浘宸茬粡鑳界敾浜嗏€濈殑浠ｆ暟锛汻oot 鏀跺埌鍚庡厛娣″嚭鐩栧眰鍐嶇Щ闄ゃ€?*/
+    /** Compose 层报告「图已经能画了」的代数；root 收到后先淡出盖层再移除。 */
     var coverReadyToken by mutableIntStateOf(0)
-    /** 鍏ュ満缂╃暐鍥剧殑鐪熷疄瀹介珮姣旓細浜ゆ帴缁?Compose 椤垫椂鍏堢敤瀹冿紝閬垮厤钀戒綅鐬棿鎸?16:9 閲嶆帓銆?*/
+    /** 入场缩略图的真实宽高比：交接给 Compose 页时先用它，避免落位瞬间按 16:9 重排。 */
     var openAspect by mutableFloatStateOf(0f)
 
     val dismissProgress: Float
         get() = photoDismissProgress(dragY, size.height.toFloat())
 
-    /** 鎵撳紑/鍏抽棴涓€娆＄粨鏉熷悗澶嶄綅鎵嬪娍鎬侊紝閬垮厤涓嬩竴娆℃墦寮€娌跨敤涓婃鐨勪綅绉诲拰缂╂斁銆?*/
+    /** 打开/关闭一次结束后复位手势态，避免下一次打开沿用上次的位移和缩放。 */
     fun resetTransient() {
         dragY = 0f
         zoom = 1f
         chromeVisible = true
         menuVisible = false
         rotationQuarter = 0
+        closing = false
+        morphDrawn = false
     }
 
     fun markCoverReady() {
@@ -260,7 +332,7 @@ internal class PhotoViewerTransitionState {
         val bitmap = PhotoThumbCache.get(request.images.getOrNull(index).orEmpty())
         val origin = request.originFor(index)
         if (bitmap == null || origin == null || durationMs <= 0L) {
-            // 娌℃湁缂╃暐鍥剧紦瀛樻椂閫€鍥炵洿鎺ユ樉绀猴紝鑷冲皯涓嶈绌虹櫧鎴栧崱鍦ㄥ崐绌恒€?
+            // 没有缩略图缓存时退回直接显示，至少不要空白或卡在半空。
             morphParams = null
             morphCovering = false
             settled = true
@@ -283,9 +355,9 @@ internal class PhotoViewerTransitionState {
             radius = request.originRadiusPx,
             open = open,
             duration = durationMs,
-            // 鍏抽棴鏃舵妸褰撳墠鎷栧姩浣嶇Щ浜ょ粰缂╃暐鍥惧姩鐢伙紝閬垮厤浠庢墜鎸囦綅缃烦鍥炲睆骞曚腑蹇冨啀缂╁洖銆?
+            // 关闭时把当前拖动位移交给缩略图动画，避免从手指位置跳回屏幕中心再缩回。
             dragOffsetY = if (open) 0f else dragY,
-            // 鎷栧姩鏃堕粦搴曞凡缁忓彉娣★紝鍏抽棴鍔ㄧ敾鎺ョ潃杩欎釜閫忔槑搴﹁蛋锛屽惁鍒欎細鍏堥棯鍥炲叏榛戙€?
+            // 拖动时黑底已经变淡，关闭动画接着这个透明度走，否则会先闪回全黑。
             startDim = if (open) 1f else 1f - dismissProgress,
         )
     }

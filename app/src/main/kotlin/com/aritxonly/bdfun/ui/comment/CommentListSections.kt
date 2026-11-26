@@ -192,7 +192,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.commentSkeletonItems
                 .height(180.dp),
             contentAlignment = androidx.compose.ui.Alignment.Center,
         ) {
-            com.aritxonly.teak.common.chrome.TeakLoadingIndicator()
+            com.aritxonly.teak.common.chrome.TeakLoadingIndicator(label = "正在加载…")
         }
     }
 }
@@ -210,7 +210,7 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.commentListFooter(
                 modifier = Modifier.fillMaxWidth().padding(vertical = 14.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                com.aritxonly.teak.common.chrome.TeakLoadingIndicator()
+                com.aritxonly.teak.common.chrome.TeakLoadingIndicator(label = "正在加载…")
             }
         }
     }
