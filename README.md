@@ -104,6 +104,7 @@ bdFun 使用了 / 参考了以下项目，感谢作者和社区的工作：
 - [BiliPai](https://github.com/jay3-yy/BiliPai) / [bytedance DanmakuRenderEngine](https://github.com/bytedance/DanmakuRenderEngine)：弹幕实现移植，视频收起功能移植，功能与交互参考
 - [FodFluidRipple](https://github.com/Leaf-lsgtky)（[@Leaf-lsgtky](https://github.com/Leaf-lsgtky)）：水波纹动画
 - [Guiyuan](https://github.com/CHS-Haple/Guiyuan)（[@CHS-Haple](https://github.com/CHS-Haple)）：开始页移植
+- [bilibili-dafeiyu-blocker](https://github.com/ybyz2/bilibili-dafeiyu-blocker)（[@ybyz2](https://github.com/ybyz2)，MIT）：评论区 AI 人格账号「大肥鱼」的识别与屏蔽规则参考
 - [Telegram Android](https://github.com/TelegramMessenger/Telegram-Android)（[@TelegramMessenger](https://github.com/TelegramMessenger)）：图片查看器移植
 - HyperOS 4：一镜到底动效
 - AndroidX / Jetpack Compose、Media3 / ExoPlayer、OkHttp、Coil、Kotlin / kotlinx.coroutines、ZXing
