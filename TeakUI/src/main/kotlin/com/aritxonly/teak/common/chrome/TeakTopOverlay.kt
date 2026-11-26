@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -104,9 +106,20 @@ fun TeakTopGlassButton(
         TeakGlassRecipes.floatingNavigation(advancedMaterial.fineTuning)
     }
     val fallbackReveal = rememberManualProgress(if (revealed) 1f else 0f, 300f)
-    val reveal = if (LocalProgressiveTopBarMaterialHosted.current) LocalTopBarButtonMaterialProgress.current else fallbackReveal
+    val hostedAlpha = if (LocalProgressiveTopBarMaterialHosted.current) {
+        LocalTopBarButtonMaterialProgress.current
+    } else {
+        null
+    }
+    val revealVisible = if (hostedAlpha != null) {
+        val visible by remember(hostedAlpha) { derivedStateOf { hostedAlpha.value > 0.01f } }
+        visible
+    } else {
+        fallbackReveal > 0.01f
+    }
 
-    Box(modifier = modifier.size(40.dp)) {
+    val buttonSize = if (isCompactPortraitTopBar()) TeakChromeDefaults.CompactBackButtonSize else 40.dp
+    Box(modifier = modifier.size(buttonSize)) {
         val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
         if (classic) {
             // 经典顶栏动作只保留图标，不加圆底。
@@ -115,13 +128,14 @@ fun TeakTopGlassButton(
                     .matchParentSize()
                     .clickable(interactionSource = null, indication = null, onClick = onClick),
             )
-        } else if (reveal > 0.01f) {
+        } else if (revealVisible) {
             TeakGlassIconButton(
                 onClick = onClick,
-                size = 40.dp,
+                size = buttonSize,
                 recipe = recipe,
                 backdrop = LocalTeakBackdrop.current,
-                materialAlpha = reveal,
+                materialAlpha = if (hostedAlpha == null) fallbackReveal else 1f,
+                materialAlphaProvider = hostedAlpha?.let { state -> { state.value } },
             ) {}
         } else {
             Box(

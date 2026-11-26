@@ -37,12 +37,18 @@ internal fun VideoDanmakuControl(
 ) {
     val colors = MiuixTheme.colorScheme
     val material = LocalTeakMaterialSpec.current
-    val progress = if (LocalProgressiveTopBarMaterialHosted.current) LocalTopBarButtonMaterialProgress.current else 1f
+    val hostedAlpha = if (LocalProgressiveTopBarMaterialHosted.current) {
+        LocalTopBarButtonMaterialProgress.current
+    } else {
+        null
+    }
+    val alphaProvider = hostedAlpha?.let { state -> { state.value } }
     TeakGlassSurface(
-        modifier = Modifier.teakContentControlShadow(Capsule(), progress).height(40.dp),
+        modifier = Modifier.teakContentControlShadow(Capsule(), 1f, alphaProvider).height(40.dp),
         shape = Capsule(),
         recipe = TeakGlassRecipes.floatingNavigation(material.fineTuning),
-        materialAlpha = progress,
+        materialAlpha = 1f,
+        materialAlphaProvider = alphaProvider,
         // 与 TeakPagerTabs / segment 共用同一平面底色和材质过渡，避免未显现时透明。
         flatBackgroundAlpha = 1f,
         flatBackgroundColor = com.aritxonly.teak.common.theme.LocalTeakContentColors.current.groupedBackground,

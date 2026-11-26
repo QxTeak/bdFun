@@ -128,7 +128,6 @@ private fun HomeTopBarWideTabsRow(
             maxVisibleItems = 3,
             selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
             itemWidth = 64.dp,
-            materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
             onSelect = tabs.onSelect,
             position = tabs.position,
             modifier = Modifier.align(Alignment.Center),
@@ -167,7 +166,6 @@ private fun HomeTopBarMainRow(
                     maxVisibleItems = 3,
                     selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
                     itemWidth = 64.dp,
-                    materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
                     onSelect = tabs.onSelect,
                     position = tabs.position,
                 )
@@ -200,7 +198,6 @@ private fun HomeTopBarTabsBelow(tabs: HomeTopBarTabs) {
             maxVisibleItems = 3,
             selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
             itemWidth = 64.dp,
-            materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
             onSelect = tabs.onSelect,
             position = tabs.position,
         )
@@ -234,7 +231,6 @@ private fun HomeTopBarLandscapeRow(
                     selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
                     onSelect = tabs.onSelect,
                     itemWidth = 64.dp,
-                    materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
                     position = tabs.position,
                     scrollable = true,
                     maxVisibleItems = 3,

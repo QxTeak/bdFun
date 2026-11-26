@@ -73,7 +73,7 @@ internal fun SpaceTopChrome(state: SpaceChromeState, onBack: () -> Unit) {
     val tabs: @Composable (Dp) -> Unit = { itemWidth ->
         TeakPagerTabs(options = listOf("主页", "动态", "投稿", "小店"), selected = state.selected,
             onSelect = { state.onSelect(it) }, position = state.position, itemWidth = itemWidth,
-            materialProgress = if (state.wide) com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current
+            materialProgress = if (state.wide) 1f
                 else com.aritxonly.teak.common.chrome.rememberManualProgress(state.headerProgress, 280f))
     }
     if (state.wide) SpaceWideTopChrome(state, onBack, glyph, pageGlyph, tabs, actions)

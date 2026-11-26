@@ -38,7 +38,6 @@ internal fun HomeTopBarRight(content: HomeTopBarContent, search: HomeTopBarSearc
     } else {
         UnreadBadgeHost(count = unreadCount) {
             TeakGlassIconButton(
-                materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
                 flatBackgroundAlpha = com.aritxonly.teak.common.material.TeakGlassDefaults.flatBackgroundAlpha(),
                 onClick = onOpenMessages, size = 40.dp, recipe = recipe, backdrop = backdrop,
             ) {

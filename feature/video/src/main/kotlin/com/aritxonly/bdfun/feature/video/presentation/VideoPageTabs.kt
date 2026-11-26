@@ -40,6 +40,9 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
         if (materialTarget) 1f else 0f,
         300f,
     )
+    // local 提供 State 而不是 Float：tab 的 alpha 在绘制阶段读取，滚动时不重组整条子树。
+    val revealState = androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(materialReveal) }
+    androidx.compose.runtime.SideEffect { revealState.value = materialReveal }
     // 视频页没有 ProgressiveTopBarMaterial，这个 local 只为兼容读取方；给阈值而不是
     // 连续进度，避免每滚一像素都让整棵子树重组。
     val scrollProgress = if (materialTarget) 1f else 0f
@@ -70,7 +73,7 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
     androidx.compose.runtime.CompositionLocalProvider(
         com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress provides scrollProgress,
         com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted provides true,
-        com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress provides materialReveal,
+        com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress provides revealState,
     ) {
         // 不做顶部渐进式模糊（横屏分栏也不要）：评论区顶部用 VideoPageBody 里的
         // 渐变遮罩，和底部保持对称；这里只负责 tab / 发弹幕控件的材质进度。

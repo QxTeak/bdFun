@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
@@ -25,6 +26,7 @@ internal data class TopBarGlassShadow(
     val official: Boolean,
     val profile: TeakGlassShadowProfile,
     val preset: GlassShadowPreset,
+    val alphaProvider: (() -> Float)? = null,
 )
 
 @Stable
@@ -51,12 +53,13 @@ internal fun TopBarGlassShadowHost(content: @Composable () -> Unit) {
         Box(Modifier.matchParentSize()) {
             val origin = state.origin
             if (origin != null) for ((id, shadow) in state.shadows.toMap()) key(id) {
-                if (shadow.alpha > 0f && shadow.bounds.width > 0f && shadow.bounds.height > 0f) {
+                if (shadow.bounds.width > 0f && shadow.bounds.height > 0f) {
                     val offset = shadow.bounds.topLeft - origin
                     Box(Modifier
                         .absoluteOffset { IntOffset(offset.x.roundToInt(), offset.y.roundToInt()) }
                         .size(with(density) { shadow.bounds.width.toDp() }, with(density) { shadow.bounds.height.toDp() })
-                        .drawTeakGlassShadow(shadow.shape, shadow.isDark, shadow.alpha, shadow.official, shadow.profile, shadow.preset))
+                        .graphicsLayer { alpha = (shadow.alphaProvider?.invoke() ?: shadow.alpha).coerceIn(0f, 1f) }
+                        .drawTeakGlassShadow(shadow.shape, shadow.isDark, 1f, shadow.official, shadow.profile, shadow.preset))
                 }
             }
         }
@@ -70,6 +73,7 @@ internal fun Modifier.registerTopBarGlassShadow(
     shape: Shape,
     isDark: Boolean,
     alpha: Float,
+    alphaProvider: (() -> Float)?,
     official: Boolean,
     profile: TeakGlassShadowProfile,
     preset: GlassShadowPreset,
@@ -78,7 +82,7 @@ internal fun Modifier.registerTopBarGlassShadow(
     var bounds by remember(host) { mutableStateOf<Rect?>(null) }
     val measuredBounds = bounds
     SideEffect {
-        measuredBounds?.let { host.shadows[id] = TopBarGlassShadow(it, shape, isDark, alpha.coerceIn(0f, 1f), official, profile, preset) }
+        measuredBounds?.let { host.shadows[id] = TopBarGlassShadow(it, shape, isDark, alpha.coerceIn(0f, 1f), official, profile, preset, alphaProvider) }
     }
     DisposableEffect(host, id) { onDispose { host.shadows.remove(id) } }
     return onGloballyPositioned { coordinates ->

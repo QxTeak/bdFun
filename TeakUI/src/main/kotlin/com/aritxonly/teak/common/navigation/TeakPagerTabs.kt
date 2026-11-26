@@ -81,8 +81,8 @@ fun TeakPagerTabs(
      * 消息 / 收藏 / 历史等页面内的 Tab 用 true；顶栏、底栏仍用默认的玻璃。
      */
     plain: Boolean = false,
-    materialProgress: Float = if (com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted.current)
-        com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current else 1f,
+    materialProgress: Float = 1f,
+    materialAlphaProvider: (() -> Float)? = com.aritxonly.teak.common.chrome.topBarMaterialAlphaProvider(),
     /**
      * 连续位置（0.0 = 第一项，1.5 = 正从第二项滑向第三项）。
      * 传入后指示器在布局阶段跟随手指移动，不再等页面切换结束才跳过去。
@@ -189,7 +189,7 @@ fun TeakPagerTabs(
         }
     } else if (plain && transparentBackground) {
         Box(
-            modifier = modifier.teakContentControlShadow(Capsule(), materialProgress)
+            modifier = modifier.teakContentControlShadow(Capsule(), materialProgress, materialAlphaProvider)
                 .height(TeakPagerTabDefaults.Height),
             contentAlignment = Alignment.CenterStart,
         ) {
@@ -207,12 +207,13 @@ fun TeakPagerTabs(
         }
     } else {
         TeakGlassSurface(
-            modifier = modifier.teakContentControlShadow(Capsule(), materialProgress)
+            modifier = modifier.teakContentControlShadow(Capsule(), materialProgress, materialAlphaProvider)
                 .height(TeakPagerTabDefaults.Height),
             shape = Capsule(),
             recipe = recipe,
             backdrop = backdrop,
             materialAlpha = materialProgress,
+            materialAlphaProvider = materialAlphaProvider,
             flatBackgroundAlpha = if (flatBackgroundColor != null) 1f else
                 com.aritxonly.teak.common.material.TeakGlassDefaults.flatBackgroundAlpha(),
             flatBackgroundColor = flatBackgroundColor,

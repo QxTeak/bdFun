@@ -6,6 +6,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,7 +43,7 @@ import top.yukonga.miuix.kmp.icon.extended.ChevronBackward
 fun TeakGlassBackButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    size: Dp = TeakChromeDefaults.BackButtonSize,
+    size: Dp = if (isCompactPortraitTopBar()) TeakChromeDefaults.CompactBackButtonSize else TeakChromeDefaults.BackButtonSize,
     revealed: Boolean = true,
     light: Boolean = false,
     /** 自定义箭头颜色（个人主页压在头图上时做黑白渐变用）。 */
@@ -53,8 +56,18 @@ fun TeakGlassBackButton(
     // 固定速率淡入/淡出（300ms），与页面滚动速度无关。
     val fallbackReveal = rememberManualProgress(if (revealed) 1f else 0f, 300f)
     // 经典顶栏常驻，返回键也常驻平面圆底，不随滚动淡入。
-    val reveal = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 1f
-        else if (LocalProgressiveTopBarMaterialHosted.current) LocalTopBarButtonMaterialProgress.current else fallbackReveal
+    // 顶栏宿主内：alpha 只在绘制阶段读取，避免滚动渐显每帧重组。
+    val hostedAlpha = if (LocalProgressiveTopBarMaterialHosted.current) {
+        LocalTopBarButtonMaterialProgress.current
+    } else {
+        null
+    }
+    val revealVisible = if (hostedAlpha != null) {
+        val visible by remember(hostedAlpha) { derivedStateOf { hostedAlpha.value > 0.01f } }
+        visible
+    } else {
+        fallbackReveal > 0.01f
+    }
 
     Box(modifier = modifier.size(size)) {
         val classic = com.aritxonly.teak.common.theme.TeakUiStyle.isClassic
@@ -65,13 +78,14 @@ fun TeakGlassBackButton(
                     .matchParentSize()
                     .clickable(interactionSource = null, indication = null, onClick = onClick),
             )
-        } else if (reveal > 0.01f) {
+        } else if (revealVisible) {
             TeakGlassIconButton(
                 onClick = onClick,
                 size = size,
                 recipe = recipe,
                 backdrop = LocalTeakBackdrop.current,
-                materialAlpha = reveal,
+                materialAlpha = if (hostedAlpha == null) fallbackReveal else 1f,
+                materialAlphaProvider = hostedAlpha?.let { state -> { state.value } },
                 flatBackgroundAlpha = flatBackgroundAlpha,
             ) {}
         }
@@ -85,7 +99,7 @@ fun TeakGlassBackButton(
                 .align(Alignment.Center),
         )
         // 透明热区：没有背景时也能点。
-        if (reveal <= 0.01f) {
+        if (!revealVisible) {
             Box(
                 modifier = Modifier
                     .matchParentSize()

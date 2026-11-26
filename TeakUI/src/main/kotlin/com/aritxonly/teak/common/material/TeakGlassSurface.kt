@@ -6,6 +6,7 @@ import com.aritxonly.teak.common.theme.LocalTeakContentColors
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.background
 import com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted
+import com.aritxonly.teak.common.chrome.topBarMaterialAlphaProvider
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -54,8 +55,9 @@ fun TeakGlassSurface(
     tint: Color? = null,
     tintStyle: GlassTintStyle = GlassTintStyle.Neutral,
     interaction: GlassMaterialInteraction = GlassMaterialInteraction(),
-    materialAlpha: Float = if (LocalProgressiveTopBarMaterialHosted.current)
-        com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current else 1f,
+    materialAlpha: Float = 1f,
+    /** 顶栏宿主内使用：alpha 在 draw 阶段读取，避免滚动渐显每帧重组。 */
+    materialAlphaProvider: (() -> Float)? = topBarMaterialAlphaProvider(),
     /** Optional flat state, enabled only by home controls and segmented selectors. */
     flatBackgroundAlpha: Float = 0f,
     baseAlpha: Float = 1f,
@@ -104,7 +106,7 @@ fun TeakGlassSurface(
             modifier = Modifier
                 .matchParentSize()
                 .graphicsLayer {
-                    alpha = materialAlpha.coerceIn(0f, 1f)
+                    alpha = (materialAlphaProvider?.invoke() ?: materialAlpha).coerceIn(0f, 1f)
                 }
                 .background(resolvedTint.copy(alpha = baseAlpha.coerceIn(0f, 1f)))
                 .teakGlassMaterial(
@@ -145,8 +147,9 @@ fun TeakGlassIconButton(
     tint: Color? = null,
     tintStyle: GlassTintStyle = GlassTintStyle.Neutral,
     backdrop: Backdrop? = LocalTeakBackdrop.current,
-    materialAlpha: Float = if (LocalProgressiveTopBarMaterialHosted.current)
-        com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current else 1f,
+    materialAlpha: Float = 1f,
+    /** 顶栏宿主内使用：alpha 在 draw 阶段读取。 */
+    materialAlphaProvider: (() -> Float)? = topBarMaterialAlphaProvider(),
     flatBackgroundAlpha: Float = 0f,
     neutralTintProgress: Float = 0f,
     content: @Composable () -> Unit,
@@ -179,6 +182,7 @@ fun TeakGlassIconButton(
                 shape = TeakGlassDefaults.Shape,
                 isDark = isDark,
                 alpha = materialAlpha,
+                alphaProvider = materialAlphaProvider,
                 profile = if (LocalTeakControlEmphasis.current) {
                     if (LocalProgressiveTopBarMaterialHosted.current) TeakGlassShadowProfile.ContentTopBarControl
                     else TeakGlassShadowProfile.ContentControl
@@ -195,6 +199,7 @@ fun TeakGlassIconButton(
             tintStyle = tintStyle,
             backdrop = backdrop,
             materialAlpha = materialAlpha,
+            materialAlphaProvider = materialAlphaProvider,
             flatBackgroundAlpha = flatBackgroundAlpha,
             interaction = GlassMaterialInteraction(neutralTintProgress = neutralTintProgress),
         ) {
