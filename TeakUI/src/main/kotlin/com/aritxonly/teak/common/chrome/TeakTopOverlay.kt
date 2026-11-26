@@ -55,7 +55,14 @@ fun TeakTopOverlay(
             modifier = modifier
                 .fillMaxWidth()
                 .statusBarsPadding()
-                .height(TeakChromeDefaults.TopOverlayHeight)
+                // 紧凑竖屏的返回键按 Miuix 用 44dp，容器高度同步加 4dp，避免 44×40 的椭圆。
+                .height(
+                    if (isCompactPortraitTopBar()) {
+                        TeakChromeDefaults.TopOverlayHeight + 4.dp
+                    } else {
+                        TeakChromeDefaults.TopOverlayHeight
+                    },
+                )
                 .padding(
                     horizontal = TeakChromeDefaults.TopOverlayHorizontalPadding,
                     vertical = TeakChromeDefaults.TopOverlayVerticalPadding,
