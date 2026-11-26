@@ -27,13 +27,15 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import com.aritxonly.teak.common.interaction.blockTouches
 import com.aritxonly.teak.common.search.teakSearchUnderlay
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -332,12 +334,22 @@ fun TeakLargeTitle(
     val hidden = hosted
     val baseModifier = modifier
     val colors = MiuixTheme.colorScheme
-    val p = (pageState.collapse / TeakChromeDefaults.CollapseFadeFraction).coerceIn(0f, 1f)
     Column(
         modifier = baseModifier
             .fillMaxWidth()
-            .graphicsLayer { alpha = if (hidden) 0f else 1f - p }
-            .then(if (hidden) Modifier else Modifier.blur(TeakChromeDefaults.CollapseBlurRadius * p)),
+            .graphicsLayer {
+                // 折叠进度只在这里读：标题在自己的前景层完成淡出与模糊，
+                // 不再随滚动重组，也不会被顶栏 backdrop 二次采样。
+                val p = (pageState.collapse / TeakChromeDefaults.CollapseFadeFraction)
+                    .coerceIn(0f, 1f)
+                alpha = if (hidden) 0f else 1f - p
+                renderEffect = if (!hidden && p > 0.001f) {
+                    val radius = TeakChromeDefaults.CollapseBlurRadius.toPx() * p
+                    BlurEffect(radius, radius, TileMode.Clamp)
+                } else {
+                    null
+                }
+            },
     ) {
         Spacer(Modifier.height(topSpacer))
         Text(
@@ -356,6 +368,43 @@ fun TeakLargeTitle(
                 fontSize = if (isCompactPortraitTopBar()) TeakChromeDefaults.CompactSubtitleFontSize else TeakChromeDefaults.SubtitleFontSize,
             )
         }
+    }
+}
+
+/**
+ * 顶栏前景里的大标题：与 MIUIX 一致，标题属于顶栏前景而不是页面录制层，
+ * 因此只会被自己的折叠模糊处理一次，不会被顶栏的 progressive blur 二次采样。
+ * 位移与折叠进度都在绘制阶段读取。
+ */
+@Composable
+private fun TeakLargeTitleForeground(
+    state: TeakLargeTitleAnchorState,
+    pageState: TeakPageScrollState,
+    topInset: Dp,
+    underlayLiftPx: Float,
+) {
+    if (state.present <= 0) return
+    val data = state.data ?: return
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                translationY = -currentScrollOffsetPx(pageState) - underlayLiftPx
+            },
+    ) {
+        TeakLargeTitle(
+            title = data.title,
+            subtitle = data.subtitle,
+            titleColor = data.titleColor,
+            subtitleColor = data.subtitleColor,
+            pageState = pageState,
+            modifier = Modifier.padding(
+                start = TeakChromeDefaults.ContentHorizontalPadding,
+                end = TeakChromeDefaults.ContentHorizontalPadding,
+                top = topInset,
+            ),
+            drawnAsPinnedCopy = true,
+        )
     }
 }
 
@@ -443,14 +492,16 @@ fun TeakPageScaffold(
                     if (title != null && limitContentWidth) {
                         TeakScrollContainer(pageState.scrollableState, Modifier.fillMaxSize(), content = content)
                     } else content()
-                    // 大标题固定副本画在滚动容器外，但在 backdrop 录制层内：
-                    // 这样顶栏渐进模糊仍能采样到标题，标题不会在顶栏底边被一块硬边遮住。
-                    TeakPinnedLargeTitle(largeTitleState, pageState, topInset = largeTitleTopInset)
+                    // 大标题已移到顶栏前景层绘制（不进入 backdrop 录制），避免被顶栏渐进模糊二次模糊。
                 }
             }
             Box(modifier = Modifier.fillMaxSize()) { overlay() }
             // 顶栏始终留在组合里：一镜到底时只改透明度，避免动画中途卸载/重建整棵顶栏
             // 造成一帧跳动；搜索层画在 topOverlay，盖在顶栏之上，透明时也接不到点击。
+            val underlayLiftPx = with(androidx.compose.ui.platform.LocalDensity.current) {
+                com.aritxonly.teak.common.search.TeakSearchTransitionDefaults.ContentLift.toPx() *
+                    underlayProgress.coerceIn(0f, 1f)
+            }
             if (showTopBar) CompositionLocalProvider(LocalTopBarScrollProgress provides ((topBarMaterialProgress ?: pageState.materialProgress).coerceIn(0f, 1f) * barBlurFraction.coerceIn(0f, 1f))) {
                 // 只有做一镜到底时才开独立图层，普通页面保持原来的绘制路径。
                 val topBarLayer = if (topBarAlpha < 0.999f) {
@@ -460,19 +511,48 @@ fun TeakPageScaffold(
                 }
                 ProgressiveTopBarMaterial(
                     modifier = topBarLayer,
-                    underlayLiftPx = with(androidx.compose.ui.platform.LocalDensity.current) {
-                        com.aritxonly.teak.common.search.TeakSearchTransitionDefaults.ContentLift.toPx() *
-                            underlayProgress.coerceIn(0f, 1f)
-                    },
+                    underlayLiftPx = underlayLiftPx,
                     underlayBlurPx = com.aritxonly.teak.common.search.TeakSearchTransitionDefaults.UnderlayBlurPx *
                         underlayBlurProgress.coerceIn(0f, 1f),
                 ) {
                     if (title != null && !wide) {
-                        TeakTopBar(
-                            title = title,
-                            collapse = pageState.collapse,
-                            titleAlwaysVisible = titleAlwaysVisible,
-                        )
+                        if (!com.aritxonly.teak.common.theme.TeakUiStyle.isClassic &&
+                            largeTitleState.present > 0
+                        ) {
+                            Layout(
+                                content = {
+                                    TeakLargeTitleForeground(
+                                        state = largeTitleState,
+                                        pageState = pageState,
+                                        topInset = largeTitleTopInset,
+                                        underlayLiftPx = underlayLiftPx,
+                                    )
+                                    TeakTopBar(
+                                        title = title,
+                                        collapse = pageState.collapse,
+                                        titleAlwaysVisible = titleAlwaysVisible,
+                                    )
+                                },
+                            ) { measurables, constraints ->
+                                val titlePlaceable = measurables[0].measure(
+                                    constraints.copy(minHeight = 0),
+                                )
+                                val barPlaceable = measurables[1].measure(
+                                    constraints.copy(minHeight = 0),
+                                )
+                                // 只上报顶栏尺寸；大标题允许画到布局边界之外（不裁剪）。
+                                layout(barPlaceable.width, barPlaceable.height) {
+                                    titlePlaceable.placeRelative(0, 0)
+                                    barPlaceable.placeRelative(0, 0)
+                                }
+                            }
+                        } else {
+                            TeakTopBar(
+                                title = title,
+                                collapse = pageState.collapse,
+                                titleAlwaysVisible = titleAlwaysVisible,
+                            )
+                        }
                     }
                     if (wide && title != null) {
                         WideFoldTopAppBar(
