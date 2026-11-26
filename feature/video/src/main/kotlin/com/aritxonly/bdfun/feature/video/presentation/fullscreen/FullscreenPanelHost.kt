@@ -33,7 +33,20 @@ internal fun FullscreenPanelHost(
     visible: Boolean = true,
     accentColor: Color,
     danmakuSettings: @Composable (List<com.aritxonly.bdfun.core.model.video.DanmakuItem>) -> Unit,
+    slots: FullscreenChromeSlots,
 ) {
+
+    // 评论面板自成一套宽度与排版，直接交给它自己的外壳，不挤在标准右栏里。
+    if (panel == FullscreenPanel.Comments) {
+        FullscreenCommentPanel(
+            info = info,
+            onClose = onClose,
+            visible = visible,
+            comments = slots.comments,
+            composer = slots.commentComposer,
+        )
+        return
+    }
 
     val ui = remember { FullscreenPanelHostStateHolder(panel) }
     var shown by ui.shown
@@ -83,6 +96,8 @@ internal fun FullscreenPanelHost(
                 FullscreenPanel.Quality -> QualityPanel(playback, actions, onClose, accentColor)
                 FullscreenPanel.Cache -> CachePanel(playback, actions, onClose, accentColor)
                 FullscreenPanel.Subtitles -> SubtitlesPanel(info, actions, onClose, accentColor)
+                // 评论面板在上面提前分流，走不到这里。
+                FullscreenPanel.Comments -> Unit
                 FullscreenPanel.None -> Unit
             }
         }

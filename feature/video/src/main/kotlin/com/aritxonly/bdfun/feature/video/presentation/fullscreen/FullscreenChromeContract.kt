@@ -19,4 +19,13 @@ class FullscreenChromeSlots(
     val avatar: @Composable (String, Modifier) -> Unit,
     val cover: @Composable (String, Modifier) -> Unit,
     val danmakuSettings: @Composable (List<com.aritxonly.bdfun.core.model.video.DanmakuItem>) -> Unit,
+    /** 全屏内评论面板：列表由 app 侧的真实评论页提供，模块只负责面板外壳并传入当前视频身份。 */
+    val comments: @Composable (
+        info: FullscreenPlayerInfo,
+        /** 面板实际宽度：评论楼中楼是独立窗口，要按同一个宽度对齐才不会错位。 */
+        paneWidth: androidx.compose.ui.unit.Dp,
+        Modifier,
+    ) -> Unit = { _, _, _ -> },
+    /** 评论面板底部回复栏；只在评论面板展开时挂一次，避免和页面级回复栏重复。 */
+    val commentComposer: @Composable (Modifier) -> Unit = {},
 )

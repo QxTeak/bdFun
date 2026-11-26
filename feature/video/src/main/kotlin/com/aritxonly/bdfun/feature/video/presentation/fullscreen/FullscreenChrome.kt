@@ -97,6 +97,7 @@ fun FullscreenPlayerChrome(
                 visible = panel != FullscreenPanel.None,
                 accentColor = appearance.accentColor,
                 danmakuSettings = slots.danmakuSettings,
+                slots = slots,
             )
         }
     }

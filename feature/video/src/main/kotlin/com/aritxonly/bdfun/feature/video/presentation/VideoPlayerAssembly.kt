@@ -67,6 +67,13 @@ private fun fullscreenPlayerInfo(content: VideoPlayerContent): FullscreenPlayerI
             selectedSubtitle = metadata.selectedSubtitle,
             subtitleCues = metadata.subtitleCues,
             danmakuItems = content.danmaku,
+            // 评论身份跟详情页评论 tab 同源：PGC 用当前集 aid，UGC 用稿件 aid。
+            comments = FullscreenCommentIdentity(
+                aid = detail?.aid ?: 0L,
+                bvid = detail?.bvid ?: content.selection.bvid,
+                upMid = if (detail?.isPgc == true) 0L else detail?.ownerMid ?: 0L,
+                isPgc = detail?.isPgc == true,
+            ),
         ),
     )
 }

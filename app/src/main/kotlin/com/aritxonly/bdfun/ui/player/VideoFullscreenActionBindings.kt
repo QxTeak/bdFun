@@ -16,6 +16,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.aritxonly.bdfun.cast.CastRequestState
 import com.aritxonly.bdfun.core.application.PlaybackController
+import com.aritxonly.bdfun.core.domain.FullscreenCommentPresentation
+import com.aritxonly.bdfun.core.domain.fullscreenCommentPresentation
 import com.aritxonly.bdfun.data.Quality
 import com.aritxonly.bdfun.data.VideoPage
 import com.aritxonly.bdfun.data.SubtitleTrack
@@ -48,6 +50,10 @@ internal class VideoFullscreenActionBindings(
     private var fsSleepAt by ui.fsSleepAt
 
     private fun touch() { ui.interactionTick.intValue++ }
+
+    /** 窗口是否横着：决定点评论是就地开面板还是回详情页评论 tab。 */
+    private fun landscape(): Boolean =
+        context.resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
 
     private val onBack: () -> Unit = {
         if (fsPanel != FullscreenPanel.None) {
@@ -92,7 +98,12 @@ internal class VideoFullscreenActionBindings(
 
     private val onComment: () -> Unit = {
         touch()
-        actions.interaction.onCommentClick()
+        // 横屏就地开面板：退出全屏会把窗口朝向交还给传感器，手机没横着拿就会当场被甩成竖屏。
+        if (fullscreenCommentPresentation(landscape()) == FullscreenCommentPresentation.InlinePanel) {
+            fsPanel = FullscreenPanel.Comments
+        } else {
+            actions.interaction.onCommentClick()
+        }
     }
 
     private val onShare: () -> Unit = {
