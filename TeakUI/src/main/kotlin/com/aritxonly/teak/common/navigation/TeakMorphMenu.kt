@@ -43,6 +43,9 @@ import top.yukonga.miuix.kmp.glass.glassPopupAnchor
 class TeakMorphMenuState {
     internal var open by mutableStateOf(false)
 
+    /** 宿主窗口可据此在收起动画一开始就释放输入，而不必等面板卸载。 */
+    val isOpen: Boolean get() = open
+
     /** 是否绘制按钮副本：省略号点击时显示；长按卡片时同一套动画但不画省略号。 */
     internal var anchorCopyVisible by mutableStateOf(true)
 

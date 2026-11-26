@@ -30,14 +30,14 @@ internal class WindowGlassBackdrop(val source: LayerBackdrop) : Backdrop {
         density: Density,
         coordinates: LayoutCoordinates?,
         layerBlock: (GraphicsLayerScope.() -> Unit)?,
-        downscaleFactor: Int,
+        downscaleFactor: Float,
     ) {
         if (coordinates == null || !coordinates.isAttached) return
         // LayerBackdrop's cross-owner fallback uses window-local coordinates. An anchored
         // popup can have a different window origin, so resolve both in screen coordinates.
         // This consumer has no backdrop layerBlock; its entrance transform is on its parent.
         val offset = coordinates.positionOnScreen() - origin
-        val inverse = 1f / downscaleFactor.coerceAtLeast(1)
+        val inverse = 1f / downscaleFactor.coerceAtLeast(1f)
         withTransform({
             translate(-offset.x * inverse, -offset.y * inverse)
             scale(inverse, inverse, Offset.Zero)

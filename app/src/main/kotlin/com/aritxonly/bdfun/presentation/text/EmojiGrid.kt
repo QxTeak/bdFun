@@ -1,7 +1,7 @@
 package com.aritxonly.bdfun.ui
 
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
-import top.yukonga.miuix.kmp.glass.GlassShape
+import top.yukonga.miuix.kmp.material.GlassShape
 import top.yukonga.miuix.kmp.glass.glassPanel
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.background

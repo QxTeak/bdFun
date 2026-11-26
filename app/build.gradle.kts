@@ -51,7 +51,12 @@ val releaseCode = versionParts[0] * 10000 + versionParts[1] * 100 + versionParts
 
 android {
     namespace = "com.aritxonly.bdfun"
-    compileSdk = 37
+    // Compose 1.13 / Miuix 0.9.5 的 AAR 要求至少编译到 API 37.1，主工程对齐上游的 37.2。
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 2
+        }
+    }
     buildToolsVersion = "37.0.0"
 
     defaultConfig {

@@ -10,8 +10,6 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.graphics.RectF
 import android.view.View
-import android.view.animation.AccelerateDecelerateInterpolator
-import android.view.animation.Interpolator
 
 /**
  * Telegram 式的一次性位图形变层。
@@ -53,7 +51,7 @@ internal class PhotoMorphView(context: Context) : View(context) {
         originRadiusPx: Float,
         open: Boolean,
         startFrom: Float = if (open) 0f else 1f,
-        durationMs: Long = 200L,
+        durationMs: Long = if (open) PhotoViewerMotion.OpenDurationMs else PhotoViewerMotion.CloseDurationMs,
         /** 跟手拖动后再关闭：起始帧要带上这段位移，否则会从手指位置"跳"回屏幕中心。 */
         dragOffsetY: Float = 0f,
         /** 关闭时黑底从拖动后的透明度接着淡出，避免先闪回全黑。 */
@@ -75,14 +73,27 @@ internal class PhotoMorphView(context: Context) : View(context) {
             val target = if (open) 1f else 0f
             animator = ValueAnimator.ofFloat(startFrom, target).apply {
                 duration = durationMs
-                interpolator = INTERPOLATOR
+                // 与搜索一镜到底同一套弹簧速度曲线；不是旧的 AccelerateDecelerate。
+                interpolator = SpringMorphInterpolator(durationMs)
+                var canceled = false
                 addUpdateListener {
                     progress = it.animatedValue as Float
                     onProgress?.invoke(progress)
                     invalidate()
                 }
                 addListener(object : android.animation.AnimatorListenerAdapter() {
+                    override fun onAnimationCancel(animation: android.animation.Animator) {
+                        canceled = true
+                    }
+
                     override fun onAnimationEnd(animation: android.animation.Animator) {
+                        // 插值在末帧理论上会落到目标，这里再钉一次，避免阈值造成尾帧跳动。
+                        // 被新动画打断时不能钉，否则会把新起点瞬间拉到旧终点。
+                        if (!canceled) {
+                            progress = target
+                            onProgress?.invoke(progress)
+                            invalidate()
+                        }
                         onFinished?.invoke()
                     }
                 })
@@ -91,18 +102,20 @@ internal class PhotoMorphView(context: Context) : View(context) {
             pendingStart = null
         }
         // AndroidView 的 factory 里 View 还没有测量，直接 start 可能整段动画在首次绘制前就跑完，
-        // 看起来就是"没有动画"。等第一次有尺寸再开始。
-        if (width > 0 && height > 0) {
+        // 看起来就是"没有动画"。预热点只有 1dp，等它真正铺满窗口再开始。
+        if (width >= 64 && height >= 64) {
             begin()
         } else {
             pendingStart = begin
-            post { pendingStart?.invoke() }
+            post {
+                if (width >= 64 && height >= 64) pendingStart?.invoke()
+            }
         }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        pendingStart?.invoke()
+        if (w >= 64 && h >= 64) pendingStart?.invoke()
     }
 
     /** 原图已经画出来后，淡出盖层再交给 Compose，避免中间闪一帧空。 */
@@ -181,6 +194,13 @@ internal class PhotoMorphView(context: Context) : View(context) {
     }
 
     private companion object {
-        val INTERPOLATOR: Interpolator = AccelerateDecelerateInterpolator()
+        /**
+         * 搜索一镜到底的弹簧（阻尼 0.97 / 响应 0.4s）归一化成 ValueAnimator 的 0..1 插值。
+         * 曲线与归一化逻辑在 [PhotoViewerMotion]，这里只做时间映射。
+         */
+        class SpringMorphInterpolator(private val durationMs: Long) : android.view.animation.Interpolator {
+            override fun getInterpolation(input: Float): Float =
+                PhotoViewerMotion.progressAt(input * durationMs, durationMs)
+        }
     }
 }

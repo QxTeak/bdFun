@@ -8,11 +8,11 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import top.yukonga.miuix.kmp.blur.Backdrop
-import top.yukonga.miuix.kmp.glass.GlassDefaults
-import top.yukonga.miuix.kmp.glass.GlassMaterials
-import top.yukonga.miuix.kmp.glass.GlassShape
-import top.yukonga.miuix.kmp.glass.GlassStrokes
 import top.yukonga.miuix.kmp.glass.glass
+import top.yukonga.miuix.kmp.material.GlassDefaults
+import top.yukonga.miuix.kmp.material.GlassEdgeStrokes
+import top.yukonga.miuix.kmp.material.GlassMaterials
+import top.yukonga.miuix.kmp.material.GlassShape
 
 /** Application roles mapped to the unmodified material primitives from MIUIX PR #423. */
 enum class GlassSurfaceRole { Control, FloatingBar, Panel, TopBar }
@@ -43,7 +43,7 @@ internal fun Modifier.officialMiuixGlassMaterial(
         shape = glassShape,
         style = GlassDefaults.style(isDark),
         material = material,
-        stroke = if (role == GlassSurfaceRole.TopBar) null else GlassStrokes.forTheme(isDark),
+        stroke = if (role == GlassSurfaceRole.TopBar) null else GlassEdgeStrokes.forTheme(isDark),
         shading = role == GlassSurfaceRole.Control,
         tint = tint,
     )

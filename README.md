@@ -60,9 +60,9 @@ gradlew.bat :app:assembleDebug
 ```
 
 > Note: this project builds against a local Miuix source snapshot.
-> Place it at `../miuix-src/miuix-45645854cd46c32275c5666e3aafa9980d8f104e`
+> Place it at `../miuix-src/miuix-bc1024d78a154f5167efff262ae5ed66264c481e`
 > or set the `MIUIX_SOURCE` environment variable to the Miuix repo path.
-> The app uses AGP 9.5.1, Kotlin 2.4.21 and Compose 1.12.2 to match this snapshot; composite builds cannot mix AGP versions.
+> The app uses AGP 9.5.3, Kotlin 2.4.21 and Compose 1.13.0-rc01 to match this snapshot; composite builds cannot mix AGP versions.
 
 Release：
 
@@ -134,7 +134,7 @@ Copyright (C) 2026 bdFun contributors
 
 ### 固定 Miuix 快照
 
-`miuix-glass` 来自 `45645854cd46c32275c5666e3aafa9980d8f104e` 快照，不能假定 Maven 上的 `0.9.4` 包含它。
+`miuix-glass` 来自 `bc1024d78a154f5167efff262ae5ed66264c481e` 快照（0.9.5-rc01 之后的最新主线），不能假定 Maven 上的 `0.9.5-rc01` 包含全部修复。
 先运行 `python3 tools/setup-miuix.py`（也可用 `--source /path/to/snapshot` 复制本机快照）。
 源码存入被 Git 忽略的 `.local/`，Gradle 自动使用；仍可通过 `MIUIX_SOURCE` 或 `-PmiuixSource=` 覆盖。
 快照采用 Apache-2.0 许可证，脚本保留其 LICENSE；不把临时路径写进版本库。

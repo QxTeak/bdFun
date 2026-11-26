@@ -29,16 +29,16 @@ include(":danmaku-engine")
 val miuixSource = file(
     System.getenv("MIUIX_SOURCE")
         ?: gradle.startParameter.projectProperties["miuixSource"]
-        ?: file(".local/miuix-45645854cd46c32275c5666e3aafa9980d8f104e")
+        ?: file(".local/miuix-bc1024d78a154f5167efff262ae5ed66264c481e")
             .takeIf { it.resolve("settings.gradle.kts").isFile }?.path
-        ?: "../miuix-src/miuix-45645854cd46c32275c5666e3aafa9980d8f104e",
+        ?: "../miuix-src/miuix-bc1024d78a154f5167efff262ae5ed66264c481e",
 )
 if (miuixSource.resolve("settings.gradle.kts").isFile) {
     includeBuild(miuixSource) {
         dependencySubstitution {
             listOf(
                 "miuix-core" to ":miuix-core",
-                "miuix-shader" to ":miuix-shader",
+                "miuix-material" to ":miuix-material",
                 "miuix-squircle" to ":miuix-squircle",
                 "miuix-ui" to ":miuix-ui",
                 "miuix-blur" to ":miuix-blur",
@@ -47,6 +47,7 @@ if (miuixSource.resolve("settings.gradle.kts").isFile) {
                 "miuix-glass" to ":miuix-glass",
                 "miuix-glass-icons" to ":miuix-glass-icons",
                 "miuix-nav" to ":miuix-nav",
+                "miuix-window" to ":miuix-window",
             ).forEach { (artifact, projectPath) ->
                 substitute(module("top.yukonga.miuix.kmp:$artifact"))
                     .using(project(projectPath))
