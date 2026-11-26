@@ -101,20 +101,6 @@ private fun UnreadBadge(dotOnly: Boolean, unread: Int) {
     if (dotOnly) {
         Box(Modifier.size(8.dp).background(MessageRed, CircleShape))
     } else {
-        Box(
-            modifier = Modifier
-                .height(18.dp)
-                .clip(CircleShape)
-                .background(MessageRed)
-                .padding(horizontal = 5.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = if (unread > 99) "99+" else unread.toString(),
-                color = Color.White,
-                fontSize = 10.sp,
-                maxLines = 1,
-            )
-        }
+        UnreadCountBadge(count = unread, color = MessageRed, contentColor = Color.White)
     }
 }
