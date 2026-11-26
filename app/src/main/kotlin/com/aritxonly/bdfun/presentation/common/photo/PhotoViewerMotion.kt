@@ -24,10 +24,10 @@ internal object PhotoViewerMotion {
     const val Stiffness = 247f
 
     /**
-     * 打开动效时长：直接采用搜索那条 `spring(0.97, 0.4s)` 的响应时间，
-     * 前 200ms 走完约 84%，后段逐渐收住；不是把 400ms 压进更短窗口。
+     * 打开动效时长：沿用搜索的 spring(0.97, 0.4s) 形状，但把实际播放窗口收到 320ms。
+     * 弹簧前段已经走完大部分距离，320ms 的观感与 400ms 几乎一致，尾部不再多等 80ms。
      */
-    const val OpenDurationMs = 400L
+    const val OpenDurationMs = 320L
 
     /** 关闭沿用同一曲线但更短（response 0.3s），退出不该比展开还慢。 */
     const val CloseDurationMs = 300L

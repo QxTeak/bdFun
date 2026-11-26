@@ -84,17 +84,24 @@ private fun androidx.compose.foundation.layout.BoxScope.PhotoViewerHost(
     // 这是首次打开卡顿里最确定的一笔。空闲时保持 1dp 且不可见。
     val morphView = remember(context) {
         PhotoMorphView(context).apply {
-            onProgress = { view.progress.floatValue = it }
+            onProgress = {
+                view.progress.floatValue = it
+                // 形变层真正画出第一帧后，才允许撤掉下面的 Compose 查看器，避免中间露一帧页面。
+                view.morphDrawn = true
+            }
             onFinished = {
                 if (state.request == null) {
                     view.displayed = null
                     view.progress.floatValue = 0f
                     view.morphParams = null
                     view.morphCovering = false
+                    view.closing = false
+                    view.morphDrawn = false
                     view.resetTransient()
                 } else {
                     view.settled = true
                     view.progress.floatValue = 1f
+                    view.closing = false
                 }
             }
         }
@@ -107,6 +114,8 @@ private fun androidx.compose.foundation.layout.BoxScope.PhotoViewerHost(
             request != null && current == null -> {
                 // 上一次拖动关闭可能留下位移/缩放；不重置会让再次打开时位置和背景都不对。
                 view.resetTransient()
+                view.closing = false
+                view.morphDrawn = false
                 view.displayed = request
                 view.pageIndex = request.index
                 view.settled = false
@@ -115,6 +124,10 @@ private fun androidx.compose.foundation.layout.BoxScope.PhotoViewerHost(
             }
             request == null && current != null -> {
                 view.settled = false
+                // 退出时先保留 Compose 查看器，等形变层画出第一帧再撤；
+                // 否则 AndroidView 重新布局的那一两帧会先露出底层页面，看起来就是闪一下。
+                view.closing = true
+                view.morphDrawn = false
                 // 查看器退出时菜单不能继续挂在自己的录制层上：先撤掉菜单与背板录制，
                 // 再走形变回落，否则会看到一帧没有采样源的玻璃面板（闪一下）。
                 view.menuVisible = false
@@ -134,7 +147,8 @@ private fun androidx.compose.foundation.layout.BoxScope.PhotoViewerHost(
         )
     }
     view.displayed?.let { request ->
-        if (view.settled) {
+        // 关闭时继续保留一帧，直到形变层报告已经画出内容。
+        if (view.settled || (view.closing && !view.morphDrawn)) {
             PhotoViewerSettledLayer(request, view, state, viewerBackdrop)
         }
     }
@@ -250,6 +264,10 @@ private fun PhotoViewerSettledLayer(
 internal class PhotoViewerTransitionState {
     var displayed by mutableStateOf<PhotoViewerRequest?>(null)
     var settled by mutableStateOf(false)
+    /** 正在播退场：Compose 查看器要留到形变层画出第一帧。 */
+    var closing by mutableStateOf(false)
+    /** 形变层是否已经真正绘制过内容。 */
+    var morphDrawn by mutableStateOf(false)
     var pageIndex by mutableIntStateOf(0)
     val progress = mutableFloatStateOf(0f)
     var dragY by mutableFloatStateOf(0f)
@@ -278,6 +296,8 @@ internal class PhotoViewerTransitionState {
         chromeVisible = true
         menuVisible = false
         rotationQuarter = 0
+        closing = false
+        morphDrawn = false
     }
 
     fun markCoverReady() {

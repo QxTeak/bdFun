@@ -238,7 +238,10 @@ private fun Modifier.glassOpticalBackdrop(
             refraction.amount.toPx() * interaction.refractionScale.coerceAtLeast(0f),
             refraction.chromaticAberration.toPx(),
         )
-        padding = effectPaddingPx
+        // 0.9.5 会按可用背景逐边夹 padding，而 shader 只有一个对称的 content_origin；
+        // 贴近屏幕边缘的控件会因此采样偏移，出现半圆分界或方角接缝。这里不再申请扩层，
+        // 折射直接钳在内容区内，牺牲一点边缘折射换取轮廓稳定。
+        padding = 0f
 
         colorControls(
             brightness = material.blurBrightness,
@@ -260,7 +263,7 @@ private fun Modifier.glassOpticalBackdrop(
             uniformShaderName = "source",
         ) {
             val highlight = recipe.edgeOptics.highlightAlpha(isDark)
-            setFloatUniform("content_origin", effectPaddingPx, effectPaddingPx)
+            setFloatUniform("content_origin", 0f, 0f)
             setFloatUniform("content_size", size.width, size.height)
             setFloatUniform(
                 "corner_radius",

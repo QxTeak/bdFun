@@ -21,6 +21,8 @@ OVERRIDE_FILES = {
     'miuix-nav/src/commonMain/kotlin/top/yukonga/miuix/kmp/nav/core/NavDisplay.kt': 'NavDisplay.kt',
     # 菜单退场只保留绘制、立即释放触摸，避免回弹动画期间页面点不动。
     'miuix-glass/src/commonMain/kotlin/top/yukonga/miuix/kmp/glass/GlassPopupSurface.kt': 'GlassPopupSurface.kt',
+    # 0.9.5 的 active 阈值会截掉锚点副本的收尾过冲，恢复旧版 transition 生命周期。
+    'miuix-glass/src/commonMain/kotlin/top/yukonga/miuix/kmp/glass/GlassTransformPopup.kt': 'GlassTransformPopup.kt',
 }
 
 

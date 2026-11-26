@@ -42,7 +42,7 @@ val keystoreProps = Properties().apply {
 
 val releaseStoreFile = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
 
-val releaseVersion = providers.gradleProperty("releaseVersion").orElse("1.0.0").get()
+val releaseVersion = providers.gradleProperty("releaseVersion").orElse("1.0.2").get()
 val versionMatch = Regex("(?:preview-(0|[1-9][0-9]?)\\.(0|[1-9][0-9]?)|(0|[1-9][0-9]{0,2})\\.(0|[1-9][0-9]?)\\.(0|[1-9][0-9]?))").matchEntire(releaseVersion)
     ?: error("版本号必须为 preview-y.z 或 x.y.z，y/z 为 0..99")
 val versionParts = if (releaseVersion.startsWith("preview-")) listOf(0, versionMatch.groupValues[1].toInt(), versionMatch.groupValues[2].toInt())
