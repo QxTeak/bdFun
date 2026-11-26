@@ -3,13 +3,12 @@ package com.aritxonly.bdfun
 import com.aritxonly.bdfun.ui.ActivityPageOptions
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.aritxonly.bdfun.ui.HelpScreen
 import com.aritxonly.bdfun.ui.TeakActivityScaffold
 
-class HelpActivity : ComponentActivity() {
+class HelpActivity : BdFunActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()

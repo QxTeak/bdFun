@@ -19,8 +19,9 @@ internal fun MiuixLoadingRow(
     modifier: Modifier = Modifier,
     size: Dp = 20.dp,
     verticalPadding: Dp = 36.dp,
+    label: String? = "正在加载…",
 ) {
-    TeakLoadingRow(modifier = modifier, size = size, verticalPadding = verticalPadding)
+    TeakLoadingRow(modifier = modifier, size = size, verticalPadding = verticalPadding, label = label)
 }
 
 /** 首屏加载：固定在整屏中间，不随列表头/顶栏高度上浮。 */

@@ -2,14 +2,13 @@ package com.aritxonly.bdfun
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.aritxonly.bdfun.ui.OnboardingScreen
 import com.aritxonly.bdfun.ui.TeakBareTheme
 
 /** 首次进入 / 安装新版本后展示一次的开始页。 */
-class TermsActivity : ComponentActivity() {
+class TermsActivity : BdFunActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         com.aritxonly.bdfun.data.LogCollector.init(applicationContext)

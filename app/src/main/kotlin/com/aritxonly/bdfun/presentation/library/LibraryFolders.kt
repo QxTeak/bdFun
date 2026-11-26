@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -33,8 +34,10 @@ internal fun LibraryFolderBar(
     onSelect: (Int) -> Unit,
 ) {
     val selectedId = folders.getOrNull(selectedIndex)?.id
+    // 稳定 chips 列表，避免每次重组都让 TeakSlidingChipRow 重新量文字。
+    val chips = remember(folders) { folders.map { TeakChip(it.id, "${it.title} ${it.count}") } }
     TeakSlidingChipRow(
-        chips = folders.map { TeakChip(it.id, "${it.title} ${it.count}") },
+        chips = chips,
         selectedKey = selectedId,
         onSelect = { chip ->
             folders.indexOfFirst { it.id == chip.key }.takeIf { it >= 0 }?.let(onSelect)
@@ -52,8 +55,9 @@ internal fun LibraryHistoryCategoryBar(
     onSelect: (HistoryCategory) -> Unit,
 ) {
     val categories = HistoryCategory.entries
+    val chips = remember { categories.map { TeakChip(it.name, it.label) } }
     TeakSlidingChipRow(
-        chips = categories.map { TeakChip(it.name, it.label) },
+        chips = chips,
         selectedKey = selected.name,
         onSelect = { chip -> categories.firstOrNull { it.name == chip.key }?.let(onSelect) },
         bleed = 12.dp,

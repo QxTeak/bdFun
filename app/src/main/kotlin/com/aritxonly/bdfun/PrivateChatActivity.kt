@@ -3,12 +3,11 @@ package com.aritxonly.bdfun
 import com.aritxonly.bdfun.navigation.readRouteIntent
 import com.aritxonly.bdfun.navigation.finishForMissingRoute
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.aritxonly.bdfun.data.MessageSession
 
-class PrivateChatActivity : ComponentActivity() {
+class PrivateChatActivity : BdFunActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
