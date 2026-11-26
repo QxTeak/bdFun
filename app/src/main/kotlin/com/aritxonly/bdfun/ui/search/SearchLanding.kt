@@ -39,6 +39,8 @@ internal fun SearchLanding(
     flatHistory: Boolean = false,
     /** 媒体库搜索：胶囊略大、行距略宽。 */
     roomyHistory: Boolean = false,
+    /** 首页搜索的记录编辑态；为 null 时不支持长按删除。 */
+    historyEdit: HistoryEditSlots? = null,
 ) {
     val colors = MiuixTheme.colorScheme
     // 内容从顶栏下方开始，但整块可以滚到顶栏下面（顶部留白放 contentPadding 里），
@@ -53,6 +55,8 @@ internal fun SearchLanding(
     TrackTeakPageScroll(listState)
     // 热搜/搜索发现是异步到的：数据插到列表最前面时，带 key 的 LazyColumn 会按「原来第一项」
     // 锚定，列表看起来就停在了热搜中间。所以打开页面后、数据到齐时各顶一次。
+    // 这里用落盘的 history.size（编辑态下它不会随草稿变化），
+    // 删除某条只是换了渲染的数据源，不会把列表顶回顶部。
     LaunchedEffect(resetKey, hot.size, discovery.size, history.size) {
         listState.scrollToItem(0)
     }
@@ -78,9 +82,35 @@ internal fun SearchLanding(
         }
         // 顺序固定：热搜 → 搜索记录 → 搜索发现。
         searchHotItems(hot, colors, onPickKeyword)
-        searchHistoryItems(history, colors, onPickKeyword, onClearHistory, flatHistory, roomyHistory)
+        searchHistoryItems(
+            // 只有编辑态才用草稿：非编辑态直接读落盘的列表，外部新增记录不会漏。
+            history = if (historyEdit?.editing == true) historyEdit.visible else history,
+            colors = colors,
+            onPickKeyword = onPickKeyword,
+            onClearHistory = onClearHistory,
+            flat = flatHistory,
+            roomy = roomyHistory,
+            editing = historyEdit?.editing == true,
+            onBeginEdit = historyEdit?.onBegin,
+            onRemove = historyEdit?.onRemove,
+            onCancelEdit = historyEdit?.onCancel ?: {},
+            onCommitEdit = historyEdit?.onCommit ?: {},
+        )
         searchDiscoveryItems(discovery, colors, onPickKeyword)
 
     }
     }
 }
+
+/**
+ * 搜索记录编辑态的渲染槽位：谁负责管状态由调用方决定，这里只声明要显示什么。
+ * [visible] 在非编辑态下必须等于外面传进来的历史，否则会漏掉刚写入的新记录。
+ */
+internal class HistoryEditSlots(
+    val editing: Boolean,
+    val visible: List<String>,
+    val onBegin: () -> Unit,
+    val onRemove: (String) -> Unit,
+    val onCancel: () -> Unit,
+    val onCommit: () -> Unit,
+)

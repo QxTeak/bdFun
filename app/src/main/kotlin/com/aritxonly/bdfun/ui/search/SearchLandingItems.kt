@@ -105,19 +105,55 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHotItems(
     }
 }
 
-/** 搜索历史：一个个胶囊横向排，行放满再换下一行。 */
+/**
+ * 搜索历史：一个个胶囊横向排，行放满再换下一行。
+ *
+ * 首页搜索支持长按进入编辑态（[editing] / [onBeginEdit] / [onRemove] / [onCancelEdit] / [onCommitEdit]）；
+ * 媒体库搜索只传 [onClearHistory]，保持「只能一键清空」的原样。
+ */
 internal fun androidx.compose.foundation.lazy.LazyListScope.searchHistoryItems(
     history: List<String>, colors: top.yukonga.miuix.kmp.theme.Colors, onPickKeyword: (String) -> Unit, onClearHistory: () -> Unit,
     flat: Boolean = false,
     roomy: Boolean = false,
+    /** 是否处于编辑态；true 时标题右侧换成「取消」「保存」。 */
+    editing: Boolean = false,
+    /** 长按某条记录进入编辑；为 null 表示不支持编辑。 */
+    onBeginEdit: (() -> Unit)? = null,
+    /** 编辑态点叉号删除某条（只改草稿）。 */
+    onRemove: ((String) -> Unit)? = null,
+    onCancelEdit: () -> Unit = {},
+    onCommitEdit: () -> Unit = {},
 ) {
-    if (history.isEmpty()) return
+    if (history.isEmpty() && !editing) return
     item(key = "history-title") {
-        SectionHeader(
-            title = "搜索记录",
-            action = "清空",
-            onAction = onClearHistory,
-        )
+        if (editing) {
+            SectionHeader(
+                title = "搜索记录",
+                action = "取消",
+                onAction = onCancelEdit,
+                primaryAction = "保存",
+                onPrimaryAction = onCommitEdit,
+            )
+        } else {
+            SectionHeader(
+                title = "搜索记录",
+                action = "清空",
+                onAction = onClearHistory,
+            )
+        }
+    }
+    if (history.isEmpty()) {
+        // 编辑态里把记录删光了：留一句提示，否则整块凭空消失，用户不知道保存是否生效。
+        item(key = "history-empty") {
+            Text(
+                text = "搜索记录已全部删除",
+                color = colors.onBackgroundVariant,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(bottom = 4.dp),
+            )
+            Spacer(Modifier.height(SearchSectionGap))
+        }
+        return
     }
     item(key = "history-pills") {
         val classic = TeakUiStyle.isClassic
@@ -138,7 +174,13 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHistoryItems(
                 verticalArrangement = Arrangement.spacedBy(if (roomy) 12.dp else 8.dp),
             ) {
                 history.forEach { word ->
-                    HistoryPill(word = word, onClick = { onPickKeyword(word) }, roomy = roomy)
+                    HistoryPill(
+                        word = word,
+                        onClick = { onPickKeyword(word) },
+                        roomy = roomy,
+                        onLongClick = onBeginEdit,
+                        onRemove = if (editing) onRemove?.let { remove -> { remove(word) } } else null,
+                    )
                 }
             }
         }

@@ -2,6 +2,7 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -9,7 +10,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -17,6 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -39,6 +44,9 @@ private const val HISTORY_PILL_MAX_CHARS = 7
 /**
  * 搜索历史胶囊：尺寸沿用直播页分区胶囊（32dp 高 + 全圆角 + 16dp 横向内边距），
  * 颜色沿用「我的」页「个人空间」按钮的灰色 surfaceContainerHigh。
+ *
+ * 编辑态下右侧多一颗叉号：整颗胶囊的点击变成无效（避免误触发搜索），
+ * 只有叉号可点。
  */
 @Composable
 internal fun HistoryPill(
@@ -46,24 +54,56 @@ internal fun HistoryPill(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     roomy: Boolean = false,
+    /** 长按进入编辑；为 null 时不做长按（媒体库搜索不走编辑态）。 */
+    onLongClick: (() -> Unit)? = null,
+    /** 非 null 表示处于编辑态，点击胶囊不再搜索，改为显示叉号删除。 */
+    onRemove: (() -> Unit)? = null,
 ) {
     val colors = MiuixTheme.colorScheme
+    val haptics = LocalHapticFeedback.current
+    val editMode = onRemove != null
     Box(
         modifier = modifier
             .height(if (roomy) 36.dp else 32.dp)
             .clip(Capsule())
             .background(colors.surfaceContainerHigh)
-            .clickable(interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = if (roomy) 18.dp else 16.dp),
-        contentAlignment = Alignment.Center,
+            .combinedClickable(
+                interactionSource = null,
+                indication = null,
+                enabled = !editMode,
+                onClick = onClick,
+                onLongClick = onLongClick?.let { longPress ->
+                    { haptics.performHapticFeedback(HapticFeedbackType.LongPress); longPress() }
+                },
+            )
+            .padding(
+                start = if (roomy) 18.dp else 16.dp,
+                end = if (editMode) 6.dp else if (roomy) 18.dp else 16.dp,
+            ),
+        contentAlignment = Alignment.CenterStart,
     ) {
-        Text(
-            text = historyPillText(word),
-            color = colors.onBackground,
-            fontSize = if (roomy) 13.5.sp else 13.sp,
-            maxLines = 1,
-            softWrap = false,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = historyPillText(word),
+                color = colors.onBackground,
+                fontSize = if (roomy) 13.5.sp else 13.sp,
+                maxLines = 1,
+                softWrap = false,
+            )
+            if (onRemove != null) {
+                // 叉号热区比字形大一圈（24dp），否则 14dp 的字形很难点准。
+                Box(
+                    modifier = Modifier
+                        .padding(start = 6.dp)
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .clickable(interactionSource = null, indication = null, onClick = onRemove),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    AppGlyph(MiuixIcons.Close, colors.onBackgroundVariant, size = 14.dp, contentDescription = "删除")
+                }
+            }
+        }
     }
 }
 
@@ -74,7 +114,14 @@ internal fun historyPillText(word: String, maxChars: Int = HISTORY_PILL_MAX_CHAR
 }
 
 @Composable
-internal fun SectionHeader(title: String, action: String?, onAction: (() -> Unit)?) {
+internal fun SectionHeader(
+    title: String,
+    action: String?,
+    onAction: (() -> Unit)?,
+    /** 第二颗右侧按钮（编辑态的「保存」）；为空时只有 [action] 一颗。 */
+    primaryAction: String? = null,
+    onPrimaryAction: (() -> Unit)? = null,
+) {
     val colors = MiuixTheme.colorScheme
     Row(
         modifier = Modifier.fillMaxWidth()
@@ -92,7 +139,24 @@ internal fun SectionHeader(title: String, action: String?, onAction: (() -> Unit
                 text = action,
                 color = colors.onBackgroundVariant,
                 fontSize = 12.sp,
-                modifier = Modifier.clickable(interactionSource = null, indication = null, onClick = onAction),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(interactionSource = null, indication = null, onClick = onAction)
+                    // 文字本身只有 12sp 高，补一圈内边距当热区，两颗按钮之间也不至于贴死。
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
+            )
+        }
+        if (primaryAction != null && onPrimaryAction != null) {
+            Spacer(Modifier.width(4.dp))
+            Text(
+                text = primaryAction,
+                color = colors.primary,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable(interactionSource = null, indication = null, onClick = onPrimaryAction)
+                    .padding(horizontal = 6.dp, vertical = 4.dp),
             )
         }
     }
