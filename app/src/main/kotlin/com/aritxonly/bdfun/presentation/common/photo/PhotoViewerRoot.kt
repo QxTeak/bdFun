@@ -79,10 +79,47 @@ private fun androidx.compose.foundation.layout.BoxScope.PhotoViewerHost(
     closeDurationMs: Long,
     viewerBackdrop: top.yukonga.miuix.kmp.blur.LayerBackdrop,
 ) {
-    val context = LocalContext.current
     // 提前创建形变 View：首次打开时只改尺寸和启动动画，不再现场 inflate/类加载，
     // 这是首次打开卡顿里最确定的一笔。空闲时保持 1dp 且不可见。
-    val morphView = remember(context) {
+    val morphView = rememberPhotoMorphView(state, view)
+    PhotoViewerMorphEffect(state, view, openDurationMs, closeDurationMs)
+    // 原图/缩略图迟迟没画出来、或 Compose 层已能画了：统一由这个 effect 处理盖层淡出。
+    PhotoMorphCoverFallback(view) { morphView }
+    // 入场动画/缩略图盖层期间点击也要能立即关闭，不能等原图加载完。
+    val dismissOnTap = view.displayed != null && (!view.settled || view.morphCovering)
+    if (dismissOnTap) {
+        Box(
+            Modifier.fillMaxSize().pointerInput(Unit) {
+                detectTapGestures { state.close() }
+            },
+        )
+    }
+    view.displayed?.let { request ->
+        // 关闭时继续保留一帧，直到形变层报告已经画出内容。
+        if (view.settled || (view.closing && !view.morphDrawn)) {
+            PhotoViewerSettledLayer(request, view, state, viewerBackdrop)
+        }
+    }
+    val morphActive = view.displayed != null && view.morphParams != null &&
+        (!view.settled || view.morphCovering)
+    BindMorphAnimation(view, morphView)
+    AndroidView(
+        factory = { morphView },
+        modifier = if (morphActive) {
+            Modifier.fillMaxSize()
+        } else {
+            Modifier.size(1.dp).graphicsLayer { alpha = 0f }
+        },
+    )
+}
+
+@Composable
+private fun rememberPhotoMorphView(
+    state: PhotoViewerStateHolder,
+    view: PhotoViewerTransitionState,
+): PhotoMorphView {
+    val context = LocalContext.current
+    return remember(context) {
         PhotoMorphView(context).apply {
             onProgress = {
                 view.progress.floatValue = it
@@ -106,6 +143,16 @@ private fun androidx.compose.foundation.layout.BoxScope.PhotoViewerHost(
             }
         }
     }
+}
+
+/** 监听打开/关闭请求；退场先保留 Compose 层，等形变层画出首帧再撤。 */
+@Composable
+private fun PhotoViewerMorphEffect(
+    state: PhotoViewerStateHolder,
+    view: PhotoViewerTransitionState,
+    openDurationMs: Long,
+    closeDurationMs: Long,
+) {
     val incoming = state.request
     LaunchedEffect(incoming) {
         val request = incoming
@@ -135,34 +182,6 @@ private fun androidx.compose.foundation.layout.BoxScope.PhotoViewerHost(
             }
         }
     }
-    // 原图/缩略图迟迟没画出来、或 Compose 层已能画了：统一由这个 effect 处理盖层淡出。
-    PhotoMorphCoverFallback(view) { morphView }
-    // 入场动画/缩略图盖层期间点击也要能立即关闭，不能等原图加载完。
-    val dismissOnTap = view.displayed != null && (!view.settled || view.morphCovering)
-    if (dismissOnTap) {
-        Box(
-            Modifier.fillMaxSize().pointerInput(Unit) {
-                detectTapGestures { state.close() }
-            },
-        )
-    }
-    view.displayed?.let { request ->
-        // 关闭时继续保留一帧，直到形变层报告已经画出内容。
-        if (view.settled || (view.closing && !view.morphDrawn)) {
-            PhotoViewerSettledLayer(request, view, state, viewerBackdrop)
-        }
-    }
-    val morphActive = view.displayed != null && view.morphParams != null &&
-        (!view.settled || view.morphCovering)
-    BindMorphAnimation(view, morphView)
-    AndroidView(
-        factory = { morphView },
-        modifier = if (morphActive) {
-            Modifier.fillMaxSize()
-        } else {
-            Modifier.size(1.dp).graphicsLayer { alpha = 0f }
-        },
-    )
 }
 
 /** session 变化后启动；start() 里会等到 View 真正铺满窗口再开始，避免在 1dp 预热点上跑动画。 */
