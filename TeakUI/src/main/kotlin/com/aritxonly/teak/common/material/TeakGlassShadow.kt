@@ -123,15 +123,14 @@ internal fun Modifier.teakGlassShadow(
     val official = material.useOfficialMiuixGlass
     val host = LocalTopBarGlassShadowHost.current
     // A Dialog may inherit business locals from the bar but owns a different Compose View.
-    if (host != null && host.owner === LocalView.current) {
+    if (alphaProvider != null && host != null && host.owner === LocalView.current) {
+        // 宿主模式：阴影单独画在宿主层里，可以安全地延迟读取 alpha。
         return registerTopBarGlassShadow(
             host, shape, isDark, alpha, alphaProvider, official, profile, material.shadowPreset,
         )
     }
-    if (alphaProvider != null) {
-        return Modifier.graphicsLayer { this.alpha = alphaProvider().coerceIn(0f, 1f) }
-            .drawTeakGlassShadow(shape, isDark, 1f, official, profile, material.shadowPreset)
-    }
+    // 没有独立阴影宿主时，不能把 alpha 包在整条 modifier 上——那会让内容一起变透明。
+    // 这里退回静态 alpha，只影响投影本身。
     return drawTeakGlassShadow(shape, isDark, alpha, official, profile, material.shadowPreset)
 }
 
