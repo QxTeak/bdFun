@@ -66,11 +66,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.sp
-import com.aritxonly.teak.common.material.TeakGlassRecipes
 import com.aritxonly.teak.common.material.GlassMaterialInteraction
 import com.aritxonly.teak.common.material.TeakGlassSurface
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
-import com.aritxonly.teak.common.material.LocalTeakMaterialSpec
 import top.yukonga.miuix.kmp.blur.Backdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlinx.coroutines.launch
@@ -118,7 +116,6 @@ fun TeakFloatingTabBar(
 
     val currentOnItemSelected by androidx.compose.runtime.rememberUpdatedState(onItemSelected)
     val selectedIndex = items.indexOfFirst { it.key == selectedKey }.coerceAtLeast(0)
-    val advancedMaterial = LocalTeakMaterialSpec.current
     val themedContentColor = MiuixTheme.colorScheme.onSurfaceContainer
     val isDark = themedContentColor.luminance() > 0.5f
     val contentColor = if (isDark) Color.White else Color.Black
@@ -165,14 +162,7 @@ fun TeakFloatingTabBar(
             .fillMaxWidth()
             .height(TeakFloatingTabBarDefaults.CurrentHeight),
     ) {
-        val density = LocalDensity.current
-        val panelDragFraction = floatingTabPanelDragFraction(
-            dragOffsetPx = directPanelDragOffset ?: panelReturnOffset.value,
-            panelWidthPx = constraints.maxWidth.toFloat(),
-        )
-        val panelOffsetPx = with(density) {
-            FloatingTabMotionDefaults.MaximumPanelOffsetDp.dp.toPx()
-        } * sign(panelDragFraction) * EaseOut.transform(abs(panelDragFraction))
+        val panelWidthPx = constraints.maxWidth.toFloat()
         val stretch by animateFloatAsState(
             targetValue = floatingTabStretch(
                 velocityPxPerSecond = motion.velocityPxPerSecond,
@@ -187,7 +177,14 @@ fun TeakFloatingTabBar(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .offset { IntOffset(panelOffsetPx.roundToInt(), 0) }
+                .offset {
+                    val dragFraction = floatingTabPanelDragFraction(
+                        directPanelDragOffset ?: panelReturnOffset.value, panelWidthPx,
+                    )
+                    val offsetPx = FloatingTabMotionDefaults.MaximumPanelOffsetDp.dp.toPx() *
+                        sign(dragFraction) * EaseOut.transform(abs(dragFraction))
+                    IntOffset(offsetPx.roundToInt(), 0)
+                }
                 .teakFloatingNavigationShadow(
                     shape = TeakFloatingTabBarDefaults.ContainerShape,
                     isDark = isDark,
@@ -196,7 +193,6 @@ fun TeakFloatingTabBar(
             TeakGlassSurface(
                 modifier = Modifier.fillMaxSize(),
                 shape = TeakFloatingTabBarDefaults.ContainerShape,
-                recipe = TeakGlassRecipes.floatingNavigation(advancedMaterial.fineTuning),
                 interaction = GlassMaterialInteraction(
                     refractionScale = if (motion.isPressed) 1.06f else 1f,
                     highlightScale = if (motion.isPressed) 1.04f else 1f,
@@ -212,23 +208,20 @@ fun TeakFloatingTabBar(
                         ),
                 ) {
                     val itemWidth = maxWidth / items.size
-                    val itemWidthPx = with(density) { itemWidth.toPx() }
+                    val itemWidthPx = with(LocalDensity.current) { itemWidth.toPx() }
                     val indicatorColor = if (isDark) {
                         Color.White.copy(alpha = 0.13f)
                     } else {
                         Color.Black.copy(alpha = 0.075f)
                     }
-                    val transformOriginX = floatingTabTransformOriginX(
-                        velocityPxPerSecond = motion.velocityPxPerSecond,
-                        stretch = stretch,
-                    )
-
                     Box(
                         modifier = Modifier
-                            .offset(
-                                x = itemWidth * motion.visualPosition -
-                                    TeakFloatingTabBarDefaults.IndicatorHorizontalOverflow,
-                            )
+                            .offset {
+                                // 弹簧只移动指示器，在放置阶段读取位置可避免整行 Tab 逐帧重组。
+                                val x = itemWidth * motion.visualPosition -
+                                    TeakFloatingTabBarDefaults.IndicatorHorizontalOverflow
+                                IntOffset(x.roundToPx(), 0)
+                            }
                             .width(
                                 itemWidth +
                                     TeakFloatingTabBarDefaults.IndicatorHorizontalOverflow * 2,
@@ -238,7 +231,9 @@ fun TeakFloatingTabBar(
                                 alpha = selectionAlpha
                                 scaleX = indicatorPressScale * (1f + stretch)
                                 scaleY = indicatorPressScale
-                                transformOrigin = TransformOrigin(transformOriginX, 0.5f)
+                                transformOrigin = TransformOrigin(
+                                    floatingTabTransformOriginX(motion.velocityPxPerSecond, stretch), 0.5f,
+                                )
                             }
                             .clip(TeakFloatingTabBarDefaults.IndicatorShape)
                             .background(indicatorColor),

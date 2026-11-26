@@ -78,9 +78,10 @@ fun TeakGlassSurface(
         return
     }
     val isDark = MaterialTheme.colorScheme.onSurface.luminance() > 0.5f
-    val resolvedRecipe = recipe ?: TeakGlassRecipes.floatingNavigation(
-        advancedMaterial.fineTuning,
-    )
+    val fineTuning = advancedMaterial.fineTuning
+    val resolvedRecipe = recipe ?: remember(fineTuning) {
+        TeakGlassRecipes.floatingNavigation(fineTuning)
+    }
     val resolvedTint = tint ?: advancedMaterial.fineTuning
         .softGlassTintColor(isDark)
         .copy(
@@ -165,6 +166,11 @@ fun TeakGlassIconButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isDark = MaterialTheme.colorScheme.onSurface.luminance() > 0.5f
 
+    val fineTuning = LocalTeakMaterialSpec.current.fineTuning
+    val controlRecipe = remember(recipe, fineTuning) {
+        (recipe ?: TeakGlassRecipes.floatingNavigation(fineTuning)).copy(surfaceRole = GlassSurfaceRole.Control)
+    }
+
     // Match floating navigation: elevation belongs to the outer frame, not the glass clip.
     Box(
         modifier = modifier
@@ -184,9 +190,7 @@ fun TeakGlassIconButton(
         TeakGlassSurface(
             modifier = Modifier.fillMaxSize(),
             shape = TeakGlassDefaults.Shape,
-            recipe = (recipe ?: TeakGlassRecipes.floatingNavigation(
-                LocalTeakMaterialSpec.current.fineTuning,
-            )).copy(surfaceRole = GlassSurfaceRole.Control),
+            recipe = controlRecipe,
             tint = tint,
             tintStyle = tintStyle,
             backdrop = backdrop,
