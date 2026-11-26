@@ -54,7 +54,7 @@ class MainActivity : BdFunActivity() {
                 ),
             )
         }
-        // 默认保留玻璃录制的 60Hz 预算；0 表示由系统自行选择。
+        // 默认请求 120Hz；0 表示由系统自行选择，60 仍可在外观设置里手动选。
         lifecycleScope.launch {
             settings.state.map { settings.repository.appearance.feedRefreshRate }
                 .distinctUntilChanged().collect { rate ->

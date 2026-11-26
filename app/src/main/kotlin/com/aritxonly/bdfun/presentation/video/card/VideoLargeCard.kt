@@ -11,7 +11,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.model.video.VideoItem
@@ -31,7 +30,8 @@ internal fun VideoLargeCard(
 ) {
     val colors = MiuixTheme.colorScheme
     val bounds = remember { CardBoundsHolder() }
-    val press = remember { androidx.compose.runtime.mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    // 长按起点只在指针事件和长按回调里读写，用普通字段，避免滚动时写快照状态。
+    val press = remember { CardPressPoint() }
     val localMorph = LocalVideoCardMorphMenu.current
     val morphState = moreMorphState ?: if (localMorph != null) {
         remember(video.bvid) { com.aritxonly.teak.common.navigation.TeakMorphMenuState() }
@@ -47,7 +47,7 @@ internal fun VideoLargeCard(
     } else null
 
     Box(
-        modifier = modifier.fillMaxWidth().onGloballyPositioned { bounds.value = it.boundsInWindow() },
+        modifier = modifier.fillMaxWidth().onGloballyPositioned { bounds.attach(it) },
     ) {
         Column(
             modifier = Modifier

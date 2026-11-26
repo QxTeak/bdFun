@@ -13,7 +13,7 @@ data class RecommendationTicket(val owner: Pair<String, Long>, val generation: L
 
 /** 所有提交在同一锁内核对归属；持久化串行且合并快照，旧写入不能越过清除快照。 */
 class RecommendationOptimizer(
-    private val storage: RecommendationStorage, scope: CoroutineScope,
+    private val storage: RecommendationStorage, private val scope: CoroutineScope,
     private val owner: () -> Pair<String, Long>, private val now: () -> Long = System::currentTimeMillis,
     private val io: CoroutineDispatcher = Dispatchers.IO,
     private val log: (String) -> Unit = {},
@@ -106,10 +106,18 @@ class RecommendationOptimizer(
         }
     }
 
-    @Synchronized fun expose(video: VideoItem, ticket: RecommendationTicket) {
-        if (!accepts(ticket) || !exposed.add(video.bvid)) return
-        if (exposed.size > 5000) exposed.clear()
-        update(video) { it.copy(exposedAt = now()) }
+    /**
+     * 曝光只是学习记录，没必要占 UI 线程：整表重建与持久化都在 io 上做，主线程只负责派发。
+     * 串行仍由同一把锁保证，快照顺序与原先的同步实现一致。
+     */
+    fun expose(video: VideoItem, ticket: RecommendationTicket) {
+        scope.launch(io) {
+            synchronized(this@RecommendationOptimizer) {
+                if (!accepts(ticket) || !exposed.add(video.bvid)) return@synchronized
+                if (exposed.size > 5000) exposed.clear()
+                update(video) { it.copy(exposedAt = now()) }
+            }
+        }
     }
 
     @Synchronized fun open(video: VideoItem): RecommendationTicket? {
