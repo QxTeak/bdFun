@@ -65,6 +65,8 @@ interface PlaybackSettings {
     var boostDefaultSpeed: Float
     var showFullscreenTime: Boolean
     var showFullscreenActions: Boolean
+    /** 详情页「评论」标签是否附带评论数（如「评论 406」）。 */
+    var showCommentCount: Boolean
     var progressBarMode: Int
     /** 空降助手：0 关闭 / 1 提示 / 2 自动跳过。 */
     var sponsorSkipMode: Int
