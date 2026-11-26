@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -36,8 +37,13 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
     val cinemaState = if (ui.homeSection == 4) AppGraph.cinemaPageState else null
     val pullRefreshing = liveState?.refreshing ?: popularState?.refreshing
         ?: bangumiState?.refreshing ?: cinemaState?.refreshing ?: homeFeed.refreshing
-    val pullOffsetDp = liveState?.pullOffsetDp ?: popularState?.pullOffsetDp
-        ?: bangumiState?.pullOffsetDp ?: cinemaState?.pullOffsetDp ?: homeFeed.pullOffsetDp
+    // 下滑位移只在绘制阶段读：拖动期间不再让整块顶栏逐帧重组。
+    val pullOffsetDp = remember(liveState, popularState, bangumiState, cinemaState, homeFeed) {
+        androidx.compose.runtime.derivedStateOf {
+            liveState?.pullOffsetDp ?: popularState?.pullOffsetDp
+                ?: bangumiState?.pullOffsetDp ?: cinemaState?.pullOffsetDp ?: homeFeed.pullOffsetDp
+        }
+    }
 
     // 哔哩哔哩布局：分段条随手指方向收起/露出；HyperOS 4 的底栏搜索页不适用。
     val tabsAway by androidx.compose.animation.core.animateFloatAsState(
@@ -67,17 +73,23 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainHomeChrome(
         // 下拉刷新指示器：独立覆盖层，挂在 App 层，探出顶栏也不会被裁掉。
         // 透明度直接由下拉位移决定：位移 58dp 开始淡入、84dp 全显；
         // 卡片在位移 <46dp 时才会撞到小电视，因此永远追不上。
-        HomePullIndicator(
-            reveal = if (pullRefreshing) {
-                1f
-            } else {
-                ((pullOffsetDp - 58f) / 26f).coerceIn(0f, 1f)
-            },
-            animated = pullRefreshing,
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .statusBarsPadding()
-                .padding(top = homeTopBarHeight(settings.interfaceStyle) + 4.dp),
-        )
+        // 显隐只在越过阈值的那一刻重组一次，淡入与位移仍在绘制阶段按帧读取。
+        val indicatorVisible by androidx.compose.runtime.remember(pullOffsetDp) {
+            androidx.compose.runtime.derivedStateOf {
+                ((pullOffsetDp.value - 58f) / 26f) > 0.005f
+            }
+        }
+        if (pullRefreshing || indicatorVisible) {
+            HomePullIndicator(
+                reveal = {
+                    if (pullRefreshing) 1f else ((pullOffsetDp.value - 58f) / 26f).coerceIn(0f, 1f)
+                },
+                animated = pullRefreshing,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(top = homeTopBarHeight(settings.interfaceStyle) + 4.dp),
+            )
+        }
     }
 }

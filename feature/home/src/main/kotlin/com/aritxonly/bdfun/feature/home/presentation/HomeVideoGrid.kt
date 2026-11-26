@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,20 +32,27 @@ internal fun HomeVideoGrid(
 ) {
     // 哔哩哔哩布局的分段 Tab 和首行卡片之间再多留 5dp，和原版间距对齐。
     val sectionGap = if (TeakUiStyle.current == TeakStyle.Official) 5.dp else 0.dp
-    LazyVerticalGrid(
-        columns = if (width >= 600.dp) host.gridCells(180.dp, 260.dp) else GridCells.Fixed(if (largeCards) 1 else 2),
-        state = state.gridState,
-        modifier = Modifier
-            .fillMaxSize()
-            .offset { IntOffset(0, ui.pullOffset.roundToInt()) }
-            .nestedScroll(refreshConnection),
-        contentPadding = PaddingValues(
+    // 列定义与内边距只在宽度/样式变化时重建，避免每次重组都让整张网格重新测量。
+    val columns = remember(width, largeCards, host) {
+        if (width >= 600.dp) host.gridCells(180.dp, 260.dp) else GridCells.Fixed(if (largeCards) 1 else 2)
+    }
+    val contentPadding = remember(host, statusBarTop, sectionGap) {
+        PaddingValues(
             start = 12.dp,
             top = host.topBarHeight + statusBarTop + 6.dp + sectionGap,
             end = 12.dp,
             // 让最后一排卡片能滚出悬浮底栏
             bottom = 104.dp,
-        ),
+        )
+    }
+    LazyVerticalGrid(
+        columns = columns,
+        state = state.gridState,
+        modifier = Modifier
+            .fillMaxSize()
+            .offset { IntOffset(0, ui.pullOffset.roundToInt()) }
+            .nestedScroll(refreshConnection),
+        contentPadding = contentPadding,
         horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {

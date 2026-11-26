@@ -2,7 +2,6 @@ package com.aritxonly.teak.common.chrome
 
 import com.aritxonly.teak.common.material.*
 
-import androidx.compose.runtime.getValue
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -17,6 +16,11 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -27,7 +31,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.SubcomposeLayout
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
@@ -41,7 +45,31 @@ import kotlin.math.max
 
 val LocalProgressiveTopBarMaterialHosted = staticCompositionLocalOf { false }
 val LocalTopBarScrollProgress = staticCompositionLocalOf<Float?> { null }
-val LocalTopBarButtonMaterialProgress = staticCompositionLocalOf { 0f }
+
+/**
+ * 顶栏按钮的材质进度。
+ *
+ * 这里故意暴露 `State<Float>` 而不是 Float：滚动渐显只应在 draw 阶段读取，
+ * 不能因为进度变化让整个顶栏重新组合、重新测量。按钮/阴影请用
+ * `graphicsLayer { alpha = state.value }` 这类绘制期读法。
+ */
+val LocalTopBarButtonMaterialProgress = staticCompositionLocalOf<State<Float>> {
+    mutableStateOf(0f)
+}
+
+/**
+ * 顶栏按钮/阴影的 draw 期 alpha 提供器。
+ *
+ * 不在顶栏材质宿主内时返回 null，调用方继续使用静态 [materialAlpha]；
+ * 在宿主内时返回读取 [LocalTopBarButtonMaterialProgress] 的 lambda，
+ * 让进度只在绘制阶段生效。
+ */
+@Composable
+fun topBarMaterialAlphaProvider(): (() -> Float)? {
+    if (!LocalProgressiveTopBarMaterialHosted.current) return null
+    val state = LocalTopBarButtonMaterialProgress.current
+    return remember(state) { { state.value.coerceIn(0f, 1f) } }
+}
 
 internal const val ProgressiveTopBarBlurRadiusDp = TeakChromeDefaults.BarBlurRadius
 internal const val ProgressiveTopBarBlurFadeStart = TeakChromeDefaults.BarBlurStartFraction
@@ -92,6 +120,9 @@ internal fun resolveProgressiveTopBarHeightMetrics(
 /**
  * Draws a Miuix progressive backdrop beneath the top-bar foreground. When advanced material is
  * disabled, the existing transparent gradient remains as the intentional lightweight fallback.
+ *
+ * 实现要点：内容只组合、测量一次；顶部渐显由 [State] 在 draw 阶段读取。
+ * 这样滚动渐显期间不会重新 subcompose，也不会重新测量顶栏（对齐 MIUIX GlassTopAppBar 的结构）。
  */
 @Composable
 fun ProgressiveTopBarMaterial(
@@ -114,11 +145,15 @@ fun ProgressiveTopBarMaterial(
 ) {
     if (!enabled) { Box(modifier, content = content); return }
     val materialTarget = resolveProgressiveTopBarMaterialProgress(LocalTopBarScrollProgress.current)
-    val materialProgress by animateFloatAsState(
+    val materialProgress = animateFloatAsState(
         targetValue = materialTarget,
         animationSpec = tween(durationMillis = 280, easing = FastOutSlowInEasing),
         label = "progressive-top-bar-material",
     )
+    // 只在"从无到有/从有到无"时切换背景槽，进度本身不进入组合期读取。
+    val materialVisible by remember(materialProgress) {
+        derivedStateOf { materialProgress.value > 0.001f }
+    }
     val density = LocalDensity.current
     val statusBarHeightPx = if (includeStatusBar) WindowInsets.statusBars.getTop(density) else 0
     val minimumContentHeightPx = with(density) {
@@ -130,8 +165,17 @@ fun ProgressiveTopBarMaterial(
             .roundToPx()
     }
 
-    SubcomposeLayout(modifier = modifier) { constraints ->
-        val contentPlaceables = subcompose(ProgressiveTopBarSlot.Content) {
+    Layout(
+        modifier = modifier,
+        content = {
+            if (materialVisible) {
+                ProgressiveTopBarBackground(
+                    materialProgress = materialProgress,
+                    underlayLiftPx = underlayLiftPx,
+                    underlayBlurPx = underlayBlurPx,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
             CompositionLocalProvider(
                 LocalProgressiveTopBarMaterialHosted provides true,
                 LocalTopBarButtonMaterialProgress provides materialProgress,
@@ -145,48 +189,42 @@ fun ProgressiveTopBarMaterial(
                     )
                 }
             }
-        }.map { measurable ->
-            measurable.measure(constraints.copy(minHeight = 0))
-        }
-        val contentWidth = contentPlaceables.maxOfOrNull { it.width } ?: constraints.minWidth
-        val contentHeight = contentPlaceables.maxOfOrNull { it.height } ?: constraints.minHeight
-        val width = contentWidth.coerceIn(constraints.minWidth, constraints.maxWidth)
-        val height = contentHeight.coerceIn(constraints.minHeight, constraints.maxHeight)
+        },
+    ) { measurables, constraints ->
+        val contentIndex = if (materialVisible) 1 else 0
+        val contentPlaceable = measurables[contentIndex].measure(constraints.copy(minHeight = 0))
+        val width = contentPlaceable.width.coerceIn(constraints.minWidth, constraints.maxWidth)
+        val height = contentPlaceable.height.coerceIn(constraints.minHeight, constraints.maxHeight)
         val heightMetrics = resolveProgressiveTopBarHeightMetrics(
             measuredTopBarHeightPx = height,
             statusBarHeightPx = statusBarHeightPx,
             minimumContentHeightPx = minimumContentHeightPx,
             materialHeightTrimPx = materialHeightTrimPx,
         )
-        val materialConstraints = Constraints.fixed(
-            width = width,
-            height = heightMetrics.materialHeightPx,
-        )
-        val backgroundPlaceables = subcompose(ProgressiveTopBarSlot.Background) {
-            ProgressiveTopBarBackground(
-                materialProgress = materialProgress,
-                underlayLiftPx = underlayLiftPx,
-                underlayBlurPx = underlayBlurPx,
-                modifier = Modifier.fillMaxSize(),
+        val backgroundPlaceable = if (materialVisible) {
+            measurables[0].measure(
+                Constraints.fixed(
+                    width = width,
+                    height = heightMetrics.materialHeightPx,
+                ),
             )
-        }.map { measurable -> measurable.measure(materialConstraints) }
-
+        } else {
+            null
+        }
         layout(width, height) {
-            backgroundPlaceables.forEach { it.placeRelative(0, 0) }
-            contentPlaceables.forEach { it.placeRelative(0, 0) }
+            backgroundPlaceable?.placeRelative(0, 0)
+            contentPlaceable.placeRelative(0, 0)
         }
     }
 }
 
 @Composable
 private fun ProgressiveTopBarBackground(
-    materialProgress: Float,
+    materialProgress: State<Float>,
     underlayLiftPx: Float = 0f,
     underlayBlurPx: Float = 0f,
     modifier: Modifier = Modifier,
 ) {
-    if (materialProgress <= 0f) return
-
     val density = LocalDensity.current
     val lift = underlayLiftPx.coerceAtLeast(0f)
     val shiftDp = with(density) { lift.toDp() }
@@ -204,7 +242,7 @@ private fun ProgressiveTopBarBackground(
         backdrop != null && top.yukonga.miuix.kmp.material.isRuntimeShaderSupported()) {
         // Keep the app's edge fade and scroll ownership, with the official action-bar body.
         Box(modifier.then(samplingShift).graphicsLayer {
-            alpha = materialProgress
+            alpha = materialProgress.value.coerceIn(0f, 1f)
             compositingStrategy = CompositingStrategy.Offscreen
         }.drawWithContent {
             drawContent()
@@ -225,7 +263,7 @@ private fun ProgressiveTopBarBackground(
         return
     }
     Box(
-        modifier = modifier.graphicsLayer(alpha = materialProgress),
+        modifier = modifier.graphicsLayer { alpha = materialProgress.value.coerceIn(0f, 1f) },
     ) {
         if (advancedMaterial.enabled && backdrop != null) {
             Box(
@@ -252,11 +290,6 @@ private fun ProgressiveTopBarBackground(
                 ),
         )
     }
-}
-
-private enum class ProgressiveTopBarSlot {
-    Background,
-    Content,
 }
 
 private fun Modifier.progressiveTopBarBackdrop(

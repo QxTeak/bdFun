@@ -10,7 +10,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -37,7 +36,8 @@ internal fun VideoGridCard(
 ) {
     val colors = MiuixTheme.colorScheme
     val bounds = remember { CardBoundsHolder() }
-    val press = remember { androidx.compose.runtime.mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    // 长按起点只在指针事件和长按回调里读写，用普通字段，避免滚动时写快照状态。
+    val press = remember { CardPressPoint() }
     // 页面没有显式接线时使用本地形变菜单（空间等直接复用这张卡片的页面）。
     val localMorph = LocalVideoCardMorphMenu.current
     val moreMorphState = more?.state
@@ -55,7 +55,7 @@ internal fun VideoGridCard(
     } else null
 
     Box(
-        modifier = modifier.onGloballyPositioned { bounds.value = it.boundsInWindow() },
+        modifier = modifier.onGloballyPositioned { bounds.attach(it) },
     ) {
         Column(
             modifier = Modifier

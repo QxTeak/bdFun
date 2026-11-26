@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.roundToInt
@@ -64,13 +66,26 @@ fun AdaptiveScrollableTabs(
             maxVisibleItems)
         return
     }
-    // 有连续位置时直接跟位置；没有时才用弹簧追 selected。
-    val springIndex = rememberPagerSpring(target = selected.coerceIn(options.indices).toFloat(), stiffness = 340f, damping = 25f)
-    val animIndex = position?.value ?: springIndex
-    val activeIndex = position?.value
-        ?.roundToInt()
-        ?.coerceIn(0, options.lastIndex)
-        ?: selected.coerceIn(options.indices)
+    // 有连续位置时直接跟位置（位移只在布局期读，拖动时不再重组整条栏）；
+    // 没有时才用弹簧追 selected，并保留原来的选中态语义。
+    val animIndex: () -> Float
+    val activeIndex: Int
+    val positionSource = position
+    if (positionSource != null) {
+        val active by remember(positionSource) {
+            derivedStateOf { positionSource.value.roundToInt().coerceIn(0, options.lastIndex) }
+        }
+        activeIndex = active
+        animIndex = { positionSource.value }
+    } else {
+        val springIndex = rememberPagerSpring(
+            target = selected.coerceIn(options.indices).toFloat(),
+            stiffness = 340f,
+            damping = 25f,
+        )
+        activeIndex = selected.coerceIn(options.indices)
+        animIndex = { springIndex }
+    }
     if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
         ClassicSegmentedBar(options, activeIndex, onSelect, modifier, itemWidth, animIndex)
     } else {
@@ -85,7 +100,7 @@ private fun ClassicSegmentedBar(
     onSelect: (Int) -> Unit,
     modifier: Modifier,
     itemWidth: Dp,
-    animIndex: Float,
+    animIndex: () -> Float,
 ) {
     val colors = MiuixTheme.colorScheme
     BoxWithConstraints(modifier = modifier.height(40.dp)) {
@@ -94,7 +109,13 @@ private fun ClassicSegmentedBar(
         val slotWidth = if (spread) maxWidth / options.size else itemWidth
         Box(
             modifier = Modifier
-                .offset(x = slotWidth * animIndex + slotWidth * 0.34f, y = 30.dp)
+                .offset {
+                    // 指示器位置在布局阶段跟随连续位置，手指拖动时不触发重组。
+                    IntOffset(
+                        (slotWidth.toPx() * animIndex() + slotWidth.toPx() * 0.34f).roundToInt(),
+                        30.dp.roundToPx(),
+                    )
+                }
                 .width(slotWidth * 0.32f)
                 .height(3.dp)
                 .background(colors.primary, Capsule()),
@@ -130,7 +151,7 @@ private fun GlassSegmentedBar(
     modifier: Modifier,
     itemWidth: Dp,
     materialAlpha: Float,
-    animIndex: Float,
+    animIndex: () -> Float,
 ) {
     val colors = MiuixTheme.colorScheme
     val advancedMaterial = LocalTeakMaterialSpec.current
@@ -144,10 +165,10 @@ private fun GlassSegmentedBar(
         backdrop = LocalTeakBackdrop.current,
     ) {
         Box(modifier = Modifier.padding(4.dp)) {
-            // 滑动的粉色指示器（半透明，带一点高光描边）
+            // 滑动的粉色指示器（半透明，带一点高光描边）；位置在布局阶段读连续位置。
             Box(
                 modifier = Modifier
-                    .offset(x = itemWidth * animIndex)
+                    .offset { IntOffset((itemWidth.toPx() * animIndex()).roundToInt(), 0) }
                     .width(itemWidth)
                     .height(32.dp)
                     .clip(Capsule())

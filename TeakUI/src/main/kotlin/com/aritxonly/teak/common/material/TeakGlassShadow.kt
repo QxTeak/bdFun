@@ -9,6 +9,7 @@ import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
@@ -115,13 +116,21 @@ internal fun Modifier.teakGlassShadow(
     isDark: Boolean,
     alpha: Float = 1f,
     profile: TeakGlassShadowProfile = TeakGlassShadowProfile.Standard,
+    /** 顶栏宿主内使用：在 draw 阶段读取 alpha，避免每帧重组阴影宿主。 */
+    alphaProvider: (() -> Float)? = null,
 ): Modifier {
     val material = LocalTeakMaterialSpec.current
     val official = material.useOfficialMiuixGlass
     val host = LocalTopBarGlassShadowHost.current
     // A Dialog may inherit business locals from the bar but owns a different Compose View.
     if (host != null && host.owner === LocalView.current) {
-        return registerTopBarGlassShadow(host, shape, isDark, alpha, official, profile, material.shadowPreset)
+        return registerTopBarGlassShadow(
+            host, shape, isDark, alpha, alphaProvider, official, profile, material.shadowPreset,
+        )
+    }
+    if (alphaProvider != null) {
+        return Modifier.graphicsLayer { this.alpha = alphaProvider().coerceIn(0f, 1f) }
+            .drawTeakGlassShadow(shape, isDark, 1f, official, profile, material.shadowPreset)
     }
     return drawTeakGlassShadow(shape, isDark, alpha, official, profile, material.shadowPreset)
 }
@@ -168,13 +177,17 @@ internal fun Modifier.drawTeakGlassShadow(
 
 /** 详情控件沿用全局阴影，仅在相同顶栏/普通层次上轻微加深。 */
 @Composable
-fun Modifier.teakContentControlShadow(shape: Shape, alpha: Float = 1f): Modifier {
+fun Modifier.teakContentControlShadow(
+    shape: Shape,
+    alpha: Float = 1f,
+    alphaProvider: (() -> Float)? = null,
+): Modifier {
     if (!com.aritxonly.teak.common.theme.LocalTeakControlEmphasis.current) return this
     val isDark = androidx.compose.material3.MaterialTheme.colorScheme.onSurface.luminance() > 0.5f
     val profile = if (com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted.current) {
         TeakGlassShadowProfile.ContentTopBarControl
     } else TeakGlassShadowProfile.ContentControl
-    return teakGlassShadow(shape, isDark, alpha, profile)
+    return teakGlassShadow(shape, isDark, alpha, profile, alphaProvider)
 }
 
 /**
@@ -184,7 +197,11 @@ fun Modifier.teakContentControlShadow(shape: Shape, alpha: Float = 1f): Modifier
  * 否则用 Standard/TopBarControl。搜索玻璃和唱片共用这一层，避免各自维护一套阴影配方。
  */
 @Composable
-fun Modifier.teakGlassControlShadow(shape: Shape, alpha: Float = 1f): Modifier {
+fun Modifier.teakGlassControlShadow(
+    shape: Shape,
+    alpha: Float = 1f,
+    alphaProvider: (() -> Float)? = null,
+): Modifier {
     val isDark = androidx.compose.material3.MaterialTheme.colorScheme.onSurface.luminance() > 0.5f
     val emphasis = com.aritxonly.teak.common.theme.LocalTeakControlEmphasis.current
     val topBarHosted = com.aritxonly.teak.common.chrome.LocalProgressiveTopBarMaterialHosted.current
@@ -194,5 +211,5 @@ fun Modifier.teakGlassControlShadow(shape: Shape, alpha: Float = 1f): Modifier {
         topBarHosted -> TeakGlassShadowProfile.TopBarControl
         else -> TeakGlassShadowProfile.Standard
     }
-    return teakGlassShadow(shape, isDark, alpha, profile)
+    return teakGlassShadow(shape, isDark, alpha, profile, alphaProvider)
 }

@@ -64,7 +64,6 @@ fun FeedTopBar(
                 options = tabs.map { it.title },
                 selected = selectedIndex.coerceIn(0, (tabs.size - 1).coerceAtLeast(0)),
                 itemWidth = 64.dp,
-                materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
                 position = position,
                 onSelect = onSelect,
                 modifier = Modifier.align(Alignment.CenterHorizontally),

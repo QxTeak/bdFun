@@ -23,19 +23,33 @@ class HomeFeedState internal constructor(private val controller: HomeFeedStateHo
     internal fun exposureTicket() = controller.exposureTicket()
     internal fun expose(video: VideoItem, ticket: com.aritxonly.bdfun.core.application.RecommendationTicket) = controller.expose(video, ticket)
     internal fun open(video: VideoItem) = controller.open(video)
-    private var observed by mutableStateOf(controller.state.value)
+    /**
+     * 逐字段投影：以前所有 getter 共用一个 `mutableStateOf` 快照，翻页时
+     * `loadingMore` 一翻转就会让读 `videos` 的网格、读 `refreshing` 的顶栏一起失效。
+     * 拆开后各读各的，只有真正变了的字段才触发重组。
+     */
+    private var videosState by mutableStateOf(controller.state.value.videos)
+    private var loadingState by mutableStateOf(controller.state.value.loading)
+    private var refreshingState by mutableStateOf(controller.state.value.refreshing)
+    private var loadingMoreState by mutableStateOf(controller.state.value.loadingMore)
+    private var endReachedState by mutableStateOf(controller.state.value.endReached)
+    private var refreshRequestState by mutableStateOf(controller.state.value.refreshRequest)
+    private var errorState by mutableStateOf(controller.state.value.error)
+    private var loadMoreErrorState by mutableStateOf(controller.state.value.loadMoreError)
+    private var filteredPageState by mutableStateOf(controller.state.value.filteredPage)
+    private var previousState = controller.state.value
     var pullFraction by mutableFloatStateOf(0f)
     var pullOffsetDp by mutableFloatStateOf(0f)
-    val videos get() = observed.videos
-    val loading get() = observed.loading
-    val refreshing get() = observed.refreshing
-    val loadingMore get() = observed.loadingMore
-    val endReached get() = observed.endReached
-    val refreshRequest get() = observed.refreshRequest
-    val error get() = observed.error?.messageOr("网络请求失败")
-        ?: if (observed.videos.isEmpty() && !observed.loading) "推荐流为空" else null
-    val loadMoreError get() = observed.loadMoreError?.messageOr("加载失败")
-        ?: if (observed.filteredPage) "本页内容已过滤，点击继续加载" else null
+    val videos get() = videosState
+    val loading get() = loadingState
+    val refreshing get() = refreshingState
+    val loadingMore get() = loadingMoreState
+    val endReached get() = endReachedState
+    val refreshRequest get() = refreshRequestState
+    val error get() = errorState?.messageOr("网络请求失败")
+        ?: if (videosState.isEmpty() && !loadingState) "推荐流为空" else null
+    val loadMoreError get() = loadMoreErrorState?.messageOr("加载失败")
+        ?: if (filteredPageState) "本页内容已过滤，点击继续加载" else null
     init {
         optimizer?.let { optimization -> scope.launch {
             var previous = optimization.state.value.generation
@@ -48,8 +62,17 @@ class HomeFeedState internal constructor(private val controller: HomeFeedStateHo
         } }
         scope.launch {
             controller.state.collect { next ->
-                val scroll = next.scrollRevision != observed.scrollRevision
-                observed = next
+                val scroll = next.scrollRevision != previousState.scrollRevision
+                previousState = next
+                videosState = next.videos
+                loadingState = next.loading
+                refreshingState = next.refreshing
+                loadingMoreState = next.loadingMore
+                endReachedState = next.endReached
+                refreshRequestState = next.refreshRequest
+                errorState = next.error
+                loadMoreErrorState = next.loadMoreError
+                filteredPageState = next.filteredPage
                 if (scroll) gridState.scrollToItem(0)
             }
         }

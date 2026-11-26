@@ -17,6 +17,9 @@ import coil.compose.AsyncImage
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+/** 封面底部压暗，让白色播放量/时长在任何封面上都可读；常量复用，避免每张卡每次重组重建 Brush。 */
+private val CoverScrim = Brush.verticalGradient(listOf(Color.Transparent, Color(0x4D000000)))
+
 @Composable
 internal fun GridVideoCover(video: VideoItem, progress: Float, selectionEnabled: Boolean, selected: Boolean, reserveMeta: Boolean) {
     val colors = MiuixTheme.colorScheme
@@ -38,9 +41,7 @@ internal fun GridVideoCover(video: VideoItem, progress: Float, selectionEnabled:
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(42.dp)
-                .background(
-                    Brush.verticalGradient(listOf(Color.Transparent, Color(0x4D000000))),
-                ),
+                .background(CoverScrim),
         )
 
         GridCoverMetrics(video, reserveMeta)

@@ -19,7 +19,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -83,7 +82,7 @@ internal fun MessageSessionList(
                 itemsIndexed(visibleSessions, key = { _, session -> session.id }) { _, session ->
                     val anchor = remember { CardBoundsHolder() }
                     Box(Modifier.padding(bottom = 4.dp)
-                        .onGloballyPositioned { anchor.value = it.boundsInWindow() }
+                        .onGloballyPositioned { anchor.attach(it) }
                         .clip(
                             if (classic) androidx.compose.ui.graphics.RectangleShape
                             else com.aritxonly.teak.common.chrome.TeakContinuousCornerShape(18.dp),

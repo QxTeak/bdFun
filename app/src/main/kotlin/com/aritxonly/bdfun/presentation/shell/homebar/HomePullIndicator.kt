@@ -36,6 +36,27 @@ fun HomePullIndicator(
 }
 
 /**
+ * 绘制期读取版本：拖动过程中只失效绘制、不触发重组。
+ * 调用方需自己判断是否合成（不可见时不要合成，避免语义节点常驻）。
+ */
+@Composable
+fun HomePullIndicator(
+    reveal: () -> Float,
+    animated: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    TeakTvLoading(
+        size = 48.dp,
+        animated = animated,
+        modifier = modifier.graphicsLayer {
+            val value = reveal().coerceIn(0f, 1f)
+            alpha = value
+            translationY = (1f - value) * -18f
+        },
+    )
+}
+
+/**
  * 顶栏渐变模糊：实现已抽到 TeakUI 的 `Modifier.teakProgressiveBarBlur()`。
  * 这里保留旧名字，避免首页 / 动态页的调用点到处改。
  */

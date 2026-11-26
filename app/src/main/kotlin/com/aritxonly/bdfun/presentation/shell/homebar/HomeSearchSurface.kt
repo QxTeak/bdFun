@@ -62,7 +62,6 @@ internal fun androidx.compose.foundation.layout.RowScope.HomeSearchSurface(searc
                 },
             ),
         shape = Capsule(),
-        materialAlpha = com.aritxonly.teak.common.chrome.LocalTopBarButtonMaterialProgress.current,
         flatBackgroundAlpha = com.aritxonly.teak.common.material.TeakGlassDefaults.flatBackgroundAlpha(),
         recipe = recipe,
         backdrop = backdrop,

@@ -25,7 +25,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import com.aritxonly.teak.common.navigation.TeakPagerTabs
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -131,7 +130,7 @@ private fun MessageFeedCard(
     val anchor = remember { CardBoundsHolder() }
     val onMenu = { if (anchor.value != Rect.Zero) openMenu(anchor.value) }
     Box(Modifier.padding(bottom = TeakUiStyle.design.contentInset(8.dp))
-        .onGloballyPositioned { anchor.value = it.boundsInWindow() }) {
+        .onGloballyPositioned { anchor.attach(it) }) {
         MessageRowSurface(true, true) {
             when (kind) {
                 MessageFeedKind.Reply -> ReplyRow(item, onClick = { actions.open(item) }, onMore = onMenu)

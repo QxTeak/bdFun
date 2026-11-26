@@ -22,6 +22,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -119,7 +121,7 @@ fun MiuixBottomSheet(
         } else null
         CompositionLocalProvider(
             LocalTopBarScrollProgress provides null,
-            LocalTopBarButtonMaterialProgress provides 0f,
+            LocalTopBarButtonMaterialProgress provides remember { mutableStateOf(0f) },
             LocalTeakBackdrop provides null,
         ) {
             val expansion = LocalSheetExpansionProgress.current

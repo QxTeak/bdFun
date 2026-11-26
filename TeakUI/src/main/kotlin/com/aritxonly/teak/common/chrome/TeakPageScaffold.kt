@@ -56,6 +56,15 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 /** 只有页面级 chrome 才会把大标题换成顶栏占位，引导页等内容页不受影响。 */
 internal val LocalTeakClassicChrome = compositionLocalOf { false }
 
+/** 紧凑竖屏（手机）：尺寸向 Miuix 靠拢；宽屏/折叠保持现有布局。 */
+@Composable
+internal fun isCompactPortraitTopBar(): Boolean {
+    val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+    return configuration.smallestScreenWidthDp < 600 &&
+        configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
+}
+
+
 /**
  * 页面 chrome 的统一尺寸 / 动画常量。
  *
@@ -105,6 +114,12 @@ object TeakChromeDefaults {
 
     /** 小标题未完全出现时的最大模糊半径。 */
     val SmallTitleBlurRadius: Dp = 4.dp
+
+    /** 紧凑竖屏（手机）按 Miuix 官方顶栏的字号；宽屏/折叠仍用上面那组。 */
+    val CompactLargeTitleFontSize = 32.sp
+    val CompactSmallTitleFontSize = 18.sp
+    val CompactSubtitleFontSize = 13.sp
+    val CompactBackButtonSize: Dp = 44.dp
 
     /** 小标题出现时从下方上移的距离。 */
     val SmallTitleRise: Dp = 7.dp
@@ -238,7 +253,7 @@ fun TeakTopBar(
             Text(
                 text = title,
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = TeakChromeDefaults.SmallTitleFontSize,
+                fontSize = if (isCompactPortraitTopBar()) TeakChromeDefaults.CompactSmallTitleFontSize else TeakChromeDefaults.SmallTitleFontSize,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier
                     .align(Alignment.Center)
@@ -256,7 +271,7 @@ fun TeakTopBar(
                 Text(
                     text = title,
                     color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = TeakChromeDefaults.SmallTitleFontSize,
+                    fontSize = if (isCompactPortraitTopBar()) TeakChromeDefaults.CompactSmallTitleFontSize else TeakChromeDefaults.SmallTitleFontSize,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -321,7 +336,7 @@ fun TeakLargeTitle(
             text = title,
             modifier = Modifier.padding(start = TeakChromeDefaults.LargeTitleStartPadding),
             color = titleColor,
-            fontSize = TeakChromeDefaults.LargeTitleFontSize,
+            fontSize = if (isCompactPortraitTopBar()) TeakChromeDefaults.CompactLargeTitleFontSize else TeakChromeDefaults.LargeTitleFontSize,
             fontWeight = FontWeight.Normal,
         )
         if (!subtitle.isNullOrBlank()) {
@@ -330,7 +345,7 @@ fun TeakLargeTitle(
                 text = subtitle,
                 modifier = Modifier.padding(start = TeakChromeDefaults.SubtitleStartPadding),
                 color = subtitleColor,
-                fontSize = TeakChromeDefaults.SubtitleFontSize,
+                fontSize = if (isCompactPortraitTopBar()) TeakChromeDefaults.CompactSubtitleFontSize else TeakChromeDefaults.SubtitleFontSize,
             )
         }
     }

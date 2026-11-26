@@ -19,6 +19,9 @@ import coil.compose.AsyncImage
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+/** 大卡封面底部压暗；常量复用，避免每次重组重建 Brush。 */
+private val LargeCoverScrim = Brush.verticalGradient(listOf(Color.Transparent, Color(0x66000000)))
+
 @Composable
 internal fun LargeVideoCover(video: VideoItem, progress: Float) {
     val colors = MiuixTheme.colorScheme
@@ -39,9 +42,7 @@ internal fun LargeVideoCover(video: VideoItem, progress: Float) {
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
                 .height(48.dp)
-                .background(
-                    Brush.verticalGradient(listOf(Color.Transparent, Color(0x66000000))),
-                ),
+                .background(LargeCoverScrim),
         )
         LargeCoverMetrics(video)
         VideoChargeBadge(video.isCharge)

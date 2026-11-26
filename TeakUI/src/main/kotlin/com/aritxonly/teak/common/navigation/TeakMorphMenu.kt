@@ -90,17 +90,16 @@ fun TeakMorphMenuAnchor(
     val hostedNow = LocalProgressiveTopBarMaterialHosted.current
     val progressNow = LocalTopBarButtonMaterialProgress.current
     val hostedState = remember { mutableStateOf(hostedNow) }
-    val progressState = remember { mutableFloatStateOf(progressNow) }
+    val progressRef = rememberUpdatedState(progressNow)
     SideEffect {
         hostedState.value = hostedNow
-        progressState.value = progressNow
     }
     val currentContent by rememberUpdatedState(content)
     val copy = remember {
         @Composable {
             androidx.compose.runtime.CompositionLocalProvider(
                 LocalProgressiveTopBarMaterialHosted provides hostedState.value,
-                LocalTopBarButtonMaterialProgress provides progressState.value,
+                LocalTopBarButtonMaterialProgress provides progressRef.value,
             ) {
                 currentContent {}
             }
