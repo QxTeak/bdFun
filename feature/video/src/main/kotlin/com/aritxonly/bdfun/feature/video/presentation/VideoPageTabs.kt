@@ -23,11 +23,20 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
     layout: VideoActivityLayout, playerBottomPx: () -> Float,
     pager: androidx.compose.foundation.pager.PagerState, onSelect: (Int) -> Unit,
     danmakuOn: Boolean, onOpenInput: () -> Unit, onToggleDanmaku: () -> Unit,
+    commentCount: Long = 0L,
 ) {
     val pageOverlayAlpha = layout.overlayAlpha
     val paneLayout = layout.paneLayout
     val splitPanes = layout.splitPanes
     val statusBarDp = layout.statusBarTop
+    // 「评论 406」比「简介」宽，两格等宽后按分栏/竖屏分别加宽；读取 0 时退回纯「评论」，
+    // 既不会闪一下「评论 0」，也不会在数据到达时让标签宽度跳变（字号与宽度都按最宽状态定）。
+    val tabs = androidx.compose.runtime.remember(commentCount) {
+        listOf("简介", videoCommentTabLabel(commentCount))
+    }
+    // 78/68 是按「评论 9999.9万」这类最坏文案量出来的：单格 80dp 留一点余量，
+    // 分栏时详情栏最窄 360dp，70dp 两格加弹幕控件仍能排下。
+    val tabItemWidth = if (splitPanes) 70.dp else 80.dp
     val pageScroll = com.aritxonly.teak.common.chrome.LocalTeakPageScrollState.current
     // 只在“是否滚出顶部”翻转时重组；不能每滚一像素都读一次进度，否则整排 Tab
     // 会跟着滚动逐帧重组，玻璃出现的那 300ms 更容易掉帧。
@@ -62,9 +71,9 @@ fun androidx.compose.foundation.layout.BoxScope.VideoPageTabs(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TeakPagerTabs(
-                options = listOf("简介", "评论"), selected = pager.currentPage,
+                options = tabs, selected = pager.currentPage,
                 onSelect = onSelect,
-                itemWidth = if (splitPanes) 48.dp else 60.dp,
+                itemWidth = tabItemWidth,
                 flatBackgroundColor = com.aritxonly.teak.common.theme.LocalTeakContentColors.current.groupedBackground,
             )
             VideoDanmakuActions(splitPanes, danmakuOn, onOpenInput, onToggleDanmaku)
@@ -87,4 +96,22 @@ private fun RowScope.VideoDanmakuActions(
 ) {
     Spacer(Modifier.weight(1f))
     VideoDanmakuControl(compact, danmakuOn, onOpenInput, onToggleDanmaku)
+}
+
+/**
+ * Tab 上的评论标签文案。
+ *
+ * 数字口径跟播放量/弹幕数一致走 [com.aritxonly.bdfun.core.common.formatCount]（≥1万转「万/亿」），
+ * 但去掉单位前的空格和没意义的 `.0`：Tab 每格只有 80dp，13sp 的「1.2 万」容易折行，
+ * 「10.0万」也不如「10万」干净。
+ * [count] 为 0 或负数（详情未加载、接口没给 stat.reply）时只出「评论」，
+ * 避免先闪一个「评论 0」再跳成真实值。
+ */
+fun videoCommentTabLabel(count: Long): String {
+    if (count <= 0L) return "评论"
+    val compact = com.aritxonly.bdfun.core.common.formatCount(count)
+        .replace(" ", "")
+        .replace(".0万", "万")
+        .replace(".0亿", "亿")
+    return "评论 $compact"
 }

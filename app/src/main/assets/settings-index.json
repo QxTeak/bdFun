@@ -571,6 +571,13 @@
         "title": "评论区",
         "settings": [
           {
+            "pref_name": "show_comment_count",
+            "type": "switch",
+            "title": "评论标签显示评论数",
+            "subtitle": "详情页「评论」标签后附带总数，如「评论 406」",
+            "default": true
+          },
+          {
             "pref_name": "comment_ai_block",
             "type": "switch",
             "title": "「大肥鱼」屏蔽",

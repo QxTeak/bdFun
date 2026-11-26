@@ -81,7 +81,9 @@ class JsonSettingsIndexCodecTest {
         // 索引项总数：在早期67项上增加自适应缓冲、独立后台播放入口、预测性返回等；空降助手仍占一项（改为三档下拉）。
         // 2026-11-22：同日新增的设置项 + 贡献者 maochenyu-me，总数更新为 74。
         // 2026-11-22：贡献者 Moretti815 与 maochenyu-me 是同一人，删掉重复条目后为 73。
-        assertEquals(73, index.settings.size)
+        // 2026-11-26：此后索引又加了 6 项但断言没有跟着更新（实际为 79），本次新增
+        // 「评论标签显示评论数」后为 80；顺手把断言修正到与实际一致，让这个校验不再空转。
+        assertEquals(80, index.settings.size)
         assertEquals("switch", index.settings.getValue("adaptive_buffering").type)
     }
 }

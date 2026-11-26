@@ -108,6 +108,9 @@ internal class PlaybackSettingsStateHolder(
 
     private val showFullscreenActionsState =
         stateCell("showFullscreenActionsState", prefs.getBoolean("show_fullscreen_actions", true))
+
+    private val showCommentCountState =
+        stateCell("showCommentCountState", prefs.getBoolean("show_comment_count", true))
     /** 进度条常显模式：0=关闭，1=仅半屏，2=仅全屏，3=永久。 */
 
     private val progressBarModeState = stateCell("progressBarModeState", prefs.getInt("progress_bar_mode", 0))
@@ -328,6 +331,14 @@ internal class PlaybackSettingsStateHolder(
         set(value) {
             showFullscreenActionsState.value = value
             prefs.edit().putBoolean("show_fullscreen_actions", value).apply()
+        }
+
+    /** 详情页「评论」标签是否附带评论数；关闭后只显示「评论」。 */
+    override var showCommentCount: Boolean
+        get() = showCommentCountState.value
+        set(value) {
+            showCommentCountState.value = value
+            prefs.edit().putBoolean("show_comment_count", value).apply()
         }
 
     /** 进度条常显：0 关闭 / 1 仅半屏 / 2 仅全屏 / 3 永久。 */

@@ -19,5 +19,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.VideoActivityTabs(
             settings.danmakuOn = !settings.danmakuOn
             page.danmakuOn = settings.danmakuOn
         },
+        // 设置里关掉时传 0，Tab 标签退回纯「评论」。
+        commentCount = if (settings.showCommentCount) ui.commentCount.value else 0L,
     )
 }

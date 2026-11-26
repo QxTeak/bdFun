@@ -106,6 +106,7 @@ class SettingsRoundTripTest(private val case: SettingCase<*>) {
             SettingCase("boostDefaultSpeed", 3f, 4f, { it.boostDefaultSpeed }, { s, v -> s.boostDefaultSpeed = v }),
             SettingCase("showFullscreenTime", true, false, { it.showFullscreenTime }, { s, v -> s.showFullscreenTime = v }),
             SettingCase("showFullscreenActions", true, false, { it.showFullscreenActions }, { s, v -> s.showFullscreenActions = v }),
+            SettingCase("showCommentCount", true, false, { it.showCommentCount }, { s, v -> s.showCommentCount = v }),
             SettingCase("progressBarMode", 0, 1, { it.progressBarMode }, { s, v -> s.progressBarMode = v }),
             SettingCase("sponsorSkipMode", 1, 2, { it.sponsorSkipMode }, { s, v -> s.sponsorSkipMode = v }),
             SettingCase("hotDanmakuEnabled", true, false, { it.hotDanmakuEnabled }, { s, v -> s.hotDanmakuEnabled = v }),

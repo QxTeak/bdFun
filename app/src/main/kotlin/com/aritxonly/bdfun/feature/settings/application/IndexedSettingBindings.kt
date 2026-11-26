@@ -69,6 +69,8 @@ private fun playbackBindings(repository: SettingsRepository) = mapOf(
         { repository.playback.showFullscreenTime = (it as SettingValue.Flag).value }),
     "show_fullscreen_actions" to IndexedSettingBinding({ SettingValue.Flag(repository.playback.showFullscreenActions) },
         { repository.playback.showFullscreenActions = (it as SettingValue.Flag).value }),
+    "show_comment_count" to IndexedSettingBinding({ SettingValue.Flag(repository.playback.showCommentCount) },
+        { repository.playback.showCommentCount = (it as SettingValue.Flag).value }),
     "progress_bar_mode" to IndexedSettingBinding({ SettingValue.Number(repository.playback.progressBarMode) },
         { repository.playback.progressBarMode = (it as SettingValue.Number).value }),
     "quality" to IndexedSettingBinding({ SettingValue.Number(repository.playback.qualityPreference) },

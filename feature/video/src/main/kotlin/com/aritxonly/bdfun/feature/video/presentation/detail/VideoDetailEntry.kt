@@ -26,6 +26,10 @@ fun VideoDetailEntry(
     val (detail, selection, interaction, metadata) = collected
     // 只更新当前标识；真正退出时仍由 Activity 清理读取缓存。
     LaunchedEffect(selection.bvid) { ports.publishBvid(selection.bvid) }
+    // Tab 在 Activity 覆盖层里，拿不到 read.detail，评论数只能单向发布出去。
+    // 换集/PGC 换集/缓存恢复都会替换 detail，这里跟着刷。
+    val commentCount = detail.detail?.reply ?: 0L
+    LaunchedEffect(commentCount) { events.onCommentCount(commentCount) }
     val playing by holders.ui.playing
     val qualities = detail.playInfo?.qualities.orEmpty()
     val selectedQuality = if (selection.autoQuality) {
