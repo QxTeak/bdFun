@@ -94,19 +94,31 @@ fun TeakGlassSurface(
             },
         )
 
+    // 平面底与玻璃必须使用同一份 draw 期 alpha 做交叉淡出，否则滚动渐显时平面态会直接消失。
+    val resolvedAlpha: () -> Float = {
+        (materialAlphaProvider?.invoke() ?: materialAlpha).coerceIn(0f, 1f)
+    }
+    val flatColor = flatBackgroundColor
+        ?: top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainer
     Box(
-        modifier = modifier.clip(shape).background(
-            (flatBackgroundColor ?: top.yukonga.miuix.kmp.theme.MiuixTheme.colorScheme.surfaceContainer).copy(
-                alpha = flatBackgroundAlpha.coerceIn(0f, 1f) * (1f - materialAlpha.coerceIn(0f, 1f)),
-            ),
-        ),
+        modifier = modifier.clip(shape),
         contentAlignment = contentAlignment,
     ) {
+        if (flatBackgroundAlpha > 0f) {
+            Box(
+                Modifier
+                    .matchParentSize()
+                    .graphicsLayer {
+                        alpha = flatBackgroundAlpha.coerceIn(0f, 1f) * (1f - resolvedAlpha())
+                    }
+                    .background(flatColor, shape),
+            )
+        }
         Box(
             modifier = Modifier
                 .matchParentSize()
                 .graphicsLayer {
-                    alpha = (materialAlphaProvider?.invoke() ?: materialAlpha).coerceIn(0f, 1f)
+                    alpha = resolvedAlpha()
                 }
                 .background(resolvedTint.copy(alpha = baseAlpha.coerceIn(0f, 1f)))
                 .teakGlassMaterial(
@@ -124,7 +136,7 @@ fun TeakGlassSurface(
             val highlight = LocalTeakContentColors.current.glassHighlight
             // 宽而柔和的渐变光带，不沿轮廓描线，也不覆盖中性灰底。
             Box(Modifier.matchParentSize()
-                .graphicsLayer { alpha = materialAlpha.coerceIn(0f, 1f) }
+                .graphicsLayer { alpha = resolvedAlpha() }
                 .background(Brush.linearGradient(
                 0f to highlight.copy(alpha = if (isDark) 0.12f else 0.18f),
                 0.34f to highlight.copy(alpha = 0f),
