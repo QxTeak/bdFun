@@ -31,6 +31,9 @@ internal fun FeedAuthorSidebar(
     modifier: Modifier = Modifier,
     topPadding: androidx.compose.ui.unit.Dp = 0.dp,
     bottomPadding: androidx.compose.ui.unit.Dp = 0.dp,
+    /** UP 模式下由 pager 接管选页；为 null 时沿用直接改筛选的旧行为。 */
+    onSelectUp: ((Long) -> Unit)? = null,
+    onExitUp: (() -> Unit)? = null,
 ) {
     val colors = MiuixTheme.colorScheme
     val scope = rememberCoroutineScope()
@@ -50,20 +53,20 @@ internal fun FeedAuthorSidebar(
         verticalArrangement = Arrangement.spacedBy(6.dp)) {
         item(key = "all") {
             FeedAuthorRow("全部动态", "", state.filterMid == null, false) {
-                scope.launch { state.clearFilter() }
+                if (onExitUp != null) onExitUp() else scope.launch { state.clearFilter() }
             }
         }
         // 正在直播一行已按产品要求整体移除，侧栏只保留全部动态 / 我 / 关注的 UP。
         AppGraph.session.value?.let { me ->
             item(key = "me") {
                 FeedAuthorRow("我", me.face, state.filterMid == me.mid, false) {
-                    scope.launch { state.filterTo(me.mid) }
+                    if (onSelectUp != null) onSelectUp(me.mid) else scope.launch { state.filterTo(me.mid) }
                 }
             }
         }
         items(state.authors, key = { "author-${it.mid}" }) { author ->
             FeedAuthorRow(author.name, author.face, state.filterMid == author.mid, author.hasUpdate) {
-                scope.launch { state.filterTo(author.mid) }
+                if (onSelectUp != null) onSelectUp(author.mid) else scope.launch { state.filterTo(author.mid) }
             }
         }
         if (state.authorsLoading) item { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { TeakLoading(size = 28.dp) } }

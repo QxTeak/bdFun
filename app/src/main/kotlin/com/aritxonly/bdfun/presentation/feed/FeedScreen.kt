@@ -2,7 +2,6 @@ package com.aritxonly.bdfun.ui
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
@@ -19,7 +18,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
@@ -146,41 +145,6 @@ private fun FeedPagerSync(
     }
 }
 
-/**
- * UP 模式下的横向滑动：左滑下一个 UP、右滑上一个 UP。
- * 拖动期间页面跟手，松手后走整页推动；没过阈值就回弹，不换页。
- * 顶部 pager 此时已关掉滚动，不会和它抢同一个手势。
- */
-private fun Modifier.feedUpModeSwipe(
-    enabled: Boolean,
-    transition: FeedUpPageTransition,
-    onRelease: (Int) -> Unit,
-): Modifier = if (!enabled) this else this.pointerInput(transition) {
-    var accumulated = 0f
-    val threshold = 56.dp.toPx()
-    detectHorizontalDragGestures(
-        onDragStart = {
-            accumulated = 0f
-            transition.beginDrag()
-        },
-        onHorizontalDrag = { change, dragAmount ->
-            accumulated += dragAmount
-            change.consume()
-            transition.dragBy(dragAmount)
-        },
-        onDragEnd = {
-            onRelease(
-                when {
-                    accumulated <= -threshold -> 1
-                    accumulated >= threshold -> -1
-                    else -> 0
-                },
-            )
-        },
-        onDragCancel = { onRelease(0) },
-    )
-}
-
 @Composable
 private fun FeedTabPage(
     tabKey: String,
@@ -189,38 +153,11 @@ private fun FeedTabPage(
 ) {
     val scope = rememberFeedTaskScope(state)
     val context = LocalContext.current
-    val density = LocalDensity.current
-    val pull = remember(state) { FeedPullStateHolder() }
-    // 下拉刷新与首页三段共用同一个会话实现（阈值/阻尼/缓动完全一致）。
-    val session = PullRefreshSession(
-        thresholdPx = with(density) { FeedPullThreshold.toPx() },
-        maxPullPx = with(density) { FeedPullMax.toPx() },
-        density = density,
-        currentOffset = { pull.pull },
-        onPull = { px, dp, fraction ->
-            pull.pull = px
-            state.pullOffsetDp = dp
-            state.pullFraction = fraction
-        },
-        canScrollBackward = { state.listState.canScrollBackward },
-        isRefreshing = { state.refreshing },
-        onRefresh = {
-            state.pullFraction = 1f
-            state.refresh(loggedIn)
-        },
-        onCanceled = { state.pullFraction = 0f },
-    )
-    PullRefreshSettleEffect(
-        refreshing = state.refreshing,
-        currentOffset = { pull.pull },
-        onSettledStart = { state.pullFraction = 0f },
-        animatePull = { target, duration -> session.animatePullTo(target, duration) },
-    )
+    val pullUi = rememberFeedPullUi(state, loggedIn)
     val emotes = LocalRichTextDependencies.current.emotes
     LaunchedEffect(Unit) { emotes.ensure() }
-    FeedRefreshEffect(state, loggedIn, refreshTick, session)
+    FeedRefreshEffect(state, loggedIn, refreshTick, pullUi.session)
     val statusTop = rememberStatusBarTop()
-    val connection = remember(state) { session.connection() }
     FeedPaginationEffects(state, loggedIn)
     // 省略号/长按共用一份页面级菜单锚点；宿主挂在主壳采样树外的 MainFeedChrome。
     val menuUi = remember(state) { FeedCardMenuUi() }
@@ -229,17 +166,28 @@ private fun FeedTabPage(
     )
     // 环放在页面级持有：头像卡片是懒列表第一项，滚出屏幕会被回收；状态挂在卡片里会丢。
     val ring = remember { FeedAvatarRingState() }
-    // UP 之间切换：整页推动（旧页快照滑出、新页从另一侧滑入），和空间页翻页同一个观感。
-    val transition = remember(state) { FeedUpPageTransition() }
-    val selfMid = AppGraph.session.value?.mid
-    val selection = rememberFeedUpSelection(state, scope, transition, selfMid, tabKey, loggedIn)
+    val media = rememberFeedMedia(state)
     val upFocus = state.filterMid != null
+    val selfMid = AppGraph.session.value?.mid
+    val upOrder = feedUpMids(state, selfMid)
+    // 从「全部动态」进入某个 UP：提交筛选后由 pager 直接组合出目标页。
+    val enterUp: (Long) -> Unit = { mid ->
+        scope.launch {
+            state.listState.scrollToItem(0)
+            state.filterTo(mid)
+        }
+    }
+    val exitUp: () -> Unit = {
+        scope.launch {
+            state.listState.scrollToItem(0)
+            state.clearFilter()
+        }
+    }
     // 返回键先退出 UP 模式，再退动态页。
-    BackHandler(enabled = upFocus) { selection.exitToTab() }
-    Box(
-        modifier = Modifier.fillMaxSize()
-            .feedUpModeSwipe(upFocus, transition, selection.onSwipeRelease),
-    ) {
+    BackHandler(enabled = upFocus) {
+        scope.launch { state.exitUpFocus(tabKey, loggedIn) }
+    }
+    Box(Modifier.fillMaxSize()) {
         FeedCardMenuAnchorHost(menuUi)
         if (!loggedIn) {
             EmptyHint(
@@ -249,10 +197,23 @@ private fun FeedTabPage(
                 onAction = onNeedLogin,
             )
         } else {
-            FeedUpPageTransitionHost(transition) {
+            if (upFocus && upOrder.isNotEmpty()) {
+                // UP 模式：头像行固定，动态卡片用和空间页一样的 HorizontalPager 翻页。
+                FeedUpPagerLayout(
+                    state = state,
+                    ring = ring,
+                    statusTop = statusTop,
+                    pull = pullUi.pull,
+                    connection = pullUi.connection,
+                    actions = actions,
+                    media = media,
+                    loggedIn = loggedIn,
+                    onExitUp = exitUp,
+                )
+            } else {
                 FeedContent(
-                    state, statusTop, pull, connection, actions, ring,
-                    selection.selectUp, selection.exitUp, transition,
+                    state, statusTop, pullUi.pull, pullUi.connection, actions, media, ring,
+                    enterUp, exitUp,
                 )
             }
             FeedIndicators(state, statusTop)
@@ -300,4 +261,43 @@ private fun FeedReportHost(state: FeedState, scope: CoroutineScope, context: and
             }
         },
     )
+}
+
+private class FeedPullUi(
+    val pull: FeedPullStateHolder,
+    val session: PullRefreshSession,
+    val connection: NestedScrollConnection,
+)
+
+/** 下拉刷新与首页三段共用同一个会话实现（阈值/阻尼/缓动完全一致）。 */
+@Composable
+private fun rememberFeedPullUi(state: FeedState, loggedIn: Boolean): FeedPullUi {
+    val density = LocalDensity.current
+    val pull = remember(state) { FeedPullStateHolder() }
+    val session = PullRefreshSession(
+        thresholdPx = with(density) { FeedPullThreshold.toPx() },
+        maxPullPx = with(density) { FeedPullMax.toPx() },
+        density = density,
+        currentOffset = { pull.pull },
+        onPull = { px, dp, fraction ->
+            pull.pull = px
+            state.pullOffsetDp = dp
+            state.pullFraction = fraction
+        },
+        canScrollBackward = { state.listState.canScrollBackward },
+        isRefreshing = { state.refreshing },
+        onRefresh = {
+            state.pullFraction = 1f
+            state.refresh(loggedIn)
+        },
+        onCanceled = { state.pullFraction = 0f },
+    )
+    PullRefreshSettleEffect(
+        refreshing = state.refreshing,
+        currentOffset = { pull.pull },
+        onSettledStart = { state.pullFraction = 0f },
+        animatePull = { target, duration -> session.animatePullTo(target, duration) },
+    )
+    val connection = remember(state) { session.connection() }
+    return FeedPullUi(pull, session, connection)
 }

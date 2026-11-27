@@ -19,8 +19,7 @@ internal suspend fun FeedState.exitUpFocus(tabKey: String, loggedIn: Boolean) {
     switchTo(tabKey, loggedIn)
 }
 
-/** 头像在列表里的下标（含「全部动态」），用于把选中项滚进视口。 */
-internal fun feedAvatarIndex(state: FeedState, selfMid: Long?, target: Any?): Int {
+/** 头像在列表里的下标（含「全部动态」），用于把选中项滚进视口。 */internal fun feedAvatarIndex(state: FeedState, selfMid: Long?, target: Any?): Int {
     val live = state.liveUsers.map { it.mid }
     val me = selfMid?.takeIf { it !in live }
     val authors = state.authors.map { it.mid }.filterNot { it in live }
@@ -31,18 +30,4 @@ internal fun feedAvatarIndex(state: FeedState, selfMid: Long?, target: Any?): In
     val offset = live.size + 1 + if (me != null) 1 else 0
     val index = authors.indexOf(mid)
     return if (index >= 0) offset + index else -1
-}
-
-/**
- * UP 切换的方向：按两人在头像行里的先后决定。
- *
- * +1 表示新内容从右侧滑入（目标在右边），-1 从左侧滑入；进入/退出「全部动态」
- * 或顺序拿不到时返回 0，只淡入不位移——那是换模式，不是换 UP。
- */
-internal fun feedUpSwitchDirection(previous: Long?, current: Long?, order: List<Long>): Int {
-    if (previous == null || current == null || previous == current) return 0
-    val from = order.indexOf(previous)
-    val to = order.indexOf(current)
-    if (from < 0 || to < 0) return 0
-    return (to - from).coerceIn(-1, 1)
 }

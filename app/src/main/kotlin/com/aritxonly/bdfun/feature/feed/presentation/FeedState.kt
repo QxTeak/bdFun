@@ -77,6 +77,19 @@ class FeedState internal constructor(
     suspend fun retry(loggedIn: Boolean) = controller.retry(loggedIn)
     suspend fun refreshAuthors() = controller.refreshAuthors()
     suspend fun loadMoreAuthors() = controller.loadMoreAuthors()
+    /** 邻页预览：pager 的相邻页先显示这一份，滑过去时再换成常驻列表。 */
+    private val previews = androidx.compose.runtime.mutableStateMapOf<Long, List<FeedItem>>()
+    fun previewItems(mid: Long): List<FeedItem>? = previews[mid]
+    /** 离开某个 UP 时把它当前的首屏留在预览缓存里，往回滑时不用重新等网络。 */
+    fun seedPreview(mid: Long, items: List<FeedItem>) {
+        if (mid > 0L && items.isNotEmpty()) previews[mid] = items
+    }
+    suspend fun prefetchUp(mid: Long, loggedIn: Boolean) {
+        if (mid <= 0L || mid == filterMid || previews.containsKey(mid)) return
+        val items = controller.prefetchUp(mid, loggedIn) ?: return
+        previews[mid] = items
+    }
+
     suspend fun toggleLike(item: FeedItem) = controller.toggleLike(item)
     suspend fun reportDynamic(item: FeedItem, reason: com.aritxonly.bdfun.core.domain.DynamicReportReason) =
         controller.reportDynamic(item, reason)

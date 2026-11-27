@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope
+import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -21,6 +24,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.aritxonly.bdfun.core.model.feed.FeedItem
 import kotlin.math.roundToInt
 
 @Composable
@@ -30,7 +34,6 @@ internal fun FeedGrid(
     ring: FeedAvatarRingState,
     onSelectUp: (Long) -> Unit,
     onExitUp: () -> Unit,
-    transition: FeedUpPageTransition,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 736.dp
@@ -39,7 +42,11 @@ internal fun FeedGrid(
         val liveMids = remember(state.liveUsers) {
             state.liveUsers.mapTo(HashSet()) { it.mid }
         }
-
+        val columns = if (wide) {
+            BoundedVideoStaggeredGridCells(FeedCardMinWidth.dp, FeedCardMaxWidth.dp)
+        } else {
+            StaggeredGridCells.Fixed(1)
+        }
         val sidebarWidth = dynamicSidebarWidth(maxWidth.value).dp
         Row(Modifier.fillMaxSize()) {
             if (wide) FeedAuthorSidebar(
@@ -48,16 +55,14 @@ internal fun FeedGrid(
                 topPadding = statusTop + FeedTopBarHeight,
                 bottomPadding = 100.dp,
             )
-            LazyVerticalStaggeredGrid(
-                columns = if (wide) BoundedVideoStaggeredGridCells(FeedCardMinWidth.dp, FeedCardMaxWidth.dp)
-                    else androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells.Fixed(1),
-                state = state.listState,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .weight(1f)
-
-                    .offset { IntOffset(0, pull.pull.roundToInt()) }
-                    .nestedScroll(connection),
+            FeedCardsGrid(
+                state = state,
+                items = state.items,
+                actions = actions,
+                media = media,
+                liveMids = liveMids,
+                listState = state.listState,
+                columns = columns,
                 contentPadding = PaddingValues(
                     start = TeakUiStyle.design.contentInset(8.dp),
                     // 固定顶栏显示分类分段栏；头像卡片已经放进列表里，会跟着一起滚走
@@ -65,8 +70,13 @@ internal fun FeedGrid(
                     end = TeakUiStyle.design.contentInset(8.dp),
                     bottom = 100.dp,
                 ),
-                verticalItemSpacing = TeakUiStyle.design.itemSpacing(10.dp, 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .weight(1f)
+                    .offset { IntOffset(0, pull.pull.roundToInt()) }
+                    .nestedScroll(connection),
+                showSkeleton = state.items.isEmpty() && state.loading,
+                showFooter = true,
             ) {
                 if (!wide) item(key = "avatar-card", span = StaggeredGridItemSpan.FullLine) {
                     FeedAvatarCard(
@@ -77,14 +87,42 @@ internal fun FeedGrid(
                         modifier = Modifier.padding(bottom = TeakUiStyle.design.contentInset(2.dp)),
                     )
                 }
-                // 动态首屏还在加载时先铺卡片骨架，避免空白页只挂一个小电视。
-                if (state.items.isEmpty() && state.loading) {
-                    dynamicFeedSkeletonItems()
-                }
-                dynamicFeedItems(state, actions, media, liveMids, transition)
-                dynamicFeedFooter(state, actions)
             }
-
         }
+    }
+}
+
+/**
+ * 动态卡片网格。UP 模式的 pager 页和普通列表共用这一份：
+ * 分页 footer / 骨架屏由调用方决定，普通页和预览页就不会各写一套卡片布局。
+ */
+@Composable
+internal fun FeedCardsGrid(
+    state: FeedState,
+    items: List<FeedItem>,
+    actions: FeedActions,
+    media: FeedMedia,
+    liveMids: Set<Long>,
+    listState: LazyStaggeredGridState,
+    columns: StaggeredGridCells,
+    contentPadding: PaddingValues,
+    modifier: Modifier,
+    showSkeleton: Boolean,
+    showFooter: Boolean,
+    header: (LazyStaggeredGridScope.() -> Unit)? = null,
+) {
+    LazyVerticalStaggeredGrid(
+        columns = columns,
+        state = listState,
+        modifier = modifier,
+        contentPadding = contentPadding,
+        verticalItemSpacing = TeakUiStyle.design.itemSpacing(10.dp, 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+    ) {
+        header?.invoke(this)
+        // 动态首屏还在加载时先铺卡片骨架，避免空白页只挂一个小电视。
+        if (showSkeleton) dynamicFeedSkeletonItems()
+        dynamicFeedItems(state, items, actions, media, liveMids)
+        if (showFooter) dynamicFeedFooter(state, actions)
     }
 }

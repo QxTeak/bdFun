@@ -99,7 +99,36 @@ internal class FeedStateHolder(
     private var retryReset = true
     private data class CachedPage(val items: List<FeedItem>, val offset: String, val hasMore: Boolean)
     private val cache = mutableMapOf<String, CachedPage>()
+    /** 邻页预取去重：同一个 UP 同时只发一个请求。 */
+    private val prefetching = mutableSetOf<String>()
     private val key get() = "$type:${filterMid ?: 0}"
+
+    /**
+     * 邻页预览：把某个 UP 的第一页拉进缓存，**不碰当前可见状态**。
+     * 写进同一份 cache 后，pager 真正滑过去时 select() 能直接命中，不会二次请求。
+     */
+    suspend fun prefetchUp(mid: Long, loggedIn: Boolean): List<FeedItem>? {
+        if (closed || !loggedIn || mid <= 0) return null
+        val cacheKey = "up:$mid"
+        cache[cacheKey]?.let { return it.items }
+        if (!prefetching.add(cacheKey)) return null
+        return try {
+            val page = when (val result = repository.dynamicPage("up", "", mid)) {
+                is Outcome.Success -> result.value
+                is Outcome.Failure -> return null
+            }
+            if (closed) return null
+            val items = page.items.filter { it.id.isNotBlank() }
+            cache[cacheKey] = CachedPage(items, page.offset, page.hasMore)
+            items
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (_: Exception) {
+            null
+        } finally {
+            prefetching.remove(cacheKey)
+        }
+    }
 
     fun markSeen(mid: Long) {
         if (closed) return

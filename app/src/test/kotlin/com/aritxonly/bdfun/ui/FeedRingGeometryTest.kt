@@ -40,37 +40,4 @@ class FeedRingGeometryTest {
         assertEquals(FeedRingSide.Left, feedRingNearestSide(avatar(10f), width))
         assertEquals(FeedRingSide.Right, feedRingNearestSide(avatar(360f), width))
     }
-
-    @Test fun upSwitchDirectionFollowsAvatarOrder() {
-        val order = listOf(9L, 2L, 3L)
-        assertEquals(1, feedUpSwitchDirection(2L, 3L, order))
-        assertEquals(-1, feedUpSwitchDirection(3L, 2L, order))
-        assertEquals(1, feedUpSwitchDirection(9L, 3L, order))
-        assertEquals(0, feedUpSwitchDirection(2L, 2L, order))
-    }
-
-    @Test fun enteringOrLeavingAllModeOnlyFades() {
-        val order = listOf(9L, 2L)
-        assertEquals(0, feedUpSwitchDirection(null, 2L, order))
-        assertEquals(0, feedUpSwitchDirection(2L, null, order))
-        // UP 列表还没加载到目标时也退化为淡入，不能瞎猜方向。
-        assertEquals(0, feedUpSwitchDirection(7L, 2L, order))
-    }
-
-    @Test fun slideOffsetsMoveCardsAcrossTheFullPage() {
-        val width = 1000f
-        val next = feedUpSlideOffsets(direction = 1, width = width)
-        // 下一个 UP：旧页卡片往左滑出，新页卡片从右侧进来。
-        assertEquals(-width, next.exitOffset, 0.001f)
-        assertEquals(width, next.enterOffset, 0.001f)
-
-        val previous = feedUpSlideOffsets(direction = -1, width = width)
-        assertEquals(width, previous.exitOffset, 0.001f)
-        assertEquals(-width, previous.enterOffset, 0.001f)
-
-        // 方向未知时两边都归零，调用方会直接换页、不播位移。
-        val none = feedUpSlideOffsets(direction = 0, width = width)
-        assertEquals(0f, none.exitOffset, 0.001f)
-        assertEquals(0f, none.enterOffset, 0.001f)
-    }
 }
