@@ -17,8 +17,12 @@ internal fun androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridSco
         val countNow by remember(item.id) {
             derivedStateOf { state.likeCounts[item.id] ?: item.like }
         }
+        // 每张卡独立形变锚点：省略号从自己的图标长出来，长按则用页面级点锚点。
+        val cardMenu = remember(item.id) {
+            com.aritxonly.teak.common.navigation.TeakMorphMenuState()
+        }
         // 回调按条目记住，只在内容/交互值变化时才新建：参数身份稳定，卡片才能跳过重组。
-        val cardActions = remember(item.id, item, actions, media) {
+        val cardActions = remember(item.id, item, actions, media, cardMenu) {
             com.aritxonly.bdfun.ui.FeedCardActions(
                 onOpen = {
                     actions.open(item)
@@ -29,6 +33,11 @@ internal fun androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridSco
                 onRepost = { actions.onOpenFeed(item) },
                 onOpenForwarded = { actions.onOpenFeed(it) },
                 onToggleMute = media.onToggleMute,
+                moreMorphState = cardMenu,
+                onMore = { actions.more(item, cardMenu) },
+                onLongPressRect = { rect ->
+                    actions.longPress(item, androidx.compose.ui.geometry.Offset(rect.left, rect.top))
+                },
             )
         }
         // 点赞/计数没变时不要 copy：每次重组都给每张卡 new 两个对象是纯浪费。
@@ -52,6 +61,8 @@ internal fun androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridSco
             actions = cardActions,
             presentation = presentation,
             live = liveMids.contains(item.mid),
+            // UP 切换时和空间页一样：卡片统一读一份进度滑入，滚动中新组合的卡片读到 1 不重播。
+            modifier = androidx.compose.ui.Modifier.contentSwitchItem(),
         )
     }
 }

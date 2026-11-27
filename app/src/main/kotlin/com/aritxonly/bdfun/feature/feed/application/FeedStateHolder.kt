@@ -276,8 +276,7 @@ internal class FeedStateHolder(
         }
     }
 
-    suspend fun toggleLike(item: FeedItem): Outcome<Boolean>? {
-        val old = mutable.value.interactions
+    suspend fun toggleLike(item: FeedItem): Outcome<Boolean>? {        val old = mutable.value.interactions
         if (closed || item.id in old.pending) return null
         val previous = old.liked[item.id] ?: item.liked
         val count = old.likeCounts[item.id] ?: item.like
@@ -301,5 +300,19 @@ internal class FeedStateHolder(
             }
         } catch (cancel: CancellationException) { rollback(); throw cancel }
         finally { if (!closed) mutable.update { it.copy(interactions = it.interactions.copy(pending = it.interactions.pending - item.id)) } }
+    }
+
+    /** 举报一条动态；账号/页面已关闭时直接拒收，返回 null 让界面不弹提示。 */
+    suspend fun reportDynamic(
+        item: FeedItem,
+        reason: com.aritxonly.bdfun.core.domain.DynamicReportReason,
+    ): Outcome<Unit>? {
+        if (closed || item.id.isBlank()) return null
+        return try {
+            val result = repository.reportDynamic(item.id, item.mid, reason)
+            if (closed) null else result
+        } catch (cancel: CancellationException) {
+            throw cancel
+        }
     }
 }

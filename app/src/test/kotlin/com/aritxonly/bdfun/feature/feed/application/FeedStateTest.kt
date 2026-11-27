@@ -56,6 +56,15 @@ class FeedStateTest {
         val likes = mutableListOf<Pair<String, Boolean>>()
         var like: suspend (String, Boolean) -> Outcome<Boolean> = { _, _ -> Outcome.Success(true) }
         override suspend fun likeFeed(id: String, like: Boolean): Outcome<Boolean> { likes += id to like; return this.like(id, like) }
+        val reports = mutableListOf<Triple<String, Long, DynamicReportReason>>()
+        override suspend fun reportDynamic(
+            dynamicId: String,
+            accusedMid: Long,
+            reason: DynamicReportReason,
+        ): Outcome<Unit> {
+            reports += Triple(dynamicId, accusedMid, reason)
+            return Outcome.Success(Unit)
+        }
         private suspend fun <T> outcome(block: suspend () -> T): Outcome<T> = try { Outcome.Success(block()) }
         catch (cancel: CancellationException) { throw cancel }
         catch (failure: Exception) { Outcome.Failure(AppError.Unknown(failure.message.orEmpty())) }
@@ -274,5 +283,16 @@ class FeedStateTest {
         pending.complete(Outcome.Success(false)); assertNull(running.await())
         assertEquals(closed, state.state.value); assertNull(state.toggleLike(item("two")))
         assertEquals(1, source.likes.size); assertTrue(state.state.value.interactions.pending.isEmpty())
+    }
+
+    @Test fun reportDynamicCarriesItemIdentityAndClosedPageDoesNotSubmit() = runBlocking {
+        val source = Source()
+        val state = FeedStateHolder(source)
+        val target = item("7001")
+        assertTrue(state.reportDynamic(target, DynamicReportReason.Attack) is Outcome.Success)
+        assertEquals(Triple("7001", 7L, DynamicReportReason.Attack), source.reports.single())
+        state.close()
+        assertNull(state.reportDynamic(target, DynamicReportReason.Ads))
+        assertEquals(1, source.reports.size)
     }
 }

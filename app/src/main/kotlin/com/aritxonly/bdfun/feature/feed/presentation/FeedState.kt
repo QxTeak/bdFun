@@ -25,6 +25,14 @@ class FeedState internal constructor(
     var pullFraction by mutableFloatStateOf(0f)
     var pullOffsetDp by mutableFloatStateOf(0f)
     var showLive by mutableStateOf(true)
+    /** 卡片省略号/长按共用的形变菜单：每张卡有自己的锚点，当前打开的那条放在这里。 */
+    var menuState by mutableStateOf<com.aritxonly.teak.common.navigation.TeakMorphMenuState?>(null)
+    var menuItem by mutableStateOf<FeedItem?>(null)
+    /** 举报弹窗的目标：菜单收起后由页面继续持有，弹窗独立于菜单宿主。 */
+    var reportItem by mutableStateOf<FeedItem?>(null)
+    fun dismissMenu() {
+        menuState?.close()
+    }
     init {
         scope.launch {
             controller.state.collect {
@@ -70,4 +78,6 @@ class FeedState internal constructor(
     suspend fun refreshAuthors() = controller.refreshAuthors()
     suspend fun loadMoreAuthors() = controller.loadMoreAuthors()
     suspend fun toggleLike(item: FeedItem) = controller.toggleLike(item)
+    suspend fun reportDynamic(item: FeedItem, reason: com.aritxonly.bdfun.core.domain.DynamicReportReason) =
+        controller.reportDynamic(item, reason)
 }

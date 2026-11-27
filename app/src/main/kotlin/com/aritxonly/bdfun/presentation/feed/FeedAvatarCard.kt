@@ -79,6 +79,10 @@ internal fun FeedAvatarCard(
     LaunchedEffect(selectedKey) {
         // 滚动会改变锚点，先把环现在的落点冻结下来，滚完仍从原来的位置出发。
         val source = ring.currentRect()
+        // 源头像此刻还有没有实时测量点：没有就说明它本来就在屏幕外，
+        // 滚动方向不能反过来覆盖已经记住的那一侧。
+        val sourceLive = ring.hasLiveAnchor()
+        val scrollBefore = authorScroll.positionToken()
         val scrolled = if (state.filterMid == null) {
             authorScroll.animateScrollToItem(0)
             true
@@ -88,7 +92,8 @@ internal fun FeedAvatarCard(
         }
         // 只有真的滚了才等一帧；目标本来就完整露出时直接开动画，少 1 帧延迟。
         if (scrolled) withFrameNanos { }
-        ring.moveTo(selectedKey, source)
+        val scrollDelta = if (sourceLive) authorScroll.scrollDirection(scrollBefore) else 0
+        ring.moveTo(selectedKey, source, scrollDelta)
     }
 
     val liveUsers = state.liveUsers
@@ -237,4 +242,20 @@ private suspend fun LazyListState.ensureFullyVisible(index: Int, gapPx: Float): 
         return false
     }
     return true
+}
+
+/** 滚动位置快照：只用于比较切换前后头像栏往哪边滚了。 */
+private fun LazyListState.positionToken(): Pair<Int, Int> =
+    firstVisibleItemIndex to firstVisibleItemScrollOffset
+
+/** 正数=内容左移（列表往后滚），负数=内容右移；没动返回 0。 */
+private fun LazyListState.scrollDirection(before: Pair<Int, Int>): Int {
+    val after = positionToken()
+    return when {
+        after.first > before.first -> 1
+        after.first < before.first -> -1
+        after.second > before.second -> 1
+        after.second < before.second -> -1
+        else -> 0
+    }
 }

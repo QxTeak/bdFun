@@ -17,12 +17,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.AppGraph
+import com.aritxonly.bdfun.core.common.messageOr
 import com.aritxonly.bdfun.core.domain.DynamicTabPolicy
 import com.aritxonly.bdfun.core.model.feed.FeedItem
 import com.aritxonly.bdfun.core.model.video.VideoItem
@@ -105,6 +107,8 @@ private fun FeedPagerSync(
         if (leaving != null && leaving != initialTab) {
             AppGraph.dynamicFeedStateFor(leaving).exitUpFocus(leaving, loggedIn)
         }
+        // 切顶部分类时菜单挂在主壳上，不会跟着列表离开，先收掉。
+        leaving?.let { AppGraph.dynamicFeedStateFor(it).dismissMenu() }
         if (pager.currentPage != target || pager.currentPageOffsetFraction != 0f) {
             programmatic = true
             try {
@@ -212,11 +216,15 @@ private fun FeedTabPage(
     val statusTop = rememberStatusBarTop()
     val connection = remember(state) { session.connection() }
     FeedPaginationEffects(state, loggedIn)
+    // 省略号/长按共用一份页面级菜单锚点；宿主挂在主壳采样树外的 MainFeedChrome。
+    val menuUi = remember(state) { FeedCardMenuUi() }
     val actions = rememberFeedActions(
-        state, scope, context, loggedIn, onOpenVideo, onOpenFeed,
+        state, scope, context, loggedIn, menuUi, onOpenVideo, onOpenFeed,
     )
     // 环放在页面级持有：头像卡片是懒列表第一项，滚出屏幕会被回收；状态挂在卡片里会丢。
     val ring = remember { FeedAvatarRingState() }
+    // UP 之间切换时只有下面的动态滑入，头像行保持不动（和空间页分段一致）。
+    val contentSwitch = rememberFeedUpContentSwitch(state, AppGraph.session.value?.mid)
     val upFocus = state.filterMid != null
     // 返回键先退出 UP 模式，再退动态页。
     BackHandler(enabled = upFocus) { scope.launch { state.exitUpFocus(tabKey, loggedIn) } }
@@ -224,6 +232,7 @@ private fun FeedTabPage(
         modifier = Modifier.fillMaxSize()
             .feedUpModeSwipe(state, scope, upFocus) { AppGraph.session.value?.mid },
     ) {
+        FeedCardMenuAnchorHost(menuUi)
         if (!loggedIn) {
             EmptyHint(
                 title = "动态",
@@ -232,8 +241,52 @@ private fun FeedTabPage(
                 onAction = onNeedLogin,
             )
         } else {
-            FeedContent(state, statusTop, pull, connection, actions, ring)
-            FeedIndicators(state, statusTop)
+            androidx.compose.runtime.CompositionLocalProvider(LocalContentSwitch provides contentSwitch) {
+                FeedContent(state, statusTop, pull, connection, actions, ring)
+                FeedIndicators(state, statusTop)
+            }
+        }
+        FeedReportHost(state, scope, context)
+    }
+}
+
+/** 长按锚点先组合一帧，再让形变面板从手指位置展开（和首页同一时序）。 */
+@Composable
+private fun FeedCardMenuAnchorHost(menuUi: FeedCardMenuUi) {
+    if (menuUi.point != androidx.compose.ui.geometry.Offset.Zero) {
+        com.aritxonly.teak.common.navigation.TeakMorphPointAnchor(
+            menuUi.pointMenu,
+            menuUi.point,
+        )
+    }
+    LaunchedEffect(menuUi.pendingOpen) {
+        if (menuUi.pendingOpen) {
+            withFrameNanos { }
+            withFrameNanos { }
+            menuUi.pointMenu.openWithAnchorCopy(false)
+            menuUi.pendingOpen = false
         }
     }
+}
+
+/** 举报弹窗：菜单收起后仍由页面持有目标，独立于菜单宿主。 */
+@Composable
+private fun FeedReportHost(state: FeedState, scope: CoroutineScope, context: android.content.Context) {
+    val item = state.reportItem ?: return
+    DynamicReportDialog(
+        item = item,
+        onDismiss = { state.reportItem = null },
+        onSubmit = { reason ->
+            scope.launch {
+                when (val result = state.reportDynamic(item, reason)) {
+                    is com.aritxonly.bdfun.core.common.Outcome.Success ->
+                        context.showToast("举报已提交")
+                    is com.aritxonly.bdfun.core.common.Outcome.Failure ->
+                        context.showToast(result.error.messageOr("举报失败"))
+                    null -> Unit
+                }
+                state.reportItem = null
+            }
+        },
+    )
 }

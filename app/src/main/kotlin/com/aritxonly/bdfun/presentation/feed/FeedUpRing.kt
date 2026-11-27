@@ -7,7 +7,6 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -50,6 +49,9 @@ private val FeedRingEasing = CubicBezierEasing(0.18f, 0f, 0.08f, 1f)
  * 实现是两段 `drawArc` + `drawLine`：前半段源环 sweep 从 360 收到 0、线伸出；
  * 后半段线收进目标底部、目标环 sweep 从 0 涨到 360。
  *
+ * 源头像已经滑出屏幕时只画线：起点放在**被记住的那一侧屏幕外**，线从边缘滑进来，
+ * 不再把旧坐标夹回屏幕内。
+ *
  * 绘制只读状态、不读写组合：动画期间只有这一个 Canvas 重绘，不会重组头像行。
  */
 @Stable
@@ -66,6 +68,9 @@ internal class FeedAvatarRingState {
     /** 覆盖层自己在 root 里的左上角；绘制时减掉它，锚点才能统一用 root 坐标测。 */
     internal var originInRoot by mutableStateOf(Offset.Zero)
     internal var selectedKey: Any by mutableStateOf(FeedAllAvatarKey)
+    /** 覆盖层宽度（px）。头像被回收时用它判断是从左边还是右边滑出去的。 */
+    internal var viewportWidth = 0f
+        private set
 
     /** 动画两端冻结的矩形，作为锚点被回收时的兜底。 */
     internal var from by mutableStateOf<Rect?>(null)
@@ -79,22 +84,35 @@ internal class FeedAvatarRingState {
     private var primed = false
 
     /**
-     * 选中头像滚出视口后，它的锚点会被回收；但下一次切换仍然要从它"消失的位置"出发，
-     * 否则起点丢失就只能瞬移。这里以**卡片内坐标**留一份最后位置——用 root 坐标存的话，
-     * 之后整个动态列表再上下滚动，旧 root 坐标就会指到卡片上方/下方去。
+     * 选中头像滚出视口后，它的锚点会被回收；下一次切换仍要从它"消失的位置"出发。
+     * 这里以**卡片内坐标**留一份最后位置——用 root 坐标存的话，之后整个动态列表再上下滚动，
+     * 旧 root 坐标就会指到卡片上方/下方去。
      */
     private var lastSelectedLocal: Rect? = null
+    /** 选中头像最后一次可见时是朝哪一侧滑出去的；它才是"屏幕外方向"的真实记忆。 */
+    private var lastSelectedSide: FeedRingSide? = null
+    /** 选中头像的最后直径：起点圆按它画，线的位置才不会突然变粗变细。 */
+    private var lastSelectedSize = 0f
 
     /** 环现在画在哪（root 坐标）；换选中项前用它冻结起点，头像栏滚动也不会把起点弄丢。 */
     internal fun currentRect(): Rect? =
         fromKey?.let { anchors[it] } ?: anchors[selectedKey]
             ?: lastSelectedLocal?.translate(originInRoot.x, originInRoot.y)
 
+    /** 选中头像现在还有没有实时测量点（头像栏滚动后据此决定用实测位置还是屏幕外起点）。 */
+    internal fun hasLiveAnchor(key: Any = selectedKey): Boolean = anchors[key] != null
+
+    internal fun onViewportWidth(width: Int) {
+        viewportWidth = width.toFloat()
+    }
+
     /**
      * 选中项变化时调用：解体重组到 [target]。
      * [source] 是调用方在滚动头像栏之前冻结的起点；为空时退回到当前锚点。
+     * [scrollDelta] 是本次切换为了让目标完整露出而滚动的方向：正数=内容左移（源头像从左边出），
+     * 负数=内容右移。源头像在滚动后被回收时，只有它才能说明真实方向。
      */
-    internal suspend fun moveTo(target: Any, source: Rect? = null) {
+    internal suspend fun moveTo(target: Any, source: Rect? = null, scrollDelta: Int = 0) {
         if (!primed) {
             primed = true
             selectedKey = target
@@ -102,24 +120,34 @@ internal class FeedAvatarRingState {
             return
         }
         if (target == selectedKey && progress.value >= 1f) return
-        val fromRect = source?.translate(-originInRoot.x, -originInRoot.y)
-            ?: anchors[selectedKey]?.toLocal()
-            ?: lastSelectedLocal
         val toRect = anchors[target]?.toLocal()
+        val measuredStart = anchors[selectedKey]?.toLocal()
+        val frozenStart = measuredStart ?: source?.translate(-originInRoot.x, -originInRoot.y)
+            ?: lastSelectedLocal
         if (BuildConfig.DEBUG) {
             LogCollector.record(
                 "FEED_RING",
-                "moveTo target=$target from=${fromRect.desc()} to=${toRect.desc()}",
+                "moveTo target=$target from=${frozenStart.desc()} to=${toRect.desc()} " +
+                    "scroll=$scrollDelta side=$lastSelectedSide live=${measuredStart != null}",
             )
         }
-        if (!TeakMotion.enabled || fromRect == null || toRect == null) {
+        if (!TeakMotion.enabled || toRect == null) {
             // 目标还没测量到（比如刚滚进视口）或关掉了动效：直接落到新位置。
             selectedKey = target
             lastSelectedLocal = anchors[target]?.toLocal() ?: lastSelectedLocal
+            lastSelectedSide = null
             progress.snapTo(1f)
             return
         }
-        from = fromRect
+        val start = measuredStart ?: offscreenStart(frozenStart, toRect, scrollDelta)
+        if (start == null) {
+            selectedKey = target
+            lastSelectedLocal = toRect
+            lastSelectedSide = null
+            progress.snapTo(1f)
+            return
+        }
+        from = start
         to = toRect
         fromKey = selectedKey
         toKey = target
@@ -131,26 +159,56 @@ internal class FeedAvatarRingState {
         // from/to 已清空、selectedKey 还停在源头像，于是按旧位置画一圈静态环——就是"闪一下"。
         selectedKey = target
         lastSelectedLocal = anchors[target]?.toLocal() ?: lastSelectedLocal
+        lastSelectedSide = null
         fromKey = null
         toKey = null
         from = null
         to = null
     }
 
+    /**
+     * 源头像已不在屏幕内时的起点圆。
+     * 优先用本次滚动方向（最真实）；否则用选出口记住的方向；再不行按最后一帧离哪边近兜底。
+     */
+    private fun offscreenStart(frozen: Rect?, target: Rect, scrollDelta: Int): Rect? {
+        val side = when {
+            scrollDelta > 0 -> FeedRingSide.Left
+            scrollDelta < 0 -> FeedRingSide.Right
+            lastSelectedSide != null -> lastSelectedSide
+            frozen != null && viewportWidth > 0f -> feedRingNearestSide(frozen, viewportWidth)
+            else -> null
+        } ?: return frozen
+        val size = lastSelectedSize.takeIf { it > 0f } ?: target.width
+        return feedRingOffscreenStart(
+            side = side,
+            avatarSize = size,
+            centerY = target.top + target.height / 2f,
+            viewportWidth = viewportWidth,
+        )
+    }
+
     /** 某个头像被重新测量：只有当前参与绘制的 key 变化才让 Canvas 重绘。 */
     internal fun onAnchor(key: Any, rect: Rect) {
         val previous = anchors.put(key, rect)
-        if (key == selectedKey) lastSelectedLocal = rect.toLocal()
-        if (previous == rect) return
-        if (key == selectedKey || key == fromKey || key == toKey) anchorsVersion++
+        if (key == selectedKey) {
+            lastSelectedLocal = rect.toLocal()
+            lastSelectedSize = rect.width
+            // 只在真的探出视口时记住方向；完全可见时清掉，下一次按实测位置起动画。
+            lastSelectedSide = feedRingExitSide(rect, viewportWidth)
+            if (previous != rect) anchorsVersion++
+        } else if (key == fromKey || key == toKey) {
+            if (previous != rect) anchorsVersion++
+        }
     }
 
-    /** 头像滚出视口被回收。 */
+    /** 头像滚出视口被回收：把最后一次位置和方向一起记住。 */
     internal fun clearAnchor(key: Any) {
         val removed = anchors.remove(key) ?: return
         if (key == selectedKey) {
-            // 留着最后位置：下一次从它开始切换时还能播"从屏幕外飞进来"的动画。
             lastSelectedLocal = removed.toLocal()
+            lastSelectedSize = removed.width
+            lastSelectedSide = feedRingExitSide(removed, viewportWidth)
+                ?: feedRingNearestSide(removed, viewportWidth)
             anchorsVersion++
         } else if (key == fromKey || key == toKey) {
             anchorsVersion++
@@ -163,26 +221,14 @@ internal class FeedAvatarRingState {
         // 锚点是 root 坐标、冻结矩形是卡片内坐标：统一换到卡片内再画，
         // 这样整个动态列表上下滚动时，起点也不会"跑到屏幕上/下方去"。
         val end = toKey?.let { anchors[it] }?.toLocal() ?: to
-        val start = fromKey?.let { anchors[it] }?.toLocal()
-            ?: from?.let { frozen -> snapOffscreenStart(frozen, end, scope.size.width, scope.size.height) }
-        val idle = anchors[selectedKey]?.toLocal()
+        val start = fromKey?.let { anchors[it] }?.toLocal() ?: from
         if (start != null && end != null) {
-            scope.drawMorphRing(start, end, progress.value, color, stroke)
+            val startOffscreen = feedRingIsOffscreen(start, viewportWidth)
+            scope.drawMorphRing(start, end, progress.value, color, stroke, startOffscreen)
             return
         }
+        val idle = anchors[selectedKey]?.toLocal()
         if (idle != null) scope.drawStaticRing(idle, color, stroke)
-    }
-
-    /**
-     * 起点是"已经滚出视口的头像"时，它的坐标只可能是历史值：高度一律对齐到目标那一行，
-     * 横向夹到卡片边缘。这样无论之前列表怎么上下滚，都只会从左右侧飞进来。
-     */
-    private fun snapOffscreenStart(frozen: Rect, end: Rect?, width: Float, height: Float): Rect {
-        val centerY = end?.let { it.top + it.height / 2f } ?: (height / 2f)
-        val centerX = (frozen.left + frozen.width / 2f).coerceIn(0f, width)
-        val halfW = frozen.width / 2f
-        val halfH = frozen.height / 2f
-        return Rect(centerX - halfW, centerY - halfH, centerX + halfW, centerY + halfH)
     }
 
     private fun Rect.toLocal(): Rect =
@@ -203,7 +249,10 @@ internal fun FeedAvatarRingOverlay(
     // Stroke 每帧都要传进 drawArc，提到组合里复用，动画期间不再逐帧新建。
     val strokePx = with(LocalDensity.current) { strokeWidth.toPx() }
     val stroke = remember(strokePx) { Stroke(width = strokePx, cap = StrokeCap.Round) }
-    Canvas(modifier.onGloballyPositioned { state.originInRoot = it.positionInRoot() }) {
+    Canvas(modifier.onGloballyPositioned {
+        state.originInRoot = it.positionInRoot()
+        state.onViewportWidth(it.size.width)
+    }) {
         state.drawInto(this, color, stroke)
     }
 }
@@ -221,9 +270,17 @@ private fun DrawScope.drawStaticRing(rect: Rect, color: Color, stroke: Stroke) {
 
 /**
  * 两段式环：前半段解体重组，后半段缠绕。
+ * 源头像已在屏幕外（[startOffscreen]）时跳过源环，只留一条从屏幕外滑进来的线。
  * 全部用 Float 算圆心/半径，避免每帧创建 Rect；只有真正要提交 Arc 时才建 Offset/Size。
  */
-private fun DrawScope.drawMorphRing(from: Rect, to: Rect, progress: Float, color: Color, stroke: Stroke) {
+private fun DrawScope.drawMorphRing(
+    from: Rect,
+    to: Rect,
+    progress: Float,
+    color: Color,
+    stroke: Stroke,
+    startOffscreen: Boolean,
+) {
     val strokePx = stroke.width
     // 用两端里较大的那个头像尺寸：只要有一端测量异常（被裁/尚未布局完）偏小，
     // 环也不会跟着缩小，只有两端都正常时才等于真实头像直径。
@@ -246,7 +303,7 @@ private fun DrawScope.drawMorphRing(from: Rect, to: Rect, progress: Float, color
         // 前半段：环从底部朝目标方向解开，缺口越大；同时一条线从源底部伸出去。
         val q = (progress / unwindEnd).coerceIn(0f, 1f)
         val sweep = 360f * (1f - q) * direction
-        if (abs(sweep) >= 0.5f) {
+        if (!startOffscreen && abs(sweep) >= 0.5f) {
             drawArc(
                 color = color,
                 startAngle = 90f,
@@ -308,46 +365,6 @@ private fun DrawScope.drawSegment(
     )
 }
 
-/**
- * 头像行里参与「UP 模式」的顺序：直播 UP、我、关注 UP，和横向列表的排列一致。
- * 「全部动态」不在里面——它是退出键，不参与左右滑动。
- */
-internal fun feedUpMids(state: FeedState, selfMid: Long?): List<Long> {
-    val live = state.liveUsers.map { it.mid }
-    val me = selfMid?.takeIf { it !in live }
-    val authors = state.authors.map { it.mid }.filterNot { it in live }
-    return (live + listOfNotNull(me) + authors).distinct()
-}
-
-/** 左右滑动切换 UP：越过两端就停在原地，不绕回「全部动态」。 */
-internal suspend fun FeedState.stepUpFocus(delta: Int, selfMid: Long?) {
-    val current = filterMid ?: return
-    val order = feedUpMids(this, selfMid)
-    val next = order.getOrNull(order.indexOf(current) + delta) ?: return
-    if (next != current) filterTo(next)
-}
-
-/** 退出 UP 模式：回到这一页自己的分类（全部/视频/番剧），而不是一律切成「全部」。 */
-internal suspend fun FeedState.exitUpFocus(tabKey: String, loggedIn: Boolean) {
-    if (filterMid == null) return
-    switchTo(tabKey, loggedIn)
-}
-
-/** 头像在列表里的下标（含「全部动态」），用于把选中项滚进视口。 */
-internal fun feedAvatarIndex(state: FeedState, selfMid: Long?, target: Any?): Int {
-    val live = state.liveUsers.map { it.mid }
-    val me = selfMid?.takeIf { it !in live }
-    val authors = state.authors.map { it.mid }.filterNot { it in live }
-    if (target == FeedAllAvatarKey) return live.size
-    val mid = target as? Long ?: return -1
-    if (mid in live) return live.indexOf(mid)
-    if (mid == me) return live.size + 1
-    val offset = live.size + 1 + if (me != null) 1 else 0
-    val index = authors.indexOf(mid)
-    return if (index >= 0) offset + index else -1
-}
-
 /** 调试用：把矩形缩成一行，方便排查环为什么会缩。 */
 private fun Rect?.desc(): String =
     this?.let { "${it.left.toInt()},${it.top.toInt()} ${it.width.toInt()}x${it.height.toInt()}" } ?: "null"
-

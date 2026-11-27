@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,10 +33,15 @@ import com.kyant.shapes.Capsule
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-internal fun FeedCardAuthor(item: FeedItem, live: Boolean = false) {
+internal fun FeedCardAuthor(
+    item: FeedItem,
+    live: Boolean = false,
+    moreMorphState: com.aritxonly.teak.common.navigation.TeakMorphMenuState? = null,
+    onMore: (() -> Unit)? = null,
+) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(34.dp)) {
             AsyncImage(
                 model = rememberImageRequest(item.face),
@@ -96,6 +102,16 @@ internal fun FeedCardAuthor(item: FeedItem, live: Boolean = false) {
                 color = colors.onBackgroundVariant,
                 fontSize = 11.sp,
                 modifier = Modifier.offset(x = 1.dp),
+            )
+        }
+        // 省略号贴卡片最右；横排垂直居中，恰好和左边头像同高。
+        if (moreMorphState != null) {
+            VideoCardMoreButton(
+                onClick = onMore ?: {},
+                touchSize = 24.dp,
+                iconSize = 16.dp,
+                morphState = moreMorphState,
+                onMorphTrigger = onMore,
             )
         }
     }
