@@ -15,6 +15,7 @@ import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import com.aritxonly.bdfun.core.application.*
 import kotlinx.coroutines.*
 import com.aritxonly.bdfun.core.domain.playbackNetworkRetryDelay
+import com.aritxonly.bdfun.core.domain.playbackRestartPositionMs
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.util.concurrent.CopyOnWriteArrayList
@@ -147,7 +148,18 @@ class Media3PlaybackController(
         }
         return true
     }
-    override fun play() { if (!released) { player.play(); refresh() } }
+    override fun play() {
+        if (released) return
+        // ExoPlayer 停在 Ended 时 playWhenReady 仍是 true，单发 play() 是空操作：
+        // 必须先回到起点，用户点播放才真的能重看（拖进度条能重播就是这个原因）。
+        playbackRestartPositionMs(player.playbackState == Player.STATE_ENDED)?.let {
+            player.seekTo(it)
+            // seek 之后到 Ready 之间 phase 仍是 Ended，「播放完成」会多挂一会儿，这里直接收掉。
+            mutableState.value = mutableState.value.copy(ended = false)
+        }
+        player.play()
+        refresh()
+    }
     override fun pause() { if (!released) { player.pause(); refresh() } }
     override fun seekTo(positionMs: Long) { if (!released) { player.seekTo(positionMs); refresh() } }
     override fun setSpeed(speed: Float) {

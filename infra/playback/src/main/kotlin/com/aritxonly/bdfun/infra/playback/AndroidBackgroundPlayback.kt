@@ -7,6 +7,7 @@ import androidx.core.content.ContextCompat
 import com.aritxonly.bdfun.core.application.ForegroundPlaybackAttachment
 import com.aritxonly.bdfun.core.application.PlaybackController
 import com.aritxonly.bdfun.core.application.PlaybackSource
+import com.aritxonly.bdfun.core.domain.playbackIntentIsPlaying
 import com.aritxonly.bdfun.core.model.video.VideoItemExtras
 import com.aritxonly.bdfun.core.model.video.VideoDetail
 import com.aritxonly.bdfun.core.model.video.VideoItem
@@ -185,7 +186,9 @@ open class AndroidBackgroundPlayback(
     override fun togglePlayPause() {
         val exo = detachedPlayer
         if (detached && exo != null) {
-            if (exo.refresh().playWhenReady) exo.pause() else exo.play()
+            // 播完后 playWhenReady 仍是 true，按它判会变成“再暂停一次”，这里要能重播。
+            val tick = exo.refresh()
+            if (playbackIntentIsPlaying(tick.ended, tick.playWhenReady)) exo.pause() else exo.play()
         } else {
             actions?.togglePlayPause()
         }

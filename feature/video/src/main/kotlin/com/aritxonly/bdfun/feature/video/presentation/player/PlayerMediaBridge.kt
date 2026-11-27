@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.aritxonly.bdfun.core.application.PlaybackController
 import com.aritxonly.bdfun.core.application.MediaQueueEntry
+import com.aritxonly.bdfun.core.domain.playbackIntentIsPlaying
 import com.aritxonly.bdfun.feature.video.presentation.VideoPlaybackPlatform
 
 @Composable
@@ -105,7 +106,9 @@ private fun BindPlayerBackgroundBridge(
                 }
 
                 override fun togglePlayPause() {
-                    if (playback.refresh().playWhenReady) playback.pause() else playback.play()
+                    // 播完后 playWhenReady 仍是 true，按它判会变成“再暂停一次”，这里要能重播。
+                    val tick = playback.refresh()
+                    if (playbackIntentIsPlaying(tick.ended, tick.playWhenReady)) playback.pause() else playback.play()
                 }
 
                 override fun boostStart() {

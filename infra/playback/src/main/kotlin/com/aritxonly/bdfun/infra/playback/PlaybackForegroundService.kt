@@ -1,6 +1,7 @@
 package com.aritxonly.bdfun.infra.playback
 
 import com.aritxonly.bdfun.core.application.BackgroundPlaybackPort
+import com.aritxonly.bdfun.core.domain.playbackIntentIsPlaying
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -60,11 +61,15 @@ abstract class PlaybackForegroundService : Service() {
         mediaSession = MediaSessionCompat(this, "BdFunBackgroundPlayback").apply {
             setCallback(object : MediaSessionCompat.Callback() {
                 override fun onPlay() {
-                    if (!playback.playbackSnapshot.playWhenReady) playback.togglePlayPause()
+                    // 播完后 playWhenReady 仍是 true，只看它会漏掉「点播放重播」。
+                    val tick = playback.playbackSnapshot
+                    if (!playbackIntentIsPlaying(tick.ended, tick.playWhenReady)) playback.togglePlayPause()
                 }
 
                 override fun onPause() {
-                    if (playback.playbackSnapshot.playWhenReady) playback.togglePlayPause()
+                    // 播完时并不在播，按暂停键不该触发重播。
+                    val tick = playback.playbackSnapshot
+                    if (playbackIntentIsPlaying(tick.ended, tick.playWhenReady)) playback.togglePlayPause()
                 }
 
                 override fun onSkipToNext() {
