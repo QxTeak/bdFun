@@ -61,8 +61,6 @@ internal fun androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridSco
             actions = cardActions,
             presentation = presentation,
             live = liveMids.contains(item.mid),
-            // UP 切换时和空间页一样：卡片统一读一份进度滑入，滚动中新组合的卡片读到 1 不重播。
-            modifier = androidx.compose.ui.Modifier.contentSwitchItem(),
         )
     }
 }

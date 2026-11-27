@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -120,7 +121,14 @@ internal class FeedAvatarRingState {
             return
         }
         if (target == selectedKey && progress.value >= 1f) return
-        val toRect = anchors[target]?.toLocal()
+        // 目标可能刚被滚进视口、这一帧还没测量到：最多等两帧再决定要不要瞬移。
+        var toRect = anchors[target]?.toLocal()
+        var waits = 0
+        while (toRect == null && waits < 2) {
+            withFrameNanos { }
+            toRect = anchors[target]?.toLocal()
+            waits++
+        }
         val measuredStart = anchors[selectedKey]?.toLocal()
         val frozenStart = measuredStart ?: source?.translate(-originInRoot.x, -originInRoot.y)
             ?: lastSelectedLocal
@@ -171,6 +179,8 @@ internal class FeedAvatarRingState {
      * 优先用本次滚动方向（最真实）；否则用选出口记住的方向；再不行按最后一帧离哪边近兜底。
      */
     private fun offscreenStart(frozen: Rect?, target: Rect, scrollDelta: Int): Rect? {
+        // 覆盖层还没测量到宽度时无法算出屏幕外坐标；宁可按旧位置画，也不要猜反。
+        if (viewportWidth <= 0f) return frozen
         val side = when {
             scrollDelta > 0 -> FeedRingSide.Left
             scrollDelta < 0 -> FeedRingSide.Right
@@ -191,24 +201,37 @@ internal class FeedAvatarRingState {
     internal fun onAnchor(key: Any, rect: Rect) {
         val previous = anchors.put(key, rect)
         if (key == selectedKey) {
-            lastSelectedLocal = rect.toLocal()
+            // 方向必须用**卡片内坐标**判断：锚点是 root 坐标，宽屏带侧栏时和卡片宽度根本不是一个原点。
+            val local = rect.toLocal()
+            lastSelectedLocal = local
             lastSelectedSize = rect.width
-            // 只在真的探出视口时记住方向；完全可见时清掉，下一次按实测位置起动画。
-            lastSelectedSide = feedRingExitSide(rect, viewportWidth)
+            // 只有真的探出视口才记方向；整颗可见时清空，避免拿水平位置瞎猜左右。
+            lastSelectedSide = feedRingExitSide(local, viewportWidth)
             if (previous != rect) anchorsVersion++
         } else if (key == fromKey || key == toKey) {
             if (previous != rect) anchorsVersion++
         }
     }
 
-    /** 头像滚出视口被回收：把最后一次位置和方向一起记住。 */
-    internal fun clearAnchor(key: Any) {
+    /**
+     * 头像滚出视口被回收：把最后一次位置和方向一起记住。
+     *
+     * 头像被回收有两种原因：横向滑出头像行，或整张头像卡纵向滚出动态列表。
+     * 后者最后一次测量是完整可见的，不能按它的水平位置猜左右（那会把方向记反）；
+     * 这时只信头像行此刻的滚动方向，拿不到就保持未知。
+     */
+    internal fun clearAnchor(key: Any, rowScrollDirection: Int = 0) {
         val removed = anchors.remove(key) ?: return
         if (key == selectedKey) {
-            lastSelectedLocal = removed.toLocal()
+            val local = removed.toLocal()
+            lastSelectedLocal = local
             lastSelectedSize = removed.width
-            lastSelectedSide = feedRingExitSide(removed, viewportWidth)
-                ?: feedRingNearestSide(removed, viewportWidth)
+            lastSelectedSide = feedRingExitSide(local, viewportWidth)
+                ?: when {
+                    rowScrollDirection > 0 -> FeedRingSide.Left
+                    rowScrollDirection < 0 -> FeedRingSide.Right
+                    else -> null
+                }
             anchorsVersion++
         } else if (key == fromKey || key == toKey) {
             anchorsVersion++

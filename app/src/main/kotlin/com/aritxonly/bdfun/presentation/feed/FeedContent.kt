@@ -21,6 +21,8 @@ internal fun FeedContent(
     pull: FeedPullStateHolder, connection: NestedScrollConnection,
     actions: FeedActions,
     ring: FeedAvatarRingState,
+    onSelectUp: (Long) -> Unit,
+    onExitUp: () -> Unit,
 ) {
     val visible = state.items
 
@@ -58,5 +60,5 @@ internal fun FeedContent(
     val media = remember(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted, onToggleMute) {
         FeedMedia(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted, onToggleMute)
     }
-    FeedGrid(state, statusTop, pull, connection, actions, media, ring)
+    FeedGrid(state, statusTop, pull, connection, actions, media, ring, onSelectUp, onExitUp)
 }

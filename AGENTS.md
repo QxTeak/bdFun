@@ -929,9 +929,9 @@ Miuix 源码固定到上游 \c1024d78a154f5167efff262ae5ed66264c481e\（0.9.5 �
 
 ### 2026-11-27 动态卡片菜单与 UP 环出屏方向
 
-环的方向必须是**显式记忆**，不能等播动画时再拿旧坐标猜：`FeedAvatarRingState` 在 `onAnchor`/`clearAnchor` 里用覆盖层宽度算出 `FeedRingSide`（左/右）；源头像被回收后，起点圆由 `feedRingOffscreenStart` 完全放到该侧视口外、纵向对齐目标行，前半段只画线（`startOffscreen` 时跳过源环），线才会真的从边缘滑进来。切换前会为把目标滚进视口而滚动头像行：**只有源头像滚前还有实时锚点**时，才用滚动方向推断出屏侧；源头像本来就在屏幕外时，滚动方向会把它猜反，必须保留记忆。几何规则全在 `FeedRingGeometry.kt`，有单测。
+环的方向必须是**显式记忆**，不能等播动画时再拿旧坐标猜：`FeedAvatarRingState` 在 `onAnchor`/`clearAnchor` 里用**卡片内坐标**和覆盖层宽度算出 `FeedRingSide`（左/右）；源头像被回收后，起点圆由 `feedRingOffscreenStart` 完全放到该侧视口外、纵向对齐目标行，前半段只画线（`startOffscreen` 时跳过源环），线才会真的从边缘滑进来。两个关键坑：①`anchors` 是 root 坐标，判断左右必须先 `toLocal()`，宽屏带侧栏时拿 root 坐标和卡片宽度比会差整个侧栏；②头像也会因为**整张头像卡纵向滚出列表**被回收，那时最后一次测量是完整可见的，不能按它的水平位置猜左右，只能用「头像行此刻的滚动方向」兜底（`AvatarRowScrollState`），拿不到就保持未知。切换前会为把目标滚进视口而滚动头像行：**只有源头像滚前还有实时锚点**时，才用滚动方向推断出屏侧；源头像本来就在屏幕外时，滚动方向会把它猜反，必须保留记忆。几何规则全在 `FeedRingGeometry.kt`，有单测。
 
-UP 之间切换的整页过渡复用空间页的 `ContentSwitch`（`rememberFeedUpContentSwitch`，320ms + 同一条缓动），**等新列表第一张卡真正到齐再播**：`filterMid` 一变就起动画会在骨架屏上白播完，看起来仍是硬切。头像行不参与位移，`FeedCard` 通过 `Modifier.contentSwitchItem()` 读同一份进度。
+UP 之间切换是**整页推动**，不是卡片淡入：`FeedUpPageTransition` + `FeedUpPageTransitionHost`。切换瞬间用 `rememberGraphicsLayer` 录一帧当前页做「旧页快照」，旧页整页滑出、新页（真实内容）从另一侧滑入，两页位移相同，和空间页 HorizontalPager 一个观感；拖动时当前页跟手（有阻尼和 34% 上限），松手没过阈值回弹，过阈值才换页。方向由 `feedUpSwitchDirection` 按 UP 在头像行里的先后决定，进入/退出 UP 模式没有左右方向，走 `fadeSwap` 只淡入。所有入口（点头像、左右滑、返回、点「全部动态」）统一走 `rememberFeedUpSelection`；上一次推动还没播完时不吞操作，直接换页。**不要再退回 `ContentSwitch` 的 26px 位移**：那个没有「推动」感。抓图失败要有降级（只让新页从正确一侧滑入），拖动开始就预抓图，`capture` 同时只允许一个在跑，`recording` 必须 try/finally 复位，否则会逐帧录整页。
 
 动态卡片菜单：省略号在作者行最右（与头像垂直居中），长按整卡；两者都复用首页的 `TeakMorphMenuHost` + 形变锚点（省略号从图标长、长按从手指位置长且不画图标副本），宿主必须挂在主壳玻璃采样树之外的 `MainFeedChrome`。每张卡有独立 `TeakMorphMenuState`，页面级只有一份长按点锚点（`FeedCardMenuUi`）。条目固定为：添加至稍后再看、复制、关闭自动播放、分享、取消关注、举报，后两项用 `0xFFE5484D`；「关闭自动播放」写 `settings.dynamicAutoPlay=false`。举报走 `FeedPageRepository.reportDynamic`，端点和参数对齐 PiliPlus `UserHttp.dynamicReport`（`/x/dynamic/feed/dynamic_report/add`，`accused_uid`/`dynamic_id`/`reason_type`/`reason_desc`），理由编号在 `core/domain/DynamicReportReason`；「其他」需要文字说明，暂不提供。切换底栏或顶部分类时先 `FeedState.dismissMenu()`，否则菜单会停在新页面并沿用旧锚点。
 

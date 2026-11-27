@@ -28,6 +28,8 @@ internal fun FeedGrid(
     state: FeedState, statusTop: Dp, pull: FeedPullStateHolder,
     connection: NestedScrollConnection, actions: FeedActions, media: FeedMedia,
     ring: FeedAvatarRingState,
+    onSelectUp: (Long) -> Unit,
+    onExitUp: () -> Unit,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 736.dp
@@ -69,6 +71,8 @@ internal fun FeedGrid(
                     FeedAvatarCard(
                         state = state,
                         ring = ring,
+                        onSelectUp = onSelectUp,
+                        onExitUp = onExitUp,
                         modifier = Modifier.padding(bottom = TeakUiStyle.design.contentInset(2.dp)),
                     )
                 }

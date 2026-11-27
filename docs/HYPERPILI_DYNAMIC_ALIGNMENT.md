@@ -40,3 +40,9 @@
 举报接口没有照 bdFun 旧代码猜：端点与字段对齐 PiliPlus 固定参考实现 `lib/http/user.dart` 的 `UserHttp.dynamicReport`（`Api.dynamicReport = /x/dynamic/feed/dynamic_report/add`），form 提交 `accused_uid`、`dynamic_id`、`reason_type`、`reason_desc`，`csrf` 放查询串。理由编号取自 `ReportOptions.dynamicReport`，落在 `core:domain/DynamicReportReason`；其中「其他」(`reason_type=0`) 必须带文字说明，本轮不提供，避免提交服务端必拒的空说明。端口在 `FeedPageRepository.reportDynamic`，实现在 `infra:bili`，UI 侧先选理由再提交，成功/失败都走页面 toast。
 
 举报需要登录账号，真实提交结果无法用游客/离线样本代替；PR 需附手动验证：登录 → 打开某条动态的省略号/长按 → 选理由提交 → 观察服务端返回与 toast。
+
+## 2026-11-27 UP 切页推动与头像环出屏方向
+
+UP 之间切换改成和空间页一样的整页推动：`FeedUpPageTransition` 在切换瞬间用 `rememberGraphicsLayer` 录一帧当前页当旧页，旧页滑出、新页从另一侧滑入，拖动时页面跟手（阻尼 + 34% 上限），松手没过阈值回弹。方向按 UP 在头像行里的先后；进入/退出 UP 模式只淡入。所有入口（头像点击、左右滑、返回、全部动态）统一走 `rememberFeedUpSelection`，上一次推动没播完时直接换页、不吞操作。
+
+头像环的方向记忆修了两个根因：①锚点是 root 坐标，判断左右必须换成卡片内坐标再和覆盖层宽度比较，宽屏有作者侧栏时差一整个侧栏；②头像也会因为整张头像卡纵向滚出列表而被回收，最后一次测量是完整可见的，不能按水平位置猜左右——只认真正探出视口的那一侧，探不出时用头像行此刻的滚动方向兜底，拿不到就保持未知。

@@ -148,30 +148,37 @@ private fun FeedPagerSync(
 
 /**
  * UP 模式下的横向滑动：左滑下一个 UP、右滑上一个 UP。
+ * 拖动期间页面跟手，松手后走整页推动；没过阈值就回弹，不换页。
  * 顶部 pager 此时已关掉滚动，不会和它抢同一个手势。
  */
 private fun Modifier.feedUpModeSwipe(
-    state: FeedState,
-    scope: CoroutineScope,
     enabled: Boolean,
-    selfMid: () -> Long?,
-): Modifier = if (!enabled) this else this.pointerInput(state) {
+    transition: FeedUpPageTransition,
+    scope: CoroutineScope,
+    onRelease: (Int) -> Unit,
+): Modifier = if (!enabled) this else this.pointerInput(transition) {
     var accumulated = 0f
     val threshold = 56.dp.toPx()
     detectHorizontalDragGestures(
-        onDragStart = { accumulated = 0f },
+        onDragStart = {
+            accumulated = 0f
+            transition.beginDrag(scope)
+        },
         onHorizontalDrag = { change, dragAmount ->
             accumulated += dragAmount
             change.consume()
+            transition.dragBy(dragAmount)
         },
         onDragEnd = {
-            val delta = when {
-                accumulated <= -threshold -> 1
-                accumulated >= threshold -> -1
-                else -> 0
-            }
-            if (delta != 0) scope.launch { state.stepUpFocus(delta, selfMid()) }
+            onRelease(
+                when {
+                    accumulated <= -threshold -> 1
+                    accumulated >= threshold -> -1
+                    else -> 0
+                },
+            )
         },
+        onDragCancel = { onRelease(0) },
     )
 }
 
@@ -223,14 +230,16 @@ private fun FeedTabPage(
     )
     // 环放在页面级持有：头像卡片是懒列表第一项，滚出屏幕会被回收；状态挂在卡片里会丢。
     val ring = remember { FeedAvatarRingState() }
-    // UP 之间切换时只有下面的动态滑入，头像行保持不动（和空间页分段一致）。
-    val contentSwitch = rememberFeedUpContentSwitch(state, AppGraph.session.value?.mid)
+    // UP 之间切换：整页推动（旧页快照滑出、新页从另一侧滑入），和空间页翻页同一个观感。
+    val transition = remember(state) { FeedUpPageTransition() }
+    val selfMid = AppGraph.session.value?.mid
+    val selection = rememberFeedUpSelection(state, scope, transition, selfMid, tabKey, loggedIn)
     val upFocus = state.filterMid != null
     // 返回键先退出 UP 模式，再退动态页。
-    BackHandler(enabled = upFocus) { scope.launch { state.exitUpFocus(tabKey, loggedIn) } }
+    BackHandler(enabled = upFocus) { selection.exitToTab() }
     Box(
         modifier = Modifier.fillMaxSize()
-            .feedUpModeSwipe(state, scope, upFocus) { AppGraph.session.value?.mid },
+            .feedUpModeSwipe(upFocus, transition, scope, selection.onSwipeRelease),
     ) {
         FeedCardMenuAnchorHost(menuUi)
         if (!loggedIn) {
@@ -241,10 +250,13 @@ private fun FeedTabPage(
                 onAction = onNeedLogin,
             )
         } else {
-            androidx.compose.runtime.CompositionLocalProvider(LocalContentSwitch provides contentSwitch) {
-                FeedContent(state, statusTop, pull, connection, actions, ring)
-                FeedIndicators(state, statusTop)
+            FeedUpPageTransitionHost(transition) {
+                FeedContent(
+                    state, statusTop, pull, connection, actions, ring,
+                    selection.selectUp, selection.exitUp,
+                )
             }
+            FeedIndicators(state, statusTop)
         }
         FeedReportHost(state, scope, context)
     }

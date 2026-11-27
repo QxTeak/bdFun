@@ -56,4 +56,24 @@ class FeedRingGeometryTest {
         // UP 列表还没加载到目标时也退化为淡入，不能瞎猜方向。
         assertEquals(0, feedUpSwitchDirection(7L, 2L, order))
     }
+
+    @Test fun pushOffsetsContinueFromDragAndLandOnTheCorrectSides() {
+        val width = 1000f
+        val tapNext = feedUpPushOffsets(dragOffset = 0f, direction = 1, width = width)
+        assertEquals(-width, tapNext.outgoingEnd, 0.001f)
+        assertEquals(width, tapNext.contentStart, 0.001f)
+
+        val draggedNext = feedUpPushOffsets(dragOffset = -120f, direction = 1, width = width)
+        assertEquals(-width, draggedNext.outgoingEnd, 0.001f)
+        assertEquals(width - 120f, draggedNext.contentStart, 0.001f)
+        // 松手后两页位移相同：旧页从拖动位置滑出左侧，新页正好落到 0。
+        assertEquals(-120f + draggedNext.shift, -width, 0.001f)
+        assertEquals(width - 120f + draggedNext.shift, 0f, 0.001f)
+
+        val draggedPrevious = feedUpPushOffsets(dragOffset = 140f, direction = -1, width = width)
+        assertEquals(width, draggedPrevious.outgoingEnd, 0.001f)
+        assertEquals(140f - width, draggedPrevious.contentStart, 0.001f)
+        assertEquals(140f + draggedPrevious.shift, width, 0.001f)
+        assertEquals(140f - width + draggedPrevious.shift, 0f, 0.001f)
+    }
 }

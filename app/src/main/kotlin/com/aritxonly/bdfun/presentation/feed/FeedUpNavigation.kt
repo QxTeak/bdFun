@@ -13,14 +13,6 @@ internal fun feedUpMids(state: FeedState, selfMid: Long?): List<Long> {
     return (live + listOfNotNull(me) + authors).distinct()
 }
 
-/** 左右滑动切换 UP：越过两端就停在原地，不绕回「全部动态」。 */
-internal suspend fun FeedState.stepUpFocus(delta: Int, selfMid: Long?) {
-    val current = filterMid ?: return
-    val order = feedUpMids(this, selfMid)
-    val next = order.getOrNull(order.indexOf(current) + delta) ?: return
-    if (next != current) filterTo(next)
-}
-
 /** 退出 UP 模式：回到这一页自己的分类（全部/视频/番剧），而不是一律切成「全部」。 */
 internal suspend fun FeedState.exitUpFocus(tabKey: String, loggedIn: Boolean) {
     if (filterMid == null) return
