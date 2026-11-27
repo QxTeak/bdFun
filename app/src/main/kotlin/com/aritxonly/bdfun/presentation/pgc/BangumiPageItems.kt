@@ -203,12 +203,13 @@ private fun bangumiBadgeColor(text: String): Color = when {
 }
 
 /**
- * 打开番剧/影视：只带 season_id 进视频详情页。
+ * 打开番剧/影视：带 season_id（可选 ep_id）进视频详情页。
  *
  * 详情页自己按季拉一次 `/pgc/view/web/season`，再按 ep_id 选首播/续看集；
  * 这里如果先把 season 拉一遍只为取首集 bvid，老番（上千集）会白白多下载一整季。
+ * 动态卡能拿到具体 EP 时一定要把 ep_id 带上，否则详情页只能回退到用户续看/第一集。
  */
-internal fun openBangumi(context: android.content.Context, seasonId: Long) {
+internal fun openBangumi(context: android.content.Context, seasonId: Long, epId: Long = 0L) {
     if (seasonId <= 0L) return
     // 快照只用来占位入口标识；标题/封面/剧集在详情返回后替换。
     val snapshot = com.aritxonly.bdfun.core.model.video.VideoItem(
@@ -233,6 +234,7 @@ internal fun openBangumi(context: android.content.Context, seasonId: Long) {
                     aid = 0L,
                     snapshot = snapshot,
                     seasonId = seasonId,
+                    epId = epId,
                 ),
             ),
         )

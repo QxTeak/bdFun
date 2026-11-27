@@ -21,6 +21,8 @@ internal class MainShellUiStateHolder {
     // 动态页顶部分类：shell 顶栏和 pager 内容同样分属两层，状态放这里。
     // 空串表示尚未初始化，由 shell 按用户排序落到第一个可见分类。
     var dynamicTab by mutableStateOf("")
+    /** 顶部分段被点了一次（含点当前项）：动态页据此退出 UP 模式。 */
+    var dynamicTabClickTick by mutableIntStateOf(0)
     val dynamicTabPosition = mutableFloatStateOf(0f)
 
     /**

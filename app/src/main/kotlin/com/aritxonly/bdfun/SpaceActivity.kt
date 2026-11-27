@@ -96,7 +96,7 @@ class SpaceActivity : BdFunActivity() {
                             ) { SpaceTopChrome(chrome, onBack = { finish() }) }
                         }
                         SpaceSearchOverlay(runtime, chrome)
-                        SpaceToolsDialogs(runtime, chrome)
+                        SpaceToolsDialogs(runtime, chrome, onBlocked = { finish() })
                     },
                     menuOverlay = { SpaceToolsMenu(runtime, chrome) },
                 ),

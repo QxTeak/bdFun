@@ -9,9 +9,18 @@ import com.aritxonly.bdfun.feature.home.application.HomeActionsStateHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
+/** 共享卡片在 app 模块，用 CompositionLocal 把“正在模糊”的 bvid 投影过去，避免加长 host 回调参数。 */
+val LocalHomeBlurredBvids = androidx.compose.runtime.compositionLocalOf<Set<String>> { emptySet() }
+
+/** 被“不感兴趣”的卡片只剩一个撤销按钮，参数是卡片自己的 bvid。 */
+val LocalHomeUndoAction = androidx.compose.runtime.compositionLocalOf<(String) -> Unit> { {} }
+
+/** bvid -> 模糊封面上的反馈提示；多张卡可以同时处于待撤销状态。 */
+val LocalHomeUndoMessages = androidx.compose.runtime.compositionLocalOf<Map<String, String>> { emptyMap() }
+
 /** 仅持有视图投影、下拉手势和列表滚动；业务状态由纯应用层控制器持有。 */
 @Stable
-class HomeFeedState internal constructor(private val controller: HomeFeedStateHolder, internal val actions: HomeActionsStateHolder, scope: CoroutineScope,
+class HomeFeedState internal constructor(private val controller: HomeFeedStateHolder, internal val actions: HomeActionsStateHolder, private val scope: CoroutineScope,
     private val optimizer: com.aritxonly.bdfun.core.application.RecommendationOptimizer? = null,
 ) {
     val gridState = LazyGridState()
@@ -19,6 +28,14 @@ class HomeFeedState internal constructor(private val controller: HomeFeedStateHo
     var menuState by mutableStateOf<com.aritxonly.teak.common.navigation.TeakMorphMenuState?>(null)
     var menuVideo by mutableStateOf<VideoItem?>(null)
     var menuViaLongPress by mutableStateOf(false)
+    /**
+     * 刚反馈“不感兴趣”的卡片：每张都留在列表里做静态模糊，互不影响；
+     * key 是 bvid，value 是模糊封面上的提示（撤销失败时也用它显示错误）。
+     */
+    private val undoMessagesState = mutableStateMapOf<String, String>()
+    val undoMessages: Map<String, String> get() = undoMessagesState
+    val blurredBvids: Set<String> get() = undoMessagesState.keys
+    private val undoInFlight = mutableSetOf<String>()
     val optimizationEnabled get() = optimizer?.state?.value?.enabled == true
     internal fun exposureTicket() = controller.exposureTicket()
     internal fun expose(video: VideoItem, ticket: com.aritxonly.bdfun.core.application.RecommendationTicket) = controller.expose(video, ticket)
@@ -81,6 +98,39 @@ class HomeFeedState internal constructor(private val controller: HomeFeedStateHo
     fun requestRefresh() = controller.requestRefresh()
     fun dismissRecommendation(video: VideoItem, creator: Boolean = false, category: String? = null) =
         controller.dismissRecommendation(video, creator, category)
+
+    /** 反馈成功：卡片留在原位并静态模糊；多张卡各自保留自己的提示，互不覆盖。 */
+    fun markUndo(video: VideoItem, message: String = "将为您减少相关推荐") {
+        undoMessagesState[video.bvid] = message
+    }
+
+    /** 先撤回该卡的服务端反馈，成功后只恢复这一张；失败保留提示供重试。 */
+    fun undoDismiss(bvid: String) {
+        if (bvid !in undoMessagesState || bvid in undoInFlight) return
+        undoInFlight += bvid
+        scope.launch {
+            try {
+                when (val result = controller.undoDismissed(bvid)) {
+                    is com.aritxonly.bdfun.core.common.Outcome.Success -> undoMessagesState.remove(bvid)
+                    is com.aritxonly.bdfun.core.common.Outcome.Failure -> {
+                        undoMessagesState[bvid] = result.error.messageOr("撤销失败，请重试")
+                    }
+                }
+            } finally {
+                undoInFlight -= bvid
+            }
+        }
+    }
+
+    fun commitDismiss() {
+        undoMessagesState.clear()
+        controller.commitDismissed()
+    }
+
+    /** 底栏切页时关闭长按菜单，避免菜单留在新页面上并用旧锚点错位。 */
+    fun dismissMenu() {
+        menuState?.close()
+    }
     suspend fun ensureLoaded() = controller.ensureLoaded()
     suspend fun refresh() = controller.refresh()
     suspend fun loadMore() = controller.loadMore()
@@ -94,8 +144,9 @@ fun createHomeFeedState(
     scope: CoroutineScope,
     optimizer: com.aritxonly.bdfun.core.application.RecommendationOptimizer? = null,
     cache: com.aritxonly.bdfun.core.domain.HomeFeedCache? = null,
+    blockUser: (suspend (Long) -> com.aritxonly.bdfun.core.common.Outcome<Unit>)? = null,
 ): HomeFeedState {
     val controller = HomeFeedStateHolder(feed, videos, optimizer, cache)
-    val feedback = HomeActionsStateHolder(videos, actions, controller)
+    val feedback = HomeActionsStateHolder(videos, actions, controller, blockUser)
     return HomeFeedState(controller, feedback, scope, optimizer)
 }

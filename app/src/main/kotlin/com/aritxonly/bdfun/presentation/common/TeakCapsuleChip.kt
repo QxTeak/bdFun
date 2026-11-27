@@ -27,21 +27,24 @@ internal fun TeakCapsuleChip(
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    height: androidx.compose.ui.unit.Dp = 32.dp,
+    horizontalPadding: androidx.compose.ui.unit.Dp = 16.dp,
+    fontSize: androidx.compose.ui.unit.TextUnit = 13.sp,
 ) {
     val colors = MiuixTheme.colorScheme
     Box(
         modifier = modifier
-            .height(32.dp)
+            .height(height)
             .clip(Capsule())
             .background(if (selected) colors.primary.copy(alpha = 0.92f) else colors.surfaceContainer)
             .clickable(interactionSource = null, indication = null, onClick = onClick)
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = horizontalPadding),
         contentAlignment = Alignment.Center,
     ) {
         Text(
             text = text,
             color = if (selected) Color.White else colors.onBackgroundVariant,
-            fontSize = 13.sp,
+            fontSize = fontSize,
             maxLines = 1,
         )
     }

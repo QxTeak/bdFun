@@ -13,6 +13,7 @@ class BiliVideoMetadataRepository(private val backend: BiliBackend) : VideoMetad
     override suspend fun followers(mid: Long) = biliOutcome { backend.relationStat(mid).second }
     override suspend fun videoCount(mid: Long) = biliOutcome { backend.upVideoCount(mid) }
     override suspend fun online(aid: Long, cid: Long) = biliOutcome { backend.onlineTotal(aid, cid) }
+    override suspend fun tags(bvid: String) = biliOutcome { backend.videoTags(bvid) }
     override suspend fun subtitles(aid: Long, cid: Long) = biliOutcome { backend.subtitles(aid, cid) }
     override suspend fun subtitleCues(url: String) = biliOutcome { backend.subtitleCues(url) }
     override suspend fun sendDanmaku(post: DanmakuPost) = biliOutcome {

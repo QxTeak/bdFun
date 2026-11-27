@@ -83,6 +83,17 @@ class VideoDetailViewActions(
     fun tripleAction() = performInteraction { interactionController.tripleAction() }
     fun toggleFolder(folderId: Long) = performInteraction { interactionController.toggleFolder(folderId) }
 
+    /** 视频页收藏夹面板：勾选只在本地，点「完成」时一次提交。 */
+    fun applyFolders(folderIds: Set<Long>) {
+        if (!ensureLogin()) return
+        scope.launch {
+            val message = interactionController.applyFolders(folderIds)
+            if (message != null) host.showToast(message)
+            // 全部成功或部分成功都收起面板，失败信息已经在 toast 里；保持面板只会让用户重复点。
+            if (message != null) favSheet = false
+        }
+    }
+
     fun switchQuality(id: Int) {
         val d = detail ?: return
         if (!selectionController.selectQuality(id, host.progressMs)) return

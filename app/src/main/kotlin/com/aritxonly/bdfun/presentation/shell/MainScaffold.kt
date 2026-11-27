@@ -63,6 +63,7 @@ private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellStat
                     onHomeSectionPositionChange = { ui.homeSectionPosition.floatValue = it },
                     dynamic = DynamicTabPagerBindings(
                         tab = ui.dynamicTab,
+                        clickTick = ui.dynamicTabClickTick,
                         onTabChange = { ui.dynamicTab = it },
                         onPositionChange = { ui.dynamicTabPosition.floatValue = it },
                     ))

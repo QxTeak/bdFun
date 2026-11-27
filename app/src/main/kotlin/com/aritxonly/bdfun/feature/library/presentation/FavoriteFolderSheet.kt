@@ -61,6 +61,8 @@ internal fun FavoriteFolderSheet(
     state: FavoriteFolderSheetUiState,
     onDismiss: () -> Unit,
     onSelect: (Long) -> Unit,
+    /** 非 null 时「完成」只提交一次；视频页收藏用它做“选完再保存”。 */
+    onConfirm: (() -> Unit)? = null,
     maxBodyHeight: androidx.compose.ui.unit.Dp? = null,
 ) {
     val holder = remember { FavoriteSheetStateHolder(state) }
@@ -74,7 +76,7 @@ internal fun FavoriteFolderSheet(
             IconButton(onClick = onDismiss, enabled = !busy) { Icon(MiuixIcons.Close, "关闭") }
         },
         bottomBar = {
-            Button(onClick = onDismiss, enabled = !busy,
+            Button(onClick = onConfirm ?: onDismiss, enabled = !busy,
                 colors = ButtonDefaults.buttonColorsPrimary(), cornerRadius = 20.dp,
                 modifier = Modifier.fillMaxWidth().navigationBarsPadding().padding(horizontal = 20.dp, vertical = 12.dp)) {
                 Text(if (busy) "正在保存…" else "完成", color = MiuixTheme.colorScheme.onPrimary)

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import com.aritxonly.bdfun.core.domain.SearchFilterState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -53,31 +54,49 @@ internal fun SearchResults(
 
         // Tab / 筛选按钮固定不动，只跟随页面本身的滚动，不再随列表上移。
         CompositionLocalProvider(LocalTeakBackdrop provides presentation.backdrop) {
-            val header: @Composable () -> Unit = { ResultsTabHeader(
-                tab = tab,
-                onTabChange = onTabChange,
-                position = presentation.position,
-                filterOpen = filterOpen,
-                onFilterOpenChange = onFilterOpenChange,
-                filters = filters,
-                onFiltersChange = onFiltersChange,
-                onApplyFilters = onApplyFilters,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .fillMaxWidth()
-                    .then(if (wideResultsBar == null) Modifier.statusBarsPadding() else Modifier)
-                    .padding(top = if (wideResultsBar == null) HomeTopBarHeight + 6.dp else 0.dp)
-                    .graphicsLayer {
-                        // 整条滑到顶栏后面：42dp 的 tab 高度 + 6dp 间距。
+            val header: @Composable (Modifier) -> Unit = { extra ->
+                ResultsTabHeader(
+                    tab = tab,
+                    onTabChange = onTabChange,
+                    position = presentation.position,
+                    filterOpen = filterOpen,
+                    onFilterOpenChange = onFilterOpenChange,
+                    filters = filters,
+                    onFiltersChange = onFiltersChange,
+                    onApplyFilters = onApplyFilters,
+                    modifier = extra.fillMaxWidth().graphicsLayer {
+                        // 恢复原来“滚上去”的运动，但整条画在独立 Popup 里，
+                        // 不进入顶栏 progressive blur 的录制层，因此不会被模糊。
                         translationY = -48.dp.toPx() * tabsAway
                         alpha = 1f - tabsAway
                     },
-            ) }
+                )
+            }
             if (wideResultsBar != null) {
                 com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial() {
-                    Box(Modifier.statusBarsPadding()) { wideResultsBar(header) }
+                    Box(Modifier.statusBarsPadding()) { wideResultsBar { header(Modifier) } }
                 }
-            } else header()
+            } else {
+                // 独立窗口承载 segment：位置不变，但不在 layerBackdrop 的录制树里。
+                androidx.compose.ui.window.Popup(
+                    alignment = Alignment.TopCenter,
+                    properties = androidx.compose.ui.window.PopupProperties(
+                        focusable = false,
+                        clippingEnabled = false,
+                    ),
+                ) {
+                    // Popup 的内容用无界约束测量，必须显式给屏幕宽，fillMaxWidth 单独用会量成 0。
+                    val popupWidth = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
+                    Box(Modifier.width(popupWidth)) {
+                        Box(
+                            Modifier
+                                .width(popupWidth)
+                                .statusBarsPadding()
+                                .padding(top = HomeTopBarHeight + 6.dp),
+                        ) { header(Modifier) }
+                    }
+                }
+            }
         }
     }
 }

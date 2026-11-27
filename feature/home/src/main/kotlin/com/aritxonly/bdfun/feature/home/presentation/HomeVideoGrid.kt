@@ -3,7 +3,6 @@ package com.aritxonly.bdfun.feature.home.presentation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
@@ -14,14 +13,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import com.aritxonly.teak.common.theme.TeakStyle
 import com.aritxonly.teak.common.theme.TeakUiStyle
-import kotlin.math.roundToInt
 
 @Composable
 internal fun HomeVideoGrid(
@@ -50,7 +48,8 @@ internal fun HomeVideoGrid(
         state = state.gridState,
         modifier = Modifier
             .fillMaxSize()
-            .offset { IntOffset(0, ui.pullOffset.roundToInt()) }
+            // 下拉位移只改绘制层：用 offset{} 会让整张 LazyGrid 每帧重新测量/摆放。
+            .graphicsLayer { translationY = ui.pullOffset }
             .nestedScroll(refreshConnection),
         contentPadding = contentPadding,
         horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),

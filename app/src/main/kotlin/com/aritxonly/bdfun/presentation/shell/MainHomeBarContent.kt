@@ -105,7 +105,14 @@ private fun homeBarTabs(
     TeakStyle.fromStoredValue(settings.interfaceStyle).layout.hasBottomSearch -> HomeTopBarTabs(
         options = channels.map { it.title }, selected = channelIndex, position = position, onSelect = onSelect,
     )
-    settings.interfaceStyle == 0 || settings.interfaceStyle == 1 -> HomeTopBarTabs(
+    // 哔哩哔哩（官方）布局：顶部分段不再直接绑 pager 连续位置，
+    // 交给控件用和底栏同款的弹簧追选中项，切换时才有弹性。
+    settings.interfaceStyle == 0 -> HomeTopBarTabs(
+        options = channels.map { it.title }, selected = channelIndex,
+        belowSearch = true, onSelect = onSelect,
+    )
+    // 经典布局保持原来的连续位置跟随（下划线指示器）。
+    settings.interfaceStyle == 1 -> HomeTopBarTabs(
         options = channels.map { it.title }, selected = channelIndex, position = position,
         belowSearch = true, onSelect = onSelect,
     )

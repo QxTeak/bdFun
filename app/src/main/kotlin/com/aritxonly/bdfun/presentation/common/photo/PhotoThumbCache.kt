@@ -1,7 +1,6 @@
 package com.aritxonly.bdfun.ui
 
 import android.graphics.Bitmap
-import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.LruCache
@@ -34,20 +33,17 @@ internal object PhotoThumbCache {
     }
 }
 
-/** Coil 的 drawable 可能是 BitmapDrawable，也可能是其它 Drawable；统一取一张可绘制的 bitmap。 */
+/**
+ * Coil 的 drawable 可能是 BitmapDrawable，也可能是其它 Drawable。
+ *
+ * 只接受已经存在的 BitmapDrawable：以前这里会 `draw(Canvas(...))` 现场画一张，
+ * 对超大图/矢量图会在主线程分配并绘制整张 bitmap，正好是打开图片查看器时偶发卡顿的来源。
+ * 没有现成 bitmap 时宁可不做形变动画，也不要在主线程临时造图。
+ */
 internal fun Drawable.toPhotoBitmapOrNull(): Bitmap? {
     if (this is BitmapDrawable) {
         val bitmap = bitmap ?: return null
         return if (bitmap.isRecycled) null else bitmap
     }
-    val width = intrinsicWidth
-    val height = intrinsicHeight
-    if (width <= 0 || height <= 0) return null
-    return try {
-        Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also {
-            draw(Canvas(it))
-        }
-    } catch (_: Throwable) {
-        null
-    }
+    return null
 }

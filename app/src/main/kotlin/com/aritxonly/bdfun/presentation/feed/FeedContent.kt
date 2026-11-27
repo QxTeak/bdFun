@@ -20,6 +20,7 @@ internal fun FeedContent(
     state: FeedState, statusTop: Dp,
     pull: FeedPullStateHolder, connection: NestedScrollConnection,
     actions: FeedActions,
+    ring: FeedAvatarRingState,
 ) {
     val visible = state.items
 
@@ -48,8 +49,14 @@ internal fun FeedContent(
         }
     }
 
-    val media = FeedMedia(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted) {
-        AppGraph.settings.dynamicAutoPlayMuted = !autoPlayMuted
+    // onToggleMute 必须是稳定引用：它一变，动态卡片的 cardActions remember 就会整排失效、
+    // 所有可见卡片一起重组。用 rememberUpdatedState 读最新值，lambda 只建一次。
+    val mutedState = androidx.compose.runtime.rememberUpdatedState(autoPlayMuted)
+    val onToggleMute = remember {
+        { AppGraph.settings.dynamicAutoPlayMuted = !mutedState.value }
     }
-    FeedGrid(state, statusTop, pull, connection, actions, media)
+    val media = remember(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted, onToggleMute) {
+        FeedMedia(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted, onToggleMute)
+    }
+    FeedGrid(state, statusTop, pull, connection, actions, media, ring)
 }

@@ -32,7 +32,8 @@ internal fun FeedImageGrid(
     val density = androidx.compose.ui.platform.LocalDensity.current
     val singleRadiusPx = with(density) { 12.dp.toPx() }
     val gridRadiusPx = with(density) { 10.dp.toPx() }
-    val bounds = remember { FeedImageBoundsStateHolder() }.bounds
+    // 只存坐标对象，不在滚动时每帧算 Rect：菜单/查看器只在点击那一刻需要边界。
+    val coords = remember { mutableMapOf<String, androidx.compose.ui.layout.LayoutCoordinates>() }
     if (images.size == 1) {
         val url = images.first()
         AsyncImage(
@@ -46,9 +47,14 @@ internal fun FeedImageGrid(
                 .aspectRatio(16f / 9f)
                 .clip(ContinuousCornerShape(12.dp))
                 .background(colors.surfaceContainerHigh)
-                .onGloballyPositioned { bounds[url] = it.boundsInRoot() }
+                .onGloballyPositioned { coords[url] = it }
                 .clickable(interactionSource = null, indication = null) {
-                    onOpen(url, bounds[url] ?: Rect.Zero, singleRadiusPx, images.map { bounds[it] })
+                    onOpen(
+                        url,
+                        coords[url]?.boundsInRoot() ?: Rect.Zero,
+                        singleRadiusPx,
+                        images.map { coords[it]?.boundsInRoot() },
+                    )
                 },
         )
         return
@@ -69,9 +75,14 @@ internal fun FeedImageGrid(
                         .aspectRatio(1f)
                         .clip(ContinuousCornerShape(10.dp))
                         .background(colors.surfaceContainerHigh)
-                        .onGloballyPositioned { bounds[url] = it.boundsInRoot() }
+                        .onGloballyPositioned { coords[url] = it }
                         .clickable(interactionSource = null, indication = null) {
-                            onOpen(url, bounds[url] ?: Rect.Zero, gridRadiusPx, images.map { bounds[it] })
+                            onOpen(
+                                url,
+                                coords[url]?.boundsInRoot() ?: Rect.Zero,
+                                gridRadiusPx,
+                                images.map { coords[it]?.boundsInRoot() },
+                            )
                         },
                 )
             }
@@ -91,3 +102,4 @@ internal fun FeedImageGrid(
  */
 private fun biliImageGridUrl(url: String): String =
     com.aritxonly.bdfun.core.common.biliImageThumbUrl(url, 720)
+

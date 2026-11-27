@@ -17,6 +17,8 @@ interface VideoMetadataRepository {
     suspend fun followers(mid: Long): Outcome<Long>
     suspend fun videoCount(mid: Long): Outcome<Long>
     suspend fun online(aid: Long, cid: Long): Outcome<Pair<Long, String>>
+    /** 视频标签（话题/BGM/普通标签），接口与 PiliPlus 的 videoTags 一致。 */
+    suspend fun tags(bvid: String): Outcome<List<VideoTag>>
     suspend fun subtitles(aid: Long, cid: Long): Outcome<List<SubtitleTrack>>
     suspend fun subtitleCues(url: String): Outcome<List<SubtitleCue>>
     suspend fun reportDanmaku(report: DanmakuReport): Outcome<Unit>

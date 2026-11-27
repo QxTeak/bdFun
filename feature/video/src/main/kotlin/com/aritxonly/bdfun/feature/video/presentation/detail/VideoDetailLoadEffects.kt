@@ -100,6 +100,11 @@ fun BindVideoAuthor(
         description.reset()
     }
 
+    // 视频标签（话题/BGM/普通标签），接口与 PiliPlus 的 videoTags 相同。
+    LaunchedEffect(detail?.bvid) {
+        detail?.bvid?.takeIf { it.isNotBlank() }?.let { metadataController.loadTags(it) }
+    }
+
     // UP 粉丝数 / 投稿数 / 当前关注状态
     LaunchedEffect(detail?.ownerMid) {
         val mid = detail?.ownerMid ?: 0L

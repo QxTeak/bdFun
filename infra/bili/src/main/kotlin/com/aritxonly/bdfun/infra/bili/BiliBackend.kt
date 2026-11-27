@@ -60,6 +60,8 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
     fun logout() = api.logout()
     suspend fun recommend(freshIndex: Int = 1, web: Boolean = true) = api.recommend(freshIndex, web)
     suspend fun dislikeRecommendation(video: VideoItem, reason: RecommendationReason) = api.dislikeRecommendation(video, reason)
+    suspend fun cancelDislikeRecommendation(video: VideoItem, reason: RecommendationReason) =
+        api.cancelDislikeRecommendation(video, reason)
     suspend fun popular(page: Int = 1): com.aritxonly.bdfun.core.model.video.PopularPage = api.popular(page)
     suspend fun ranking(rid: Int = 0) = api.ranking(rid)
     suspend fun view(bvid: String) = api.view(bvid)
@@ -71,6 +73,7 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
         api.playInfo(detail, preferredQuality, cid, durationSec, codecPreference, cdnService)
     }
     suspend fun related(bvid: String) = api.related(bvid)
+    suspend fun videoTags(bvid: String) = api.videoTags(bvid)
     suspend fun danmaku(cid: Long, durationSec: Int = 0) = api.danmaku(cid, durationSec)
 
     /** 单段弹幕：播放到新的一段时按需补齐（带 LRU 缓存）。 */

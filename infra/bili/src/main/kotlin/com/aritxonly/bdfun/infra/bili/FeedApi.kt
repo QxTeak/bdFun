@@ -211,6 +211,23 @@ internal suspend fun BiliApiContext.dislikeRecommendation(video: VideoItem, reas
     }
 }
 
+/**
+ * 撤销 App 推荐的“不感兴趣”反馈；参数与提交时一致（reason_id 也要带上），
+ * 否则服务端会按“缺少来源反馈”返回参数错误。
+ */
+internal suspend fun BiliApiContext.cancelDislikeRecommendation(
+    video: VideoItem, reason: RecommendationReason,
+) {
+    check(cookieJar.value("access_key").isNotBlank()) { "请重新扫码登录以撤销推荐反馈" }
+    val params = mutableMapOf(
+        "goto" to "av", "id" to video.aid.toString(),
+        "reason_id" to reason.id.toString(),
+        "build" to "1", "mobi_app" to "android",
+    )
+    signAppParams(params)
+    dataRequest("/x/feed/dislike/cancel", params, base = APP)
+}
+
 internal suspend fun BiliApiContext.popular(page: Int = 1): PopularPage = withContext(Dispatchers.IO) {
     val data = dataRequest(
         "/x/web-interface/popular",

@@ -1,6 +1,9 @@
 package com.aritxonly.teak.common.navigation
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -78,13 +81,18 @@ fun AdaptiveScrollableTabs(
         activeIndex = active
         animIndex = { positionSource.value }
     } else {
-        val springIndex = rememberPagerSpring(
-            target = selected.coerceIn(options.indices).toFloat(),
-            stiffness = 340f,
-            damping = 25f,
+        // 没有连续位置（哔哩哔哩布局的顶部分段）时，指示器和底栏走同一套弹簧：
+        // LowBouncy + MediumLow，切换时会轻微过冲，而不是跟着 pager 的减速曲线硬滑。
+        val springIndex = animateFloatAsState(
+            targetValue = selected.coerceIn(options.indices).toFloat(),
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioLowBouncy,
+                stiffness = Spring.StiffnessMediumLow,
+            ),
+            label = "segmented_indicator_spring",
         )
         activeIndex = selected.coerceIn(options.indices)
-        animIndex = { springIndex }
+        animIndex = { springIndex.value }
     }
     if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) {
         ClassicSegmentedBar(options, activeIndex, onSelect, modifier, itemWidth, animIndex)

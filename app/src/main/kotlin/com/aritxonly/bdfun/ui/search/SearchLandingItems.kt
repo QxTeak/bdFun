@@ -2,11 +2,13 @@ package com.aritxonly.bdfun.ui
 
 import com.aritxonly.teak.common.theme.TeakUiStyle
 
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -119,20 +121,24 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHistoryItems(
     editing: Boolean = false,
     /** 长按某条记录进入编辑；为 null 表示不支持编辑。 */
     onBeginEdit: (() -> Unit)? = null,
-    /** 编辑态点叉号删除某条（只改草稿）。 */
-    onRemove: ((String) -> Unit)? = null,
+    /** 编辑态已经勾选的词。 */
+    selected: Set<String> = emptySet(),
+    /** 编辑态点胶囊：切换勾选，不立即删除。 */
+    onToggle: ((String) -> Unit)? = null,
+    /** 编辑态点「删除」：只改草稿。 */
+    onDelete: (() -> Unit)? = null,
     onCancelEdit: () -> Unit = {},
-    onCommitEdit: () -> Unit = {},
 ) {
     if (history.isEmpty() && !editing) return
     item(key = "history-title") {
         if (editing) {
             SectionHeader(
                 title = "搜索记录",
-                action = "取消",
-                onAction = onCancelEdit,
-                primaryAction = "保存",
-                onPrimaryAction = onCommitEdit,
+                action = "删除",
+                onAction = onDelete ?: {},
+                actionDanger = true,
+                primaryAction = "取消",
+                onPrimaryAction = onCancelEdit,
             )
         } else {
             SectionHeader(
@@ -163,26 +169,36 @@ internal fun androidx.compose.foundation.lazy.LazyListScope.searchHistoryItems(
                 .then(
                     if (flat) Modifier
                     else Modifier
-                        .clip(TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)))
-                        .background(colors.surfaceContainer)
-                        .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 12.dp),
+                        // 顶部不留 padding、也不对内容做 clip：第一行的勾选图标本来就要
+                        // 压在胶囊上沿外，clip 会把它切掉。圆角只画在背景上。
+                        .background(
+                            colors.surfaceContainer,
+                            TeakUiStyle.design.cardShape(RoundedCornerShape(18.dp)),
+                        )
+                        .padding(
+                            start = if (classic) 16.dp else 14.dp,
+                            end = if (classic) 16.dp else 14.dp,
+                            bottom = 12.dp,
+                        ),
+                )
+                // 删除后卡片高度也平滑收缩，避免最后一行被瞬间裁掉。
+                .animateContentSize(
+                    animationSpec = tween(320, easing = FastOutSlowInEasing),
                 ),
         ) {
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(if (roomy) 10.dp else 8.dp),
-                verticalArrangement = Arrangement.spacedBy(if (roomy) 12.dp else 8.dp),
-            ) {
-                history.forEach { word ->
-                    HistoryPill(
-                        word = word,
-                        onClick = { onPickKeyword(word) },
-                        roomy = roomy,
-                        onLongClick = onBeginEdit,
-                        onRemove = if (editing) onRemove?.let { remove -> { remove(word) } } else null,
-                    )
-                }
-            }
+            // 顶部 padding 去掉后，用普通占位把记录顶回原位；Spacer 不参与任何裁剪，
+            // 第一行勾选图标仍能压在胶囊上沿外。
+            if (!flat) Spacer(Modifier.height(12.dp))
+            HistoryPillsFlow(
+                history = history,
+                colors = colors,
+                editing = editing,
+                selected = selected,
+                onPickKeyword = onPickKeyword,
+                onToggle = onToggle,
+                onBeginEdit = onBeginEdit,
+                roomy = roomy,
+            )
         }
         Spacer(Modifier.height(SearchSectionGap))
     }

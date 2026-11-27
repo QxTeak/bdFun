@@ -8,8 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
@@ -19,15 +19,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.teak.common.icons.AppGlyph
 import com.kyant.shapes.Capsule
+import top.yukonga.miuix.kmp.basic.Checkbox
+import top.yukonga.miuix.kmp.basic.CheckboxDefaults
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.basic.*
 import top.yukonga.miuix.kmp.icon.extended.*
@@ -45,8 +49,7 @@ private const val HISTORY_PILL_MAX_CHARS = 7
  * 搜索历史胶囊：尺寸沿用直播页分区胶囊（32dp 高 + 全圆角 + 16dp 横向内边距），
  * 颜色沿用「我的」页「个人空间」按钮的灰色 surfaceContainerHigh。
  *
- * 编辑态下右侧多一颗叉号：整颗胶囊的点击变成无效（避免误触发搜索），
- * 只有叉号可点。
+ * 编辑态下右上角出现和投币「同时点赞」同款的 MIUIX 勾选框，点击胶囊只切换勾选。
  */
 @Composable
 internal fun HistoryPill(
@@ -56,21 +59,21 @@ internal fun HistoryPill(
     roomy: Boolean = false,
     /** 长按进入编辑；为 null 时不做长按（媒体库搜索不走编辑态）。 */
     onLongClick: (() -> Unit)? = null,
-    /** 非 null 表示处于编辑态，点击胶囊不再搜索，改为显示叉号删除。 */
-    onRemove: (() -> Unit)? = null,
+    /** 编辑态是否已经勾选。 */
+    selected: Boolean = false,
+    /** 是否显示右上角勾选框。 */
+    showCheck: Boolean = false,
 ) {
     val colors = MiuixTheme.colorScheme
     val haptics = LocalHapticFeedback.current
-    val editMode = onRemove != null
     Box(
         modifier = modifier
             .height(if (roomy) 36.dp else 32.dp)
-            .clip(Capsule())
-            .background(colors.surfaceContainerHigh)
+            // 不 clip：勾选框要能压在胶囊右上角外侧；胶囊底色用 shape 直接画。
+            .background(colors.surfaceContainerHigh, Capsule())
             .combinedClickable(
                 interactionSource = null,
                 indication = null,
-                enabled = !editMode,
                 onClick = onClick,
                 onLongClick = onLongClick?.let { longPress ->
                     { haptics.performHapticFeedback(HapticFeedbackType.LongPress); longPress() }
@@ -78,31 +81,34 @@ internal fun HistoryPill(
             )
             .padding(
                 start = if (roomy) 18.dp else 16.dp,
-                end = if (editMode) 6.dp else if (roomy) 18.dp else 16.dp,
+                // 勾选不参与布局：胶囊在编辑前后保持完全相同的尺寸。
+                end = if (roomy) 18.dp else 16.dp,
             ),
         contentAlignment = Alignment.CenterStart,
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = historyPillText(word),
-                color = colors.onBackground,
-                fontSize = if (roomy) 13.5.sp else 13.sp,
-                maxLines = 1,
-                softWrap = false,
+        Text(
+            text = historyPillText(word),
+            color = colors.onBackground,
+            fontSize = if (roomy) 13.5.sp else 13.sp,
+            maxLines = 1,
+            softWrap = false,
+        )
+        if (showCheck) {
+            // Miuix 原生勾选，压在胶囊右上角外沿。
+            Checkbox(
+                state = if (selected) ToggleableState.On else ToggleableState.Off,
+                onClick = null,
+                colors = CheckboxDefaults.checkboxColors(
+                    // 不再用纯白：取主题 onBackground 的淡色，浅色/深色下都比白块自然。
+                    uncheckedBackgroundColor = colors.onBackground.copy(alpha = 0.10f),
+                ),
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    // Miuix 的 Checkbox 内部用 requiredSize(26.dp) 固定了尺寸，外层 size 不生效；
+                    // 用 0.5 倍缩放把它缩到 13dp。offset 同时补偿一半，并把圆心移到胶囊右上圆角起弧处再往右一点。
+                    .offset(x = 17.dp, y = (-10.5).dp)
+                    .scale(0.5f),
             )
-            if (onRemove != null) {
-                // 叉号热区比字形大一圈（24dp），否则 14dp 的字形很难点准。
-                Box(
-                    modifier = Modifier
-                        .padding(start = 6.dp)
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .clickable(interactionSource = null, indication = null, onClick = onRemove),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    AppGlyph(MiuixIcons.Close, colors.onBackgroundVariant, size = 14.dp, contentDescription = "删除")
-                }
-            }
         }
     }
 }
@@ -118,7 +124,9 @@ internal fun SectionHeader(
     title: String,
     action: String?,
     onAction: (() -> Unit)?,
-    /** 第二颗右侧按钮（编辑态的「保存」）；为空时只有 [action] 一颗。 */
+    /** 第一颗右侧按钮是否危险色（搜索记录的「删除」）。 */
+    actionDanger: Boolean = false,
+    /** 第二颗右侧按钮（编辑态的「取消」）；为空时只有 [action] 一颗。 */
     primaryAction: String? = null,
     onPrimaryAction: (() -> Unit)? = null,
 ) {
@@ -137,7 +145,7 @@ internal fun SectionHeader(
         if (action != null && onAction != null) {
             Text(
                 text = action,
-                color = colors.onBackgroundVariant,
+                color = if (actionDanger) Color(0xFFE5484D) else colors.onBackgroundVariant,
                 fontSize = 12.sp,
                 modifier = Modifier
                     .clip(RoundedCornerShape(8.dp))
@@ -150,7 +158,7 @@ internal fun SectionHeader(
             Spacer(Modifier.width(4.dp))
             Text(
                 text = primaryAction,
-                color = colors.primary,
+                color = colors.onBackgroundVariant,
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium,
                 modifier = Modifier

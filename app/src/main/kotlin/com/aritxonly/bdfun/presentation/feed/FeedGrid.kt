@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -26,9 +27,15 @@ import kotlin.math.roundToInt
 internal fun FeedGrid(
     state: FeedState, statusTop: Dp, pull: FeedPullStateHolder,
     connection: NestedScrollConnection, actions: FeedActions, media: FeedMedia,
+    ring: FeedAvatarRingState,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 736.dp
+        // 直播 UP 集合在重组之间复用：动态列表每次分页/点赞都会重建 item 范围，
+        // 每重建一次就 new 一个 HashSet 是白花。
+        val liveMids = remember(state.liveUsers) {
+            state.liveUsers.mapTo(HashSet()) { it.mid }
+        }
 
         val sidebarWidth = dynamicSidebarWidth(maxWidth.value).dp
         Row(Modifier.fillMaxSize()) {
@@ -61,6 +68,7 @@ internal fun FeedGrid(
                 if (!wide) item(key = "avatar-card", span = StaggeredGridItemSpan.FullLine) {
                     FeedAvatarCard(
                         state = state,
+                        ring = ring,
                         modifier = Modifier.padding(bottom = TeakUiStyle.design.contentInset(2.dp)),
                     )
                 }
@@ -68,7 +76,7 @@ internal fun FeedGrid(
                 if (state.items.isEmpty() && state.loading) {
                     dynamicFeedSkeletonItems()
                 }
-                dynamicFeedItems(state, actions, media)
+                dynamicFeedItems(state, actions, media, liveMids)
                 dynamicFeedFooter(state, actions)
             }
 

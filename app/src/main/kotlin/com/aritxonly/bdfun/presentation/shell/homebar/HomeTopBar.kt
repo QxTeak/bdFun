@@ -188,19 +188,32 @@ private fun HomeTopBarMainRow(
 /** 官方风格：搜索框保持原位，分段条放在它下面一行。 */
 @Composable
 private fun HomeTopBarTabsBelow(tabs: HomeTopBarTabs) {
-    Box(
+    androidx.compose.foundation.layout.BoxWithConstraints(
         modifier = Modifier.fillMaxWidth().height(HomeTopBarTabsHeight),
         contentAlignment = Alignment.Center,
     ) {
-        TeakSegmentedBar(
-            options = tabs.options,
-            scrollable = androidx.compose.ui.platform.LocalConfiguration.current.smallestScreenWidthDp < 600,
-            maxVisibleItems = 3,
-            selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
-            itemWidth = 64.dp,
-            onSelect = tabs.onSelect,
-            position = tabs.position,
-        )
+        // 与同一行搜索框同宽：窄屏 = 窗宽 - 左侧头像/间距/右侧消息/页面边距；
+        // 宽屏沿用 HomeTopBarSearch 的 45% 夹 280..480dp。
+        val searchWidth = if (maxWidth >= 600.dp) {
+            (maxWidth * 0.45f).coerceIn(280.dp, 480.dp)
+        } else {
+            (maxWidth - 122.dp).coerceAtLeast(180.dp)
+        }
+        // 直接平铺：所有频道均分整条搜索框宽度，不使用横向滑动的 ScrollableSegment。
+        val itemWidth = ((searchWidth - 8.dp) / tabs.options.size.coerceAtLeast(1))
+            .coerceAtLeast(1.dp)
+        Box(modifier = Modifier.width(searchWidth), contentAlignment = Alignment.Center) {
+            TeakSegmentedBar(
+                options = tabs.options,
+                scrollable = false,
+                maxVisibleItems = tabs.options.size,
+                selected = tabs.selected.coerceIn(0, tabs.options.lastIndex),
+                itemWidth = itemWidth,
+                onSelect = tabs.onSelect,
+                position = tabs.position,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }
 

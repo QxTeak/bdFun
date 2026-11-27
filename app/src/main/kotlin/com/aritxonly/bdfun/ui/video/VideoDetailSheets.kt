@@ -1,6 +1,14 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+
+/** pendingFolderId 只用于显示“正在保存…”；面板内提交时没有具体单夹，用这个占位。 */
+private const val pendingFolderMarker = -1L
 
 @Composable
 internal fun VideoDetailSheets(
@@ -25,19 +33,30 @@ internal fun VideoDetailSheets(
         onConfirm = { count, alsoLike -> actions.doCoin(count, alsoLike) },
     )
 
+    // 收藏夹勾选只在面板内暂存：点「完成」才一次提交，取消/关闭不写服务器。
+    var stagedFolders by remember { mutableStateOf<Set<Long>>(emptySet()) }
+    LaunchedEffect(ui.favSheet.value) {
+        if (ui.favSheet.value) stagedFolders = interaction.folderIds
+    }
     com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderSheet(
         show = ui.favSheet.value,
         state = com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderSheetUiState(
-            title = "收藏到", description = "可选择多个收藏夹，点选后立即保存",
+            title = "收藏到", description = "勾选收藏夹，点「完成」保存",
             folders = interaction.folders.map { folder ->
                 com.aritxonly.bdfun.feature.library.presentation.FavoriteFolderOption(
-                    folder.id, folder.title, folder.count, folder.id in interaction.folderIds,
+                    folder.id, folder.title, folder.count, folder.id in stagedFolders,
                 )
             },
-            loading = interaction.favoritesLoading, pendingFolderId = interaction.pendingFolder,
+            loading = interaction.favoritesLoading,
+            pendingFolderId = if (interaction.busy && ui.favSheet.value) pendingFolderMarker else null,
         ),
-        onDismiss = { ui.favSheet.value = false },
-        onSelect = actions::toggleFolder,
+        onDismiss = { if (!interaction.busy) ui.favSheet.value = false },
+        onSelect = { id ->
+            if (!interaction.busy) {
+                stagedFolders = if (id in stagedFolders) stagedFolders - id else stagedFolders + id
+            }
+        },
+        onConfirm = { actions.applyFolders(stagedFolders) },
         maxBodyHeight = sheetMaxHeight,
     )
 }

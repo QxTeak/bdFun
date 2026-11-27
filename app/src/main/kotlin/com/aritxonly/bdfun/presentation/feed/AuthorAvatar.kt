@@ -1,7 +1,6 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,13 +28,12 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun AuthorAvatar(
     name: String,
     face: String,
-    selected: Boolean,
     hasUpdate: Boolean = false,
     badge: String? = null,
+    avatarModifier: Modifier = Modifier,
     onClick: () -> Unit,
 ) {
     val colors = MiuixTheme.colorScheme
-    val ring = rememberManualProgress(if (selected) 1f else 0f, 200f)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -45,7 +43,8 @@ internal fun AuthorAvatar(
     ) {
         Box(
             modifier = Modifier
-                .size(46.dp),
+                .size(46.dp)
+                .then(avatarModifier),
         ) {
             AsyncImage(
                 model = rememberImageRequest(face),
@@ -64,18 +63,6 @@ internal fun AuthorAvatar(
                     modifier = Modifier.align(Alignment.BottomCenter).clip(Capsule())
                         .background(colors.primary).padding(horizontal = 4.dp))
             }
-            // 选中圈只做透明度渐显，不改变头像尺寸和位置
-            if (ring > 0.01f) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .border(
-                            2.dp,
-                            colors.primary.copy(alpha = ring.coerceIn(0f, 1f)),
-                            CircleShape,
-                        ),
-                )
-            }
         }
         Text(
             text = name,
@@ -88,5 +75,3 @@ internal fun AuthorAvatar(
         )
     }
 }
-
-/** 头像排最左边的「全部动态」：粉色渐变圆 + 四宫格图标，尺寸/描边和 UP 头像一致。 */

@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -94,9 +95,14 @@ private fun androidx.compose.foundation.layout.BoxScope.PhotoViewerHost(
             },
         )
     }
+    // 动画后半段就提前组合 settled 层（藏在形变层下面），把 Pager/AsyncImage 的首次组合
+    // 和原图起播挪到动画期间，避免动画结束那一帧集中做重活造成顿挫。
+    val settledEarly by remember {
+        derivedStateOf { view.progress.value >= 0.72f }
+    }
     view.displayed?.let { request ->
         // 关闭时继续保留一帧，直到形变层报告已经画出内容。
-        if (view.settled || (view.closing && !view.morphDrawn)) {
+        if (view.settled || settledEarly || (view.closing && !view.morphDrawn)) {
             PhotoViewerSettledLayer(request, view, state, viewerBackdrop)
         }
     }

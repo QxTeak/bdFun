@@ -57,25 +57,14 @@ private fun MineRecentRecord(record: SentRecord, navigation: MineNavigation) {
             .padding(start = 16.dp, end = 16.dp, top = 6.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(
-            modifier = Modifier
-                .clip(CircleShape)
-                .background(
-                    if (isDanmaku) {
-                        MineBlue.copy(alpha = 0.14f)
-                    } else {
-                        colors.primary.copy(alpha = 0.14f)
-                    },
-                )
-                .padding(horizontal = 6.dp, vertical = 1.dp),
-        ) {
-            Text(
-                text = if (isDanmaku) "弹幕" else "评论",
-                color = if (isDanmaku) MineBlue else colors.primary,
-                fontSize = 9.5.sp,
-                fontWeight = FontWeight.Normal,
-            )
-        }
+        com.aritxonly.bdfun.presentation.common.TeakCapsuleChip(
+            text = if (isDanmaku) "弹幕" else "评论",
+            selected = false,
+            onClick = {},
+            height = 24.dp,
+            horizontalPadding = 12.dp,
+            fontSize = 11.sp,
+        )
         Spacer(Modifier.width(8.dp))
         Text(
             text = record.text,

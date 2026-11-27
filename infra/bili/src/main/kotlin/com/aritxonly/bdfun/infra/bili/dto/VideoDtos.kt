@@ -13,7 +13,11 @@ internal data class VideoStatsDto(
     val favorite: Long, val share: Long, val reply: Long,
 )
 internal data class VideoTimingDto(val publishedAt: Long, val duration: Int, val cid: Long)
-internal data class VideoPageDto(val cid: Long, val page: Int, val part: String, val duration: Int)
+internal data class VideoPageDto(
+    val cid: Long, val page: Int, val part: String, val duration: Int,
+    /** 接口原始首帧地址；PiliPlus 的 episode_panel 也用 `first_frame ?? pic`。 */
+    val firstFrame: String = "",
+)
 internal data class VideoEpisodeDto(
     val bvid: String, val aid: Long, val cid: Long, val title: String, val cover: String,
     val duration: Int, val play: Long, val danmaku: Long, val publishedAt: Long,

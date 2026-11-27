@@ -189,10 +189,10 @@ internal class VideoPagePresentationState(
     override var danmakuOwnerMid by mutableLongStateOf(0L)
     override var styledDanmakuSender: StyledDanmakuSender? = null
     override var danmakuModeration: com.aritxonly.bdfun.feature.video.application.DanmakuModerationStateHolder? by mutableStateOf(null)
-    override var danmakuReporter: (suspend (Long, com.aritxonly.bdfun.core.domain.DanmakuReportReason, String) -> Boolean)? = null
+    override var danmakuReporter: (suspend (Long, com.aritxonly.bdfun.core.domain.DanmakuReportReason, String) -> com.aritxonly.bdfun.core.common.Outcome<Unit>)? = null
     override var danmakuVoteLoader: (suspend (List<Long>) -> Unit)? = null
     override var danmakuVotes: kotlinx.coroutines.flow.StateFlow<Map<Pair<Long, Long>, com.aritxonly.bdfun.core.domain.DanmakuVote>>? by mutableStateOf(null)
-    override var danmakuLiker: (suspend (Long) -> Boolean)? = null
+    override var danmakuLiker: (suspend (Long) -> com.aritxonly.bdfun.core.common.Outcome<Boolean>)? = null
     override var danmakuSender: (suspend (String, Int, Int, Int) -> Boolean)? = null
     var playerCollapseScroll: ((Float) -> Float)? = null
     val playerUi get() = this

@@ -48,25 +48,14 @@ internal fun SentRecordRow(
             .padding(horizontal = if (classic) 16.dp else 14.dp, vertical = 12.dp),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(
-                        if (isDanmaku) {
-                            Color(0xFF3C9BD9).copy(alpha = 0.14f)
-                        } else {
-                            colors.primary.copy(alpha = 0.14f)
-                        },
-                    )
-                    .padding(horizontal = 7.dp, vertical = 2.dp),
-            ) {
-                Text(
-                    text = if (isDanmaku) "弹幕" else "评论",
-                    color = if (isDanmaku) Color(0xFF3C9BD9) else colors.primary,
-                    fontSize = 9.5.sp,
-                    fontWeight = FontWeight.Normal,
-                )
-            }
+            com.aritxonly.bdfun.presentation.common.TeakCapsuleChip(
+                text = if (isDanmaku) "弹幕" else "评论",
+                selected = false,
+                onClick = {},
+                height = 24.dp,
+                horizontalPadding = 12.dp,
+                fontSize = 11.sp,
+            )
             Spacer(Modifier.width(8.dp))
             Text(
                 text = if (isDanmaku) {

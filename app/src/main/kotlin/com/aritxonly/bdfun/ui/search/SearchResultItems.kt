@@ -2,6 +2,7 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.remember
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -160,7 +161,12 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultFoot
                 modifier = modifier.fillMaxWidth().padding(vertical = 16.dp),
                 contentAlignment = Alignment.Center,
             ) {
-                Text("加载中…", color = colors.onBackgroundVariant, fontSize = 12.sp)
+                // 和首页信息流尾部一致：加载图标 + 文案，不再只有一行字。
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    com.aritxonly.teak.common.chrome.TeakLoadingIndicator()
+                    Spacer(Modifier.height(6.dp))
+                    Text("加载中…", color = colors.onBackgroundVariant, fontSize = 12.sp)
+                }
             }
         }
     } else if (end) {

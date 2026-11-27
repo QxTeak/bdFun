@@ -95,6 +95,8 @@ class HomeFeedStateHolderTest {
         val state = HomeFeedStateHolder(feed, videoRepository)
         state.ensureLoaded()
         state.dismissRecommendation(item("a"), creator = true)
+        // 撤销窗口结束后才把本地过滤规则落盘；后续分页仍按旧行为拦截。
+        state.commitDismissed()
         feed.load = { page -> Outcome.Success(listOf(item(if (page == 2) "blocked" else "visible", if (page == 2) 1 else 2))) }
         state.loadMore()
         assertFalse(state.state.value.endReached)
@@ -107,6 +109,7 @@ class HomeFeedStateHolderTest {
         val state = HomeFeedStateHolder(feed, videoRepository)
         state.ensureLoaded()
         state.dismissRecommendation(item("a"), category = "游戏")
+        state.commitDismissed()
         feed.load = { Outcome.Success(listOf(item("unknown", 2, ""))) }
         state.loadMore()
         assertEquals("unknown", state.state.value.videos.single().bvid)
