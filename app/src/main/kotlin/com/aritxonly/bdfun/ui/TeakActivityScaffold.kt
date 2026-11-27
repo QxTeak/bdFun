@@ -53,6 +53,7 @@ internal fun TeakActivityScaffold(
     val contentUnderlayAlpha = options.underlay.alpha
     val contentUnderlayBlur = options.underlay.blur
     val topBarAlpha = options.underlay.topBarAlpha
+    val searchTitle = options.underlay.searchTitle
     val showBackgroundDisc = disc.showBackgroundDisc
     val discLift = disc.discLift
     val discEndPadding = disc.discEndPadding
@@ -100,6 +101,8 @@ internal fun TeakActivityScaffold(
             underlayAlpha = contentUnderlayAlpha,
             underlayBlurProgress = contentUnderlayBlur,
             topBarAlpha = topBarAlpha,
+            searchTitle = searchTitle,
+            searchTitleProgress = options.underlay.searchTitleProgress,
             titleAlwaysVisible = titleAlwaysVisible,
             content = content,
         )

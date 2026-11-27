@@ -46,10 +46,16 @@ class VideoActivity : OneTakeExitActivity() {
     private var pendingSince = 0L
 
     /**
-     * 系统是否锁定了方向（下拉快捷开关里的「方向锁定」/ 设置里的「自动旋转屏幕」关闭）。
-     * 锁定后即使 App 内的「自动旋转」是开的也不能转。
+     * 系统方向锁的缓存值。
+     *
+     * 传感器回调一秒十几次，每次都 `Settings.System.getInt` 是一次跨进程查询，
+     * 这个开销**不能忽略**；所以改成 ContentObserver：值变化时才重新读，
+     * 回调里只做一次布尔读取。
      */
-    private fun systemRotationLocked(): Boolean = runCatching {
+    private var rotationLockedCached = false
+    private var rotationLockObserver: android.database.ContentObserver? = null
+
+    private fun readSystemRotationLocked(): Boolean = runCatching {
         Settings.System.getInt(
             contentResolver,
             Settings.System.ACCELEROMETER_ROTATION,
@@ -57,14 +63,47 @@ class VideoActivity : OneTakeExitActivity() {
         ) == 0
     }.getOrDefault(false)
 
+    private fun startRotationLockObserver() {
+        if (rotationLockObserver != null) return
+        val observer = object : android.database.ContentObserver(
+            android.os.Handler(android.os.Looper.getMainLooper()),
+        ) {
+            override fun onChange(selfChange: Boolean) {
+                rotationLockedCached = readSystemRotationLocked()
+            }
+        }
+        rotationLockObserver = observer
+        runCatching {
+            contentResolver.registerContentObserver(
+                Settings.System.getUriFor(Settings.System.ACCELEROMETER_ROTATION),
+                false,
+                observer,
+            )
+        }
+    }
+
+    private fun stopRotationLockObserver() {
+        rotationLockObserver?.let { runCatching { contentResolver.unregisterContentObserver(it) } }
+        rotationLockObserver = null
+    }
+
+    /** 系统是否锁定了方向（下拉快捷开关里的「方向锁定」/ 设置里的「自动旋转屏幕」关闭）。 */
+    private fun systemRotationLocked(): Boolean = rotationLockedCached
+
     private fun autoRotateAllowed(): Boolean =
         AppGraph.settings.autoRotate && !systemRotationLocked()
 
     /** 上一次真正生效的设备姿态（0 竖屏 / 1 横屏）：只有姿态真的翻转才驱动转屏。 */
     private var lastQuadrant: Int = -1
 
+    /** 是不是我们刚为了「转屏进全屏」写下的横屏朝向：Compose 置上 fullscreen 之前不要被 idle 锁回去。 */
+    private fun autoLandscapePending(): Boolean =
+        !PlayerUiState.fullscreen &&
+            requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+
     private fun startOrientationTracking() {
         if (orientationListener != null) return
+        startRotationLockObserver()
         lastQuadrant = if (
             resources.configuration.orientation ==
             android.content.res.Configuration.ORIENTATION_LANDSCAPE
@@ -75,8 +114,6 @@ class VideoActivity : OneTakeExitActivity() {
         ) {
             override fun onOrientationChanged(orientation: Int) {
                 if (orientation == ORIENTATION_UNKNOWN) return
-                // 每次方向变化都重新读：用户可能中途打开 / 关闭了方向锁定
-                if (!PlayerUiState.fullscreen || !autoRotateAllowed() || VideoOrientationLock.locked) return
                 // 判定：横屏要转到离水平 12° 以内（比上一版 18° 更严格）
                 val landscape = orientation in 78..102 || orientation in 258..282
                 val portrait =
@@ -86,8 +123,21 @@ class VideoActivity : OneTakeExitActivity() {
                     portrait -> 0
                     else -> return
                 }
-                // 姿态没变就不动：这样「竖屏时点全屏按钮」不会被传感器立刻扳回竖屏
+                // 姿态没变就不动：这样「竖屏时点全屏按钮」不会被传感器立刻扳回竖屏，
+                // 也避免每次回调都去读设置 / 方向锁。
                 if (quadrant == lastQuadrant) {
+                    pendingLandscape = null
+                    return
+                }
+                // 每次真正翻姿态都重新读设置：用户可能中途打开 / 关闭了自动旋转或方向锁定。
+                val wanted = com.aritxonly.bdfun.core.domain.rotationTargetForPose(
+                    landscape = quadrant == 1,
+                    fullscreen = PlayerUiState.fullscreen,
+                    smallestWidthDp = resources.configuration.smallestScreenWidthDp,
+                    autoRotate = autoRotateAllowed(),
+                    orientationLocked = VideoOrientationLock.locked,
+                )
+                if (wanted == null) {
                     pendingLandscape = null
                     return
                 }
@@ -100,19 +150,20 @@ class VideoActivity : OneTakeExitActivity() {
                 // 姿态稳定保持 220ms 就转屏：再长会让「手机转过去 App 半天不跟」
                 if (System.currentTimeMillis() - pendingSince < 220) return
                 lastQuadrant = quadrant
-                val wanted = if (target) {
-                    ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-                } else {
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                val requested = when (wanted) {
+                    com.aritxonly.bdfun.core.domain.VideoRotationTarget.Landscape ->
+                        ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+                    com.aritxonly.bdfun.core.domain.VideoRotationTarget.Portrait ->
+                        ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
                 }
-                if (requestedOrientation != wanted) {
+                if (requestedOrientation != requested) {
                     if (BuildConfig.DEBUG) {
                         android.util.Log.d(
                             "ROTDBG",
-                            "apply requestedOrientation=$wanted (angle=$orientation)",
+                            "apply requestedOrientation=$requested (angle=$orientation)",
                         )
                     }
-                    requestedOrientation = wanted
+                    requestedOrientation = requested
                 }
             }
         }.also { it.enable() }
@@ -125,6 +176,7 @@ class VideoActivity : OneTakeExitActivity() {
         orientationListener?.disable()
         orientationListener = null
         pendingLandscape = null
+        stopRotationLockObserver()
     }
 
     override fun onResume() {
@@ -136,7 +188,9 @@ class VideoActivity : OneTakeExitActivity() {
         runCatching {
             syncVideoSystemBars()
         }
-        if (!PlayerUiState.fullscreen) applyIdleOrientation()
+        // 回前台重新读一次系统方向锁（用户可能刚在快捷开关里改过）；之后交给 ContentObserver。
+        rotationLockedCached = readSystemRotationLocked()
+        if (!PlayerUiState.fullscreen && !autoLandscapePending()) applyIdleOrientation()
         if (autoRotateAllowed()) {
             startOrientationTracking()
         } else {
@@ -236,7 +290,9 @@ class VideoActivity : OneTakeExitActivity() {
 
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
-        if (!PlayerUiState.fullscreen) applyIdleOrientation()
+        // 刚为「转屏进全屏」请求的横屏：Compose 侧会在这一帧把 fullscreen 置上，
+        // 不能在这里又用 idle 竖屏把它锁回去（否则转过去立刻弹回，看起来就是"转不动"）。
+        if (!PlayerUiState.fullscreen && !autoLandscapePending()) applyIdleOrientation()
         if (BuildConfig.DEBUG) {
             android.util.Log.d(
                 "ROTDBG",

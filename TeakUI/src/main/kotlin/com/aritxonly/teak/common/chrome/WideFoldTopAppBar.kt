@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -48,6 +49,9 @@ fun WideFoldTopAppBar(
     subtitleColor: Color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
     titleTextStyle: TextStyle = MiuixTheme.textStyles.title2,
     bottomContent: @Composable () -> Unit = {},
+    /** 搜索覆盖层的小标题，与 [title] 按 [overlayTitleProgress] 交叉淡出。 */
+    overlayTitle: String? = null,
+    overlayTitleProgress: Float = 0f,
 ) {
     Column(modifier.fillMaxWidth()
         .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top))) {
@@ -59,9 +63,23 @@ fun WideFoldTopAppBar(
         ) {
             navigationIcon?.invoke()
             Column(Modifier.weight(1f).padding(horizontal = 12.dp, vertical = 4.dp)) {
-                if (title.isNotEmpty()) Text(title, color = titleColor, style = titleTextStyle,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.semantics { heading() })
+                if (title.isNotEmpty() || overlayTitle != null) {
+                    val progress = overlayTitleProgress.coerceIn(0f, 1f)
+                    Box {
+                        if (title.isNotEmpty()) Text(title, color = titleColor, style = titleTextStyle,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .graphicsLayer { alpha = 1f - progress }
+                                .semantics { heading() })
+                        if (overlayTitle != null && progress > 0.001f) {
+                            Text(overlayTitle, color = titleColor, style = titleTextStyle,
+                                maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier
+                                    .graphicsLayer { alpha = progress }
+                                    .semantics { heading() })
+                        }
+                    }
+                }
                 if (subtitle.isNotEmpty()) {
                     Text(subtitle, color = subtitleColor, style = MiuixTheme.textStyles.footnote1,
                         maxLines = 1, overflow = TextOverflow.Ellipsis)

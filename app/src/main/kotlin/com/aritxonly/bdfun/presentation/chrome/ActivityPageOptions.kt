@@ -23,6 +23,10 @@ internal data class PageUnderlayOptions(
     val alpha: Float = 1f,
     val blur: Float = 0f,
     val topBarAlpha: Float = 1f,
+    /** 搜索层的小标题：与页面小标题交叉淡出，避免开搜索时标题文案硬切换。 */
+    val searchTitle: String? = null,
+    /** 0 = 页面小标题，1 = [searchTitle]。 */
+    val searchTitleProgress: Float = 0f,
 )
 @Immutable
 internal data class ActivityDiscOptions(val showBackgroundDisc: Boolean = true,

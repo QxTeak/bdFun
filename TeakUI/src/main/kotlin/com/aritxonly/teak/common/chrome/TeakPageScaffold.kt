@@ -27,13 +27,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.TileMode
 import androidx.compose.ui.graphics.graphicsLayer
 import com.aritxonly.teak.common.interaction.blockTouches
+import com.aritxonly.teak.common.search.TeakSearchTransitionDefaults
 import com.aritxonly.teak.common.search.teakSearchUnderlay
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -62,6 +66,14 @@ internal fun isCompactPortraitTopBar(): Boolean {
     val configuration = androidx.compose.ui.platform.LocalConfiguration.current
     return configuration.smallestScreenWidthDp < 600 &&
         configuration.orientation == android.content.res.Configuration.ORIENTATION_PORTRAIT
+}
+
+/** 顶栏动作圆钮尺寸：紧凑竖屏与返回键同为 44dp，宽屏保持 40dp。 */
+@Composable
+fun teakTopBarActionSize(): Dp = if (isCompactPortraitTopBar()) {
+    TeakChromeDefaults.CompactBackButtonSize
+} else {
+    40.dp
 }
 
 
@@ -145,6 +157,9 @@ private val TeakBarProgressiveBlur = ProgressiveBlur.Top.copy(
     endFraction = TeakChromeDefaults.BarBlurEndFraction,
     curve = TeakChromeDefaults.BarBlurCurve,
 )
+
+/** 搜索页顶栏从下方抬进画面的距离：搜索结果面板本身就是从下往上，顶栏跟着同一条方向。 */
+private val SearchedChromeRise = 14.dp
 
 /**
  * 顶栏渐变模糊：顶栏底部清晰 -> 顶部完全模糊，底部用页面底色染色，
@@ -250,16 +265,7 @@ fun TeakTopBar(
                     .matchParentSize()
                     .background(MiuixTheme.colorScheme.surfaceContainer.copy(alpha = 0.62f)),
             )
-            Text(
-                text = title,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = if (isCompactPortraitTopBar()) TeakChromeDefaults.CompactSmallTitleFontSize else TeakChromeDefaults.SmallTitleFontSize,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(top = statusBarTop)
-                    .offset(y = -TeakChromeDefaults.SmallTitleLift),
-            )
+            SmallTitleText(title, statusBarTop, 1f)
         } else {
             Box(
                 modifier = Modifier
@@ -267,25 +273,31 @@ fun TeakTopBar(
                     .graphicsLayer { alpha = barBlurFraction.coerceIn(0f, 1f) }
                     .teakProgressiveBarBlur(),
             )
-            if (shown > 0.01f) {
-                Text(
-                    text = title,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = if (isCompactPortraitTopBar()) TeakChromeDefaults.CompactSmallTitleFontSize else TeakChromeDefaults.SmallTitleFontSize,
-                    fontWeight = FontWeight.Medium,
-                    modifier = Modifier
-                        .align(Alignment.Center)
-                        .padding(top = statusBarTop)
-                        .offset(y = -TeakChromeDefaults.SmallTitleLift)
-                        .graphicsLayer {
-                            alpha = shown
-                            translationY = (1f - shown) * TeakChromeDefaults.SmallTitleRise.toPx()
-                        }
-                        .blur(TeakChromeDefaults.SmallTitleBlurRadius * (1f - shown)),
-                )
-            }
+            SmallTitleText(title, statusBarTop, shown)
         }
     }
+}
+
+/** 顶栏居中小标题；[reveal] 同时控制淡入与上移，0 时不参与布局/绘制。 */
+@Composable
+private fun BoxScope.SmallTitleText(text: String, statusBarTop: Dp, reveal: Float) {
+    val shown = reveal.coerceIn(0f, 1f)
+    if (shown <= 0.001f) return
+    Text(
+        text = text,
+        color = MaterialTheme.colorScheme.onSurface,
+        fontSize = if (isCompactPortraitTopBar()) TeakChromeDefaults.CompactSmallTitleFontSize else TeakChromeDefaults.SmallTitleFontSize,
+        fontWeight = FontWeight.Medium,
+        modifier = Modifier
+            .align(Alignment.Center)
+            .padding(top = statusBarTop)
+            .offset(y = -TeakChromeDefaults.SmallTitleLift)
+            .graphicsLayer {
+                alpha = shown
+                translationY = (1f - shown) * TeakChromeDefaults.SmallTitleRise.toPx()
+            }
+            .blur(TeakChromeDefaults.SmallTitleBlurRadius * (1f - shown)),
+    )
 }
 
 /**
@@ -321,15 +333,47 @@ fun TeakLargeTitle(
             onDispose { anchorState.unregister() }
         }
     }
-    val hidden = hosted
-    val baseModifier = modifier
-    val colors = MiuixTheme.colorScheme
-    val p = (pageState.collapse / TeakChromeDefaults.CollapseFadeFraction).coerceIn(0f, 1f)
+    TeakLargeTitleBody(
+        title = title,
+        subtitle = subtitle,
+        titleColor = titleColor,
+        subtitleColor = subtitleColor,
+        pageState = pageState,
+        topSpacer = topSpacer,
+        modifier = modifier,
+        hidden = hosted,
+    )
+}
+
+/**
+ * 大标题本体：折叠淡出与折叠模糊都在各自的绘制层里读取，不随滚动重组，
+ * 也不会被顶栏 backdrop 二次采样。
+ */
+@Composable
+private fun TeakLargeTitleBody(
+    title: String,
+    subtitle: String?,
+    titleColor: Color,
+    subtitleColor: Color,
+    pageState: TeakPageScrollState,
+    topSpacer: Dp,
+    modifier: Modifier,
+    hidden: Boolean,
+) {
     Column(
-        modifier = baseModifier
+        modifier = modifier
             .fillMaxWidth()
-            .graphicsLayer { alpha = if (hidden) 0f else 1f - p }
-            .then(if (hidden) Modifier else Modifier.blur(TeakChromeDefaults.CollapseBlurRadius * p)),
+            .graphicsLayer {
+                val p = (pageState.collapse / TeakChromeDefaults.CollapseFadeFraction)
+                    .coerceIn(0f, 1f)
+                alpha = if (hidden) 0f else 1f - p
+                renderEffect = if (!hidden && p > 0.001f) {
+                    val radius = TeakChromeDefaults.CollapseBlurRadius.toPx() * p
+                    BlurEffect(radius, radius, TileMode.Clamp)
+                } else {
+                    null
+                }
+            },
     ) {
         Spacer(Modifier.height(topSpacer))
         Text(
@@ -348,6 +392,61 @@ fun TeakLargeTitle(
                 fontSize = if (isCompactPortraitTopBar()) TeakChromeDefaults.CompactSubtitleFontSize else TeakChromeDefaults.SubtitleFontSize,
             )
         }
+    }
+}
+
+/**
+ * 顶栏前景里的大标题：与 MIUIX 一致，标题属于顶栏前景而不是页面录制层，
+ * 因此只会被自己的折叠模糊处理一次，不会被顶栏的 progressive blur 二次采样。
+ *
+ * 位移、折叠进度、以及页面自己登记的一镜到底退让（[TeakLargeTitleSearchUnderlay]）
+ * 全部在绘制阶段读取：滚动 / 搜索动画期间只失效绘制层，不重组。
+ */
+@Composable
+private fun TeakLargeTitleForeground(
+    state: TeakLargeTitleAnchorState,
+    pageState: TeakPageScrollState,
+    topInset: Dp,
+    underlayLiftPx: Float,
+    underlayAlpha: Float,
+    underlayBlurProgress: Float,
+) {
+    if (state.present <= 0) return
+    val data = state.data ?: return
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .graphicsLayer {
+                val motion = state.searchUnderlayProgress.floatValue
+                val lift = TeakSearchTransitionDefaults.ContentLift.toPx() * motion
+                translationY = -currentScrollOffsetPx(pageState) - underlayLiftPx - lift
+                alpha = underlayAlpha * state.searchUnderlayAlpha.floatValue
+                val blurProgress = maxOf(
+                    underlayBlurProgress,
+                    state.searchUnderlayBlur.floatValue,
+                )
+                renderEffect = if (blurProgress > 0.001f) {
+                    val radius = TeakSearchTransitionDefaults.UnderlayBlurPx * blurProgress
+                    BlurEffect(radius, radius, TileMode.Clamp)
+                } else {
+                    null
+                }
+            },
+    ) {
+        TeakLargeTitleBody(
+            title = data.title,
+            subtitle = data.subtitle,
+            titleColor = data.titleColor,
+            subtitleColor = data.subtitleColor,
+            pageState = pageState,
+            topSpacer = TeakChromeDefaults.LargeTitleTopSpacer,
+            modifier = Modifier.padding(
+                start = TeakChromeDefaults.ContentHorizontalPadding,
+                end = TeakChromeDefaults.ContentHorizontalPadding,
+                top = topInset,
+            ),
+            hidden = false,
+        )
     }
 }
 
@@ -398,6 +497,15 @@ fun TeakPageScaffold(
     barBlurFraction: Float = 1f,
     /** 聊天等没有折叠标题的页面可固定顶栏材质强度。 */
     topBarMaterialProgress: Float? = null,
+    /**
+     * 搜索覆盖层自己的顶栏文案（可以为空串：搜索页没有标题，只留返回键）。
+     *
+     * 非 null 时外壳会多画一份"搜索页 chrome"：旧页顶栏缩进淡出，这一份从下方抬进来。
+     * 不这么做的话，开到一半的页面小标题会先换成搜索标题再消失。
+     */
+    searchTitle: String? = null,
+    /** 搜索页 chrome 是否已接管（1 = 已落定）：只在落定后读折叠进度，避免进场闪一下小标题。 */
+    searchTitleProgress: Float = 0f,
     content: @Composable () -> Unit,
 ) {
     val wide = isWideFoldTopBar()
@@ -435,14 +543,45 @@ fun TeakPageScaffold(
                     if (title != null && limitContentWidth) {
                         TeakScrollContainer(pageState.scrollableState, Modifier.fillMaxSize(), content = content)
                     } else content()
-                    // 大标题固定副本画在滚动容器外，但在 backdrop 录制层内：
-                    // 这样顶栏渐进模糊仍能采样到标题，标题不会在顶栏底边被一块硬边遮住。
-                    TeakPinnedLargeTitle(largeTitleState, pageState, topInset = largeTitleTopInset)
+                    // 大标题已移到顶栏前景层绘制（不进入 backdrop 录制），避免被顶栏渐进模糊二次模糊。
                 }
             }
             Box(modifier = Modifier.fillMaxSize()) { overlay() }
+            // 点顶栏回顶：常开。画在顶栏按钮之前（下面），空白处才吃掉点击。
+            TeakStatusBarScrollToTop(
+                pageState = pageState,
+                belowStatusBar = if (showTopBar && !wide) TeakChromeDefaults.TopBarHeight else 0.dp,
+            )
             // 顶栏始终留在组合里：一镜到底时只改透明度，避免动画中途卸载/重建整棵顶栏
             // 造成一帧跳动；搜索层画在 topOverlay，盖在顶栏之上，透明时也接不到点击。
+            val underlayLiftPx = with(androidx.compose.ui.platform.LocalDensity.current) {
+                TeakSearchTransitionDefaults.ContentLift.toPx() *
+                    underlayProgress.coerceIn(0f, 1f)
+            }
+            // 搜索退让进度：外壳自己的参数，加上页面在内容里登记的那一份（设置页搜索）。
+            // 顶栏整行（返回键 / 小标题 / 操作按钮）和首页一致地向内缩并淡出，
+            // 搜索层自己的顶栏按同一进度淡入，返回键才不会凭空消失。
+            fun Modifier.searchChromeMotion(incoming: Boolean) = graphicsLayer {
+                val p = maxOf(
+                    underlayProgress,
+                    largeTitleState.searchUnderlayProgress.floatValue,
+                ).coerceIn(0f, 1f)
+                // 旧的 chrome 向内缩并淡出；搜索页是**新的一层**，跟着搜索结果一起从下往上抬进来，
+                // 而不是从中心放大（那样看起来像是同一个返回键被拉伸）。
+                if (incoming) {
+                    scaleX = 1f
+                    scaleY = 1f
+                    translationY = SearchedChromeRise.toPx() * (1f - p)
+                } else {
+                    val scale = 1f - 0.1f * p
+                    scaleX = scale
+                    scaleY = scale
+                    translationY = 0f
+                }
+                transformOrigin = TransformOrigin(0.5f, 0.35f)
+                // 两段 chrome 都在时不要出现"两个返回键"：旧的一份先退干净，新的一份后半个身位才起。
+                alpha = if (incoming) p * p else (1f - p) * (1f - p)
+            }
             if (showTopBar) CompositionLocalProvider(LocalTopBarScrollProgress provides ((topBarMaterialProgress ?: pageState.materialProgress).coerceIn(0f, 1f) * barBlurFraction.coerceIn(0f, 1f))) {
                 // 只有做一镜到底时才开独立图层，普通页面保持原来的绘制路径。
                 val topBarLayer = if (topBarAlpha < 0.999f) {
@@ -452,23 +591,72 @@ fun TeakPageScaffold(
                 }
                 ProgressiveTopBarMaterial(
                     modifier = topBarLayer,
-                    underlayLiftPx = with(androidx.compose.ui.platform.LocalDensity.current) {
-                        com.aritxonly.teak.common.search.TeakSearchTransitionDefaults.ContentLift.toPx() *
-                            underlayProgress.coerceIn(0f, 1f)
-                    },
-                    underlayBlurPx = com.aritxonly.teak.common.search.TeakSearchTransitionDefaults.UnderlayBlurPx *
+                    underlayLiftPx = underlayLiftPx,
+                    underlayBlurPx = TeakSearchTransitionDefaults.UnderlayBlurPx *
                         underlayBlurProgress.coerceIn(0f, 1f),
                 ) {
                     if (title != null && !wide) {
-                        TeakTopBar(
-                            title = title,
-                            collapse = pageState.collapse,
-                            titleAlwaysVisible = titleAlwaysVisible,
-                        )
+                        if (!com.aritxonly.teak.common.theme.TeakUiStyle.isClassic &&
+                            largeTitleState.present > 0
+                        ) {
+                            Layout(
+                                content = {
+                                    TeakLargeTitleForeground(
+                                        state = largeTitleState,
+                                        pageState = pageState,
+                                        topInset = largeTitleTopInset,
+                                        underlayLiftPx = underlayLiftPx,
+                                        underlayAlpha = underlayAlpha,
+                                        underlayBlurProgress = underlayBlurProgress,
+                                    )
+                                    TeakTopBar(
+                                        title = title,
+                                        collapse = pageState.collapse,
+                                        titleAlwaysVisible = titleAlwaysVisible,
+                                        modifier = Modifier.searchChromeMotion(incoming = false),
+                                    )
+                                },
+                            ) { measurables, constraints ->
+                                val titlePlaceable = measurables[0].measure(
+                                    constraints.copy(minHeight = 0),
+                                )
+                                val barPlaceable = measurables[1].measure(
+                                    constraints.copy(minHeight = 0),
+                                )
+                                // 只上报顶栏尺寸；大标题允许画到布局边界之外（不裁剪）。
+                                layout(barPlaceable.width, barPlaceable.height) {
+                                    titlePlaceable.placeRelative(0, 0)
+                                    barPlaceable.placeRelative(0, 0)
+                                }
+                            }
+                        } else {
+                            TeakTopBar(
+                                title = title,
+                                collapse = pageState.collapse,
+                                titleAlwaysVisible = titleAlwaysVisible,
+                                modifier = Modifier.searchChromeMotion(incoming = false),
+                            )
+                        }
+                        // 搜索层自己的顶栏：旧顶栏缩进淡出的同时，这一份跟着搜索结果从下往上抬进来。
+                        // 只画小标题，材质仍由上一步的同一个 ProgressiveTopBarMaterial 提供。
+                        // 折叠进度要等搜索层真正接管滚动后再读：进场那一帧 pageState 还是旧列表的，
+                        // 直接读会让搜索标题在没有滚动时闪一下。
+                        if (searchTitle != null) {
+                            val settled = searchTitleProgress >= 0.999f
+                            TeakTopBar(
+                                title = searchTitle,
+                                collapse = if (settled) pageState.collapse else 0f,
+                                barBlurFraction = 0f,
+                                titleAlwaysVisible = titleAlwaysVisible && settled,
+                                modifier = Modifier.searchChromeMotion(incoming = true),
+                            )
+                        }
                     }
                     if (wide && title != null) {
                         WideFoldTopAppBar(
                             title = title,
+                            overlayTitle = searchTitle,
+                            overlayTitleProgress = searchTitleProgress,
                             titleColor = topBarGlyphColor ?: MiuixTheme.colorScheme.onSurface,
                             navigationIcon = {
                                 androidx.compose.foundation.layout.Row {
@@ -495,7 +683,18 @@ fun TeakPageScaffold(
                             leading = topBarLeading,
                             center = topBarCenter,
                             trailing = topBarActions,
+                            modifier = Modifier.searchChromeMotion(incoming = false),
                         )
+                        // 搜索层自己的操作行：只有返回键，和旧顶栏交叉淡入淡出。
+                        if (searchTitle != null) {
+                            TeakTopOverlay(
+                                revealed = backRevealed ?: pageState.backRevealed,
+                                onBack = if (showBackButton) onBack else null,
+                                light = backRevealed == false,
+                                glyphColor = topBarGlyphColor,
+                                modifier = Modifier.searchChromeMotion(incoming = true),
+                            )
+                        }
                     }
                 }
             }

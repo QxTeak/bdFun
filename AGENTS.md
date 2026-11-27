@@ -886,3 +886,13 @@ bdFun 对应调整：`Media3PlayerBuilder` 恢复 `setEnableAudioTrackPlaybackPa
 
 Miuix 源码固定到上游 \c1024d78a154f5167efff262ae5ed66264c481e\（0.9.5 线，AGP 9.5.3 / Kotlin 2.4.21 / Compose 1.13.0-rc01）；\miuix-shader\ 已并入 \miuix-material\，\GlassDefaults/GlassShape/GlassMaterials/EdgeStroke/RuntimeShader\ 改从 \	op.yukonga.miuix.kmp.material\ 导入，\overScrollVertical\ 的 estedScrollToParent\ 参数移除。主工程与所有 Android 库模块统一 \compileSdk 37.2\（\minorApiLevel = 2\），否则 Compose 1.13 的 AAR 元数据会拒绝构建。两个本地补丁（NavDisplay 的 \predictiveBackPreview\、GlassPopupSurface 退场立即释放输入）已按新文件重新生成，升级快照时必须同步刷新 \	ools/miuix-patches\。
 图片查看器：入场改为 HyperOS 4 搜索展开同款 \spring(0.97, 0.4s)\ 非线性速率（\PhotoViewerMotion\，归一化到 0/1），关闭用同一曲线 0.3s；\PhotoMorphView\ 预创建为 1dp 热视图，首次打开不再现场实例化。长按菜单收起时通过 Dialog \FLAG_NOT_TOUCHABLE\ 立即释放输入，GlassPopupSurface 非交互态不再挂全屏消费层；查看器退出会先撤菜单与 backdrop 再回落，消除闪一帧。
+
+### 2026-11-27 大标题一镜到底、点顶栏回顶与视频转屏
+
+大标题仍画在顶栏前景（不进 backdrop 录制，避免 progressive blur 二次采样）；页面内容自己只对局部做退让时（设置页搜索要留住底部搜索框和结果面板），由内容侧调用 `TeakLargeTitleSearchUnderlay(progress, alpha, blur)` 把同一份变换登记给 `TeakLargeTitleAnchorState`，吸顶大标题在绘制阶段按同一位移/淡出/模糊跟随。设置页搜索的空态没有标题，提示固定在屏幕中间，列表从 `TopBarHeight` 之下开始。
+
+搜索页 chrome 与旧页 chrome 是两层：外壳按 `searchTitle`(可为空串) + 搜索退让进度画第二份顶栏/返回键，旧的一份缩到 0.9 淡出、新的一份从下方抬入（`SearchedChromeRise`），不再复用同一个返回键。`TeakTopBar` 不再有 `overlayTitle`，宽屏走 `WideFoldTopAppBar` 自己的交叉淡出。
+
+点顶栏回顶（`TeakStatusBarScrollToTop`）常开无开关：铺在状态栏 + TopBarHeight 上并画在顶栏按钮下面，返回键/搜索框/分段优先；因为系统状态栏窗口会吃掉最上面那一段点击，实际可点区域是顶栏空白处。
+
+视频转屏：`rotationTargetForPose` 在 `core:domain`，半屏时紧凑手机（smallestWidthDp<600）转到横屏才请求横屏，靠 `fullscreenAfterVideoRotation` 进全屏；已全屏时姿态两向跟随，平板/关闭自动旋转/锁方向都不干预。`VideoActivity` 的 idle 锁必须用 `autoLandscapePending()` 让路，否则 onConfigurationChanged 会把刚请求的横屏立刻锁回竖屏。
