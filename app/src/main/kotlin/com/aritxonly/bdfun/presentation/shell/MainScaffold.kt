@@ -111,6 +111,9 @@ private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellStat
 private fun MainStatusBarScrollToTop(shell: MainShellState) {
     val ui = shell.ui
     val page = shell.navigation.pager.currentPage
+    // 动态页进入 UP 页后，原分类顶栏已经让位，肩膀以下就是头像行：
+    // 回顶的点击区只能留在状态栏里，不然会把头像的点击吃掉。
+    val upPage = page == 1 && AppGraph.dynamicFeedStateFor(ui.dynamicTab).filterMid != null
     com.aritxonly.teak.common.chrome.TeakStatusBarScrollToTop(
         pageState = when {
             ui.showSearch -> shell.chrome.search
@@ -120,6 +123,6 @@ private fun MainStatusBarScrollToTop(shell: MainShellState) {
             ui.homeSection == 3 -> shell.chrome.bangumi
             else -> shell.chrome.home
         },
-        belowStatusBar = TeakChromeDefaults.TopBarHeight,
+        belowStatusBar = if (upPage) 0.dp else TeakChromeDefaults.TopBarHeight,
     )
 }

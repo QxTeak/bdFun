@@ -107,6 +107,22 @@ internal class FeedAvatarRingState {
     /** 选中头像现在还有没有实时测量点（头像栏滚动后据此决定用实测位置还是屏幕外起点）。 */
     internal fun hasLiveAnchor(key: Any = selectedKey): Boolean = anchors[key] != null
 
+    /**
+     * 直接把环落在 [target] 上，不播「解体重组」动画。
+     *
+     * UP 页是第一帧就带着环出现的：那里没有"从上一颗头像绕过来"的过程，
+     * 环绕动画只属于这一页里切换 UP（左右滑 / 点头像）。
+     */
+    internal suspend fun snapTo(target: Any) {
+        primed = true
+        selectedKey = target
+        fromKey = null
+        toKey = null
+        from = null
+        to = null
+        progress.snapTo(1f)
+    }
+
     internal fun onViewportWidth(width: Int) {
         viewportWidth = width.toFloat()
     }

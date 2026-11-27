@@ -18,6 +18,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.teak.common.settings.TeakSettingsCard
 import com.aritxonly.teak.common.settings.TeakSettingsPage
+import com.aritxonly.teak.common.motion.TeakParticleBurstLayer
+import com.aritxonly.teak.common.motion.TeakParticleRemovalSync
+import com.aritxonly.teak.common.motion.rememberTeakParticleBurstState
+import com.aritxonly.teak.common.motion.teakParticleAnchor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 import com.aritxonly.bdfun.core.application.DownloadQueueStateHolder
@@ -60,6 +64,14 @@ internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly
         return
     }
 
+    val particle = com.aritxonly.teak.common.motion.rememberTeakParticleBurstState()
+    // 只对「删掉了一项」炸：首次加载/整批刷新时只重置基线。
+    com.aritxonly.teak.common.motion.TeakParticleRemovalSync(
+        state = particle,
+        generation = null,
+        keys = entries.map { it.id },
+    )
+    Box(modifier = Modifier.fillMaxSize()) {
     TeakSettingsPage(
         title = "离线缓存",
         subtitle = "共 ${entries.size} 个 · ${formatCacheSize(entries.sumOf { it.totalBytes })}",
@@ -73,7 +85,8 @@ internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly
                 queue.video(entry)
             }
             TeakSettingsCard(
-                modifier = Modifier.padding(bottom = 10.dp).then(oneTake.modifier),
+                modifier = Modifier.padding(bottom = 10.dp).then(oneTake.modifier)
+                    .teakParticleAnchor(particle, entry.id, colors.surfaceContainerHigh),
             ) {
                 CacheRow(
                     entry = entry,
@@ -93,5 +106,7 @@ internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly
                 )
             }
         }
+    }
+    com.aritxonly.teak.common.motion.TeakParticleBurstLayer(particle)
     }
 }

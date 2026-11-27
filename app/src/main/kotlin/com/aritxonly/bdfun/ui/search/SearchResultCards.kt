@@ -117,6 +117,8 @@ internal fun SearchResultRow(
     showDate: Boolean = true,
     /** 非空时用它顶掉底部的 UP 行（个人主页投稿页显示发布时间用）。 */
     metaLabel: String? = null,
+    /** 封面加载完成后回调它的平均色：删除爆炸的碎屑颜色跟着封面走。 */
+    onCoverColor: ((Color) -> Unit)? = null,
 ) {
     val coverWidth = 150.dp
     val coverHeight = coverWidth * 9f / 16f
@@ -153,7 +155,7 @@ internal fun SearchResultRow(
             .padding(vertical = 6.dp),
         verticalAlignment = Alignment.Top,
     ) {
-        SearchVideoCover(video, coverWidth, coverHeight)
+        SearchVideoCover(video, coverWidth, coverHeight, onCoverColor)
         Spacer(Modifier.width(10.dp))
         // 高度只给下限：字号放大、两行标题时右列可撑高，UP 行不会被挤出容器裁掉。
         SearchResultInfo(video, showDate, metaLabel, Modifier.weight(1f).heightIn(min = coverHeight))
@@ -260,7 +262,12 @@ private fun SearchResultInfo(
 }
 
 @Composable
-private fun SearchVideoCover(video: VideoItem, coverWidth: androidx.compose.ui.unit.Dp, coverHeight: androidx.compose.ui.unit.Dp) {
+private fun SearchVideoCover(
+    video: VideoItem,
+    coverWidth: androidx.compose.ui.unit.Dp,
+    coverHeight: androidx.compose.ui.unit.Dp,
+    onCoverColor: ((Color) -> Unit)? = null,
+) {
     val colors = MiuixTheme.colorScheme
     Box(
         modifier = Modifier
@@ -274,6 +281,13 @@ private fun SearchVideoCover(video: VideoItem, coverWidth: androidx.compose.ui.u
             contentDescription = video.title,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize(),
+            onSuccess = { state ->
+                onCoverColor?.let { report ->
+                    // Coil 2 的 Success 只给 Drawable，这里取底下的 Bitmap 抽平均色。
+                    val bitmap = (state.result.drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap
+                    if (bitmap != null) coverAverageColor(bitmap)?.let(report)
+                }
+            },
         )
         if (video.duration > 0) {
             Text(

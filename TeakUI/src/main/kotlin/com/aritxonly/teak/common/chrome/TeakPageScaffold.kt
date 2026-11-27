@@ -170,9 +170,15 @@ fun Modifier.teakProgressiveBarBlur(
     color: Color = MiuixTheme.colorScheme.background,
     tintAlpha: Float = TeakChromeDefaults.BarTintAlpha,
     blurRadius: Float = TeakChromeDefaults.BarBlurRadius,
+    /**
+     * 显式指定采样源：页面内自建的 backdrop（如动态 UP 页把它自己的列表录进去，
+     * 让悬浮头像栏能采样下面的卡片）必须从这里传进来。
+     * 不传时用页面外壳的 [LocalTeakBackdrop]，行为和原来一致。
+     */
+    backdropOverride: top.yukonga.miuix.kmp.blur.LayerBackdrop? = null,
 ): Modifier {
     if (LocalProgressiveTopBarMaterialHosted.current) return this
-    val backdrop = LocalTeakBackdrop.current
+    val backdrop = backdropOverride ?: LocalTeakBackdrop.current
     val material = LocalTeakMaterialSpec.current
     val blurColors = BlurDefaults.blurColors(
         blendColors = listOf(BlendColorEntry(color = color.copy(alpha = tintAlpha))),
@@ -407,7 +413,7 @@ private fun TeakLargeTitleForeground(
     state: TeakLargeTitleAnchorState,
     pageState: TeakPageScrollState,
     topInset: Dp,
-    underlayLiftPx: Float,
+    underlayProgress: Float,
     underlayAlpha: Float,
     underlayBlurProgress: Float,
 ) {
@@ -417,9 +423,18 @@ private fun TeakLargeTitleForeground(
         modifier = Modifier
             .fillMaxWidth()
             .graphicsLayer {
-                val motion = state.searchUnderlayProgress.floatValue
-                val lift = TeakSearchTransitionDefaults.ContentLift.toPx() * motion
-                translationY = -currentScrollOffsetPx(pageState) - underlayLiftPx - lift
+                // 大标题不跟着内容上移：一镜到底期间它留在原位，只向自己的中心收缩并淡出。
+                // 内容层照旧上移 106dp（[TeakSearchTransitionDefaults.ContentLift]），
+                // 标题若也跟着抬走，看起来就像"标题被顶出去了"，而不是这次转场的主体。
+                val motion = maxOf(
+                    underlayProgress,
+                    state.searchUnderlayProgress.floatValue,
+                ).coerceIn(0f, 1f)
+                translationY = -currentScrollOffsetPx(pageState)
+                val shrink = 1f - TeakSearchTransitionDefaults.LargeTitleShrink * motion
+                scaleX = shrink
+                scaleY = shrink
+                transformOrigin = TransformOrigin(0.5f, 0.5f)
                 alpha = underlayAlpha * state.searchUnderlayAlpha.floatValue
                 val blurProgress = maxOf(
                     underlayBlurProgress,
@@ -605,7 +620,7 @@ fun TeakPageScaffold(
                                         state = largeTitleState,
                                         pageState = pageState,
                                         topInset = largeTitleTopInset,
-                                        underlayLiftPx = underlayLiftPx,
+                                        underlayProgress = underlayProgress,
                                         underlayAlpha = underlayAlpha,
                                         underlayBlurProgress = underlayBlurProgress,
                                     )
