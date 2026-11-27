@@ -57,23 +57,20 @@ class FeedRingGeometryTest {
         assertEquals(0, feedUpSwitchDirection(7L, 2L, order))
     }
 
-    @Test fun pushOffsetsContinueFromDragAndLandOnTheCorrectSides() {
+    @Test fun slideOffsetsMoveCardsAcrossTheFullPage() {
         val width = 1000f
-        val tapNext = feedUpPushOffsets(dragOffset = 0f, direction = 1, width = width)
-        assertEquals(-width, tapNext.outgoingEnd, 0.001f)
-        assertEquals(width, tapNext.contentStart, 0.001f)
+        val next = feedUpSlideOffsets(direction = 1, width = width)
+        // 下一个 UP：旧页卡片往左滑出，新页卡片从右侧进来。
+        assertEquals(-width, next.exitOffset, 0.001f)
+        assertEquals(width, next.enterOffset, 0.001f)
 
-        val draggedNext = feedUpPushOffsets(dragOffset = -120f, direction = 1, width = width)
-        assertEquals(-width, draggedNext.outgoingEnd, 0.001f)
-        assertEquals(width - 120f, draggedNext.contentStart, 0.001f)
-        // 松手后两页位移相同：旧页从拖动位置滑出左侧，新页正好落到 0。
-        assertEquals(-120f + draggedNext.shift, -width, 0.001f)
-        assertEquals(width - 120f + draggedNext.shift, 0f, 0.001f)
+        val previous = feedUpSlideOffsets(direction = -1, width = width)
+        assertEquals(width, previous.exitOffset, 0.001f)
+        assertEquals(-width, previous.enterOffset, 0.001f)
 
-        val draggedPrevious = feedUpPushOffsets(dragOffset = 140f, direction = -1, width = width)
-        assertEquals(width, draggedPrevious.outgoingEnd, 0.001f)
-        assertEquals(140f - width, draggedPrevious.contentStart, 0.001f)
-        assertEquals(140f + draggedPrevious.shift, width, 0.001f)
-        assertEquals(140f - width + draggedPrevious.shift, 0f, 0.001f)
+        // 方向未知时两边都归零，调用方会直接换页、不播位移。
+        val none = feedUpSlideOffsets(direction = 0, width = width)
+        assertEquals(0f, none.exitOffset, 0.001f)
+        assertEquals(0f, none.enterOffset, 0.001f)
     }
 }

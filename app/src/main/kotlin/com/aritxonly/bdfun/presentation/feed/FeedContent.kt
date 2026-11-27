@@ -23,6 +23,7 @@ internal fun FeedContent(
     ring: FeedAvatarRingState,
     onSelectUp: (Long) -> Unit,
     onExitUp: () -> Unit,
+    transition: FeedUpPageTransition,
 ) {
     val visible = state.items
 
@@ -60,5 +61,5 @@ internal fun FeedContent(
     val media = remember(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted, onToggleMute) {
         FeedMedia(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted, onToggleMute)
     }
-    FeedGrid(state, statusTop, pull, connection, actions, media, ring, onSelectUp, onExitUp)
+    FeedGrid(state, statusTop, pull, connection, actions, media, ring, onSelectUp, onExitUp, transition)
 }

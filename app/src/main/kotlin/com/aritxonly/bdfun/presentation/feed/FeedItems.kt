@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 
 internal fun androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridScope.dynamicFeedItems(
     state: FeedState, actions: FeedActions, media: FeedMedia, liveMids: Set<Long>,
+    transition: FeedUpPageTransition,
 ) {
     items(state.items, key = { it.id }, contentType = { if (it.video != null) "video" else "dynamic" }) { item ->
         // 逐项订阅点赞状态：别的卡片被点赞时，这张卡的值没变，就不会被带着重组。
@@ -61,6 +62,8 @@ internal fun androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridSco
             actions = cardActions,
             presentation = presentation,
             live = liveMids.contains(item.mid),
+            // 只有卡片参与 UP 换页的左右推动；头像行保持不动，不挂这个 Modifier。
+            modifier = androidx.compose.ui.Modifier.feedUpCardOffset(transition),
         )
     }
 }

@@ -30,6 +30,7 @@ internal fun FeedGrid(
     ring: FeedAvatarRingState,
     onSelectUp: (Long) -> Unit,
     onExitUp: () -> Unit,
+    transition: FeedUpPageTransition,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 736.dp
@@ -80,7 +81,7 @@ internal fun FeedGrid(
                 if (state.items.isEmpty() && state.loading) {
                     dynamicFeedSkeletonItems()
                 }
-                dynamicFeedItems(state, actions, media, liveMids)
+                dynamicFeedItems(state, actions, media, liveMids, transition)
                 dynamicFeedFooter(state, actions)
             }
 

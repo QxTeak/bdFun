@@ -154,7 +154,6 @@ private fun FeedPagerSync(
 private fun Modifier.feedUpModeSwipe(
     enabled: Boolean,
     transition: FeedUpPageTransition,
-    scope: CoroutineScope,
     onRelease: (Int) -> Unit,
 ): Modifier = if (!enabled) this else this.pointerInput(transition) {
     var accumulated = 0f
@@ -162,7 +161,7 @@ private fun Modifier.feedUpModeSwipe(
     detectHorizontalDragGestures(
         onDragStart = {
             accumulated = 0f
-            transition.beginDrag(scope)
+            transition.beginDrag()
         },
         onHorizontalDrag = { change, dragAmount ->
             accumulated += dragAmount
@@ -239,7 +238,7 @@ private fun FeedTabPage(
     BackHandler(enabled = upFocus) { selection.exitToTab() }
     Box(
         modifier = Modifier.fillMaxSize()
-            .feedUpModeSwipe(upFocus, transition, scope, selection.onSwipeRelease),
+            .feedUpModeSwipe(upFocus, transition, selection.onSwipeRelease),
     ) {
         FeedCardMenuAnchorHost(menuUi)
         if (!loggedIn) {
@@ -253,7 +252,7 @@ private fun FeedTabPage(
             FeedUpPageTransitionHost(transition) {
                 FeedContent(
                     state, statusTop, pull, connection, actions, ring,
-                    selection.selectUp, selection.exitUp,
+                    selection.selectUp, selection.exitUp, transition,
                 )
             }
             FeedIndicators(state, statusTop)

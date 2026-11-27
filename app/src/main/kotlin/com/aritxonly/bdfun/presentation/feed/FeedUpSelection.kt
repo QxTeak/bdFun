@@ -22,8 +22,8 @@ internal class FeedUpSelection(
 )
 
 /**
- * 把「换 UP」统一成一次整页推动。任何入口都先跑 [FeedUpPageTransition]，
- * 只有上一次推动还没播完时才退化为直接换页，避免吞点击。
+ * 把「换 UP」统一成一次左右推动。只有不同 UP 之间有方向；
+ * 进入/退出 UP 模式没有左右方向，直接换页，不做整屏淡入（那会看起来像闪一下）。
  */
 @Composable
 internal fun rememberFeedUpSelection(
@@ -38,48 +38,33 @@ internal fun rememberFeedUpSelection(
     val latestTabKey by rememberUpdatedState(tabKey)
     val latestLoggedIn by rememberUpdatedState(loggedIn)
     return remember(state, scope, transition) {
-        // 统一收口：先淡入/推动，动画起不来就直接换页。
+        // 换页本身：先把新页滚回顶部，再提交筛选。
+        suspend fun commit(target: Long?) {
+            state.listState.scrollToItem(0)
+            if (target == null) state.clearFilter() else state.filterTo(target)
+        }
         suspend fun switchTo(target: Long?) {
             val current = state.filterMid
-            if (target == null) {
-                val animated = transition.fadeSwap {
-                    state.listState.scrollToItem(0)
-                    state.clearFilter()
-                }
-                if (!animated) {
-                    state.listState.scrollToItem(0)
-                    state.clearFilter()
-                }
-                return
-            }
-            if (target == current) {
-                state.listState.scrollToItem(0)
-                state.filterTo(target)
+            if (target == null || target == current) {
+                commit(target)
                 return
             }
             val direction = feedUpSwitchDirection(current, target, feedUpMids(state, latestSelfMid))
-            val animated = if (direction == 0) {
-                transition.fadeSwap { state.filterTo(target) }
-            } else {
-                transition.settle(direction) {
-                    state.listState.scrollToItem(0)
-                    state.filterTo(target)
-                }
+            if (direction == 0) {
+                // 进入 UP 模式 / 顺序未知：不做左右推动，直接换页。
+                commit(target)
+                return
             }
-            if (!animated) {
-                state.listState.scrollToItem(0)
-                state.filterTo(target)
-            }
+            val animated = transition.settle(direction) { commit(target) }
+            // 上一次推动还没播完时不吞点击，直接换页。
+            if (!animated) commit(target)
         }
         FeedUpSelection(
             selectUp = { mid -> scope.launch { switchTo(mid) } },
-            exitUp = { scope.launch { switchTo(null) } },
+            exitUp = { scope.launch { commit(null) } },
             exitToTab = {
                 scope.launch {
-                    val animated = transition.fadeSwap {
-                        state.exitUpFocus(latestTabKey, latestLoggedIn)
-                    }
-                    if (!animated) state.exitUpFocus(latestTabKey, latestLoggedIn)
+                    state.exitUpFocus(latestTabKey, latestLoggedIn)
                 }
             },
             onSwipeRelease = { delta ->
