@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
@@ -40,17 +41,51 @@ fun TeakStatusBarScrollToTop(
     if (statusBar <= 0.dp) return
     val scope = rememberCoroutineScope()
     val interaction = remember { MutableInteractionSource() }
+    val action = remember(pageState, scope) {
+        {
+            val scrollable = pageState.scrollableState
+            if (scrollable != null && scrollable.canScrollBackward) {
+                scope.launch { scrollTeakPageToTop(scrollable) }
+            }
+        }
+    }
+    // 状态栏点击不进应用窗口；把最近组合的页面回顶动作登记出去，供系统回顶回调复用。
+    DisposableEffect(action) {
+        TeakStatusBarTapBridge.register(action)
+        onDispose { TeakStatusBarTapBridge.unregister(action) }
+    }
     Box(
         modifier
             .fillMaxWidth()
             .height(statusBar + belowStatusBar.coerceAtLeast(0.dp))
             .semantics { contentDescription = "回到顶部" }
-            .clickable(interactionSource = interaction, indication = null) {
-                val scrollable = pageState.scrollableState ?: return@clickable
-                if (!scrollable.canScrollBackward) return@clickable
-                scope.launch { scrollTeakPageToTop(scrollable) }
-            },
+            .clickable(interactionSource = interaction, indication = null, onClick = action),
     )
+}
+
+/**
+ * 当前页面的状态栏回顶动作；由 [TeakStatusBarScrollToTop] 登记，系统回顶回调通过它复用。
+ *
+ * 用栈而不是单个 handler：页面壳（主壳 / 二级页）可能同时存在，最近组合的那一份优先；
+ * 它退出时只移除自己，主壳的动作仍然保留，不会把回顶能力一并清掉。
+ */
+object TeakStatusBarTapBridge {
+    private val handlers = java.util.concurrent.CopyOnWriteArrayList<() -> Unit>()
+
+    fun register(action: () -> Unit) {
+        handlers.remove(action)
+        handlers.add(action)
+    }
+
+    fun unregister(action: () -> Unit) {
+        handlers.remove(action)
+    }
+
+    fun request(): Boolean {
+        val action = handlers.lastOrNull() ?: return false
+        action()
+        return true
+    }
 }
 
 /** 把页面当前的滚动容器收回顶部；只处理列表 / 网格 / 普通 ScrollState。 */
