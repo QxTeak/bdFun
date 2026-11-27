@@ -31,6 +31,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import coil.compose.AsyncImage
+import com.aritxonly.teak.common.motion.teakParticleAnchor
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.searchResultStatusItems(
@@ -84,6 +85,8 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows
     itemModifier: Modifier = Modifier,
     /** 省略号 / 长按形变菜单：state 是本次锚点，point 非空表示从手指位置展开。 */
     onVideoMorph: ((com.aritxonly.bdfun.data.VideoItem, com.aritxonly.teak.common.navigation.TeakMorphMenuState, androidx.compose.ui.geometry.Offset?) -> Unit)? = null,
+    /** 删除爆炸的宿主；非空时这一行会登记自己的位置，被删掉时在卡片原位置炸粒子。 */
+    particleState: com.aritxonly.teak.common.motion.TeakParticleBurstState? = null,
 ) {
     // 搜索/热门接口会返回重复 bvid（同一稿件多个入口），只用 bvid 当 key 会直接崩 LazyGrid。
     itemsIndexed(items = videos, key = { index, video -> keyPrefix + index + "-" + video.bvid }) { _, video ->
@@ -119,10 +122,28 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows
                 onOpenVideo(video)
             }
         }
+        // 删除爆炸的锚点：登记这一行的窗口位置，颜色取封面平均色（还没加载完时用卡面灰）。
+        val coverColor = androidx.compose.runtime.remember(video.cover) {
+            androidx.compose.runtime.mutableStateOf<androidx.compose.ui.graphics.Color?>(null)
+        }
+        val particleAnchor = if (particleState != null) {
+            androidx.compose.ui.Modifier.teakParticleAnchor(
+                particleState,
+                video.bvid,
+                coverColor.value ?: MiuixTheme.colorScheme.surfaceContainerHigh,
+            )
+        } else {
+            androidx.compose.ui.Modifier
+        }
         SearchResultRow(
             video = video,
             onClick = open,
-            modifier = (if (enableOneTake) oneTake.modifier else Modifier).then(itemModifier),
+            modifier = (if (enableOneTake) oneTake.modifier else Modifier).then(itemModifier).then(particleAnchor),
+            onCoverColor = if (particleState != null) {
+                { color -> coverColor.value = color }
+            } else {
+                null
+            },
             onLongClick = onLongPressVideo?.let { longPress -> { longPress(video) } },
             onLongPressRect = if (morph != null && pointMenuState != null) {
                 { rect -> morph(video, pointMenuState, androidx.compose.ui.geometry.Offset(rect.left, rect.top)) }

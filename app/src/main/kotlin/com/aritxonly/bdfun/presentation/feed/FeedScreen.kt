@@ -167,26 +167,7 @@ private fun FeedTabPage(
     // 环放在页面级持有：头像卡片是懒列表第一项，滚出屏幕会被回收；状态挂在卡片里会丢。
     val ring = remember { FeedAvatarRingState() }
     val media = rememberFeedMedia(state)
-    val upFocus = state.filterMid != null
-    val selfMid = AppGraph.session.value?.mid
-    val upOrder = feedUpMids(state, selfMid)
-    // 从「全部动态」进入某个 UP：提交筛选后由 pager 直接组合出目标页。
-    val enterUp: (Long) -> Unit = { mid ->
-        scope.launch {
-            state.listState.scrollToItem(0)
-            state.filterTo(mid)
-        }
-    }
-    val exitUp: () -> Unit = {
-        scope.launch {
-            state.listState.scrollToItem(0)
-            state.clearFilter()
-        }
-    }
-    // 返回键先退出 UP 模式，再退动态页。
-    BackHandler(enabled = upFocus) {
-        scope.launch { state.exitUpFocus(tabKey, loggedIn) }
-    }
+    val up = rememberFeedUpTransition(state, tabKey, loggedIn, scope)
     Box(Modifier.fillMaxSize()) {
         FeedCardMenuAnchorHost(menuUi)
         if (!loggedIn) {
@@ -197,25 +178,8 @@ private fun FeedTabPage(
                 onAction = onNeedLogin,
             )
         } else {
-            if (upFocus && upOrder.isNotEmpty()) {
-                // UP 模式：头像行固定，动态卡片用和空间页一样的 HorizontalPager 翻页。
-                FeedUpPagerLayout(
-                    state = state,
-                    ring = ring,
-                    statusTop = statusTop,
-                    pull = pullUi.pull,
-                    connection = pullUi.connection,
-                    actions = actions,
-                    media = media,
-                    loggedIn = loggedIn,
-                    onExitUp = exitUp,
-                )
-            } else {
-                FeedContent(
-                    state, statusTop, pullUi.pull, pullUi.connection, actions, media, ring,
-                    enterUp, exitUp,
-                )
-            }
+            // 底层列表 + UP 页两层的转场（退让 / 上移 / 淡入）都在 FeedUpTransition.kt。
+            FeedUpLayers(state, statusTop, pullUi, actions, media, ring, up, loggedIn)
             FeedIndicators(state, statusTop)
         }
         FeedReportHost(state, scope, context)
@@ -263,7 +227,7 @@ private fun FeedReportHost(state: FeedState, scope: CoroutineScope, context: and
     )
 }
 
-private class FeedPullUi(
+internal class FeedPullUi(
     val pull: FeedPullStateHolder,
     val session: PullRefreshSession,
     val connection: NestedScrollConnection,

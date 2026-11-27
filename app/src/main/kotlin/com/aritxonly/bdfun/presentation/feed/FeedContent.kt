@@ -59,6 +59,9 @@ internal fun FeedContent(
     ring: FeedAvatarRingState,
     onSelectUp: (Long) -> Unit,
     onExitUp: () -> Unit,
+    items: List<com.aritxonly.bdfun.core.model.feed.FeedItem> = state.items,
+    listState: androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState = state.listState,
 ) {
-    FeedGrid(state, statusTop, pull, connection, actions, media, ring, onSelectUp, onExitUp)
+    FeedGrid(state, statusTop, pull, connection, actions, media, ring, onSelectUp, onExitUp,
+        items, listState)
 }

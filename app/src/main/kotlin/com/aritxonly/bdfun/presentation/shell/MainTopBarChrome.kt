@@ -36,6 +36,11 @@ internal fun BoxScope.MainTopBarChrome(
     surface: TeakPageScrollState,
     /** 本页没有搜索框时（动态页），搜索页盖上来要把顶栏一起淡掉，而不是硬切。 */
     fadesWhenSearchOpens: Boolean = false,
+    /**
+     * 额外的整体透明度：动态页进入 UP 页时，整条分类顶栏要让位给头像顶栏，
+     * 由调用方按自己的时间线淡出，避免在这里再开一套动画。
+     */
+    extraAlpha: Float = 1f,
     content: @Composable BoxScope.() -> Unit,
 ) {
     val ui = shell.ui
@@ -68,7 +73,8 @@ internal fun BoxScope.MainTopBarChrome(
             modifier = Modifier
                 .align(Alignment.TopCenter)
                 .graphicsLayer {
-                    alpha = pageAlpha * (1f - bottom.bottomTopBarAlpha.value) * searchFade
+                    alpha = pageAlpha * (1f - bottom.bottomTopBarAlpha.value) * searchFade *
+                        extraAlpha.coerceIn(0f, 1f)
                 },
         ) {
             Box(

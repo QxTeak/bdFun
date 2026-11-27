@@ -46,6 +46,14 @@ object TeakSearchTransitionDefaults {
     /** 底层模糊的独立时长：官方用 150ms 线性 ValueAnimator，不跟弹簧。 */
     const val UnderlayBlurMs = 150
 
+    /**
+     * 大标题在一镜到底里的最大收缩比例（1 → 1 - 该值）。
+     *
+     * 大标题不是内容的一部分：内容整体上移时标题留在原位向自己的中心收缩，
+     * 和顶栏图标的"向内缩"是同一套语汇，不会被看成标题被内容顶走。
+     */
+    const val LargeTitleShrink = 0.16f
+
     /** 原实现的 `FolmeEase.spring(0.97f, 0.4f)`。 */
     const val SpringDampingRatio = 0.97f
 

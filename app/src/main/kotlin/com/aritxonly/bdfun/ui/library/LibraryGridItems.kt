@@ -15,6 +15,7 @@ internal fun LazyGridScope.libraryModeGridItems(
     content: LibraryModeContent, layout: LibraryModeLayout, actions: LibraryModeActions,
     historyCategory: HistoryCategory, rows: List<VideoItem>,
     queueRows: List<VideoItem>, itemModifier: Modifier,
+    particle: com.aritxonly.teak.common.motion.TeakParticleBurstState? = null,
 ) {
     val emptyFirstLoad = content.loading && rows.isEmpty()
     if (emptyFirstLoad) {
@@ -48,6 +49,7 @@ internal fun LazyGridScope.libraryModeGridItems(
         // 批量勾选时不要一镜到底放大动画。
         enableOneTake = !content.batchMode,
         itemModifier = itemModifier,
+        particleState = particle,
     )
     if (!emptyFirstLoad && rows.isEmpty() && !content.loading && content.error == null) {
         libraryEmptyItem(layout.mode, historyCategory)

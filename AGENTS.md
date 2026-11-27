@@ -936,3 +936,7 @@ UP 之间切换必须用**真正的 `HorizontalPager`**（和空间页 `SpaceCon
 动态卡片菜单：省略号在作者行最右（与头像垂直居中），长按整卡；两者都复用首页的 `TeakMorphMenuHost` + 形变锚点（省略号从图标长、长按从手指位置长且不画图标副本），宿主必须挂在主壳玻璃采样树之外的 `MainFeedChrome`。每张卡有独立 `TeakMorphMenuState`，页面级只有一份长按点锚点（`FeedCardMenuUi`）。条目固定为：添加至稍后再看、复制、关闭自动播放、分享、取消关注、举报，后两项用 `0xFFE5484D`；「关闭自动播放」写 `settings.dynamicAutoPlay=false`。举报走 `FeedPageRepository.reportDynamic`，端点和参数对齐 PiliPlus `UserHttp.dynamicReport`（`/x/dynamic/feed/dynamic_report/add`，`accused_uid`/`dynamic_id`/`reason_type`/`reason_desc`），理由编号在 `core/domain/DynamicReportReason`；「其他」需要文字说明，暂不提供。切换底栏或顶部分类时先 `FeedState.dismissMenu()`，否则菜单会停在新页面并沿用旧锚点。
 
 `FeedGrid.kt`/`FeedImageGrid.kt` 在 HEAD 里带 UTF-8 BOM，Kotlin PSI 尺寸审计会把它当语法错误（`Expecting a top level declaration`）；checkout 后必须去掉 BOM，否则 `checkLayering` 永远红。当前 `checkKotlinSizes` 仍剩 4 条 HEAD 自带超标（`LargeVideoContent` 86 行、`VideoGridCard` 16 参、`VideoLargeCard` 13 参、`HomeVideoMorphHost` 93 行），正在 PR 分支处理，不是本轮新增。
+
+### 2026-11-28 一镜到底大标题收缩、删除粒子、动态 UP 页
+
+一镜到底期间页面大标题不再跟内容上移，改为原位向中心收缩（TeakSearchTransitionDefaults.LargeTitleShrink）；改动在 TeakLargeTitleForeground，收藏/历史/稍后再看（PageUnderlayOptions）与设置页搜索（TeakLargeTitleSearchUnderlay）共用同一条路径。删除粒子下沉为 TeakUI 的 TeakParticleBurst：卡片登记窗口矩形与自己的颜色（视频卡片取封面平均色，coverAverageColor 必须处理 Config#HARDWARE，否则 getPixel 直接崩），数据里真的少了一项才炸，爆炸范围按被删项矩形铺开，切收藏夹/分类只重置基线。动态页点头像改成开新 UP 页（FeedUpTransition，与搜索一镜到底同一条弹簧）：窄屏顶栏是悬浮头像行 + 页面自建 backdrop 的渐进模糊，无圆角卡片、无分类分段、不排直播头像，「全部动态」为退出键；返回键、全部动态、列表顶部下拉超过 76dp 是唯三退出入口；环只在 UP 页参与动画（进页 snapTo，切换才播环绕），动态页的环固定在「全部动态」。服务端分类与 host_mid 互斥，UP 页的「视频/番剧」用 eedItemsForTab 在客户端筛。

@@ -32,6 +32,10 @@ import com.aritxonly.bdfun.feature.library.application.*
 import com.aritxonly.teak.common.chrome.TeakChromeDefaults
 import com.aritxonly.teak.common.chrome.TeakLargeTitle
 import com.aritxonly.teak.common.chrome.TrackTeakPageScroll
+import com.aritxonly.teak.common.motion.TeakParticleBurstLayer
+import com.aritxonly.teak.common.motion.TeakParticleBurstState
+import com.aritxonly.teak.common.motion.TeakParticleRemovalSync
+import com.aritxonly.teak.common.motion.rememberTeakParticleBurstState
 import com.aritxonly.teak.common.navigation.TeakPagerTabs
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -41,20 +45,26 @@ internal fun LibraryModePage(content: LibraryModeContent, layout: LibraryModeLay
     RegisterScrollTop(gridState, "library")
     if (layout.isActive) TrackTeakPageScroll(gridState)
     LibraryModeEffects(gridState, layout, actions)
+    // 收藏/历史/稍后再看共用一份删除爆炸：删卡片时在卡片原位置炸一簇粒子，
+    // 列表本身仍按原来的顺序瞬间重排（懒网格不重排就没有动画可言）。
+    val particle = rememberTeakParticleBurstState()
     Box(modifier = Modifier.fillMaxSize()) {
-        LibraryGrid(content, layout, actions, gridState)
+        LibraryGrid(content, layout, actions, gridState, particle)
+        TeakParticleBurstLayer(particle)
     }
 }
 
 @Composable
 private fun LibraryGrid(content: LibraryModeContent, layout: LibraryModeLayout, actions: LibraryModeActions,
-    gridState: androidx.compose.foundation.lazy.grid.LazyGridState) {
+    gridState: androidx.compose.foundation.lazy.grid.LazyGridState,
+    particle: TeakParticleBurstState,
+) {
     val statusBarTop = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         // 和热门页/搜索结果完全同一套：一列视频行，宽屏用有界网格；
         // 骨架、分页尾巴也直接复用那两份实现，不再单独维护一套卡片。
         val wide = maxWidth >= 600.dp
-        LibraryGridBody(content, layout, actions, gridState, wide, statusBarTop)
+        LibraryGridBody(content, layout, actions, gridState, wide, statusBarTop, particle)
     }
 }
 
@@ -64,6 +74,7 @@ private fun LibraryGridBody(
     content: LibraryModeContent, layout: LibraryModeLayout, actions: LibraryModeActions,
     gridState: androidx.compose.foundation.lazy.grid.LazyGridState, wide: Boolean,
     statusBarTop: androidx.compose.ui.unit.Dp,
+    particle: TeakParticleBurstState,
 ) {
     var historyCategory by remember { mutableStateOf(HistoryCategory.All) }
     // 收藏夹/历史分类切换的滑动方向：按标签索引差给出，内容从切换那一侧滑进来。
@@ -86,6 +97,13 @@ private fun LibraryGridBody(
     }
     // 稍后再看进视频时用完整列表建队列，历史/收藏仍按当前可见结果。
     val queueRows = if (layout.mode == 2 && content.allWatchLater.isNotEmpty()) content.allWatchLater else rows
+    // 只对「确实删掉了一项」炸：切页签/收藏夹/历史分类是整页换内容，generation 一变只重置基线。
+    val rowKeys = remember(rows) { rows.map { it.bvid } }
+    TeakParticleRemovalSync(
+        state = particle,
+        generation = Triple(layout.mode, content.folderIndex, historyCategory),
+        keys = rowKeys,
+    )
     androidx.compose.runtime.CompositionLocalProvider(LocalContentSwitch provides switch) {
         // 组合期取好：LazyGrid 的 scope 不是 @Composable，不能在里面读 CompositionLocal。
         val switchItem = Modifier.contentSwitchItem()
@@ -109,7 +127,7 @@ private fun LibraryGridBody(
                     actions.onFolderSelect(index)
                 },
             )
-            libraryModeGridItems(content, layout, actions, historyCategory, rows, queueRows, switchItem)
+            libraryModeGridItems(content, layout, actions, historyCategory, rows, queueRows, switchItem, particle)
         }
     }
 }

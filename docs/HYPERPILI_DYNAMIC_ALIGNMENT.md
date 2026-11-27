@@ -46,3 +46,25 @@
 UP 之间切换用真正的 `HorizontalPager`，参数和空间页 `SpaceContentPager` 一致（`beyondViewportPageCount = 1`、`overscrollEffect = null`、默认翻页物理）：头像行固定在 pager 外（窄屏顶部、宽屏为作者侧栏），每个 UP 是 pager 的一页，页内只有动态卡片。停稳后才提交 `filterMid`；相邻页通过 `prefetchUp` 预取首屏，离开时 `seedPreview` 留下当前首屏，往回滑不白屏。不要手写拖动阻尼/两段位移或整屏快照：前者手感对不上，后者会闪帧并把 UP 栏搬走。
 
 头像环的方向记忆修了两个根因：①锚点是 root 坐标，判断左右必须换成卡片内坐标再和覆盖层宽度比较，宽屏有作者侧栏时差一整个侧栏；②头像也会因为整张头像卡纵向滚出列表而被回收，最后一次测量是完整可见的，不能按水平位置猜左右——只认真正探出视口的那一侧，探不出时用头像行此刻的滚动方向兜底，拿不到就保持未知。
+
+## 2026-11-28 UP 页：点 UP 头像开新页
+
+点头像不再原地换筛选，而是整块上移开一页（`presentation/feed/FeedUpTransition.kt`）：
+
+- 底层分类列表走 `teakSearchUnderlay`（上移 106dp / 模糊 / 淡出），UP 页整块从卡片原位升到顶栏位置，
+  弹簧与搜索一镜到底同一条（`TeakSearchTransitionDefaults.spec()`）；顶栏分类分段按同一条时间线
+  向内缩到 0.9 再淡出，淡透后从组合里撤掉——`graphicsLayer` 的 alpha 不影响命中测试，
+  留着会把顶栏头像的点击吃掉（这是「点其他 UP 头像却跳走」的根因）。
+- 退让层要画「切页前那一份列表」并停在原来的滚动位置：`filterTo` 会立刻把 `items` 换成目标 UP 的，
+  直接复用会出现「卡片先消失、空白再上移」；它还必须有自己的 `LazyStaggeredGridState`，
+  否则和 UP 页的常驻列表抢同一个状态。
+- 窄屏顶栏＝悬浮头像行：不要圆角卡片、不排直播头像，「全部动态」退化为退出键；
+  背后是这一页自己的 backdrop 采样出的渐进模糊（`teakProgressiveBarBlur(backdropOverride = ...)`），
+  卡片从模糊下穿过，列表顶部留白按顶栏测量高度算。宽屏仍是作者侧栏 + pager 两栏。
+- 头像环只在 UP 页参与动画：进页第一帧 `snapTo` 直接套在当前 UP 上，之后切换才播环绕；
+  动态页的环固定停在「全部动态」，点 UP 不移动环。
+- UP 页的卡片跟随当前分段（`feedItemsForTab`）：服务端分类与 `host_mid` 互斥，
+  所以「视频 / 番剧」在客户端按附件特征筛，筛空时给提示而不是白屏。
+- 退出只有三个入口：返回键、点「全部动态」、在列表顶部下拉超过 76dp（`FeedUpExitPull`，这一页不刷新）；
+  退场动画期间 `interactive = false`，整页吃掉点击，pager 停稳回调也不会把刚退出的 UP 再 filterTo 回来。
+

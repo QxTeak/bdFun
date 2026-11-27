@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -24,6 +25,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.core.model.feed.FeedItem
 import kotlin.math.roundToInt
 
@@ -34,6 +36,12 @@ internal fun FeedGrid(
     ring: FeedAvatarRingState,
     onSelectUp: (Long) -> Unit,
     onExitUp: () -> Unit,
+    /**
+     * 退让层用：转场期间要画「点开 UP 之前那一份列表」和它自己的滚动位置。
+     * 两列表（退让层 + UP 页）同时在场时不能共用一个 LazyStaggeredGridState。
+     */
+    items: List<FeedItem> = state.items,
+    listState: LazyStaggeredGridState = state.listState,
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val wide = maxWidth >= 736.dp
@@ -57,11 +65,11 @@ internal fun FeedGrid(
             )
             FeedCardsGrid(
                 state = state,
-                items = state.items,
+                items = items,
                 actions = actions,
                 media = media,
                 liveMids = liveMids,
-                listState = state.listState,
+                listState = listState,
                 columns = columns,
                 contentPadding = PaddingValues(
                     start = TeakUiStyle.design.contentInset(8.dp),
