@@ -52,6 +52,11 @@ internal fun FeedAvatarCard(
     onSelectUp: (Long) -> Unit,
     /** 点「全部动态」退出 UP 模式：页面自己决定淡出，卡片不直接 clearFilter。 */
     onExitUp: () -> Unit,
+    /**
+     * 环跟随的选中项。UP 模式下它比 [FeedState.filterMid] 更早变化：
+     * pager 一开始翻页环就走，数据等停稳再换。
+     */
+    selectedMid: Long? = state.filterMid,
 ) {
     val colors = MiuixTheme.colorScheme
     val scope = rememberCoroutineScope()
@@ -62,7 +67,7 @@ internal fun FeedAvatarCard(
     // 头像行此刻往哪边滚：头像被回收时用它兜底判断是从左边还是右边滑出去的。
     val rowScroll = rememberAvatarRowScroll(authorScroll)
     // 没有筛选任何 UP 时，环停在「全部动态」；筛选中则跟着当前 UP 走。
-    val selectedKey: Any = state.filterMid ?: FeedAllAvatarKey
+    val selectedKey: Any = selectedMid ?: FeedAllAvatarKey
     // 直播 UP 比动态列表晚到：它们插到最前面时 LazyRow 会按原来的锚点停在「全部动态」，
     // 看起来就像直播头像没排到最前。第一次从无到有时主动回到行首。
     var hadLiveUsers by remember { mutableStateOf(false) }

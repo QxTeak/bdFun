@@ -14,9 +14,12 @@ import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -59,6 +62,17 @@ internal fun FeedUpPagerLayout(
     val order = feedUpMids(state, AppGraph.session.value?.mid)
     val scope = rememberCoroutineScope()
     val handle = rememberFeedUpPagerHandle(state, order, scope)
+    // 环的选中项跟 pager 走，比 filterMid 早：一开始翻页环就动，数据等停稳再换。
+    var ringMid by remember { mutableStateOf(state.filterMid) }
+    LaunchedEffect(state.filterMid) { ringMid = state.filterMid }
+    LaunchedEffect(handle.pager.currentPage, order) {
+        order.getOrNull(handle.pager.currentPage)?.let { ringMid = it }
+    }
+    val selectUp: (Long) -> Unit = { mid ->
+        // 点头像：环立刻出发，pager 同时开始滑。
+        ringMid = mid
+        handle.selectUp(mid)
+    }
     val liveMids = remember(state.liveUsers) {
         state.liveUsers.mapTo(HashSet()) { it.mid }
     }
@@ -81,7 +95,7 @@ internal fun FeedUpPagerLayout(
                 modifier = Modifier.width(dynamicSidebarWidth(configuration.screenWidthDp.toFloat()).dp),
                 topPadding = statusTop + FeedTopBarHeight,
                 bottomPadding = 100.dp,
-                onSelectUp = handle.selectUp,
+                onSelectUp = selectUp,
                 onExitUp = onExitUp,
             )
             UpPager(
@@ -94,8 +108,9 @@ internal fun FeedUpPagerLayout(
             FeedAvatarCard(
                 state = state,
                 ring = ring,
-                onSelectUp = handle.selectUp,
+                onSelectUp = selectUp,
                 onExitUp = onExitUp,
+                selectedMid = ringMid,
                 modifier = Modifier.padding(
                     start = TeakUiStyle.design.contentInset(8.dp),
                     end = TeakUiStyle.design.contentInset(8.dp),
