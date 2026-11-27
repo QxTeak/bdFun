@@ -95,6 +95,25 @@ class MainActivity : BdFunActivity() {
             }
             }
         }
+        installScrollToTopDispatcher()
+    }
+
+    /**
+     * 垫一个透明全屏 ViewGroup 承接 MIUI 的系统回顶：状态栏点击本身进不了应用，
+     * 但 MIUI 会在窗口里找满足条件的可滚动 ViewGroup 调 scroll 方法。
+     */
+    private fun installScrollToTopDispatcher() {
+        val content = findViewById<android.view.ViewGroup>(android.R.id.content) ?: return
+        if (content.findViewWithTag<android.view.View>("scroll-top-dispatcher") != null) return
+        val dispatcher = ScrollToTopDispatcherGroup(this).apply { tag = "scroll-top-dispatcher" }
+        content.addView(
+            dispatcher,
+            0,
+            android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+            ),
+        )
     }
 
     override fun onNewIntent(intent: Intent) {
