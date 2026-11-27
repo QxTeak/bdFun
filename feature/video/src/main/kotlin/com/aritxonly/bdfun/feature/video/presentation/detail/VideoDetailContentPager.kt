@@ -27,12 +27,14 @@ fun androidx.compose.foundation.layout.BoxScope.VideoDetailContentPager(
     val playerBlockHeight = inlineLayout.playerBlockHeight
     val tailSlots = slots.tail
     val collapseConnection = inlineLayout.collapseConnection
+    val screenHeight = androidx.compose.ui.platform.LocalWindowInfo.current.containerDpSize.height
     VideoDetailPager(
         VideoDetailPaneState(fullscreen, pictureInPicture, splitPanes, paneLayout, playerBlockHeight, statusBarTop),
         pager, collapseConnection,
         metadata = { VideoScreenMetadata(content, pageUi, description, actions.metadata, slots) },
         tail = {
-            videoScreenTail(content, metaReady, colors.onBackgroundVariant, actions, tailSlots)
+            val maxSheetHeight = (screenHeight - playerBlockHeight).coerceAtLeast(240.dp)
+            videoScreenTail(content, metaReady, colors.onBackgroundVariant, actions, tailSlots, maxSheetHeight)
         },
         comments = { paneWidth ->
             VideoScreenComments(request, presentation, pager, inlineLayout, pageUi, content, paneWidth, slots)
@@ -55,7 +57,8 @@ private fun VideoScreenMetadata(
     val interactionState = content.interaction
     val metadata = slots.metadata()
     VideoMetadataSection(
-        VideoMetadataContent(detail, video, metaReady, upFollowers, upVideos, onlineCount, onlineText),
+        VideoMetadataContent(detail, video, metaReady, upFollowers, upVideos, onlineCount, onlineText,
+            content.metadata.tags),
         interactionState, description,
         actions,
         appearance = metadata.appearance, slots = metadata.slots,
@@ -65,6 +68,7 @@ private fun VideoScreenMetadata(
 private fun androidx.compose.foundation.lazy.LazyListScope.videoScreenTail(
     content: VideoScreenContent, metaReady: Boolean,
     textColor: Color, actions: VideoDetailRenderActions, tailSlots: VideoDetailTailSlots,
+    maxSheetHeight: androidx.compose.ui.unit.Dp,
 ) {
     val detail = content.read.detail
     val currentCid = content.selection.cid
@@ -72,7 +76,7 @@ private fun androidx.compose.foundation.lazy.LazyListScope.videoScreenTail(
     val related = content.read.related
     videoDetailTail(detail, metaReady, currentCid, error, related,
         textColor, actions.onPage,
-        onRelated = actions.onRelated, slots = tailSlots)
+        onRelated = actions.onRelated, slots = tailSlots, maxSheetHeight = maxSheetHeight)
 }
 
 @Composable

@@ -35,6 +35,8 @@ import com.aritxonly.bdfun.ui.homeTopBarHeight
 @androidx.compose.runtime.Stable
 internal data class DynamicTabPagerBindings(
     val tab: String = "all",
+    /** 顶部分段点击计数：点当前项也要能退出 UP 模式。 */
+    val clickTick: Int = 0,
     val onTabChange: (String) -> Unit = {},
     val onPositionChange: (Float) -> Unit = {},
 )
@@ -87,6 +89,7 @@ internal fun MainTabPager(
                     onOpenFeed = { navigateToFeed(context, it) },
                     refreshTick = dynamicRefreshTick,
                     initialTab = dynamic.tab,
+                    tabClickTick = dynamic.clickTick,
                     onTabChange = dynamic.onTabChange,
                     onTabPositionChange = dynamic.onPositionChange,
                 )

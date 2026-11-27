@@ -56,7 +56,14 @@ fun VideoPlayerLayout(
         // 新视频/分 P 首帧未出来时保持黑屏加载，不再先闪一下封面；
         // 换 CDN 和清晰度仍由播放器保留上一帧。
 
-        PlayerStatusOverlays(ui, fullscreen, ended, durationMs, ports.picture.playIcon, ports.buffering)
+        PlayerStatusOverlays(
+            ui, fullscreen, ended, durationMs, ports.picture.playIcon, ports.buffering,
+            onReplay = {
+                // 只 seek 回 0 并重新 play，不重建播放器/播放源，已缓冲区间继续可用。
+                playback.seekTo(0)
+                playback.play()
+            },
+        )
 
         BindPlayerOverlayBackHandling(ui, fullscreen)
 

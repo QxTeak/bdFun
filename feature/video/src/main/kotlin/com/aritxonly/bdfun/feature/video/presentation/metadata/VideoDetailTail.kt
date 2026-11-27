@@ -14,8 +14,9 @@ fun androidx.compose.foundation.lazy.LazyListScope.videoDetailTail(
     detail: VideoDetail?, metaReady: Boolean, currentCid: Long, error: String?, related: List<VideoItem>,
     textColor: Color,
     onPage: (VideoPage) -> Unit, onRelated: (VideoItem) -> Unit, slots: VideoDetailTailSlots,
+    maxSheetHeight: androidx.compose.ui.unit.Dp,
 ) {
-    videoDetailPages(detail, metaReady, currentCid, onPage)
+    videoDetailPages(detail, metaReady, currentCid, onPage, slots, maxSheetHeight)
     videoDetailCollection(detail, metaReady, currentCid, onPage, slots)
     if (error != null) {
         item(key = "error") {

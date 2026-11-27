@@ -1,7 +1,6 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,10 +26,17 @@ import top.yukonga.miuix.kmp.icon.basic.*
 import top.yukonga.miuix.kmp.icon.extended.*
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
+/**
+ * 头像排最左边的「全部动态」：粉色渐变圆 + 四宫格图标，尺寸/描边和 UP 头像一致。
+ *
+ * 选中环由头像行共用的 [FeedAvatarRingOverlay] 统一绘制，这里不再自己画一圈。
+ */
 @Composable
-internal fun AllFeedAvatar(selected: Boolean, onClick: () -> Unit) {
+internal fun AllFeedAvatar(
+    avatarModifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
     val colors = MiuixTheme.colorScheme
-    val ring = rememberManualProgress(if (selected) 1f else 0f, 200f)
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -40,6 +46,7 @@ internal fun AllFeedAvatar(selected: Boolean, onClick: () -> Unit) {
         Box(
             modifier = Modifier
                 .size(46.dp)
+                .then(avatarModifier)
                 .clip(CircleShape),
         ) {
             Box(
@@ -58,17 +65,6 @@ internal fun AllFeedAvatar(selected: Boolean, onClick: () -> Unit) {
                 contentAlignment = Alignment.Center,
             ) {
                 AppGlyph(MiuixIcons.All, Color.White, size = 20.dp)
-            }
-            if (ring > 0.01f) {
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .border(
-                            2.dp,
-                            colors.primary.copy(alpha = ring.coerceIn(0f, 1f)),
-                            CircleShape,
-                        ),
-                )
             }
         }
         Text(

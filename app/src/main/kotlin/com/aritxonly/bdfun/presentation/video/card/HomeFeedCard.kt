@@ -26,6 +26,13 @@ internal fun HomeFeedCard(
     val oneTake = rememberOneTakeAnchor()
     val radiusPx = with(density) { (if (largeCards) 14.dp else 16.dp).toPx() }
     val bgArgb = colors.background.toArgb()
+    // 刚点“不感兴趣”的卡留在原位：封面重度模糊，卡内只保留一个撤销入口。
+    val blurred = video.bvid in com.aritxonly.bdfun.feature.home.presentation.LocalHomeBlurredBvids.current
+    val undo = com.aritxonly.bdfun.feature.home.presentation.LocalHomeUndoAction.current
+    val undoMessage = if (blurred) {
+        com.aritxonly.bdfun.feature.home.presentation.LocalHomeUndoMessages.current[video.bvid]
+    } else null
+    val undoThis = if (blurred) ({ undo(video.bvid) }) else null
     val openCard = {
         oneTake.open(
             context = context,
@@ -35,12 +42,21 @@ internal fun HomeFeedCard(
         ) { onOpen() }
     }
     if (largeCards) {
-        VideoLargeCard(video = video, modifier = oneTake.modifier, onClick = openCard,
-            onLongPressRect = onLongClick, onMoreClick = onMoreClick,
-            moreMorphState = moreMorphState, onMoreMorphTrigger = onMoreMorphTrigger)
+        VideoLargeCard(video = video, modifier = oneTake.modifier,
+            onClick = if (blurred) ({}) else openCard,
+            onLongPressRect = if (blurred) null else onLongClick,
+            onMoreClick = if (blurred) null else onMoreClick,
+            moreMorphState = moreMorphState, onMoreMorphTrigger = onMoreMorphTrigger,
+            undo = VideoCardUndo(blurred = blurred, undoOnly = blurred, onUndo = undoThis, undoMessage = undoMessage))
     } else {
-        VideoGridCard(video = video, modifier = oneTake.modifier, onClick = openCard,
-            onLongPressRect = onLongClick, onMoreClick = onMoreClick,
-            more = VideoCardMorph(moreMorphState, onMoreMorphTrigger))
+        VideoGridCard(video = video, modifier = oneTake.modifier,
+            onClick = if (blurred) ({}) else openCard,
+            onLongPressRect = if (blurred) null else onLongClick,
+            onMoreClick = if (blurred) null else onMoreClick,
+            more = VideoCardMorph(moreMorphState, onMoreMorphTrigger),
+            undo = VideoCardUndo(
+                blurred = blurred, undoOnly = blurred, onUndo = undoThis, undoMessage = undoMessage,
+            ))
     }
 }
+

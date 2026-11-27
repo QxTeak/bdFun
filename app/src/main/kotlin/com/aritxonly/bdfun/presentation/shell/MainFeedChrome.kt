@@ -32,7 +32,11 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainFeedChrome(
             tabs = tabs,
             selectedIndex = selected,
             onSelect = { index ->
-                tabs.getOrNull(index)?.let { shell.ui.dynamicTab = it.key }
+                tabs.getOrNull(index)?.let {
+                    // 点任意分段（包括当前项）都算一次明确操作：动态页据此退出 UP 模式。
+                    shell.ui.dynamicTabClickTick++
+                    shell.ui.dynamicTab = it.key
+                }
             },
             modifier = androidx.compose.ui.Modifier,
             position = shell.ui.dynamicTabPosition,

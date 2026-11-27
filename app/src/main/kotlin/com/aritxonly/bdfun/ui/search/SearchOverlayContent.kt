@@ -52,8 +52,17 @@ internal fun SearchOverlayContent(
             historyEdit = if (settings.showSearchHistory) HistoryEditSlots(
                 editing = editState.editing,
                 visible = editState.visible,
+                selected = editState.selected,
                 onBegin = { historyEdit.begin(ui.history) },
-                onRemove = historyEdit::remove,
+                onToggle = historyEdit::toggle,
+                onDelete = {
+                    // 先落盘再退出编辑态；commit 内部会提交已勾选的词并清空草稿。
+                    historyEdit.deleteSelected()
+                    historyEdit.commit { removed ->
+                        settings.removeSearchHistory(removed)
+                        ui.history = settings.searchHistory
+                    }
+                },
                 onCancel = historyEdit::cancel,
                 onCommit = {
                     historyEdit.commit { removed ->

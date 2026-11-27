@@ -55,7 +55,13 @@ internal fun mapVideoDetail(dto: VideoDetailDto, cleanHtml: (String) -> String):
         duration = dto.timing.duration,
         cid = dto.timing.cid,
         tname = dto.category,
-        pages = dto.collection.pages.map { VideoPage(it.cid, it.page, it.part, it.duration) },
+        pages = dto.collection.pages.map {
+            // 每 P 的首帧地址由接口 pages[].first_frame 提供；换了清晰度/尺寸参数，和其它封面一样走 image()。
+            VideoPage(
+                cid = it.cid, page = it.page, part = it.part, duration = it.duration,
+                firstFrame = it.firstFrame.takeIf(String::isNotBlank)?.let { url -> image(url, 480) }.orEmpty(),
+            )
+        },
         episodes = dto.collection.episodes.map {
         VideoEpisode(it.bvid, it.aid, it.cid, it.title, image(it.cover, 480), it.duration,
             it.play, it.danmaku, it.publishedAt)
@@ -77,7 +83,10 @@ internal fun readVideoStats(stat: JSONObject?): VideoStatsDto = VideoStatsDto(
 
 private fun readCollection(data: JSONObject): VideoCollectionDto {
     val pages = data.optJSONArray("pages").objects().map {
-        VideoPageDto(it.l("cid"), it.optInt("page", 1), it.s("part"), it.optInt("duration", 0))
+        VideoPageDto(
+            it.l("cid"), it.optInt("page", 1), it.s("part"), it.optInt("duration", 0),
+            firstFrame = it.s("first_frame"),
+        )
     }
     val season = data.optJSONObject("ugc_season")
     val episodes = season?.optJSONArray("sections").objects()

@@ -79,7 +79,10 @@ internal fun FeedCard(
         FeedCardPgc(item, actions.onOpen) {
             // 番剧 / 影视卡进 PGC 详情页；拿不到 season_id 时退回原来的动态详情。
             if (item.pgcSeasonId > 0L) {
-                com.aritxonly.bdfun.presentation.pgc.openBangumi(context, item.pgcSeasonId)
+                // 动态里可能只推了某一集：带上 epId 才不会每次都回退到第一集/续看集。
+                com.aritxonly.bdfun.presentation.pgc.openBangumi(
+                    context, item.pgcSeasonId, item.pgcEpId,
+                )
             } else actions.onOpen()
         }
         FeedCardAttachments(item, actions, presentation) { video ->

@@ -35,12 +35,17 @@ class HomeActionsStateHolderTest {
     )
     private class Actions : RecommendationActionsRepository {
         val reasons = mutableListOf<RecommendationReason>()
+        val cancelled = mutableListOf<String>()
         var fail = false
         var watch: suspend () -> Outcome<Boolean> = { Outcome.Success(true) }
         override suspend fun addWatchLater(aid: Long) = watch()
         override suspend fun dislike(video: VideoItem, reason: RecommendationReason): Outcome<Unit> {
             reasons += reason
             return if (fail) Outcome.Failure(AppError.Network("offline")) else Outcome.Success(Unit)
+        }
+        override suspend fun cancelDislike(video: VideoItem, reason: RecommendationReason): Outcome<Unit> {
+            cancelled += "${video.bvid}:${reason.id}"
+            return Outcome.Success(Unit)
         }
     }
     private val videos = object : VideoRepository {
@@ -58,11 +63,29 @@ class HomeActionsStateHolderTest {
         val actions = Actions()
         val state = HomeActionsStateHolder(videos, actions, feed)
         state.select(video)
-        assertEquals(Outcome.Success("已反馈，减少此类推荐"), state.perform(HomeVideoAction.HideVideo))
+        assertEquals(Outcome.Success("将为您减少相关推荐"), state.perform(HomeVideoAction.HideVideo))
         assertEquals(1L, actions.reasons.single().id)
-        assertTrue(feed.state.value.videos.isEmpty())
+        // 撤销窗口内卡片仍留在列表里（UI 只做模糊），真正过滤在 commitDismissed 后。
+        assertEquals(listOf(video), feed.state.value.videos)
         assertFalse(state.state.value.busy)
+        // 撤销要真的撤回服务端反馈，而不是只把本地卡片恢复。
+        assertEquals(Outcome.Success(Unit), feed.undoDismissed(video.bvid))
+        assertEquals(listOf("one:1"), actions.cancelled)
     }
+    @Test fun twoDismissalsKeepIndependentUndoCallbacks() = runBlocking {
+        val second = video.copy(bvid = "two", aid = 43, title = "two")
+        val feed = feed(video, second); feed.ensureLoaded()
+        var firstUndo = 0
+        var secondUndo = 0
+        feed.dismissRecommendation(video, undo = { firstUndo++; Outcome.Success(Unit) })
+        feed.dismissRecommendation(second, undo = { secondUndo++; Outcome.Success(Unit) })
+        assertEquals(Outcome.Success(Unit), feed.undoDismissed(video.bvid))
+        assertEquals(1, firstUndo)
+        assertEquals(0, secondUndo)
+        assertEquals(Outcome.Success(Unit), feed.undoDismissed(second.bvid))
+        assertEquals(1, secondUndo)
+    }
+
     @Test fun failedFeedbackLeavesVisibleVideoAndCanRetry() = runBlocking {
         val feed = feed(video); feed.ensureLoaded()
         val actions = Actions().apply { fail = true }
@@ -72,6 +95,7 @@ class HomeActionsStateHolderTest {
         assertEquals(video, feed.state.value.videos.single())
         actions.fail = false
         state.perform(HomeVideoAction.HideCreator)
+        feed.commitDismissed()
         assertTrue(feed.state.value.videos.isEmpty())
         assertEquals(listOf(4L, 4L), actions.reasons.map { it.id })
     }
@@ -96,6 +120,7 @@ class HomeActionsStateHolderTest {
         state.select(video)
         assertEquals(Outcome.Success("本次浏览不再显示 游戏 推荐"), state.perform(HomeVideoAction.HideCategory))
         assertTrue(actions.reasons.isEmpty())
+        feed.commitDismissed()
         assertTrue(feed.state.value.videos.isEmpty())
     }
     @Test fun unavailableCategoryStaysUnknownAndDoesNotCreateFeedback() = runBlocking {
@@ -181,6 +206,8 @@ class HomeActionsStateHolderTest {
         val actions = object : RecommendationActionsRepository {
             override suspend fun addWatchLater(aid: Long): Outcome<Boolean> = error("unused")
             override suspend fun dislike(video: VideoItem, reason: RecommendationReason) = pending.await()
+            override suspend fun cancelDislike(video: VideoItem, reason: RecommendationReason): Outcome<Unit> =
+                error("unused")
         }
         val feed = feed(video); feed.ensureLoaded()
         val state = HomeActionsStateHolder(videos, actions, feed); state.select(video)

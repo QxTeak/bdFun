@@ -17,8 +17,10 @@ class FeedState internal constructor(
     /** 非「全部」分类共享「全部」的 UP/直播 portal，不再各自请求一次。 */
     private val portalSource: StateFlow<FeedUiState>? = null,
 ) {
-    private var observed by mutableStateOf(controller.state.value)
-    private var portalObserved by mutableStateOf(controller.state.value.portal)
+    // 三个分组各自一个快照状态：点赞只碰 interactions，不会让读 items 的列表作用域一起重组。
+    private var feedState by mutableStateOf(controller.state.value.feed)
+    private var portalState by mutableStateOf(controller.state.value.portal)
+    private var interactionState by mutableStateOf(controller.state.value.interactions)
     val listState = LazyStaggeredGridState()
     var pullFraction by mutableFloatStateOf(0f)
     var pullOffsetDp by mutableFloatStateOf(0f)
@@ -26,30 +28,31 @@ class FeedState internal constructor(
     init {
         scope.launch {
             controller.state.collect {
-                observed = it
-                if (portalSource == null) portalObserved = it.portal
+                feedState = it.feed
+                interactionState = it.interactions
+                if (portalSource == null) portalState = it.portal
             }
         }
         if (portalSource != null) {
-            scope.launch { portalSource.collect { portalObserved = it.portal } }
+            scope.launch { portalSource.collect { portalState = it.portal } }
         }
     }
-    val type get() = observed.feed.type
-    val filterMid get() = observed.feed.filterMid
-    val items get() = observed.feed.items
-    val loading get() = observed.feed.loading
-    val refreshing get() = observed.feed.refreshing
-    val error get() = observed.feed.error
-    val hasMore get() = observed.feed.hasMore
-    val authors get() = portalObserved.authors
-    val liveUsers get() = portalObserved.liveUsers
-    val liveCount get() = portalObserved.liveCount
-    val authorsLoading get() = portalObserved.authorsLoading
-    val authorsError get() = portalObserved.authorsError
-    val authorsHasMore get() = portalObserved.authorsHasMore
+    val type get() = feedState.type
+    val filterMid get() = feedState.filterMid
+    val items get() = feedState.items
+    val loading get() = feedState.loading
+    val refreshing get() = feedState.refreshing
+    val error get() = feedState.error
+    val hasMore get() = feedState.hasMore
+    val authors get() = portalState.authors
+    val liveUsers get() = portalState.liveUsers
+    val liveCount get() = portalState.liveCount
+    val authorsLoading get() = portalState.authorsLoading
+    val authorsError get() = portalState.authorsError
+    val authorsHasMore get() = portalState.authorsHasMore
     val activeLoading get() = loading
-    val liked get() = observed.interactions.liked
-    val likeCounts get() = observed.interactions.likeCounts
+    val liked get() = interactionState.liked
+    val likeCounts get() = interactionState.likeCounts
 
     /** 供其它分类订阅共享 portal。 */
     internal val sourceState: StateFlow<FeedUiState> get() = controller.state

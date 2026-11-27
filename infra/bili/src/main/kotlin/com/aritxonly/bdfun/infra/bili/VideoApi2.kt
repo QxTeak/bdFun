@@ -105,6 +105,17 @@ internal suspend fun BiliApiContext.onlineTotal(aid: Long, cid: Long): Pair<Long
         }.getOrDefault(0L to "")
     }
 
+/** 视频标签：话题/BGM/普通标签，接口与 PiliPlus 的 videoTags 相同。 */
+internal suspend fun BiliApiContext.videoTags(bvid: String): List<VideoTag> = withContext(Dispatchers.IO) {
+    cancellableCatching {
+        val root = rawRequest(
+            "/x/web-interface/view/detail/tag",
+            mapOf("bvid" to bvid),
+        )
+        mapVideoTags(root.optJSONArray("data"))
+    }.getOrDefault(emptyList())
+}
+
 internal suspend fun BiliApiContext.subtitles(aid: Long, cid: Long): List<SubtitleTrack> = withContext(Dispatchers.IO) {
     cancellableCatching {
         val data = dataRequest(

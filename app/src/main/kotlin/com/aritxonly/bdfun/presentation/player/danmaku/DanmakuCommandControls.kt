@@ -29,8 +29,6 @@ import androidx.compose.ui.unit.sp
 import com.aritxonly.teak.common.icons.AppGlyph
 import com.kyant.shapes.Capsule
 import top.yukonga.miuix.kmp.icon.MiuixIcons
-import top.yukonga.miuix.kmp.icon.extended.Favorites
-import top.yukonga.miuix.kmp.icon.extended.FavoritesFill
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 import kotlin.math.roundToInt
 
@@ -96,7 +94,7 @@ internal fun VoteOptionRow(
 /**
  * 评分投票：五颗星，点第几颗就前几颗变黄。
  *
- * 未选中是空心收藏星（Miuix Favorites），选中后填成黄色的收藏星（FavoritesFill）。
+ * 未选中是播放器空心星（fs_star），选中后填成黄色的实心星（act_star），前后同一形状。
  */
 @Composable
 internal fun GradeStarRow(
@@ -124,18 +122,18 @@ internal fun GradeStarRow(
                     ) { onClick(option.value) },
                 contentAlignment = Alignment.Center,
             ) {
-                // 评分用星星，不用收藏/喜欢的心形；实心星星表示已选中。
+                // 评分用 B 站自己的两颗星，前后形状一致：空心用播放器星，选中用实心星。
+                // 不要再用 Miuix 的 FavoritesFill，那颗是心形。
                 if (filled) {
                     AppGlyph(
-                        // fs_star 是带内轮廓的收藏星，填色后仍然像空心；选中态直接用 Miuix 实心星。
-                        icon = MiuixIcons.FavoritesFill,
+                        icon = TeakIcon.Star,
                         tint = GradeStarColor,
                         size = 23.dp,
                         contentDescription = option.label,
                     )
                 } else {
                     AppGlyph(
-                        icon = com.aritxonly.teak.common.icons.LucideIcons.Star,
+                        icon = TeakIcon.PlayerStar,
                         tint = Color.White.copy(alpha = 0.55f),
                         size = 23.dp,
                         contentDescription = option.label,

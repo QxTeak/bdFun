@@ -22,6 +22,7 @@ import androidx.compose.runtime.setValue
 data class VideoMetadataContent(
     val detail: VideoDetail?, val video: VideoItem, val metaReady: Boolean,
     val upFollowers: Long, val upVideos: Long, val onlineCount: Long, val onlineText: String,
+    val tags: List<com.aritxonly.bdfun.core.model.video.VideoTag> = emptyList(),
 )
 class VideoMetadataActions(
     val toggleFollow: () -> Unit, val toggleLike: () -> Unit, val toggleDislike: () -> Unit,
@@ -88,8 +89,7 @@ fun VideoMetadataSection(
         )
         Spacer(Modifier.height(4.dp))
         VideoMetadataIdentifier(content, description, descText, descProgress, slots)
-        VideoMetadataDescription(descText, description, slots)
-        VideoMetadataCategory(content)
+        VideoMetadataDescription(descText, description, slots, content.tags)
         Spacer(Modifier.height(14.dp))
         VideoMetadataInteractions(interaction, actions, appearance, slots)
     }

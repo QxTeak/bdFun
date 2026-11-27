@@ -5,6 +5,7 @@ import com.aritxonly.bdfun.core.application.StateHolder
 import com.aritxonly.bdfun.core.application.UiState
 import com.aritxonly.bdfun.core.domain.*
 import com.aritxonly.bdfun.core.model.video.VideoItem
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.*
@@ -65,10 +66,59 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
     private data class Batch(val items: List<VideoItem>, val rawEmpty: Boolean)
 
     fun requestRefresh() { if (closed) return; mutable.update { it.copy(refreshRequest = it.refreshRequest + 1) } }
-    fun dismissRecommendation(video: VideoItem, creator: Boolean = false, category: String? = null) {
+
+    /** 反馈成功先只标记模糊，给用户一个可撤销的窗口；真正过滤交给 [commitDismissed]。 */
+    private data class PendingDismiss(
+        val video: VideoItem, val creator: Boolean, val category: String?,
+        /** 撤销时同步撤回服务端反馈；无法撤回的本地动作可以为空。 */
+        val undo: (suspend () -> Outcome<Unit>)? = null,
+    )
+
+    /** 可以同时有多张待撤销卡：每张卡各自保留自己的反馈和撤销动作。 */
+    private val pendingDismisses = mutableMapOf<String, PendingDismiss>()
+    fun dismissRecommendation(
+        video: VideoItem, creator: Boolean = false, category: String? = null,
+        undo: (suspend () -> Outcome<Unit>)? = null,
+    ) {
         if (closed) return
-        exclusions.exclude(video, creator, category)
+        pendingDismisses[video.bvid] = PendingDismiss(video, creator, category, undo)
         mutable.update { it.copy(videos = it.videos.filter(exclusions::accepts)) }
+    }
+
+    /** 撤销条超时：按原规则把卡从推荐流里排除。 */
+    fun commitDismissed() {
+        if (closed || pendingDismisses.isEmpty()) return
+        val pending = pendingDismisses.values.toList()
+        pendingDismisses.clear()
+        pending.forEach { exclusions.exclude(it.video, it.creator, it.category) }
+        mutable.update { it.copy(videos = it.videos.filter(exclusions::accepts)) }
+    }
+
+    /**
+     * 撤销指定卡：先撤回服务端反馈，成功后才算真正恢复；失败保留 pending，用户可重试。
+     * 没有服务端动作的本地过滤（如分类本地隐藏）直接恢复。
+     */
+    suspend fun undoDismissed(bvid: String): Outcome<Unit> {
+        if (closed) return Outcome.Success(Unit)
+        val pending = pendingDismisses[bvid] ?: return Outcome.Success(Unit)
+        val undo = pending.undo
+        if (undo == null) {
+            pendingDismisses.remove(bvid)
+            return Outcome.Success(Unit)
+        }
+        return try {
+            when (val result = undo()) {
+                is Outcome.Success -> {
+                    pendingDismisses.remove(bvid)
+                    result
+                }
+                is Outcome.Failure -> result
+            }
+        } catch (cancel: CancellationException) {
+            throw cancel
+        } catch (error: Exception) {
+            Outcome.Failure(AppError.Unknown(error.message ?: "撤销失败，请重试"))
+        }
     }
 
     suspend fun ensureLoaded() = firstLoad.withLock {

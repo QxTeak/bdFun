@@ -48,8 +48,14 @@ fun HomeScreen(state: HomeFeedState, onOpenVideo: (VideoItem) -> Unit, cardStyle
         if (ui.pressPoint != androidx.compose.ui.geometry.Offset.Zero) {
             com.aritxonly.teak.common.navigation.TeakMorphPointAnchor(ui.pointMenuState, ui.pressPoint)
         }
-        HomeVideoGrid(state, cardStyle == 1, maxWidth, statusBarTop, ui, refreshConnection, scope, onOpenVideo, host)
-        HomeFeedStatus(state, scope, host)
+        androidx.compose.runtime.CompositionLocalProvider(
+            LocalHomeBlurredBvids provides state.blurredBvids,
+            LocalHomeUndoAction provides state::undoDismiss,
+            LocalHomeUndoMessages provides state.undoMessages,
+        ) {
+            HomeVideoGrid(state, cardStyle == 1, maxWidth, statusBarTop, ui, refreshConnection, scope, onOpenVideo, host)
+            HomeFeedStatus(state, scope, host)
+        }
     }
     androidx.compose.runtime.LaunchedEffect(ui.openPointMenu, state.menuVideo) {
         if (ui.openPointMenu) {

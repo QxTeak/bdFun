@@ -24,6 +24,9 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
     val haptics = rememberTeakHaptics()
     val onBarItem: (TeakFloatingTabItem) -> Unit = { item ->
         haptics.tap()
+        // 切页时先收掉长按形变菜单：它挂在主壳采样树外，不会随首页一起离开，
+        // 留着会停在新页面上，锚点也还是旧卡片的位置。
+        homeFeed.dismissMenu()
         val index = destinations
             .indexOfFirst { it.key == item.key }
             .coerceAtLeast(0)

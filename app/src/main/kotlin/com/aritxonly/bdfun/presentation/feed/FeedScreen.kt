@@ -1,37 +1,45 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.animation.core.LinearOutSlowInEasing
-import androidx.compose.animation.core.tween
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.AppGraph
-import com.aritxonly.bdfun.MainPageTransitionMs
 import com.aritxonly.bdfun.core.domain.DynamicTabPolicy
 import com.aritxonly.bdfun.core.model.feed.FeedItem
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import com.aritxonly.bdfun.feature.home.presentation.PullRefreshSession
 import com.aritxonly.bdfun.feature.home.presentation.PullRefreshSettleEffect
 import com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 /**
  * 动态页：和首页完全同一套结构——顶栏胶囊 + HorizontalPager。
  *
  * 每个分类拥有独立 [FeedState]（列表/滚动/分页/下拉互不影响），
  * 手指左右滑动与顶栏点选共用同一个 pager 状态，选中态写回 shell 供顶栏使用。
+ *
+ * 选中某个 UP 后进入「UP 模式」：顶部 pager 锁住，横向滑动改为切换上一个/下一个 UP，
+ * 返回键、点顶部分段、点「全部动态」都会退出。
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -39,6 +47,7 @@ fun FeedScreen(
     loggedIn: Boolean, onNeedLogin: () -> Unit,
     onOpenVideo: (VideoItem) -> Unit, onOpenFeed: (FeedItem) -> Unit, refreshTick: Int = 0,
     initialTab: String = "all",
+    tabClickTick: Int = 0,
     onTabChange: (String) -> Unit = {},
     onTabPositionChange: (Float) -> Unit = {},
 ) {
@@ -49,11 +58,53 @@ fun FeedScreen(
     if (tabs.isEmpty()) return
     val initialIndex = tabs.indexOfFirst { it.key == initialTab }.coerceAtLeast(0)
     val pager = rememberPagerState(initialPage = initialIndex, pageCount = { tabs.size })
+    val currentKey = tabs.getOrNull(pager.currentPage)?.key ?: tabs.first().key
+    val upFocus = AppGraph.dynamicFeedStateFor(currentKey).filterMid != null
+    FeedPagerSync(pager, tabs, initialTab, tabClickTick, loggedIn, onTabChange, onTabPositionChange)
+    HorizontalPager(
+        state = pager,
+        modifier = Modifier.fillMaxSize(),
+        beyondViewportPageCount = 0,
+        // UP 模式下横向滑动归头像栏（切上一个/下一个 UP），不再切顶部分类。
+        userScrollEnabled = !upFocus,
+        overscrollEffect = null,
+    ) { page ->
+        val tab = tabs.getOrNull(page) ?: return@HorizontalPager
+        androidx.compose.runtime.key(tab.key) {
+            FeedTabPage(
+                tabKey = tab.key,
+                state = AppGraph.dynamicFeedStateFor(tab.key),
+                loggedIn = loggedIn,
+                onNeedLogin = onNeedLogin,
+                onOpenVideo = onOpenVideo,
+                onOpenFeed = onOpenFeed,
+                refreshTick = refreshTick,
+            )
+        }
+    }
+}
+
+/** pager 与顶栏、shell 之间的双向同步；单独拆出来避免主函数超过尺寸门槛。 */
+@Composable
+private fun FeedPagerSync(
+    pager: PagerState,
+    tabs: List<com.aritxonly.bdfun.core.domain.DynamicFeedTab>,
+    initialTab: String,
+    tabClickTick: Int,
+    loggedIn: Boolean,
+    onTabChange: (String) -> Unit,
+    onPositionChange: (Float) -> Unit,
+) {
     // 顶栏点选：只改 shell 状态，这里统一负责动画过去。
     var programmatic by remember { mutableStateOf(false) }
     val latestTabs by rememberUpdatedState(tabs)
     LaunchedEffect(initialTab, tabs) {
         val target = latestTabs.indexOfFirst { it.key == initialTab }.coerceAtLeast(0)
+        // 换分段前先退出上一段的 UP 模式，回来时是干净的列表。
+        val leaving = latestTabs.getOrNull(pager.currentPage)?.key
+        if (leaving != null && leaving != initialTab) {
+            AppGraph.dynamicFeedStateFor(leaving).exitUpFocus(leaving, loggedIn)
+        }
         if (pager.currentPage != target || pager.currentPageOffsetFraction != 0f) {
             programmatic = true
             try {
@@ -66,6 +117,14 @@ fun FeedScreen(
             }
         }
     }
+    // 点顶部分段（包括已经选中的那一段）= 退出 UP 模式。
+    var lastTabClick by remember { mutableIntStateOf(tabClickTick) }
+    LaunchedEffect(tabClickTick) {
+        if (tabClickTick == lastTabClick) return@LaunchedEffect
+        lastTabClick = tabClickTick
+        val key = latestTabs.getOrNull(pager.currentPage)?.key ?: return@LaunchedEffect
+        AppGraph.dynamicFeedStateFor(key).exitUpFocus(key, loggedIn)
+    }
     // 手指划到哪一页，就把分类写回 shell（顶栏、回到顶部、刷新入口都读它）。
     val latestOnTabChange by rememberUpdatedState(onTabChange)
     LaunchedEffect(pager, tabs) {
@@ -74,35 +133,47 @@ fun FeedScreen(
             if (!programmatic) latestOnTabChange(tab.key)
         }
     }
-    val latestOnPositionChange by rememberUpdatedState(onTabPositionChange)
+    val latestOnPositionChange by rememberUpdatedState(onPositionChange)
     LaunchedEffect(pager, tabs) {
         snapshotFlow {
             (pager.currentPage + pager.currentPageOffsetFraction)
                 .coerceIn(0f, latestTabs.lastIndex.toFloat())
         }.collect { latestOnPositionChange(it) }
     }
-    HorizontalPager(
-        state = pager,
-        modifier = Modifier.fillMaxSize(),
-        beyondViewportPageCount = 0,
-        overscrollEffect = null,
-    ) { page ->
-        val tab = tabs.getOrNull(page) ?: return@HorizontalPager
-        androidx.compose.runtime.key(tab.key) {
-            FeedTabPage(
-                state = AppGraph.dynamicFeedStateFor(tab.key),
-                loggedIn = loggedIn,
-                onNeedLogin = onNeedLogin,
-                onOpenVideo = onOpenVideo,
-                onOpenFeed = onOpenFeed,
-                refreshTick = refreshTick,
-            )
-        }
-    }
+}
+
+/**
+ * UP 模式下的横向滑动：左滑下一个 UP、右滑上一个 UP。
+ * 顶部 pager 此时已关掉滚动，不会和它抢同一个手势。
+ */
+private fun Modifier.feedUpModeSwipe(
+    state: FeedState,
+    scope: CoroutineScope,
+    enabled: Boolean,
+    selfMid: () -> Long?,
+): Modifier = if (!enabled) this else this.pointerInput(state) {
+    var accumulated = 0f
+    val threshold = 56.dp.toPx()
+    detectHorizontalDragGestures(
+        onDragStart = { accumulated = 0f },
+        onHorizontalDrag = { change, dragAmount ->
+            accumulated += dragAmount
+            change.consume()
+        },
+        onDragEnd = {
+            val delta = when {
+                accumulated <= -threshold -> 1
+                accumulated >= threshold -> -1
+                else -> 0
+            }
+            if (delta != 0) scope.launch { state.stepUpFocus(delta, selfMid()) }
+        },
+    )
 }
 
 @Composable
 private fun FeedTabPage(
+    tabKey: String,
     state: FeedState, loggedIn: Boolean, onNeedLogin: () -> Unit,
     onOpenVideo: (VideoItem) -> Unit, onOpenFeed: (FeedItem) -> Unit, refreshTick: Int,
 ) {
@@ -141,8 +212,18 @@ private fun FeedTabPage(
     val statusTop = rememberStatusBarTop()
     val connection = remember(state) { session.connection() }
     FeedPaginationEffects(state, loggedIn)
-    val actions = FeedActions(state, scope, context, loggedIn, onOpenVideo, onOpenFeed)
-    Box(modifier = Modifier.fillMaxSize()) {
+    val actions = rememberFeedActions(
+        state, scope, context, loggedIn, onOpenVideo, onOpenFeed,
+    )
+    // 环放在页面级持有：头像卡片是懒列表第一项，滚出屏幕会被回收；状态挂在卡片里会丢。
+    val ring = remember { FeedAvatarRingState() }
+    val upFocus = state.filterMid != null
+    // 返回键先退出 UP 模式，再退动态页。
+    BackHandler(enabled = upFocus) { scope.launch { state.exitUpFocus(tabKey, loggedIn) } }
+    Box(
+        modifier = Modifier.fillMaxSize()
+            .feedUpModeSwipe(state, scope, upFocus) { AppGraph.session.value?.mid },
+    ) {
         if (!loggedIn) {
             EmptyHint(
                 title = "动态",
@@ -151,7 +232,7 @@ private fun FeedTabPage(
                 onAction = onNeedLogin,
             )
         } else {
-            FeedContent(state, statusTop, pull, connection, actions)
+            FeedContent(state, statusTop, pull, connection, actions, ring)
             FeedIndicators(state, statusTop)
         }
     }

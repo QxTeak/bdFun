@@ -1,10 +1,14 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
@@ -18,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.aritxonly.teak.common.icons.AppGlyph
 import com.kyant.shapes.Capsule
 
 @Composable
@@ -28,6 +33,7 @@ fun BoxScope.PlayerStatusOverlays(
     durationMs: Long,
     playIcon: Int,
     buffering: @Composable (Modifier) -> Unit,
+    onReplay: () -> Unit,
 ) {
     val showBuffering by ui.showBuffering
     // 超过 1.5s 仍缓冲才显示小电视；首帧前的封面由页面组装层显示。
@@ -37,21 +43,48 @@ fun BoxScope.PlayerStatusOverlays(
         buffering(Modifier.align(Alignment.Center))
     }
 
-    // 播放结束：居中显示「播放完成」
+    // 播放结束：整屏压暗，居中「播放完成」+ 胶囊重播键。点击胶囊从 0 重新播放，
+    // 已缓冲区间仍由 ExoPlayer 保留，回退/重播不会重新走网络。
     if (ended) {
         Box(
             modifier = Modifier
-                .align(Alignment.Center)
-                .clip(Capsule())
-                .background(Color(0x8C000000))
-                .padding(horizontal = 18.dp, vertical = 9.dp),
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.42f)),
+            contentAlignment = Alignment.Center,
         ) {
-            Text(
-                text = "播放完成",
-                color = Color.White,
-                fontSize = 13.sp,
-                fontWeight = FontWeight.Normal,
-            )
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(
+                    modifier = Modifier
+                        .clip(Capsule())
+                        .background(Color(0x8C000000))
+                        .padding(horizontal = 18.dp, vertical = 9.dp),
+                ) {
+                    Text(
+                        text = "播放完成",
+                        color = Color.White,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Normal,
+                    )
+                }
+                Spacer(Modifier.height(14.dp))
+                Row(
+                    modifier = Modifier
+                        .clip(Capsule())
+                        .background(Color.White.copy(alpha = 0.92f))
+                        .clickable(interactionSource = null, indication = null, onClick = onReplay)
+                        .padding(horizontal = 18.dp, vertical = 9.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    AppGlyph(playIcon, Color(0xFF111111), size = 17.dp)
+                    Spacer(Modifier.width(7.dp))
+                    Text(
+                        text = "重新播放",
+                        color = Color(0xFF111111),
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                    )
+                }
+            }
         }
     }
 

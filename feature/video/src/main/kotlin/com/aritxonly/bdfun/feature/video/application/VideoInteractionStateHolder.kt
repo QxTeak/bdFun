@@ -133,7 +133,7 @@ class VideoInteractionStateHolder(private val repository: VideoActionsRepository
         }
     }
 
-    private suspend fun perform(action: suspend (VideoInteractionState, Long) -> String): String? {
+    private suspend fun perform(action: suspend (VideoInteractionState, Long) -> String?): String? {
         val before = mutableState.value
         if (before.busy || before.detail == null) return null
         val version = revision
@@ -187,6 +187,41 @@ class VideoInteractionStateHolder(private val repository: VideoActionsRepository
             ) }
             if (contains) "已取消收藏" else "已收藏"
         } else if (contains) "取消收藏失败" else "收藏失败"
+    }
+
+    /**
+     * 「选完收藏夹再点完成」：把当前选择与已有收藏夹做 diff，逐个提交后一次性回写状态。
+     * 不做逐次 toggle 的乐观动画，避免用户连续勾选时每个勾都发一次请求。
+     */
+    suspend fun applyFolders(desired: Set<Long>): String? = perform { before, version ->
+        val aid = before.detail!!.aid
+        val current = before.folderIds
+        val added = desired - current
+        val removed = current - desired
+        if (added.isEmpty() && removed.isEmpty()) return@perform null
+        var ok = true
+        val applied = current.toMutableSet()
+        for (id in added) {
+            if (repository.setFavorite(aid, id, true) is Outcome.Failure) ok = false else applied += id
+        }
+        for (id in removed) {
+            if (repository.setFavorite(aid, id, false) is Outcome.Failure) ok = false else applied -= id
+        }
+        if (version == revision) {
+            val countDelta = when {
+                before.folderIds.isEmpty() && applied.isNotEmpty() -> 1
+                before.folderIds.isNotEmpty() && applied.isEmpty() -> -1
+                else -> 0
+            }
+            mutableState.update {
+                it.copy(
+                    favorites = it.favorites.copy(folderIds = applied),
+                    favorited = applied.isNotEmpty(),
+                    favoriteCount = (it.favoriteCount + countDelta).coerceAtLeast(0),
+                )
+            }
+        }
+        if (ok) "已更新收藏" else "部分收藏夹保存失败"
     }
 
     suspend fun removeFavorites(): String? = perform { before, version ->

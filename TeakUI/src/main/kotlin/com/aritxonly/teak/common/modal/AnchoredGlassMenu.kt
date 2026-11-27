@@ -1,4 +1,4 @@
-﻿package com.aritxonly.teak.common.modal
+package com.aritxonly.teak.common.modal
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope

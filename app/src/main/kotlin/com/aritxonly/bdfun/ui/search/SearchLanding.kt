@@ -86,9 +86,10 @@ internal fun SearchLanding(
             roomy = style.roomyHistory,
             editing = historyEdit?.editing == true,
             onBeginEdit = historyEdit?.onBegin,
-            onRemove = historyEdit?.onRemove,
+            selected = historyEdit?.selected.orEmpty(),
+            onToggle = historyEdit?.onToggle,
+            onDelete = historyEdit?.onDelete,
             onCancelEdit = historyEdit?.onCancel ?: {},
-            onCommitEdit = historyEdit?.onCommit ?: {},
         )
         searchDiscoveryItems(discovery, colors, onPickKeyword)
 
@@ -120,8 +121,10 @@ internal data class SearchLandingStyle(
 internal class HistoryEditSlots(
     val editing: Boolean,
     val visible: List<String>,
+    val selected: Set<String>,
     val onBegin: () -> Unit,
-    val onRemove: (String) -> Unit,
+    val onToggle: (String) -> Unit,
+    val onDelete: () -> Unit,
     val onCancel: () -> Unit,
     val onCommit: () -> Unit,
 )

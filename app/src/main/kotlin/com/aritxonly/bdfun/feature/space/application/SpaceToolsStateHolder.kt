@@ -50,17 +50,19 @@ internal class SpaceToolsStateHolder(
             if (active && version == revision) mutable.update { it.copy(loading = false) }
         }
     }
-    suspend fun block() {
-        if (!active || mutable.value.blockBusy || mutable.value.blocked) return
+    suspend fun block(): Boolean {
+        if (!active || mutable.value.blockBusy || mutable.value.blocked) return false
         mutable.update { it.copy(blockBusy = true, message = null) }
-        try {
+        return try {
             val result = repository.block(mid)
             currentCoroutineContext().ensureActive()
-            if (!active) return
+            if (!active) return false
+            val success = result is Outcome.Success && result.value
             mutable.update { when (result) {
                 is Outcome.Success -> it.copy(blocked = result.value, message = if (result.value) "已拉黑" else "拉黑失败")
                 is Outcome.Failure -> it.copy(message = result.error.messageOr("拉黑失败"))
             } }
+            success
         } finally { if (active) mutable.update { it.copy(blockBusy = false) } }
     }
 }

@@ -47,12 +47,13 @@ import top.yukonga.miuix.kmp.theme.MiuixTheme
 internal fun LiveAvatar(
     name: String,
     face: String,
+    avatarModifier: Modifier = Modifier,
     onClick: () -> Unit,
     onLongClick: (() -> Unit)? = null,
 ) {
     val colors = MiuixTheme.colorScheme
     val pulse = rememberLivePulse()
-    val avatarModifier = if (onLongClick != null) {
+    val clickModifier = if (onLongClick != null) {
         Modifier.combinedClickable(
             interactionSource = null,
             indication = null,
@@ -67,11 +68,14 @@ internal fun LiveAvatar(
         // 和普通 UP 头像同宽（56dp），头像之间就是同一套 12dp 间距，不会显得被拉开。
         modifier = Modifier
             .width(56.dp)
-            .then(avatarModifier),
+            .then(clickModifier),
     ) {
         // 和普通 UP 头像保持同一个 46dp 高度：名字才能和「全部动态 / 我 / 其它 UP」齐平。
         // 扩散圈放大后会溢出这个 Box，Box 不裁剪，所以雷达波照常可见。
-        Box(Modifier.fillMaxWidth().height(46.dp), contentAlignment = Alignment.Center) {
+        Box(
+            Modifier.fillMaxWidth().height(46.dp).then(avatarModifier),
+            contentAlignment = Alignment.Center,
+        ) {
             // 扩散粉圈：比头像大一圈，越大越淡。
             Box(
                 modifier = Modifier

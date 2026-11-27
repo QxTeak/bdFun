@@ -157,10 +157,13 @@ internal class AppContainer(
         val scope = CoroutineScope(presentationScope.coroutineContext + job)
         val view = com.aritxonly.bdfun.feature.home.presentation.createHomeFeedState(
             feedRepository, videoRepository,
-            BiliRecommendationActionsRepository(api::addWatchLater, api::dislikeRecommendation), scope,
+            BiliRecommendationActionsRepository(
+                api::addWatchLater, api::dislikeRecommendation, api::cancelDislikeRecommendation,
+            ), scope,
             optimizer = recommendationOptimizer,
             cache = context?.let { createHomeRecommendationCache(it, sessionController.state.value.user?.mid ?: 0L,
-                settings.recommendWeb, recommendationOptimizer) })
+                settings.recommendWeb, recommendationOptimizer) },
+            blockUser = { mid -> commentContentRepository.block(mid) })
         HomeSlot(job, view)
     }, { it.view.close(); it.job.cancel() })
     val homeFeedState: HomeFeedState get() = homeSlot.get().view

@@ -6,7 +6,7 @@ import com.aritxonly.bdfun.core.domain.VideoRepository
 import com.aritxonly.bdfun.core.model.video.*
 import kotlinx.coroutines.flow.*
 
-internal enum class HomeVideoAction { WatchLater, HideVideo, HideCreator, HideCategory }
+internal enum class HomeVideoAction { WatchLater, HideVideo, HideCreator, HideCategory, BlockCreator }
 internal data class HomeActionsUiState(
     val video: VideoItem? = null,
     val category: String = "",
@@ -21,6 +21,8 @@ internal class HomeActionsStateHolder(
     private val videos: VideoRepository,
     private val actions: RecommendationActionsRepository,
     private val feed: HomeFeedStateHolder,
+    /** 拉黑走已有的关系接口；为空时只隐藏本地卡片。 */
+    private val blockUser: (suspend (Long) -> Outcome<Unit>)? = null,
 ) {
     private val mutable = MutableStateFlow(HomeActionsUiState())
     val state: StateFlow<HomeActionsUiState> = mutable.asStateFlow()
@@ -62,6 +64,7 @@ internal class HomeActionsStateHolder(
                 HomeVideoAction.HideVideo -> hide(target, creator = false)
                 HomeVideoAction.HideCreator -> hide(target, creator = true)
                 HomeVideoAction.HideCategory -> hideCategory(target, current.category, current.categoryReason)
+                HomeVideoAction.BlockCreator -> blockCreator(target)
             }
             if (closed) null else result
         } finally { mutable.update { it.copy(busy = false) } }
@@ -79,8 +82,25 @@ internal class HomeActionsStateHolder(
             is Outcome.Success -> Unit
         }
         if (closed) throw kotlinx.coroutines.CancellationException("首页已关闭")
-        feed.dismissRecommendation(target, creator = creator)
-        return Outcome.Success(if (creator) "已反馈，不再推荐此 UP" else "已反馈，减少此类推荐")
+        // 撤销入口不仅恢复本地卡片，还要撤回服务端反馈；否则刷新后服务端仍会压掉这类推荐。
+        val undo: (suspend () -> Outcome<Unit>)? = if (creator) null else {
+            { actions.cancelDislike(target, reason) }
+        }
+        feed.dismissRecommendation(target, creator = creator, undo = undo)
+        return Outcome.Success(if (creator) "已反馈，不再推荐此 UP" else "将为您减少相关推荐")
+    }
+
+    private suspend fun blockCreator(target: VideoItem): Outcome<String> {
+        val mid = target.ownerMid
+        if (mid <= 0L) return failure("缺少 UP 信息，无法拉黑")
+        val block = blockUser ?: return failure("当前版本未接入拉黑，请稍后重试")
+        when (val result = block(mid)) {
+            is Outcome.Failure -> return result
+            is Outcome.Success -> Unit
+        }
+        if (closed) throw kotlinx.coroutines.CancellationException("首页已关闭")
+        feed.dismissRecommendation(target, creator = true)
+        return Outcome.Success("已拉黑 ${target.ownerName}")
     }
 
     private suspend fun hideCategory(target: VideoItem, category: String, reason: RecommendationReason?): Outcome<String> {

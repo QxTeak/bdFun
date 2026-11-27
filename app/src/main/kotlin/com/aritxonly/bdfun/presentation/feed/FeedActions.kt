@@ -1,6 +1,10 @@
 package com.aritxonly.bdfun.ui
 
 import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import com.aritxonly.bdfun.core.common.Outcome
 import com.aritxonly.bdfun.core.model.feed.FeedItem
 import com.aritxonly.bdfun.core.model.video.VideoItem
@@ -27,4 +31,29 @@ internal class FeedActions(
     }
     fun loadMore() { scope.launch { state.loadMore(loggedIn) } }
     fun retry() { scope.launch { state.retry(loggedIn) } }
+}
+
+/**
+ * 固定 FeedActions 的实例：它内部持有整页状态和回调，每次重组都 new 一个会让
+ * 列表里所有 `remember(..., actions, ...)` 失效、整屏卡片跟着重组。
+ * 外部回调按最新值转发，实例只在 state/scope/context/登录态变化时重建。
+ */
+@Composable
+internal fun rememberFeedActions(
+    state: FeedState,
+    scope: CoroutineScope,
+    context: Context,
+    loggedIn: Boolean,
+    onOpenVideo: (VideoItem) -> Unit,
+    onOpenFeed: (FeedItem) -> Unit,
+): FeedActions {
+    val latestOpenVideo by rememberUpdatedState(onOpenVideo)
+    val latestOpenFeed by rememberUpdatedState(onOpenFeed)
+    return remember(state, scope, context, loggedIn) {
+        FeedActions(
+            state = state, scope = scope, context = context, loggedIn = loggedIn,
+            onOpenVideo = { latestOpenVideo(it) },
+            onOpenFeed = { latestOpenFeed(it) },
+        )
+    }
 }

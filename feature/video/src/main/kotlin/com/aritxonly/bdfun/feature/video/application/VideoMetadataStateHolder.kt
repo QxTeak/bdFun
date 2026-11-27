@@ -1,5 +1,6 @@
 package com.aritxonly.bdfun.feature.video.application
 
+import com.aritxonly.bdfun.core.common.AppError
 import com.aritxonly.bdfun.core.common.Outcome
 import com.aritxonly.bdfun.core.domain.*
 import com.aritxonly.bdfun.core.model.video.*
@@ -12,6 +13,7 @@ data class VideoMetadataState(
     val onlineCount: Long = 0, val onlineText: String = "",
     val subtitles: List<SubtitleTrack> = emptyList(), val selectedSubtitle: SubtitleTrack? = null,
     val subtitleCues: List<SubtitleCue> = emptyList(),
+    val tags: List<VideoTag> = emptyList(),
 )
 
 class VideoMetadataStateHolder(private val repository: VideoMetadataRepository) {
@@ -21,6 +23,7 @@ class VideoMetadataStateHolder(private val repository: VideoMetadataRepository) 
     private var pageRevision = 0L
     private var subtitleRevision = 0L
     private var onlineRevision = 0L
+    private var tagsRevision = 0L
 
     suspend fun loadAuthor(mid: Long, loggedIn: Boolean, fallbackFollowed: Boolean, onRelation: (Boolean) -> Unit) {
         val version = ++authorRevision
@@ -36,6 +39,14 @@ class VideoMetadataStateHolder(private val repository: VideoMetadataRepository) 
         val version = ++onlineRevision
         val online = repository.online(aid, cid).valueOr(0L to "")
         if (version == onlineRevision) mutableState.update { it.copy(onlineCount = online.first, onlineText = online.second) }
+    }
+
+    /** 视频标签只在换稿件时拉一次；失败保留空列表，不能挡住正文。 */
+    suspend fun loadTags(bvid: String) {
+        if (bvid.isBlank()) return
+        val version = ++tagsRevision
+        val tags = repository.tags(bvid).valueOr(emptyList())
+        if (version == tagsRevision) mutableState.update { it.copy(tags = tags) }
     }
 
     suspend fun loadSubtitles(aid: Long, cid: Long) {
@@ -60,8 +71,8 @@ class VideoMetadataStateHolder(private val repository: VideoMetadataRepository) 
         if (version == subtitleRevision) mutableState.update { it.copy(subtitleCues = cues) }
     }
 
-    suspend fun reportDanmaku(report: DanmakuReport): Boolean =
-        report.valid && repository.reportDanmaku(report) is Outcome.Success
+    suspend fun reportDanmaku(report: DanmakuReport): Outcome<Unit> =
+        if (report.valid) repository.reportDanmaku(report) else invalidDanmakuAction()
 
     private val mutableVotes = MutableStateFlow<Map<Pair<Long, Long>, DanmakuVote>>(emptyMap())
     val danmakuVotes = mutableVotes.asStateFlow()
@@ -84,27 +95,30 @@ class VideoMetadataStateHolder(private val repository: VideoMetadataRepository) 
         }
     }
 
-    suspend fun likeDanmaku(cid: Long, id: Long): Boolean {
-        if (cid <= 0 || id <= 0) return false
+    suspend fun likeDanmaku(cid: Long, id: Long): Outcome<Boolean> {
+        if (cid <= 0 || id <= 0) return invalidDanmakuAction()
         val key = cid to id
-        if (!pendingVotes.add(key)) return false
+        if (!pendingVotes.add(key)) return invalidDanmakuAction("弹幕点赞正在处理，请稍后再试")
         val before = mutableVotes.value[key]
         val like = before?.liked != true
         var completed = false
         try {
             mutableVotes.update { it + (key to projectDanmakuVote(before, like)) }
             val result = repository.likeDanmaku(cid, id, like)
-            if (result !is Outcome.Success) return false
+            if (result !is Outcome.Success) return result
             val confirmed = repository.danmakuVotes(cid, listOf(id))
             val server = (confirmed as? Outcome.Success)?.value?.get(id)?.takeIf { it.liked == result.value }
             mutableVotes.update { it + (key to (server ?: projectDanmakuVote(before, result.value))) }
             completed = true
-            return true
+            return result
         } finally {
             if (!completed) mutableVotes.update { if (before == null) it - key else it + (key to before) }
             pendingVotes.remove(key)
         }
     }
+
+    private fun <T> invalidDanmakuAction(message: String = "弹幕操作参数无效"): Outcome<T> =
+        Outcome.Failure(AppError.Unknown(message))
 
     private fun projectDanmakuVote(before: DanmakuVote?, liked: Boolean): DanmakuVote {
         val count = before?.likes?.let {

@@ -52,6 +52,7 @@
 | `chrome/TeakGlassBackButton.kt` | 按钮组件新写；玻璃背景/recipe 直接复用 HyperPiliPlus 材质 |
 | `chrome/TeakManualProgress.kt` | Teak 的手动补间 |
 | `chrome/TeakMotion.kt` | Teak 的全局动效开关 |
+| `motion/TeakParticleFlow.kt` | 可删除标签流与粒子飘散；MIUIX 无同类组件，按本项目视觉自写（Compose `animateBounds` + 自绘 Canvas） |
 | `chrome/TeakContinuousCornerShape.kt` | Teak 连续曲率圆角 |
 | `chrome/TeakGlass.kt` | Teak 玻璃图标颜色工具 |
 | `material/TeakGlassPanel.kt` | Teak 玻璃面板封装 |

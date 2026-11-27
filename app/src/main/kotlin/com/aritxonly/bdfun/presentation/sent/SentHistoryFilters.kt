@@ -1,49 +1,30 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import top.yukonga.miuix.kmp.theme.MiuixTheme
 import com.aritxonly.bdfun.feature.sent.application.*
+import com.aritxonly.teak.common.navigation.TeakChip
+import com.aritxonly.teak.common.navigation.TeakSlidingChipRow
 
+/**
+ * 我的评论/弹幕筛选：直接复用直播分区、收藏夹同一套 [TeakSlidingChipRow]，
+ * 形状、字号、间距和弹簧切换动画都与直播间分类标签一致。
+ */
 @Composable
 internal fun SentHistoryFilters(state: SentHistoryState, onSelect: (Int) -> Unit) {
-    val colors = MiuixTheme.colorScheme
-    val filter = state.filter
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.padding(start = if (com.aritxonly.teak.common.theme.TeakUiStyle.isClassic) 16.dp else 0.dp),
-    ) {
-        listOf("全部", "评论", "弹幕").forEachIndexed { index, label ->
-            val active = filter == index
-            Box(
-                modifier = Modifier
-                    .clip(CircleShape)
-                    .background(if (active) colors.primary else colors.surfaceContainer)
-                    .clickable { onSelect(index) }
-                    .padding(horizontal = 16.dp, vertical = 7.dp),
-            ) {
-                Text(
-                    text = "$label ${
-                        state.count(index)
-                    }",
-                    color = if (active) Color.White else colors.onBackground,
-                    fontSize = 12.sp,
-                    fontWeight = if (active) FontWeight.Normal else FontWeight.Normal,
-                )
-            }
-        }
+    val labels = listOf("全部", "评论", "弹幕")
+    // 计数变化时重建 chips；否则一帧内会根据旧计数重新量文字。
+    val chips = remember(state.filter, state.count(1), state.count(2)) {
+        labels.mapIndexed { index, label -> TeakChip(index, "$label ${state.count(index)}") }
     }
+    TeakSlidingChipRow(
+        chips = chips,
+        selectedKey = state.filter,
+        onSelect = { chip -> (chip.key as? Int)?.let(onSelect) },
+        bleed = 12.dp,
+        verticalPadding = 6.dp,
+        modifier = Modifier,
+    )
 }

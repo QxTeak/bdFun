@@ -1,16 +1,23 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.core.model.video.VideoItem
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -21,9 +28,8 @@ internal fun VideoGridCard(
     modifier: Modifier = Modifier,
     /** 已看进度 0..1（历史记录用），默认不显示 */
     progress: Float = 0f,
-    /** 批量管理：显示右上角勾选圈，点击仍交给 onClick 处理 */
-    selectionEnabled: Boolean = false,
-    selected: Boolean = false,
+    /** 批量管理：右上角勾选圈与选中态。 */
+    selection: VideoCardSelection = VideoCardSelection(),
     /** 历史页：统计行先占位，避免补数据时整行突然出现 */
     reserveMeta: Boolean = false,
     /** 个人主页等场景不需要最下面的 UP 行。 */
@@ -33,6 +39,8 @@ internal fun VideoGridCard(
     onLongPressRect: ((Rect) -> Unit)? = null,
     onMoreClick: ((Rect) -> Unit)? = null,
     more: VideoCardMorph? = null,
+    /** 「不感兴趣」撤销态：模糊、只留撤销入口、提示文案。 */
+    undo: VideoCardUndo = VideoCardUndo(),
 ) {
     val colors = MiuixTheme.colorScheme
     val bounds = remember { CardBoundsHolder() }
@@ -81,13 +89,20 @@ internal fun VideoGridCard(
                     },
                 ),
         ) {
-            GridVideoCover(video, progress, selectionEnabled, selected, reserveMeta)
+            GridVideoCover(
+                video, progress, selection.enabled, selection.selected, reserveMeta,
+                blurred = undo.blurred, undoMessage = undo.undoMessage,
+            )
             GridVideoContent(
                 video, showOwner,
                 onMoreClick = onMoreClick?.let { more -> { more(bounds.value) } },
                 moreMorphState = morphState,
                 onMoreMorphTrigger = morphTrigger,
+                undoOnly = undo.undoOnly,
+                onUndo = undo.onUndo,
             )
         }
     }
 }
+
+
