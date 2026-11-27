@@ -1,10 +1,5 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.staggeredgrid.items
-import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -15,15 +10,10 @@ import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 
+/** 动态卡片的自动播放/静音投影；普通列表和 UP pager 共用同一份。 */
 @Composable
-internal fun FeedContent(
-    state: FeedState, statusTop: Dp,
-    pull: FeedPullStateHolder, connection: NestedScrollConnection,
-    actions: FeedActions,
-    ring: FeedAvatarRingState,
-) {
+internal fun rememberFeedMedia(state: FeedState): FeedMedia {
     val visible = state.items
-
     // 只在滚动停下来后判断：离屏幕中心最近的那条如果是视频，就静音自动播放。
     val ui = remember { FeedAutoPlayStateHolder() }
     val dynamicAutoPlay = AppGraph.settings.dynamicAutoPlay
@@ -33,7 +23,7 @@ internal fun FeedContent(
             ui.autoPlayId = null
             return@LaunchedEffect
         }
-        androidx.compose.runtime.snapshotFlow {
+        snapshotFlow {
             // 滚动过程中不计算最近项：每帧 minBy 的结果一定会被丢掉。
             if (state.listState.isScrollInProgress) return@snapshotFlow null
             val info = state.listState.layoutInfo
@@ -55,8 +45,20 @@ internal fun FeedContent(
     val onToggleMute = remember {
         { AppGraph.settings.dynamicAutoPlayMuted = !mutedState.value }
     }
-    val media = remember(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted, onToggleMute) {
+    return remember(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted, onToggleMute) {
         FeedMedia(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted, onToggleMute)
     }
-    FeedGrid(state, statusTop, pull, connection, actions, media, ring)
+}
+
+@Composable
+internal fun FeedContent(
+    state: FeedState, statusTop: Dp,
+    pull: FeedPullStateHolder, connection: NestedScrollConnection,
+    actions: FeedActions,
+    media: FeedMedia,
+    ring: FeedAvatarRingState,
+    onSelectUp: (Long) -> Unit,
+    onExitUp: () -> Unit,
+) {
+    FeedGrid(state, statusTop, pull, connection, actions, media, ring, onSelectUp, onExitUp)
 }

@@ -3,7 +3,9 @@ package com.aritxonly.bdfun
 import androidx.compose.runtime.Composable
 import com.aritxonly.bdfun.core.domain.DynamicTabPolicy
 import com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings
+import com.aritxonly.bdfun.ui.FeedCardMenuHost
 import com.aritxonly.bdfun.ui.FeedTopBar
+import com.aritxonly.bdfun.ui.showToast
 
 /**
  * 动态页固定顶栏：只有「全部 / 视频 / 番剧」玻璃分段栏。
@@ -41,5 +43,11 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainFeedChrome(
             modifier = androidx.compose.ui.Modifier,
             position = shell.ui.dynamicTabPosition,
         )
+    }
+
+    // 动态卡片省略号/长按的形变菜单：和首页一样挂在玻璃采样树外，避免 RenderNode 自采样。
+    val menuContext = androidx.compose.ui.platform.LocalContext.current
+    FeedCardMenuHost(AppGraph.dynamicFeedStateFor(shell.ui.dynamicTab)) {
+        menuContext.showToast(it)
     }
 }

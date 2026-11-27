@@ -32,3 +32,17 @@
 界面入口收敛为“全部 / 视频 / 番剧”；article/up 协议支持保留，UP 通过作者导航进入。
 宽屏采用窄作者侧栏与 280–560dp 自适应瀑布流，窄屏采用横向作者导航与单列流。
 切换布局只改变展示，复用同一动态状态、服务端顺序、分页游标和点赞状态。
+
+## 2026-11-27 卡片菜单与举报接口
+
+动态卡片省略号 / 长按的条目与首页视频卡片不同，但外壳、形变动画与危险色完全复用：`TeakMorphMenuHost` + 每卡一个 `TeakMorphMenuState`，长按走页面级点锚点（`TeakMorphPointAnchor`，不画图标副本），宿主挂在主壳玻璃采样树外的 `MainFeedChrome`。条目为：添加至稍后再看、复制、关闭自动播放、分享、取消关注（红）、举报（红）。「关闭自动播放」写既有 `settings.dynamicAutoPlay=false`；稍后再看、取消关注分别复用 `VideoActionsRepository.watchLater/follow`；复制优先正文、其次标题、最后网页链接；分享链接为 `https://t.bilibili.com/{id}`。
+
+举报接口没有照 bdFun 旧代码猜：端点与字段对齐 PiliPlus 固定参考实现 `lib/http/user.dart` 的 `UserHttp.dynamicReport`（`Api.dynamicReport = /x/dynamic/feed/dynamic_report/add`），form 提交 `accused_uid`、`dynamic_id`、`reason_type`、`reason_desc`，`csrf` 放查询串。理由编号取自 `ReportOptions.dynamicReport`，落在 `core:domain/DynamicReportReason`；其中「其他」(`reason_type=0`) 必须带文字说明，本轮不提供，避免提交服务端必拒的空说明。端口在 `FeedPageRepository.reportDynamic`，实现在 `infra:bili`，UI 侧先选理由再提交，成功/失败都走页面 toast。
+
+举报需要登录账号，真实提交结果无法用游客/离线样本代替；PR 需附手动验证：登录 → 打开某条动态的省略号/长按 → 选理由提交 → 观察服务端返回与 toast。
+
+## 2026-11-27 UP 切页推动与头像环出屏方向
+
+UP 之间切换用真正的 `HorizontalPager`，参数和空间页 `SpaceContentPager` 一致（`beyondViewportPageCount = 1`、`overscrollEffect = null`、默认翻页物理）：头像行固定在 pager 外（窄屏顶部、宽屏为作者侧栏），每个 UP 是 pager 的一页，页内只有动态卡片。停稳后才提交 `filterMid`；相邻页通过 `prefetchUp` 预取首屏，离开时 `seedPreview` 留下当前首屏，往回滑不白屏。不要手写拖动阻尼/两段位移或整屏快照：前者手感对不上，后者会闪帧并把 UP 栏搬走。
+
+头像环的方向记忆修了两个根因：①锚点是 root 坐标，判断左右必须换成卡片内坐标再和覆盖层宽度比较，宽屏有作者侧栏时差一整个侧栏；②头像也会因为整张头像卡纵向滚出列表而被回收，最后一次测量是完整可见的，不能按水平位置猜左右——只认真正探出视口的那一侧，探不出时用头像行此刻的滚动方向兜底，拿不到就保持未知。

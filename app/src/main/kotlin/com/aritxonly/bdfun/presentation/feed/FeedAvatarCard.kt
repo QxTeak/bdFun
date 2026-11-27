@@ -30,6 +30,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -48,6 +49,15 @@ internal fun FeedAvatarCard(
     state: FeedState,
     ring: FeedAvatarRingState,
     modifier: Modifier = Modifier,
+    /** UP 之间切换：由页面统一跑「旧页滑出、新页滑入」，不要在卡片里直接 filterTo。 */
+    onSelectUp: (Long) -> Unit,
+    /** 点「全部动态」退出 UP 模式：页面自己决定淡出，卡片不直接 clearFilter。 */
+    onExitUp: () -> Unit,
+    /**
+     * 环跟随的选中项。UP 模式下它比 [FeedState.filterMid] 更早变化：
+     * pager 一开始翻页环就走，数据等停稳再换。
+     */
+    selectedMid: Long? = state.filterMid,
 ) {
     val colors = MiuixTheme.colorScheme
     val scope = rememberCoroutineScope()
@@ -55,8 +65,10 @@ internal fun FeedAvatarCard(
     val haptics = rememberTeakHaptics()
     val authorScroll = rememberLazyListState()
     val profile = AppGraph.session.value
+    // 头像行此刻往哪边滚：头像被回收时用它兜底判断是从左边还是右边滑出去的。
+    val rowScroll = rememberAvatarRowScroll(authorScroll)
     // 没有筛选任何 UP 时，环停在「全部动态」；筛选中则跟着当前 UP 走。
-    val selectedKey: Any = state.filterMid ?: FeedAllAvatarKey
+    val selectedKey: Any = selectedMid ?: FeedAllAvatarKey
     // 直播 UP 比动态列表晚到：它们插到最前面时 LazyRow 会按原来的锚点停在「全部动态」，
     // 看起来就像直播头像没排到最前。第一次从无到有时主动回到行首。
     var hadLiveUsers by remember { mutableStateOf(false) }
@@ -73,23 +85,7 @@ internal fun FeedAvatarCard(
             if (count > 0 && last >= count - 3 && state.authorsError == null) state.loadMoreAuthors()
         }
     }
-    // 切换 UP：先把目标滚到「完整露出」（已经在视口里就不动），再放环的动画。
-    // 不能边滚边绕：目标半露时环会被卡片裁掉一截，看起来像缩小。
-    val gapPx = with(androidx.compose.ui.platform.LocalDensity.current) { 8.dp.toPx() }
-    LaunchedEffect(selectedKey) {
-        // 滚动会改变锚点，先把环现在的落点冻结下来，滚完仍从原来的位置出发。
-        val source = ring.currentRect()
-        val scrolled = if (state.filterMid == null) {
-            authorScroll.animateScrollToItem(0)
-            true
-        } else {
-            val index = feedAvatarIndex(state, profile?.mid, selectedKey)
-            index >= 0 && authorScroll.ensureFullyVisible(index, gapPx)
-        }
-        // 只有真的滚了才等一帧；目标本来就完整露出时直接开动画，少 1 帧延迟。
-        if (scrolled) withFrameNanos { }
-        ring.moveTo(selectedKey, source)
-    }
+    FeedAvatarRingEffect(state, profile, ring, authorScroll, selectedKey)
 
     val liveUsers = state.liveUsers
     // 头像行每次重组都会重建这些过滤结果；作者列表/直播列表没变时复用。
@@ -111,6 +107,7 @@ internal fun FeedAvatarCard(
         ) {
             dynamicAvatarItems(
                 state, liveUsers, authors, liveMids, profile, haptics, scope, context, ring,
+                rowScroll, onSelectUp, onExitUp,
             )
         }
         FeedAvatarRingOverlay(
@@ -132,15 +129,18 @@ private fun LazyListScope.dynamicAvatarItems(
     scope: CoroutineScope,
     context: android.content.Context,
     ring: FeedAvatarRingState,
+    rowScroll: AvatarRowScrollState,
+    onSelectUp: (Long) -> Unit,
+    onExitUp: () -> Unit,
 ) {
     items(liveUsers, key = { "live-${it.mid}" }) { user ->
         LiveAvatar(
             name = user.name,
             face = user.face,
-            avatarModifier = rememberAvatarAnchor(ring, user.mid),
+            avatarModifier = rememberAvatarAnchor(ring, user.mid, rowScroll),
             onClick = {
                 haptics.tap()
-                scope.launch { state.listState.scrollToItem(0); state.filterTo(user.mid) }
+                onSelectUp(user.mid)
             },
             onLongClick = {
                 haptics.longPress()
@@ -149,9 +149,9 @@ private fun LazyListScope.dynamicAvatarItems(
         )
     }
     item(key = "all-dynamics") {
-        AllFeedAvatar(avatarModifier = rememberAvatarAnchor(ring, FeedAllAvatarKey)) {
+        AllFeedAvatar(avatarModifier = rememberAvatarAnchor(ring, FeedAllAvatarKey, rowScroll)) {
             haptics.tap()
-            scope.launch { state.listState.scrollToItem(0); state.clearFilter() }
+            onExitUp()
         }
     }
     profile?.takeIf { it.mid !in liveMids }?.let { me ->
@@ -159,10 +159,10 @@ private fun LazyListScope.dynamicAvatarItems(
             AuthorAvatar(
                 name = "我",
                 face = me.face,
-                avatarModifier = rememberAvatarAnchor(ring, me.mid),
+                avatarModifier = rememberAvatarAnchor(ring, me.mid, rowScroll),
             ) {
                 haptics.tap()
-                scope.launch { state.listState.scrollToItem(0); state.filterTo(me.mid) }
+                onSelectUp(me.mid)
             }
         }
     }
@@ -171,10 +171,10 @@ private fun LazyListScope.dynamicAvatarItems(
             name = author.name,
             face = author.face,
             hasUpdate = author.hasUpdate,
-            avatarModifier = rememberAvatarAnchor(ring, author.mid),
+            avatarModifier = rememberAvatarAnchor(ring, author.mid, rowScroll),
         ) {
             haptics.tap()
-            scope.launch { state.listState.scrollToItem(0); state.filterTo(author.mid) }
+            onSelectUp(author.mid)
         }
     }
     if (state.authorsLoading) item(key = "up-loading") { TeakLoading(size = 28.dp) }
@@ -197,13 +197,130 @@ private fun LazyListScope.dynamicAvatarItems(
 
 /**
  * 给头像圆登记测量点。LazyRow 会回收滚出视口的项，离开组合时必须清掉锚点，
- * 否则环会停在一个已经不存在的位置。
+ * 否则环会停在一个已经不存在的位置。回收时把头像行此刻的滚动方向一起带上，
+ * 让环能区分「横向滑出」和「整张卡片纵向滚走」。
  */
 @Composable
-private fun rememberAvatarAnchor(ring: FeedAvatarRingState, key: Any): Modifier {
-    DisposableEffect(ring, key) { onDispose { ring.clearAnchor(key) } }
+private fun rememberAvatarAnchor(
+    ring: FeedAvatarRingState,
+    key: Any,
+    rowScroll: AvatarRowScrollState,
+): Modifier {
+    DisposableEffect(ring, key) {
+        onDispose { ring.clearAnchor(key, rowScroll.direction) }
+    }
     // 复用同一个 Modifier：列表分页/作者刷新导致重组时，不必重新下发布局节点配置。
     return remember(ring, key) { Modifier.feedAvatarAnchor(ring, key) }
+}
+
+/** 头像行的滚动方向：+1 内容左移（往后滚），-1 内容右移，0 没在滚。 */
+private class AvatarRowScrollState {
+    var direction = 0
+}
+
+private data class AvatarRowPosition(val index: Int, val offset: Int, val scrolling: Boolean)
+
+/** 跟踪头像行往哪边滚。只在其实滚动时记录，滚停后清零，避免拿很久以前的方向乱猜。 */
+@Composable
+private fun rememberAvatarRowScroll(authorScroll: LazyListState): AvatarRowScrollState {
+    val rowScroll = remember { AvatarRowScrollState() }
+    LaunchedEffect(authorScroll) {
+        var last = authorScroll.firstVisibleItemIndex to authorScroll.firstVisibleItemScrollOffset
+        snapshotFlow {
+            AvatarRowPosition(
+                index = authorScroll.firstVisibleItemIndex,
+                offset = authorScroll.firstVisibleItemScrollOffset,
+                scrolling = authorScroll.isScrollInProgress,
+            )
+        }.collect { position ->
+            if (!position.scrolling) {
+                rowScroll.direction = 0
+            } else {
+                rowScroll.direction = when {
+                    position.index > last.first -> 1
+                    position.index < last.first -> -1
+                    position.offset > last.second -> 1
+                    position.offset < last.second -> -1
+                    else -> rowScroll.direction
+                }
+            }
+            last = position.index to position.offset
+        }
+    }
+    return rowScroll
+}
+
+/**
+ * 切换 UP 时把目标头像滚进视口，再让环从源头像出发。
+ * 单独拆出来，主 Composable 才能守住 80 行的尺寸门槛。
+ */
+@Composable
+private fun FeedAvatarRingEffect(
+    state: FeedState,
+    profile: UserProfile?,
+    ring: FeedAvatarRingState,
+    authorScroll: LazyListState,
+    selectedKey: Any,
+) {
+    val gapPx = with(androidx.compose.ui.platform.LocalDensity.current) { 8.dp.toPx() }
+    LaunchedEffect(selectedKey) {
+        // 滚动会改变锚点，先把环现在的落点冻结下来，作为锚点被回收时的兜底。
+        val source = ring.currentRect()
+        // 源头像此刻还有没有实时测量点：没有就说明它本来就在屏幕外，
+        // 滚动方向不能反过来覆盖已经记住的那一侧。
+        val sourceLive = ring.hasLiveAnchor()
+        val index = feedAvatarIndex(state, profile?.mid, selectedKey)
+        // 目标可能还在屏幕外：先用行内间距估一个位置，环就不用等头像行滚完。
+        val estimate = if (index >= 0) authorScroll.estimateAvatarRect(index, ring, gapPx) else null
+        val sourceIndex = feedAvatarIndex(state, profile?.mid, ring.selectedKey)
+        // 目标在源头像右边 = 头像行往后滚（内容左移），源头像从左边出；反之亦然。
+        val expectedDelta = if (sourceLive && sourceIndex >= 0 && index >= 0) {
+            when {
+                index > sourceIndex -> 1
+                index < sourceIndex -> -1
+                else -> 0
+            }
+        } else {
+            0
+        }
+        // 头像行滚动和环同时开始：不再"滚完再绕"。
+        kotlinx.coroutines.coroutineScope {
+            val scroll = launch {
+                if (state.filterMid == null) {
+                    authorScroll.animateScrollToItem(0)
+                } else if (index >= 0) {
+                    authorScroll.ensureFullyVisible(index, gapPx)
+                }
+            }
+            ring.moveTo(selectedKey, source, expectedDelta, estimate)
+            scroll.join()
+        }
+    }
+}
+
+/**
+ * 目标头像还在屏幕外时的估算位置：头像行定宽（56dp + 12dp 间距），
+ * 用可见项的平均步距外推即可；纵向/尺寸沿用任意一个已测量头像。
+ */
+private fun LazyListState.estimateAvatarRect(
+    index: Int,
+    ring: FeedAvatarRingState,
+    gapPx: Float,
+): Rect? {
+    val info = layoutInfo
+    val visible = info.visibleItemsInfo
+    if (index < 0 || visible.isEmpty()) return null
+    val reference = ring.referenceAvatarRect() ?: return null
+    val first = visible.first()
+    val last = visible.last()
+    val pitch = if (last.index > first.index) {
+        (last.offset - first.offset).toFloat() / (last.index - first.index)
+    } else {
+        first.size + gapPx
+    }
+    val itemX = -info.viewportStartOffset + first.offset + pitch * (index - first.index)
+    val avatarX = itemX + (first.size - reference.width) / 2f
+    return Rect(avatarX, reference.top, avatarX + reference.width, reference.bottom)
 }
 
 /** 把 [index] 滚到"完整露出"：已经在视口里就不动，否则居中；两端夹住时只补差额。 */

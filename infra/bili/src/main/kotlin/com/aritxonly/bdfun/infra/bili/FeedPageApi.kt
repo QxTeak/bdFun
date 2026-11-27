@@ -169,4 +169,27 @@ internal suspend fun BiliApiContext.likeFeed(id: String, like: Boolean): Boolean
     }.getOrDefault(false)
 }
 
+/**
+ * 举报动态。端点与参数对齐 PiliPlus（`UserHttp.dynamicReport`）：
+ * `/x/dynamic/feed/dynamic_report/add`，form 提交 accused_uid / dynamic_id / reason_type / reason_desc。
+ */
+internal suspend fun BiliApiContext.reportDynamic(
+    dynamicId: String,
+    accusedMid: Long,
+    reason: com.aritxonly.bdfun.core.domain.DynamicReportReason,
+): Unit = withContext(Dispatchers.IO) {
+    ensureBuvid()
+    postRequest(
+        "/x/dynamic/feed/dynamic_report/add",
+        mapOf(
+            "accused_uid" to accusedMid.toString(),
+            "dynamic_id" to dynamicId,
+            "reason_type" to reason.code.toString(),
+            "reason_desc" to "",
+            "csrf" to csrf,
+        ),
+    )
+    Unit
+}
+
 /** 动态详情评论（type=17）。 */

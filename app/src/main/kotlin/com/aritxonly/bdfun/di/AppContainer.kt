@@ -214,7 +214,7 @@ internal class AppContainer(
             com.aritxonly.bdfun.core.model.pgc.BangumiRankTab(rankId, title, oid))
 
     private val dynamicRepository by lazy {
-        BiliFeedPageRepository({ type, offset, mid -> api.dynamicPage(type, offset, mid) }, api::dynamicPortal, api::dynamicUpList, api::likeFeed)
+        BiliFeedPageRepository({ type, offset, mid -> api.dynamicPage(type, offset, mid) }, api::dynamicPortal, api::dynamicUpList, api::likeFeed, api::reportDynamic)
     }
     private val dynamicFeedSlots by lazy {
         DynamicFeedSlots(

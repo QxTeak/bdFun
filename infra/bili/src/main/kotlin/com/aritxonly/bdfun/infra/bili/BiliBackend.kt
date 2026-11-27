@@ -132,6 +132,11 @@ open class BiliBackend(context: Context, debug: Boolean, log: (String, String) -
     override suspend fun dynamicUpList(offset: String) = api.dynamicUpList(offset)
     suspend fun dynamicDetail(id: String) = api.dynamicDetail(id)
     suspend fun likeFeed(id: String, like: Boolean) = api.likeFeed(id, like)
+    suspend fun reportDynamic(
+        dynamicId: String,
+        accusedMid: Long,
+        reason: com.aritxonly.bdfun.core.domain.DynamicReportReason,
+    ) = api.reportDynamic(dynamicId, accusedMid, reason)
     suspend fun dynamicComments(id: String, page: Int = 1) = api.dynamicComments(id, page)
     suspend fun sendFeedComment(id: String, message: String) = api.sendFeedComment(id, message)
     suspend fun spaceChargeCount(mid: Long) = api.spaceChargeCount(mid)
