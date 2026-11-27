@@ -1,6 +1,19 @@
 package com.aritxonly.bdfun.ui
 
+import androidx.compose.foundation.Canvas
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 
 /**
  * 头像滑出视口的方向。环下一次从屏幕外出发时必须用它决定从哪一侧滑进来，
@@ -51,3 +64,31 @@ internal fun feedRingIsOffscreen(rect: Rect, viewportWidth: Float): Boolean =
 /** 没有任何方向记录时的兜底：从离它最近的那一侧进来。 */
 internal fun feedRingNearestSide(rect: Rect, viewportWidth: Float): FeedRingSide =
     if (rect.left + rect.width / 2f < viewportWidth / 2f) FeedRingSide.Left else FeedRingSide.Right
+
+/** 给头像圆加这一颗的测量点。 */
+internal fun Modifier.feedAvatarAnchor(state: FeedAvatarRingState, key: Any): Modifier =
+    onGloballyPositioned { state.onAnchor(key, it.boundsInRoot()) }
+
+/** 环的绘制入口：状态在 [FeedAvatarRingState]，这里只负责把它画到覆盖层上。 */
+@Composable
+internal fun FeedAvatarRingOverlay(
+    state: FeedAvatarRingState,
+    color: Color,
+    modifier: Modifier = Modifier,
+    strokeWidth: Dp = 2.dp,
+) {
+    // Stroke 每帧都要传进 drawArc，提到组合里复用，动画期间不再逐帧新建。
+    val strokePx = with(LocalDensity.current) { strokeWidth.toPx() }
+    val stroke = remember(strokePx) { Stroke(width = strokePx, cap = StrokeCap.Round) }
+    Canvas(modifier.onGloballyPositioned {
+        state.originInRoot = it.positionInRoot()
+        state.onViewportWidth(it.size.width)
+    }) {
+        state.drawInto(this, color, stroke)
+    }
+}
+
+/** 调试用：把矩形缩成一行，方便排查环为什么会缩。 */
+internal fun Rect?.desc(): String =
+    this?.let { "${it.left.toInt()},${it.top.toInt()} ${it.width.toInt()}x${it.height.toInt()}" } ?: "null"
+

@@ -30,6 +30,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -261,27 +262,65 @@ private fun FeedAvatarRingEffect(
     authorScroll: LazyListState,
     selectedKey: Any,
 ) {
-    // 不能边滚边绕：目标半露时环会被卡片裁掉一截，看起来像缩小。
     val gapPx = with(androidx.compose.ui.platform.LocalDensity.current) { 8.dp.toPx() }
     LaunchedEffect(selectedKey) {
-        // 滚动会改变锚点，先把环现在的落点冻结下来，滚完仍从原来的位置出发。
+        // 滚动会改变锚点，先把环现在的落点冻结下来，作为锚点被回收时的兜底。
         val source = ring.currentRect()
         // 源头像此刻还有没有实时测量点：没有就说明它本来就在屏幕外，
         // 滚动方向不能反过来覆盖已经记住的那一侧。
         val sourceLive = ring.hasLiveAnchor()
-        val scrollBefore = authorScroll.positionToken()
-        val scrolled = if (state.filterMid == null) {
-            authorScroll.animateScrollToItem(0)
-            true
+        val index = feedAvatarIndex(state, profile?.mid, selectedKey)
+        // 目标可能还在屏幕外：先用行内间距估一个位置，环就不用等头像行滚完。
+        val estimate = if (index >= 0) authorScroll.estimateAvatarRect(index, ring, gapPx) else null
+        val sourceIndex = feedAvatarIndex(state, profile?.mid, ring.selectedKey)
+        // 目标在源头像右边 = 头像行往后滚（内容左移），源头像从左边出；反之亦然。
+        val expectedDelta = if (sourceLive && sourceIndex >= 0 && index >= 0) {
+            when {
+                index > sourceIndex -> 1
+                index < sourceIndex -> -1
+                else -> 0
+            }
         } else {
-            val index = feedAvatarIndex(state, profile?.mid, selectedKey)
-            index >= 0 && authorScroll.ensureFullyVisible(index, gapPx)
+            0
         }
-        // 只有真的滚了才等一帧；目标本来就完整露出时直接开动画，少 1 帧延迟。
-        if (scrolled) withFrameNanos { }
-        val scrollDelta = if (sourceLive) authorScroll.scrollDirection(scrollBefore) else 0
-        ring.moveTo(selectedKey, source, scrollDelta)
+        // 头像行滚动和环同时开始：不再"滚完再绕"。
+        kotlinx.coroutines.coroutineScope {
+            val scroll = launch {
+                if (state.filterMid == null) {
+                    authorScroll.animateScrollToItem(0)
+                } else if (index >= 0) {
+                    authorScroll.ensureFullyVisible(index, gapPx)
+                }
+            }
+            ring.moveTo(selectedKey, source, expectedDelta, estimate)
+            scroll.join()
+        }
     }
+}
+
+/**
+ * 目标头像还在屏幕外时的估算位置：头像行定宽（56dp + 12dp 间距），
+ * 用可见项的平均步距外推即可；纵向/尺寸沿用任意一个已测量头像。
+ */
+private fun LazyListState.estimateAvatarRect(
+    index: Int,
+    ring: FeedAvatarRingState,
+    gapPx: Float,
+): Rect? {
+    val info = layoutInfo
+    val visible = info.visibleItemsInfo
+    if (index < 0 || visible.isEmpty()) return null
+    val reference = ring.referenceAvatarRect() ?: return null
+    val first = visible.first()
+    val last = visible.last()
+    val pitch = if (last.index > first.index) {
+        (last.offset - first.offset).toFloat() / (last.index - first.index)
+    } else {
+        first.size + gapPx
+    }
+    val itemX = -info.viewportStartOffset + first.offset + pitch * (index - first.index)
+    val avatarX = itemX + (first.size - reference.width) / 2f
+    return Rect(avatarX, reference.top, avatarX + reference.width, reference.bottom)
 }
 
 /** 把 [index] 滚到"完整露出"：已经在视口里就不动，否则居中；两端夹住时只补差额。 */
@@ -315,20 +354,4 @@ private suspend fun LazyListState.ensureFullyVisible(index: Int, gapPx: Float): 
         return false
     }
     return true
-}
-
-/** 滚动位置快照：只用于比较切换前后头像栏往哪边滚了。 */
-private fun LazyListState.positionToken(): Pair<Int, Int> =
-    firstVisibleItemIndex to firstVisibleItemScrollOffset
-
-/** 正数=内容左移（列表往后滚），负数=内容右移；没动返回 0。 */
-private fun LazyListState.scrollDirection(before: Pair<Int, Int>): Int {
-    val after = positionToken()
-    return when {
-        after.first > before.first -> 1
-        after.first < before.first -> -1
-        after.second > before.second -> 1
-        after.second < before.second -> -1
-        else -> 0
-    }
 }

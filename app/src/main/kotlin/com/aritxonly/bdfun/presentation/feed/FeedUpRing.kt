@@ -100,6 +100,10 @@ internal class FeedAvatarRingState {
         fromKey?.let { anchors[it] } ?: anchors[selectedKey]
             ?: lastSelectedLocal?.translate(originInRoot.x, originInRoot.y)
 
+    /** 选一个已知头像当尺寸/行高参考：目标还没滚进视口时用它估算位置。 */
+    internal fun referenceAvatarRect(): Rect? =
+        anchors[selectedKey]?.toLocal() ?: lastSelectedLocal ?: anchors[FeedAllAvatarKey]?.toLocal()
+
     /** 选中头像现在还有没有实时测量点（头像栏滚动后据此决定用实测位置还是屏幕外起点）。 */
     internal fun hasLiveAnchor(key: Any = selectedKey): Boolean = anchors[key] != null
 
@@ -112,8 +116,14 @@ internal class FeedAvatarRingState {
      * [source] 是调用方在滚动头像栏之前冻结的起点；为空时退回到当前锚点。
      * [scrollDelta] 是本次切换为了让目标完整露出而滚动的方向：正数=内容左移（源头像从左边出），
      * 负数=内容右移。源头像在滚动后被回收时，只有它才能说明真实方向。
+     * [estimatedTarget] 是目标还没被测量时（还在屏幕外）的估算位置，让环能和头像行同时出发。
      */
-    internal suspend fun moveTo(target: Any, source: Rect? = null, scrollDelta: Int = 0) {
+    internal suspend fun moveTo(
+        target: Any,
+        source: Rect? = null,
+        scrollDelta: Int = 0,
+        estimatedTarget: Rect? = null,
+    ) {
         if (!primed) {
             primed = true
             selectedKey = target
@@ -121,12 +131,12 @@ internal class FeedAvatarRingState {
             return
         }
         if (target == selectedKey && progress.value >= 1f) return
-        // 目标可能刚被滚进视口、这一帧还没测量到：最多等两帧再决定要不要瞬移。
-        var toRect = anchors[target]?.toLocal()
+        // 目标可能刚被滚进视口、这一帧还没测量到：有估算就先用估算，不然最多等两帧。
+        var toRect = anchors[target]?.toLocal() ?: estimatedTarget
         var waits = 0
         while (toRect == null && waits < 2) {
             withFrameNanos { }
-            toRect = anchors[target]?.toLocal()
+            toRect = anchors[target]?.toLocal() ?: estimatedTarget
             waits++
         }
         val measuredStart = anchors[selectedKey]?.toLocal()
@@ -244,7 +254,11 @@ internal class FeedAvatarRingState {
         // 锚点是 root 坐标、冻结矩形是卡片内坐标：统一换到卡片内再画，
         // 这样整个动态列表上下滚动时，起点也不会"跑到屏幕上/下方去"。
         val end = toKey?.let { anchors[it] }?.toLocal() ?: to
-        val start = fromKey?.let { anchors[it] }?.toLocal() ?: from
+        val liveStart = fromKey?.let { anchors[it] }?.toLocal()
+        // 源头像在滚动中被回收时，用它最后被测量的位置（lastSelectedLocal）继续，
+        // 不要退回动画开始时的冻结位置，否则线会跳回原处。
+        val start = liveStart
+            ?: if (fromKey != null && fromKey == selectedKey) lastSelectedLocal else from
         if (start != null && end != null) {
             val startOffscreen = feedRingIsOffscreen(start, viewportWidth)
             scope.drawMorphRing(start, end, progress.value, color, stroke, startOffscreen)
@@ -259,26 +273,6 @@ internal class FeedAvatarRingState {
 }
 
 /** 给头像圆加这一颗的测量点。 */
-internal fun Modifier.feedAvatarAnchor(state: FeedAvatarRingState, key: Any): Modifier =
-    onGloballyPositioned { state.onAnchor(key, it.boundsInRoot()) }
-
-@Composable
-internal fun FeedAvatarRingOverlay(
-    state: FeedAvatarRingState,
-    color: Color,
-    modifier: Modifier = Modifier,
-    strokeWidth: Dp = 2.dp,
-) {
-    // Stroke 每帧都要传进 drawArc，提到组合里复用，动画期间不再逐帧新建。
-    val strokePx = with(LocalDensity.current) { strokeWidth.toPx() }
-    val stroke = remember(strokePx) { Stroke(width = strokePx, cap = StrokeCap.Round) }
-    Canvas(modifier.onGloballyPositioned {
-        state.originInRoot = it.positionInRoot()
-        state.onViewportWidth(it.size.width)
-    }) {
-        state.drawInto(this, color, stroke)
-    }
-}
 
 private fun DrawScope.drawStaticRing(rect: Rect, color: Color, stroke: Stroke) {
     val radius = rect.minDimension / 2f - stroke.width / 2f
@@ -388,6 +382,3 @@ private fun DrawScope.drawSegment(
     )
 }
 
-/** 调试用：把矩形缩成一行，方便排查环为什么会缩。 */
-private fun Rect?.desc(): String =
-    this?.let { "${it.left.toInt()},${it.top.toInt()} ${it.width.toInt()}x${it.height.toInt()}" } ?: "null"
