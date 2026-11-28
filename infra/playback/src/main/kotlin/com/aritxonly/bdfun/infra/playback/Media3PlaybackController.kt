@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import java.io.File
 import java.util.concurrent.CopyOnWriteArrayList
 
-/** 保留原解码、音频焦点；所有传输命令只落到这一适配器。 */
+/** 淇濈暀鍘熻В鐮併€侀煶棰戠劍鐐癸紱鎵€鏈変紶杈撳懡浠ゅ彧钀藉埌杩欎竴閫傞厤鍣ㄣ€?*/
 @OptIn(UnstableApi::class)
 class Media3PlaybackController(
     context: Context,
@@ -57,14 +57,14 @@ class Media3PlaybackController(
     private var retryJob: Job? = null
     private var mediaKey: String? = null
 
-    // ---- DASH 自适应源 ----
-    // 同一内容的换档只改轨道选择；这些字段记录当前播放器里装的是哪份 MPD。
+    // ---- DASH 鑷€傚簲婧?----
+    // 鍚屼竴鍐呭鐨勬崲妗ｅ彧鏀硅建閬撻€夋嫨锛涜繖浜涘瓧娈佃褰曞綋鍓嶆挱鏀惧櫒閲岃鐨勬槸鍝唤 MPD銆?
     private var dashMediaKey: String? = null
     private var dashManifestSignature: String? = null
     private var dashTracks: List<PlaybackDashTrack> = emptyList()
     private var dashQuality = 0
     private var pendingDashQuality: Int? = null
-    /** DASH 首帧前失败时只回退一次渐进流，避免坏 MPD 把页面卡死。 */
+    /** DASH 棣栧抚鍓嶅け璐ユ椂鍙洖閫€涓€娆℃笎杩涙祦锛岄伩鍏嶅潖 MPD 鎶婇〉闈㈠崱姝汇€?*/
     private var dashFallbackDone = false
     private var renderedFirstFrame = false
     private var dashWatchdogJob: Job? = null
@@ -86,14 +86,14 @@ class Media3PlaybackController(
             listeners.forEach { it.onPhaseChanged(mutableState.value.phase) }
         }
         override fun onTracksChanged(tracks: Tracks) {
-            // 轨道表刚就绪时补一次挂起的换档；换档本身不会再重建 MediaSource。
+            // 杞ㄩ亾琛ㄥ垰灏辩华鏃惰ˉ涓€娆℃寕璧风殑鎹㈡。锛涙崲妗ｆ湰韬笉浼氬啀閲嶅缓 MediaSource銆?
             pendingDashQuality?.let { quality -> applyDashVideoQuality(quality) }
         }
         override fun onPlayerError(error: PlaybackException) {
             buffering.invalidate()
             val failure = PlaybackFailure(error.errorCodeName, error.message)
             mutableState.value = mutableState.value.copy(error = failure)
-            // 本地 MPD 的兼容性因设备而异：首帧前失败先退回渐进流，别让整页直接报错。
+            // 鏈湴 MPD 鐨勫吋瀹规€у洜璁惧鑰屽紓锛氶甯у墠澶辫触鍏堥€€鍥炴笎杩涙祦锛屽埆璁╂暣椤电洿鎺ユ姤閿欍€?
             val source = lastSource
             if (!renderedFirstFrame && !dashFallbackDone && source?.dash != null) {
                 dashFallbackDone = true
@@ -125,7 +125,7 @@ class Media3PlaybackController(
         buffering.sample(android.os.SystemClock.elapsedRealtime(), player.isPlaying,
             phase == PlaybackPhase.Buffering, phase == PlaybackPhase.Ended)
         val videoSize = videoHandoff.videoSize
-        // 值没变就不重新发布：暂停/缓冲时 refresher 仍可安全调用，但不会无意义地惊动观察者。
+        // 鍊兼病鍙樺氨涓嶉噸鏂板彂甯冿細鏆傚仠/缂撳啿鏃?refresher 浠嶅彲瀹夊叏璋冪敤锛屼絾涓嶄細鏃犳剰涔夊湴鎯婂姩瑙傚療鑰呫€?
         val next = reducePlaybackSnapshot(mutableState.value,
             phase, player.isPlaying, player.playWhenReady, player.currentPosition,
             player.bufferedPosition, player.duration, player.playbackParameters.speed,
@@ -143,7 +143,7 @@ class Media3PlaybackController(
         }
         videoHandoff.showPrimary(source.videoTarget)
         val dash = source.dash
-        // 同一视频/分 P 只换画质：直接改轨道选择，播放位置和音频轨都不动。
+        // 鍚屼竴瑙嗛/鍒?P 鍙崲鐢昏川锛氱洿鎺ユ敼杞ㄩ亾閫夋嫨锛屾挱鏀句綅缃拰闊抽杞ㄩ兘涓嶅姩銆?
         if (dash != null && canSwitchDashInPlace(source)) {
             if (selectDashQuality(dash.videoQualityId)) {
                 lastSource = source
@@ -158,7 +158,7 @@ class Media3PlaybackController(
         if (released || dashMediaKey == null || dashMediaKey != mediaKey) return false
         if (dashTracks.none { it.id == qualityId }) return false
         if (player.currentTracks.groups.isEmpty()) {
-            // 轨道还没就绪：先挂起，onTracksChanged 里补上，不重建播放源。
+            // 杞ㄩ亾杩樻病灏辩华锛氬厛鎸傝捣锛宱nTracksChanged 閲岃ˉ涓婏紝涓嶉噸寤烘挱鏀炬簮銆?
             pendingDashQuality = qualityId
             dashQuality = qualityId
             return true
@@ -169,7 +169,7 @@ class Media3PlaybackController(
     private fun canSwitchDashInPlace(source: PlaybackSource): Boolean {
         val dash = source.dash ?: return false
         return dashMediaKey != null && dashMediaKey == source.mediaKey &&
-            dashManifestSignature == dash.manifest.signature()
+            dashManifestSignature == dash.manifest.playbackSignature()
     }
 
     private fun prepareSource(source: PlaybackSource, recovering: Boolean) {
@@ -188,12 +188,12 @@ class Media3PlaybackController(
         val dash = source.dash
         val media = (dash?.let { createDashMediaSource(it, data) }) ?: createProgressiveMediaSource(source, data)
         mutableState.value = mutableState.value.copy(error = null)
-        // 起始位置随媒体源一次提交，避免 prepare 后再 seek 短暂发布零进度。
+        // 璧峰浣嶇疆闅忓獟浣撴簮涓€娆℃彁浜わ紝閬垮厤 prepare 鍚庡啀 seek 鐭殏鍙戝竷闆惰繘搴︺€?
         mediaKey = continued.mediaKey
         renderedFirstFrame = false
         if (dash != null && media is DashMediaSource) {
             dashMediaKey = continued.mediaKey
-            dashManifestSignature = dash.manifest.signature()
+            dashManifestSignature = dash.manifest.playbackSignature()
             dashTracks = dash.videoTracks
             dashQuality = dash.videoQualityId
             pendingDashQuality = dash.videoQualityId
@@ -205,7 +205,7 @@ class Media3PlaybackController(
         player.setMediaSource(media, continued.resumePositionMs.coerceAtLeast(0))
         player.prepare()
         player.playWhenReady = continued.autoPlay
-        // 与 BiliPai 一致：显式给 pitch=1.0，避免某些设备/Sonic 组合把音高带偏。
+        // 涓?BiliPai 涓€鑷达細鏄惧紡缁?pitch=1.0锛岄伩鍏嶆煇浜涜澶?Sonic 缁勫悎鎶婇煶楂樺甫鍋忋€?
         player.playbackParameters = PlaybackParameters(continued.speed.coerceAtLeast(0.1f), 1f)
         refresh()
     }
@@ -235,13 +235,13 @@ class Media3PlaybackController(
     }
 
     /**
-     * 把 MPD 写成 cache 文件再交给 DashMediaSource：B 站没有现成 manifest 地址，
-     * 只能自己拼。文件按内容 hash 复用，同一视频旋转/切档不会重复写盘。
+     * 鎶?MPD 鍐欐垚 cache 鏂囦欢鍐嶄氦缁?DashMediaSource锛欱 绔欐病鏈夌幇鎴?manifest 鍦板潃锛?
+     * 鍙兘鑷繁鎷笺€傛枃浠舵寜鍐呭 hash 澶嶇敤锛屽悓涓€瑙嗛鏃嬭浆/鍒囨。涓嶄細閲嶅鍐欑洏銆?
      */
     private fun createDashMediaSource(dash: PlaybackDashSource, data: DefaultDataSource.Factory): MediaSource? {
         val file = runCatching {
             val dir = File(appContext.cacheDir, "dash_manifests").apply { mkdirs() }
-            val target = File(dir, "dash_${dash.manifest.signature()}.mpd")
+            val target = File(dir, "dash_${dash.manifest.playbackSignature()}.mpd")
             if (!target.exists() || target.length() == 0L) target.writeText(dash.manifest)
             target
         }.getOrNull() ?: return null
@@ -252,8 +252,7 @@ class Media3PlaybackController(
                 .build(),
         )
     }
-
-    /** 首帧前把可选分辨率压到目标档位：否则 ExoPlayer 可能先按最高码率起播再被 override 切下来。 */
+    /** 棣栧抚鍓嶆妸鍙€夊垎杈ㄧ巼鍘嬪埌鐩爣妗ｄ綅锛氬惁鍒?ExoPlayer 鍙兘鍏堟寜鏈€楂樼爜鐜囪捣鎾啀琚?override 鍒囦笅鏉ャ€?*/
     private fun constrainInitialVideo(dash: PlaybackDashSource) {
         val track = dash.videoTracks.firstOrNull { it.id == dash.videoQualityId } ?: return
         if (track.width <= 0 || track.height <= 0) return
@@ -266,10 +265,9 @@ class Media3PlaybackController(
             }
             .build()
     }
-
     /**
-     * MPD 能出声但视频轨一直不出帧时 ExoPlayer 不会报错：首帧前超时也退回一次渐进流，
-     * 宁可回到旧的换源方式，也不要让用户对着一块黑屏。
+     * MPD 鑳藉嚭澹颁絾瑙嗛杞ㄤ竴鐩翠笉鍑哄抚鏃?ExoPlayer 涓嶄細鎶ラ敊锛氶甯у墠瓒呮椂涔熼€€鍥炰竴娆℃笎杩涙祦锛?
+     * 瀹佸彲鍥炲埌鏃х殑鎹㈡簮鏂瑰紡锛屼篃涓嶈璁╃敤鎴峰鐫€涓€鍧楅粦灞忋€?
      */
     private fun armDashWatchdog() {
         dashWatchdogJob?.cancel()
@@ -284,8 +282,7 @@ class Media3PlaybackController(
             prepareSource(source.copy(dash = null), recovering = true)
         }
     }
-
-    /** 在当前 TrackGroup 里找到目标档位并锁定；音频组不碰。 */
+    /** 鍦ㄥ綋鍓?TrackGroup 閲屾壘鍒扮洰鏍囨。浣嶅苟閿佸畾锛涢煶棰戠粍涓嶇銆?*/
     private fun applyDashVideoQuality(qualityId: Int): Boolean {
         val track = dashTracks.firstOrNull { it.id == qualityId } ?: return false
         val group = player.currentTracks.groups.firstOrNull { it.type == C.TRACK_TYPE_VIDEO } ?: return false
@@ -304,7 +301,6 @@ class Media3PlaybackController(
             .build()
         return true
     }
-
     private fun selectDashQuality(qualityId: Int): Boolean {
         if (dashTracks.none { it.id == qualityId }) return false
         if (player.currentTracks.groups.isEmpty()) {
@@ -314,7 +310,6 @@ class Media3PlaybackController(
         }
         return applyDashVideoQuality(qualityId)
     }
-
     private fun clearDash() {
         dashWatchdogJob?.cancel()
         dashWatchdogJob = null
@@ -337,15 +332,15 @@ class Media3PlaybackController(
             val current = refresh()
             val source = lastSource ?: return@launch
             if (retryCount <= 1) {
-                // 第一次重试只在同一媒体源内恢复：已经缓冲的片段和解码器都留着，
-                // 网络抖一下不用整条重搭，恢复更快。
+                // 绗竴娆￠噸璇曞彧鍦ㄥ悓涓€濯掍綋婧愬唴鎭㈠锛氬凡缁忕紦鍐茬殑鐗囨鍜岃В鐮佸櫒閮界暀鐫€锛?
+                // 缃戠粶鎶栦竴涓嬩笉鐢ㄦ暣鏉￠噸鎼紝鎭㈠鏇村揩銆?
                 player.seekTo(current.positionMs)
                 videoHandoff.seek(current.positionMs)
                 player.playWhenReady = current.playWhenReady
                 player.prepare()
                 refresh()
             } else {
-                // 再不行才换一次新地址重搭（和原来一致）。
+                // 鍐嶄笉琛屾墠鎹竴娆℃柊鍦板潃閲嶆惌锛堝拰鍘熸潵涓€鑷达級銆?
                 prepareSource(source.copy(resumePositionMs = current.positionMs,
                     autoPlay = current.playWhenReady, speed = current.speed), recovering = true)
             }
@@ -354,11 +349,11 @@ class Media3PlaybackController(
     }
     override fun play() {
         if (released) return
-        // ExoPlayer 停在 Ended 时 playWhenReady 仍是 true，单发 play() 是空操作：
-        // 必须先回到起点，用户点播放才真的能重看（拖进度条能重播就是这个原因）。
+        // ExoPlayer 鍋滃湪 Ended 鏃?playWhenReady 浠嶆槸 true锛屽崟鍙?play() 鏄┖鎿嶄綔锛?
+        // 蹇呴』鍏堝洖鍒拌捣鐐癸紝鐢ㄦ埛鐐规挱鏀炬墠鐪熺殑鑳介噸鐪嬶紙鎷栬繘搴︽潯鑳介噸鎾氨鏄繖涓師鍥狅級銆?
         playbackRestartPositionMs(player.playbackState == Player.STATE_ENDED)?.let {
             player.seekTo(it)
-            // seek 之后到 Ready 之间 phase 仍是 Ended，「播放完成」会多挂一会儿，这里直接收掉。
+            // seek 涔嬪悗鍒?Ready 涔嬮棿 phase 浠嶆槸 Ended锛屻€屾挱鏀惧畬鎴愩€嶄細澶氭寕涓€浼氬効锛岃繖閲岀洿鎺ユ敹鎺夈€?
             mutableState.value = mutableState.value.copy(ended = false)
         }
         player.play()
@@ -383,7 +378,7 @@ class Media3PlaybackController(
     override fun addListener(listener: PlaybackController.Listener) { listeners.addIfAbsent(listener) }
     override fun removeListener(listener: PlaybackController.Listener) { listeners.remove(listener) }
     override fun release() {
-        // 后台退出入口可能从清理执行器调用，Media3 仍须在 applicationLooper 释放。
+        // 鍚庡彴閫€鍑哄叆鍙ｅ彲鑳戒粠娓呯悊鎵ц鍣ㄨ皟鐢紝Media3 浠嶉』鍦?applicationLooper 閲婃斁銆?
         if (android.os.Looper.myLooper() != player.applicationLooper) {
             android.os.Handler(player.applicationLooper).post { release() }
             return
@@ -403,5 +398,3 @@ class Media3PlaybackController(
     }
 }
 
-/** MPD 内容签名：同一份 manifest 不重复写盘，也用来判断“同一个自适应源”。 */
-private fun String.signature(): String = "${length}_${hashCode()}"
