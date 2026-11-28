@@ -71,7 +71,11 @@ private fun MessageCenterMaster(
         TeakActivityScaffold(
             settings = AppGraph.settings, onBack = onBack,
             options = ActivityPageOptions(title = "消息", limitContentWidth = false),
-            slots = ActivityPageSlots(topBarActions = { MessageTopActions(showContacts = true) }),
+            slots = ActivityPageSlots(
+                topBarActions = { MessageTopActions(showContacts = true) },
+                // 形变菜单宿主固定在页面采集树之外；按钮与它在同一个 PageChromeScope 里共用状态。
+                menuOverlay = { MessageInboxMorphMenuHost() },
+            ),
         ) { MessageScreenRoute(androidx.compose.ui.platform.LocalContext.current) }
     }
 }
@@ -133,7 +137,10 @@ private fun MessageCenterPage(destination: MessageDestination, onBack: () -> Uni
             is Route.MessageInbox -> TeakActivityScaffold(
                 settings = AppGraph.settings, onBack = onBack,
                 options = ActivityPageOptions(title = route.title, limitContentWidth = false),
-                slots = ActivityPageSlots(topBarActions = { MessageTopActions() }),
+                slots = ActivityPageSlots(
+                    topBarActions = { MessageTopActions() },
+                    menuOverlay = { MessageInboxMorphMenuHost() },
+                ),
             ) {
                 MessageScreen(loggedIn = AppGraph.session.value != null,
                     onNeedLogin = { navigateToLogin(context) }, onBack = onBack,

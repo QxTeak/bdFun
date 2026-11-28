@@ -30,12 +30,6 @@ internal fun MessageSessionsEffects(
         if (!loggedIn) return@LaunchedEffect
         menu.confirmRead = true
     }
-    LaunchedEffect(chrome.moreRequest) {
-        if (ui.consumedMore != chrome.moreRequest) {
-            ui.consumedMore = chrome.moreRequest
-            menu.showMore = true
-        }
-    }
 }
 
 @Composable

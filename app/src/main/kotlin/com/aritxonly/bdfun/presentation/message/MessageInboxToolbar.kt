@@ -11,7 +11,6 @@ private val toolbarTalkerPattern = Regex("/(\\d{3,})")
 
 internal fun messageMenuAction(context: Context, item: MessageMenuItem, menu: MessageSessionMenuStateHolder,
     navigate: (Route) -> Unit = { context.startActivity(createRouteIntent(context, it)) }) {
-    menu.showMore = false
     when (item.type) {
         1 -> menu.confirmRead = true
         9 -> menu.confirmClear = true

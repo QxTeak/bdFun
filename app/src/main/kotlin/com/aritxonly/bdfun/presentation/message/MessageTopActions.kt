@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import com.aritxonly.bdfun.core.navigation.Route
 import com.aritxonly.teak.common.chrome.teakGlassGlyphColor
 import com.aritxonly.teak.common.icons.AppGlyph
+import com.aritxonly.teak.common.navigation.TeakMorphMenuAnchor
+import com.aritxonly.teak.common.navigation.TeakMorphMenuHost
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.extended.ContactsBook
 import androidx.compose.ui.Modifier
@@ -36,12 +38,28 @@ fun MessageTopActions(showContacts: Boolean = false) {
     }
     TeakTopGlassButton(onClick = { MessagePageBus.requestReadAll() },
         modifier = Modifier.semantics { contentDescription = "全部已读" }) { MarkReadGlyph() }
-    TeakTopGlassButton(
-        onClick = { if (MessagePageBus.moreAnchor != Rect.Zero) MessagePageBus.requestMore() },
-        modifier = Modifier
-            .onGloballyPositioned { MessagePageBus.moreAnchor = it.boundsInWindow() }
-            .semantics { contentDescription = "更多消息操作" },
-    ) { ThreeDotsGlyph() }
+    // 省略号改成收藏页同款的玻璃形变菜单：按钮矩形被吸进玻璃，菜单从按钮位置长出来。
+    TeakMorphMenuAnchor(MessagePageBus.moreMenu) { onClick ->
+        TeakTopGlassButton(
+            onClick = onClick,
+            modifier = Modifier.semantics { contentDescription = "更多消息操作" },
+        ) { ThreeDotsGlyph() }
+    }
+}
+
+/**
+ * 消息页“更多”的形变菜单宿主，必须放在 Activity 的 menuOverlay 槽里。
+ *
+ * 页面内容在 backdrop 采集树内，宿主必须在采集树外才能安全采样玻璃；菜单内容由页面
+ * 通过 [PageChromePresentationState.moreMenuContent] 登记，撤场动画期间也一直留在组合里。
+ */
+@Composable
+internal fun MessageInboxMorphMenuHost() {
+    val chrome = LocalPageChromeState.current
+    TeakMorphMenuHost(chrome.moreMenu) { dismiss ->
+        val content = chrome.moreMenuContent
+        if (content != null) content(dismiss)
+    }
 }
 
 

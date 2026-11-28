@@ -28,7 +28,7 @@ fun MessageScreen(
     val scope = rememberMessageTaskScope(controller) { controller.close() }
     val snapshot by androidx.compose.runtime.key(controller) { controller.state.collectAsState() }
     val listState = rememberLazyListState()
-    val ui = remember { MessageSessionsPresentationStateHolder(chrome.readAllRequest, chrome.moreRequest) }
+    val ui = remember { MessageSessionsPresentationStateHolder(chrome.readAllRequest) }
     val menu = remember(controller) { MessageSessionMenuStateHolder() }
     val events = MessageScreenEvents(
         onNeedLogin,
