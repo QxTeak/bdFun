@@ -106,3 +106,7 @@ Run `:app:assembleDebug :app:testDebugUnitTest :TeakUI:testDebugUnitTest`. Host 
   其它页面回落到 Standard，不再各自维护一套 shadow 修饰符。
 - 原因：阴影修饰符和玻璃的 `clip` 挂在同一个节点上时会被裁掉，实际观感就是「没有加深阴影」；
   经典样式保持原来的平面底，不加阴影。
+
+### 2026-11-28 顶栏渐进模糊
+
+对照 Deadliner `3b561656` 的 `ui/material/glass/ProgressiveTopBarMaterial.kt`。TeakUI 的渐进顶栏共用 8dp 基础模糊半径和自上而下的衰减曲线，从高度 60% 开始线性衰减，到底部归零。宿主顶部底色 alpha 为 0.94，在高度 80% 处透明。MIUIX 官方材质分支使用同一 60% 遮罩起点。经典顶栏单独使用 16dp 均匀模糊。
