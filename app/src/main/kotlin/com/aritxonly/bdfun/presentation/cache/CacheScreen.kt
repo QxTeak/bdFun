@@ -37,30 +37,7 @@ internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly
     val scope = androidx.compose.runtime.rememberCoroutineScope()
 
     if (entries.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            // 标题照常渲染，但空提示覆盖整屏居中，不受大标题占位影响。
-            TeakSettingsPage(title = "离线缓存", subtitle = null) {}
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = 32.dp),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = "还没有缓存的视频",
-                    color = colors.onBackground,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Normal,
-                )
-                Text(
-                    text = "在播放器「更多」中选择「缓存」即可下载",
-                    modifier = Modifier.padding(top = 6.dp),
-                    color = colors.onBackgroundVariant,
-                    fontSize = 12.sp,
-                )
-            }
-        }
+        CacheEmptyState()
         return
     }
 
@@ -99,6 +76,8 @@ internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly
                         ) { onOpen(playable) }
                     },
                     onDelete = {
+                        // 先声明是手动删除，列表随后自动扣掉这一项时才炸粒子。
+                        particle.expectRemoval(listOf(entry.id))
                         // 删除会在后台递归删文件；界面这边先给提示，列表随后自动更新。
                         scope.launch { queue.delete(entry.id) }
                         context.showToast("已删除缓存")
@@ -108,5 +87,32 @@ internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly
         }
     }
     com.aritxonly.teak.common.motion.TeakParticleBurstLayer(particle)
+    }
+}
+
+@Composable
+private fun CacheEmptyState() {
+    val colors = MiuixTheme.colorScheme
+    Box(modifier = Modifier.fillMaxSize()) {
+        // 标题照常渲染，但空提示覆盖整屏居中，不受大标题占位影响。
+        TeakSettingsPage(title = "离线缓存", subtitle = null) {}
+        Column(
+            modifier = Modifier.fillMaxSize().padding(horizontal = 32.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "还没有缓存的视频",
+                color = colors.onBackground,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+            )
+            Text(
+                text = "在播放器「更多」中选择「缓存」即可下载",
+                modifier = Modifier.padding(top = 6.dp),
+                color = colors.onBackgroundVariant,
+                fontSize = 12.sp,
+            )
+        }
     }
 }

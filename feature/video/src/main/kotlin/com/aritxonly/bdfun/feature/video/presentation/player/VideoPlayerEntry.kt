@@ -20,6 +20,11 @@ fun VideoPlayerEntry(
     val playback = remember {
         ports.createPlayback()
     }
+    // 评论区时间点需要页面级的 seek 端口；播放器组合/释放时同步登记与清理。
+    androidx.compose.runtime.DisposableEffect(playback, ports.engine.page) {
+        ports.engine.page.seekAction = { positionMs -> playback.seekTo(positionMs) }
+        onDispose { ports.engine.page.seekAction = null }
+    }
     val observed = rememberPlayerObservedState(playback)
     BindPlayerInitialEffects(playback, media, ui, ports.engine)
     val tracking = remember { ports.tracking() }

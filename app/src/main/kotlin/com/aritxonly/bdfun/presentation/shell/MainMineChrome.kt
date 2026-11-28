@@ -1,10 +1,17 @@
 package com.aritxonly.bdfun
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.DisposableEffect
 import com.aritxonly.bdfun.ui.findHostActivity
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -29,11 +36,30 @@ internal fun BoxScope.MainMineChrome(shell: MainShellState, pageFloat: Float) {
         onDispose { if (previous != null) window?.isStatusBarContrastEnforced = previous }
     }
     CompositionLocalProvider(LocalTopBarScrollProgress provides shell.chrome.mine.materialProgress) {
-        ProgressiveTopBarMaterial(modifier = Modifier.align(Alignment.TopCenter).graphicsLayer {
-            translationX = (2f - pageFloat) * size.width
-            alpha = (pageFloat - 1f).coerceIn(0f, 1f)
-        }) {
-            MineTopAppBar(showSettings = widthDp < 600f) { navigateToSettings(context) }
+        // 换页淡出时半透明层要撑到材质高度，否则底部那段模糊会被裁成一条硬边。
+        val density = LocalDensity.current
+        var materialHeightPx by remember { mutableIntStateOf(0) }
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .then(
+                    if (materialHeightPx > 0) {
+                        Modifier.height(with(density) { materialHeightPx.toDp() })
+                    } else {
+                        Modifier
+                    },
+                )
+                .graphicsLayer {
+                    translationX = (2f - pageFloat) * size.width
+                    alpha = (pageFloat - 1f).coerceIn(0f, 1f)
+                },
+        ) {
+            ProgressiveTopBarMaterial(
+                onMaterialHeightPx = { px -> if (px != materialHeightPx) materialHeightPx = px },
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                MineTopAppBar(showSettings = widthDp < 600f) { navigateToSettings(context) }
+            }
         }
     }
 }

@@ -68,3 +68,10 @@ UP 之间切换用真正的 `HorizontalPager`，参数和空间页 `SpaceContent
 - 退出只有三个入口：返回键、点「全部动态」、在列表顶部下拉超过 76dp（`FeedUpExitPull`，这一页不刷新）；
   退场动画期间 `interactive = false`，整页吃掉点击，pager 停稳回调也不会把刚退出的 UP 再 filterTo 回来。
 
+
+
+## 2026-11-28 UP 页顶栏：模糊与头像名称同一拍
+
+- 窄屏 UP 页的悬浮顶栏（头像行）不再常驻模糊：停在列表顶部时材质进度为 0（看不到模糊），一离开顶部就在固定 260ms 内补到 1（`rememberFeedUpHeaderProgress`，`FastOutSlowInEasing`），回到顶部同一条时间线反向；时长与手指速度无关。`teakProgressiveBarBlur(materialProgress = ...)` 接这个进度。
+- 头像下面的名称（`AuthorAvatar` / `AllFeedAvatar` / `LiveAvatar` 那行 9.5sp 小字）拿同一个 State：`LocalFeedAvatarLabelFade` 由 UP 页顶栏提供，`feedAvatarLabelFade` 只改绘制期 alpha，**不参与布局**，所以行高、列表顶部留白、卡片位置都不变，也不会出现跳一下。名称淡出与模糊渐显因此严格同拍。
+- 动态页那张头像卡片不提供该 CompositionLocal，名称照旧常显；宽屏走作者侧栏，不受影响。

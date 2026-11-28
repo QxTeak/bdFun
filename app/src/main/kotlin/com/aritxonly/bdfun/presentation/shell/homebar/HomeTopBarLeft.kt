@@ -21,11 +21,11 @@ internal fun HomeTopBarLeft(content: HomeTopBarContent, search: HomeTopBarSearch
         label = "left-slot",
     ) { searching ->
         if (searching) {
-            // 搜索态返回键：和顶栏/底栏同一套玻璃（真模糊）
+            // 搜索态返回键与 TeakUI 统一页面完全同一套：尺寸、玻璃和 12dp 左边距都走默认值。
+            // 不能在这里塞 38dp 的小按钮，否则和设置/收藏等页面并排时明显小一圈。
             TeakGlassBackButton(
                 onClick = onCancelSearch,
                 revealed = true,
-                size = 38.dp,
             )
         } else {
             TeakAvatar(faceUrl = profile?.face, onClick = onOpenProfile, size = 38.dp)

@@ -9,25 +9,66 @@ internal val EmoteToken = Regex("\\[([^\\]]+)]")
 data class RichTextHit(
     val start: Int, val end: Int, val emoteToken: String? = null, val emoteUrl: String? = null,
     val mentionName: String? = null, val mentionMid: Long = 0L, val linkUrl: String? = null, val video: Boolean = false,
+    /** 评论里的时间点（如 13:10）：点了跳到视频对应进度。 */
+    val timestampSeconds: Int? = null,
 )
 data class RichTextAnalysis(
     val hits: List<RichTextHit>, val hasEmote: Boolean, val hasMention: Boolean, val hasUrl: Boolean,
     val mentionList: List<Map.Entry<String, Long>>,
+    val hasTimestamp: Boolean = false,
 ) {
-    fun plainText(trailing: Boolean) = !hasEmote && !hasMention && !hasUrl && !trailing
+    fun plainText(trailing: Boolean) = !hasEmote && !hasMention && !hasUrl && !hasTimestamp && !trailing
+}
+
+/**
+ * 评论正文里的视频时间点：`13:10` / `1:02:33`，冒号中英文都认。
+ *
+ * 前后不能紧挨数字或冒号，避免把 URL、日期、长数字串中的片段误判成时间。
+ */
+private val CommentTimestamp = Regex("""(\d{1,3})\s*[:：]\s*(\d{1,2})(?:\s*[:：]\s*(\d{1,2}))?""")
+
+/** 把命中区间解析成秒数；分钟/秒越界返回 null。 */
+private fun timestampSeconds(match: MatchResult): Int? {
+    val first = match.groupValues[1].toIntOrNull() ?: return null
+    val second = match.groupValues[2].toIntOrNull() ?: return null
+    val third = match.groupValues.getOrNull(3)?.takeIf { it.isNotEmpty() }?.toIntOrNull()
+    return if (third == null) {
+        if (second >= 60) null else first * 60 + second
+    } else {
+        if (second >= 60 || third >= 60) null else first * 3600 + second * 60 + third
+    }
+}
+
+private fun addRichTimestamps(hits: MutableList<RichTextHit>, text: String) {
+    for (match in CommentTimestamp.findAll(text)) {
+        val start = match.range.first
+        val end = match.range.last + 1
+        // 前后紧挨数字/冒号说明只是长串的一部分，不是独立时间点。
+        if (start > 0 && (text[start - 1].isDigit() || text[start - 1] == ':' || text[start - 1] == '：')) continue
+        if (end < text.length && (text[end].isDigit() || text[end] == ':' || text[end] == '：')) continue
+        val seconds = timestampSeconds(match) ?: continue
+        if (hits.any { it.start < end && start < it.end }) continue
+        hits += RichTextHit(start, end, timestampSeconds = seconds)
+    }
 }
 
 /** 优先级、去重与首次 indexOf 均保留原逻辑；这里只决定区间，不依赖 Compose。 */
-fun analyzeRichText(text: String, emotes: Map<String, String>, mentions: Map<String, Long>, mentionClick: Boolean): RichTextAnalysis {
+fun analyzeRichText(
+    text: String, emotes: Map<String, String>, mentions: Map<String, Long>, mentionClick: Boolean,
+    /** 只有当前页面能把时间点转成 seek 时才标色；动态详情等无播放器的地方保持纯文本。 */
+    timestampClick: Boolean = false,
+): RichTextAnalysis {
     val compiled = mentionPattern(mentions, mentionClick)
     val mentionRegex = compiled.pattern
     val mentionList = compiled.list
     val hits = collectRichLinks(text).toMutableList()
     addRichEmotes(hits, text, emotes)
     if (mentionRegex != null) addRichMentions(hits, text, mentionRegex, mentions)
+    if (timestampClick) addRichTimestamps(hits, text)
     return RichTextAnalysis(hits.sortedBy { it.start }, emotes.isNotEmpty() && EmoteToken.containsMatchIn(text),
         mentionClick && mentionRegex?.containsMatchIn(text) == true,
-        videoTextUrls.containsMatchIn(text) || videoTextTokens(text).isNotEmpty(), mentionList)
+        videoTextUrls.containsMatchIn(text) || videoTextTokens(text).isNotEmpty(), mentionList,
+        timestampClick && hits.any { it.timestampSeconds != null })
 }
 
 fun collectRichLinks(text: String): List<RichTextHit> {

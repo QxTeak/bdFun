@@ -27,7 +27,6 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
 @Composable
 private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellState, dark: Boolean, background: Color, modifier: Modifier) {
     val ui = shell.ui
-    val session = shell.feeds.session
     val homeFeed = shell.feeds.home
     val tabPagerState = shell.navigation.pager
     val backdrop = shell.backdrops.main
@@ -40,21 +39,23 @@ private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellStat
             .fillMaxSize()
             .background(background),
     ) {
-        Box(Modifier.fillMaxSize().background(background).teakSearchUnderlay(
-                shell.bottom.bottomSearchProgress.value, shell.bottom.bottomUnderlayAlpha.value,
-                shell.bottom.bottomBlurProgress.value,
-        )) {
-            // 底栏玻璃的采样源：这一层就是整个页面内容。
+        val underlay = Modifier.teakSearchUnderlay(
+            shell.bottom.bottomSearchProgress.value, shell.bottom.bottomUnderlayAlpha.value,
+            shell.bottom.bottomBlurProgress.value,
+        )
+        Box(Modifier.fillMaxSize()) {
+            // 录制正文已经上移和模糊后的画面，顶栏和屏幕正文使用同一份变换。
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .layerBackdrop(backdrop),
+                    .layerBackdrop(backdrop)
+                    .then(underlay),
             ) {
                 // 三个 tab：横向相连的 pager（可拖拽，切换是同一套非线性动画）
                 // 外面包一层更大的触摸阈值，手指轻抖不会误翻页。
                 // 分段只在 HyperOS 4 风格下可见；切回官方/经典时强制回到推荐，
                 // 否则会停在一个没有入口可以离开的空页面上。
-                MainTabPager(tabPagerState, homeFeed, session, settings, ui.dynamicRefreshTick,
+                MainTabPager(tabPagerState, homeFeed, shell.feeds.session, settings, ui.dynamicRefreshTick,
                     shell.chrome.mineList,
                     // 三种界面风格都保留首页的推荐/直播/番剧分段。
                     homeSection = ui.homeSection,
@@ -66,21 +67,25 @@ private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellStat
                         clickTick = ui.dynamicTabClickTick,
                         onTabChange = { ui.dynamicTab = it },
                         onPositionChange = { ui.dynamicTabPosition.floatValue = it },
-                    ))
+                    ),
+                    onDynamicUpProgress = { ui.dynamicUpProgress.floatValue = it },
+                )
 
             }
 
-            ScrollTopButton(
-                settings,
-                bottomObstruction = if (ui.showSearch || shell.bottom.showBottomSearch) 0.dp else
-                TeakFloatingTabBarDefaults.CurrentHeight + when {
-                    wideNavigation -> MainWideNavigationEdgePadding
-                    settings.bottomBarRaise -> floatingBottomSpacing + TeakChromeDefaults.RaisedBottomBarExtra
-                    else -> floatingBottomSpacing
-                },
-            )
+            Box(Modifier.fillMaxSize().then(underlay)) {
+                ScrollTopButton(
+                    settings,
+                    bottomObstruction = if (ui.showSearch || shell.bottom.showBottomSearch) 0.dp else
+                    TeakFloatingTabBarDefaults.CurrentHeight + when {
+                        wideNavigation -> MainWideNavigationEdgePadding
+                        settings.bottomBarRaise -> floatingBottomSpacing + TeakChromeDefaults.RaisedBottomBarExtra
+                        else -> floatingBottomSpacing
+                    },
+                )
 
-            MainSearchLayer(settings, shell)
+                MainSearchLayer(settings, shell)
+            }
         }
         // 点顶栏回顶：常开。画在顶栏之前（下面），搜索框 / 分段 / 图标照常优先拿到点击。
         MainStatusBarScrollToTop(shell)
@@ -98,8 +103,6 @@ private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellStat
                 alpha = 1f - progress
         }) { MainShellNavigation(settings, shell, dark) }
         MainBottomSearchLayer(settings, shell)
-        // 换页时返回键回到"纯箭头"状态（pageKey / pageEnter 在上面声明）
-
     }
 }
 

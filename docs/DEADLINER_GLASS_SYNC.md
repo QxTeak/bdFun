@@ -110,3 +110,12 @@ Run `:app:assembleDebug :app:testDebugUnitTest :TeakUI:testDebugUnitTest`. Host 
 ### 2026-11-28 顶栏渐进模糊
 
 对照 Deadliner `3b561656` 的 `ui/material/glass/ProgressiveTopBarMaterial.kt`。TeakUI 的渐进顶栏共用 8dp 基础模糊半径和自上而下的衰减曲线，从高度 60% 开始线性衰减，到底部归零。宿主顶部底色 alpha 为 0.94，在高度 80% 处透明。MIUIX 官方材质分支使用同一 60% 遮罩起点。经典顶栏单独使用 16dp 均匀模糊。
+
+
+### 2026-11-28 顶栏材质的裁剪边界与末端收缝（不改配方）
+
+- 渐进顶栏的材质比顶栏内容高三分之一（`contentEndFraction 0.75` + `trim 18dp`），底部那段模糊正是靠它收尾；配方（8dp 半径、0.94 染色、60% 起点、1.0 终点）保持上一节不变。
+- 半透明层裁剪：`MainTopBarChrome`/`MainMineChrome` 原先按顶栏高度套 `graphicsLayer { alpha < 1 }`（搜索一镜到底、切首页三页、进出 UP 页、我的页换页）。HWUI 渲染半透明节点时按节点边界裁剪，裁口落在渐变仍有强度的位置，滚动的画面穿过它就是硬边。`ProgressiveTopBarMaterial` 现在回调材质实际高度（`onMaterialHeightPx`），调用方把半透明层撑到同一高度，裁口落到渐变已为 0 的底部。
+- 末端收缝：`progressiveTopBarEdgeLayer` 在材质末端 12%（`ProgressiveTopBarEdgeFadeStart = 0.88`）用 `DstIn` 把采样像素交还给正文，模糊归零的那一段不再以半糊片压在滚动内容上；这是本轮唯一观感微调，位置在顶栏下沿之外。
+- 一镜到底：不再给顶栏补 `underlayLiftPx/underlayBlurPx`；采样源改为录制**已经上移/模糊**的正文（`layerBackdrop` 在 `teakSearchUnderlay` 外层），顶栏与屏幕画面一致。
+- 未改动：模糊半径、染色 alpha、渐变起止/曲线、材质高度公式。

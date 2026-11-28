@@ -60,6 +60,8 @@ internal class CommentListViewActions(
     val onReply: (CommentItem) -> Unit,
     val onMenu: (CommentItem, com.aritxonly.teak.common.navigation.TeakMorphMenuState, androidx.compose.ui.geometry.Offset?) -> Unit,
     val onOpenReplies: (CommentItem, Long) -> Unit,
+    /** 点评论里的时间点：秒数；null 表示无播放器（例如动态详情）。 */
+    val onSeek: ((Int) -> Unit)? = null,
 )
 
 @Composable

@@ -33,7 +33,11 @@ internal data class EmoteTextDecorations(val prefixBadge: (@Composable () -> Uni
     val trailingContent: (@Composable () -> Unit)? = null,
     // 折叠回复正文本身就是「 回复 @某人 : …」，再补一个冒号会变成「某某：回复 @某人」，所以这里可关掉。
     val prefixColon: Boolean = true)
-internal class RichTextActions(val onVideo: (String) -> Unit, val onUri: (String) -> Unit, val onMentionClick: ((Long) -> Unit)?)
+internal class RichTextActions(
+    val onVideo: (String) -> Unit, val onUri: (String) -> Unit, val onMentionClick: ((Long) -> Unit)?,
+    /** 点评论里的时间点：秒数；null 表示当前页面没有播放器，不标色也不可点。 */
+    val onSeek: ((Int) -> Unit)? = null,
+)
 internal class RichTextRenderContext(val content: EmoteTextContent, val style: EmoteTextStyle,
     val decorations: EmoteTextDecorations, val actions: RichTextActions, val linkColor: Color,
     val biliTitles: Map<String, ResolvedVideoLink>, val analysis: RichTextAnalysis)

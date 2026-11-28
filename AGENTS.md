@@ -940,11 +940,21 @@ UP 之间切换必须用**真正的 `HorizontalPager`**（和空间页 `SpaceCon
 
 ### 2026-11-28 一镜到底大标题收缩、删除粒子、动态 UP 页
 
-一镜到底期间页面大标题不再跟内容上移，改为原位向中心收缩（TeakSearchTransitionDefaults.LargeTitleShrink）；改动在 TeakLargeTitleForeground，收藏/历史/稍后再看（PageUnderlayOptions）与设置页搜索（TeakLargeTitleSearchUnderlay）共用同一条路径。删除粒子下沉为 TeakUI 的 TeakParticleBurst：卡片登记窗口矩形与自己的颜色（视频卡片取封面平均色，coverAverageColor 必须处理 Config#HARDWARE，否则 getPixel 直接崩），数据里真的少了一项才炸，爆炸范围按被删项矩形铺开，切收藏夹/分类只重置基线。动态页点头像改成开新 UP 页（FeedUpTransition，与搜索一镜到底同一条弹簧）：窄屏顶栏是悬浮头像行 + 页面自建 backdrop 的渐进模糊，无圆角卡片、无分类分段、不排直播头像，「全部动态」为退出键；返回键、全部动态、列表顶部下拉超过 76dp 是唯三退出入口；环只在 UP 页参与动画（进页 snapTo，切换才播环绕），动态页的环固定在「全部动态」。服务端分类与 host_mid 互斥，UP 页的「视频/番剧」用 eedItemsForTab 在客户端筛。
+一镜到底期间页面大标题不再跟内容上移，改为原位向中心收缩（TeakSearchTransitionDefaults.LargeTitleShrink）；改动在 TeakLargeTitleForeground，收藏/历史/稍后再看（PageUnderlayOptions）与设置页搜索（TeakLargeTitleSearchUnderlay）共用同一条路径。删除粒子下沉为 TeakUI 的 TeakParticleBurst：卡片登记窗口矩形与自己的颜色（视频卡片取封面平均色，coverAverageColor 必须处理 Config#HARDWARE，否则 getPixel 直接崩），数据里真的少了一项才炸，爆炸范围按被删项矩形铺开，切收藏夹/分类只重置基线。动态页点头像改成开新 UP 页（FeedUpTransition，与搜索一镜到底同一条弹簧）：窄屏顶栏是悬浮头像行 + 页面自建 backdrop 的渐进模糊，无圆角卡片、无分类分段、不排直播头像，「全部动态」为退出键；返回键、全部动态、顶栏下沿的下拉条是唯三退出入口（下拉条跟手倒放一镜到底：慢拉按位移逐帧倒放，快甩直接播完）；顶部「全部/视频/番剧」分段与 UP 页共用同一份转场进度；环只在 UP 页参与动画（进页 snapTo，切换才播环绕），动态页的环固定在「全部动态」。服务端分类与 host_mid 互斥，UP 页的「视频/番剧」用 eedItemsForTab 在客户端筛。
 
+D
 ### 2026-11-28 全屏评论面板（PR #157 收尾）
 
 - 入场动画：`FullscreenCommentPanel` 的 `revealed` 初值改为 `false`。宿主只在 `panelVisible` 时组合它，初值取 `visible`（=true）会让 `rememberManualProgress` 起始值等于目标值，264ms 滑出动画一帧都不播（只有关闭方向有）；现在打开和关闭都是同一条时间线。
 - 已知坑补录：全屏评论面板画在录制树之上，内部玻璃控件再采样 Activity 根部 `LayerBackdrop` 会自引用并 SIGSEGV（真机 `RenderThread` 栈溢出）。面板内 `LocalTeakBackdrop provides null` 是当前解法，根治要把浮层挂到录制层之外。
 - 去掉未使用的 `FullscreenCommentIdentity.isPgc`（oid/type 规则以 `core.domain.videoCommentTarget` 为准），补两个新文件的末尾换行。
 - 验证：PR 分支合并当前 main 后 `:app:assembleDebug`、`:app:testDebugUnitTest`、`:core:domain:test` 全过。真机走查项见 PR #157 描述（横屏点评论、楼中楼、关闭仍横屏、关掉互动按钮后「更多」可用、竖屏不变）。
+
+### 2026-11-28 顶栏材质收缝、UP 页头像名称淡出
+
+- 顶栏渐进模糊的配方（8dp 半径、0.94 染色、60% 起点、trim 18dp）没改。改的是三处**边界**：
+  1. 材质比顶栏内容高三分之一，用来收尾底部模糊；调用方原先把半透明层按顶栏高度套 `graphicsLayer { alpha < 1 }`（搜索一镜到底、切首页三页、进出 UP 页、我的页换页），HWUI 按节点边界裁剪，裁口落在渐变还有强度处，滚动画面穿过就是硬边。`ProgressiveTopBarMaterial` 现在回调材质高度（`onMaterialHeightPx`），`MainTopBarChrome`/`MainMineChrome` 把半透明层撑到同高。
+  2. 材质末端 12%（`ProgressiveTopBarEdgeFadeStart = 0.88`）用 `progressiveTopBarEdgeLayer` 把采样像素交还给正文：模糊半径到 0 的那一段不再以半透明糊片压在滚动内容上。这是本轮唯一的观感微调，范围只在顶栏下沿之外。
+  3. 一镜到底不再给顶栏补 `underlayLiftPx/underlayBlurPx`；`layerBackdrop` 挪到 `teakSearchUnderlay` 外层（`MainScaffold` / `TeakPageScaffold`），录的是**已经上移并模糊**的正文，顶栏和屏幕用同一份画面。
+- UP 页顶栏（窄屏头像行）的模糊改为滚动驱动：停在顶部时材质值为 0（没有模糊），离开顶部后 260ms 补到 1（`rememberFeedUpHeaderProgress`）；`teakProgressiveBarBlur(materialProgress = ...)` 接这个进度。头像下面的**名称**（`AuthorAvatar`/`AllFeedAvatar`/`LiveAvatar` 的那行小字）通过 `LocalFeedAvatarLabelFade` 拿同一个 State，`feedAvatarLabelFade` 只改绘制期 alpha，**不动布局**，所以行高、列表顶部留白、卡片位置都不变，名字和模糊是同一拍。
+- 验证：`:app:assembleDebug`、`:app:testDebugUnitTest`、`:TeakUI:testDebugUnitTest` 通过。装机核对（MuMu player 2 / `127.0.0.1:16448`，1220×2656）：UP 页顶部名称可见且顶栏无模糊；上滑后名称淡出、模糊淡入、卡片位置不跳；首页滚动后的顶栏模糊正常；搜索展开正常。一镜到底过程中的单帧接缝仍需人工慢放确认（截图抓不到那一帧）。

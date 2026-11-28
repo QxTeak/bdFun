@@ -1,7 +1,8 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,10 +10,13 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
@@ -26,6 +30,7 @@ import com.aritxonly.teak.common.interaction.blockTouches
 import com.aritxonly.teak.common.search.TeakSearchTransitionDefaults
 import com.aritxonly.teak.common.search.teakSearchUnderlay
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 /**
@@ -50,9 +55,71 @@ internal class FeedUpVisual(
     val underlayList: LazyStaggeredGridState,
     /** 动态页那张头像卡片用的环：固定停在「全部动态」，和 UP 页的动环是两份状态。 */
     val cardRing: FeedAvatarRingState,
+    /** 顶部下拉退出手势：跟手倒放同一套一镜到底。 */
+    val pull: FeedUpPullController,
     val enterUp: (Long) -> Unit,
     val exitUp: () -> Unit,
 )
+
+/**
+ * UP 页顶部下拉退出的手势状态。
+ *
+ * 进度只有一条：1 = UP 页完整在场，0 = 完全回到动态页。
+ * 拖动时直接按位移写进度，松手再决定补完退场还是弹回；
+ * 所以慢慢拉是逐帧倒放，快速往下甩则直接播完同一条退场动画。
+ */
+internal class FeedUpPullController(
+    private val scope: CoroutineScope,
+    private val progress: () -> Float,
+    private val setProgress: (Float) -> Unit,
+    private val distancePx: Float,
+    private val flingVelocityPx: Float,
+    private val spec: AnimationSpec<Float>,
+    private val onComplete: suspend () -> Unit,
+) {
+    var pressed by mutableStateOf(false)
+        private set
+    private var dragPx = 0f
+    private var job: Job? = null
+
+    fun start() {
+        job?.cancel()
+        pressed = true
+        // 支持从动画中途接着拖，不从 0 重新起算。
+        dragPx = (1f - progress()) * distancePx
+    }
+
+    fun drag(deltaPx: Float) {
+        dragPx = (dragPx + deltaPx).coerceIn(0f, distancePx)
+        setProgress(feedUpExitProgress(dragPx, distancePx))
+    }
+
+    fun end(velocityPx: Float) {
+        pressed = false
+        if (shouldCompleteFeedUpExit(progress(), velocityPx, flingVelocityPx)) {
+            job?.cancel()
+            job = scope.launch {
+                animate(progress(), 0f, animationSpec = spec) { value, _ -> setProgress(value) }
+                onComplete()
+            }
+        } else {
+            animateTo(1f)
+        }
+    }
+
+    fun cancel() {
+        pressed = false
+        animateTo(if (progress() > 0f) 1f else 0f)
+    }
+
+    /** 供外部（返回键 / 底栏返回）把动画播到目标；不会触发 [onComplete]。 */
+    fun animateTo(target: Float) {
+        job?.cancel()
+        job = scope.launch {
+            animate(progress(), target, animationSpec = spec) { value, _ -> setProgress(value) }
+        }
+    }
+}
 
 /**
  * UP 页的进出状态：点头像 → 上移开新页；点「全部动态」/返回键 → 原路退回。
@@ -67,9 +134,56 @@ internal fun rememberFeedUpTransition(
     tabKey: String,
     loggedIn: Boolean,
     scope: CoroutineScope,
+    /** 同一份一镜到底进度上报给主壳：顶部分段与内容必须共用一条时间线。 */
+    onProgress: (Float) -> Unit = {},
 ): FeedUpVisual {
     val upFocus = state.filterMid != null
     val upOrder = feedUpMids(state, AppGraph.session.value?.mid)
+    val upPageVisible = upFocus && upOrder.isNotEmpty()
+    val control = rememberFeedUpControl(state, tabKey, loggedIn, scope, upFocus, upPageVisible, onProgress)
+    // 卡片顶上边距是「顶栏高 + 8dp」、内部还有 14dp，新顶栏只有 4dp：
+    // 把 UP 页整块下移这个差值起步，头像看起来就是从列表里那张卡片升上来的。
+    val risePx = with(LocalDensity.current) { (FeedTopBarHeight + 16.dp).toPx() }
+    // 转场期间新旧两行头像同时在场：卡片静态环和 UP 页的动环必须是两份状态。
+    val cardRing = remember { FeedAvatarRingState() }
+    // 进入且确实有 UP 页时才推退让进度；没有目标页（作者列表还没到）就保持原列表。
+    val underlayProgress = if (upPageVisible || !upFocus) control.progress else 0f
+    return FeedUpVisual(
+        upFocus = upFocus,
+        upPageVisible = upPageVisible,
+        tabKey = tabKey,
+        progress = control.progress,
+        underlayProgress = underlayProgress,
+        risePx = risePx,
+        underlayItems = control.underlayItems,
+        underlayList = control.underlayList,
+        cardRing = cardRing,
+        pull = control.pull,
+        enterUp = control.enterUp,
+        exitUp = control.exitUp,
+    )
+}
+
+private class FeedUpControl(
+    val progress: Float,
+    val pull: FeedUpPullController,
+    val underlayItems: List<FeedItem>,
+    val underlayList: LazyStaggeredGridState,
+    val enterUp: (Long) -> Unit,
+    val exitUp: () -> Unit,
+)
+
+/** 退让层、进入/退出动作和下拉跟手控制器；主转场函数只负责几何与分层。 */
+@Composable
+private fun rememberFeedUpControl(
+    state: FeedState,
+    tabKey: String,
+    loggedIn: Boolean,
+    scope: CoroutineScope,
+    upFocus: Boolean,
+    upPageVisible: Boolean,
+    onProgress: (Float) -> Unit,
+): FeedUpControl {
     var underlayItems by remember { mutableStateOf(state.items) }
     var underlayIndex by remember { mutableIntStateOf(0) }
     var underlayOffset by remember { mutableIntStateOf(0) }
@@ -101,39 +215,45 @@ internal fun rememberFeedUpTransition(
         }
     }
     // 和搜索一镜到底同一条弹簧（阻尼 0.97 / stiffness 247）。
-    val animationsEnabled = LocalSettingsBindings.current.animationsEnabled
-    val progress by animateFloatAsState(
-        targetValue = if (upFocus) 1f else 0f,
-        animationSpec = if (animationsEnabled) TeakSearchTransitionDefaults.spec() else tween(0),
-        label = "feedUpPage",
-    )
-    // 卡片顶上边距是「顶栏高 + 8dp」、内部还有 14dp，新顶栏只有 4dp：
-    // 把 UP 页整块下移这个差值起步，头像看起来就是从列表里那张卡片升上来的。
-    val risePx = with(LocalDensity.current) { (FeedTopBarHeight + 16.dp).toPx() }
-    val upPageVisible = upFocus && upOrder.isNotEmpty()
-    // 转场期间新旧两行头像同时在场：卡片静态环和 UP 页的动环必须是两份状态。
-    val cardRing = remember { FeedAvatarRingState() }
+    val spec: AnimationSpec<Float> = if (LocalSettingsBindings.current.animationsEnabled) {
+        TeakSearchTransitionDefaults.spec()
+    } else {
+        tween(0)
+    }
+    var progress by remember { mutableFloatStateOf(if (upFocus) 1f else 0f) }
+    // 主壳顶部 segment 不能自己跑一条补间：这里把内容正在用的进度原样上报。
+    SideEffect { onProgress(progress) }
+    val density = LocalDensity.current
+    val distancePx = with(density) { FeedUpExitPullDistance.toPx() }
+    val flingPx = with(density) { FeedUpExitFlingVelocity.toPx() }
+    val pull = remember(scope, spec, state, tabKey, loggedIn) {
+        FeedUpPullController(
+            scope = scope,
+            progress = { progress },
+            setProgress = { progress = it },
+            distancePx = distancePx,
+            flingVelocityPx = flingPx,
+            spec = spec,
+            onComplete = {
+                state.listState.scrollToItem(0)
+                state.filterMid?.let { state.seedPreview(it, state.items) }
+                // 回到当前分类，而不是一律切到「全部」。
+                state.exitUpFocus(tabKey, loggedIn)
+            },
+        )
+    }
+    // 筛选变化（进入/返回键/底栏返回）时补间；手指按着拖拽条时让位给跟手进度。
+    LaunchedEffect(upFocus, pull) {
+        if (upFocus && pull.pressed) return@LaunchedEffect
+        pull.animateTo(if (upFocus) 1f else 0f)
+    }
     // 退让层自己的列表状态：UP 页同时在场时不能和它共用一个 LazyStaggeredGridState。
     val underlayList = remember { LazyStaggeredGridState() }
     // 进页那一帧把退让层滚到原列表的位置，否则它从顶部开始、和「上移」对不上。
     LaunchedEffect(upPageVisible) {
         if (upPageVisible) underlayList.scrollToItem(underlayIndex, underlayOffset)
     }
-    // 进入且确实有 UP 页时才推退让进度；没有目标页（作者列表还没到）就保持原列表。
-    val underlayProgress = if (upPageVisible || !upFocus) progress else 0f
-    return FeedUpVisual(
-        upFocus = upFocus,
-        upPageVisible = upPageVisible,
-        tabKey = tabKey,
-        progress = progress,
-        underlayProgress = underlayProgress,
-        risePx = risePx,
-        underlayItems = underlayItems,
-        underlayList = underlayList,
-        cardRing = cardRing,
-        enterUp = enterUp,
-        exitUp = exitUp,
-    )
+    return FeedUpControl(progress, pull, underlayItems, underlayList, enterUp, exitUp)
 }
 
 /**
@@ -190,6 +310,7 @@ internal fun FeedUpLayers(
                 actions = actions,
                 media = media,
                 loggedIn = loggedIn,
+                pull = up.pull,
                 onExitUp = up.exitUp,
                 // 退场中这一页只负责淡出，不能再改筛选/抢手势。
                 interactive = up.upPageVisible,

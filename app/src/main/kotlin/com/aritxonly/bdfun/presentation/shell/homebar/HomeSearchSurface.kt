@@ -26,12 +26,14 @@ internal fun androidx.compose.foundation.layout.RowScope.HomeSearchSurface(searc
     val onSearch = actions.onSearch
     val recipe = material.recipe
     val backdrop = material.backdrop
+    // 搜索框高度跟返回键玻璃圆面直径一致：返回键多大，胶囊就多高，并排时上下边对齐。
+    val searchHeight = com.aritxonly.teak.common.chrome.teakTopBarActionSize()
     // 经典样式：搜索框是平面浅灰胶囊，不叠玻璃高光/阴影。
     if (classic) {
         androidx.compose.foundation.layout.Box(
             modifier = Modifier
                 .then(if (wide) Modifier.width(searchWidth) else Modifier.weight(1f))
-                .height(40.dp)
+                .height(searchHeight)
                 .background(MiuixTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.7f), Capsule())
                 .then(
                     if (!searchActive) Modifier.clickable(
@@ -49,7 +51,7 @@ internal fun androidx.compose.foundation.layout.RowScope.HomeSearchSurface(searc
     TeakGlassSurface(
         modifier = Modifier
             .then(if (wide) Modifier.width(searchWidth) else Modifier.weight(1f))
-            .height(40.dp)
+            .height(searchHeight)
             .then(
                 when {
                     !searchActive -> Modifier.clickable(

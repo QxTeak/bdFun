@@ -86,6 +86,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import com.aritxonly.teak.common.chrome.TeakGrabberBar
 import top.yukonga.miuix.kmp.anim.folmeSpring
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
@@ -801,7 +802,6 @@ private fun DragHandleArea(
     val isPressing = remember { mutableFloatStateOf(0f) }
     val pressScale = remember { Animatable(1f) }
     val pressWidth = remember { Animatable(45f) }
-    val handleShape = remember { RoundedCornerShape(2.dp) }
 
     Box(
         modifier = Modifier
@@ -852,18 +852,10 @@ private fun DragHandleArea(
             ),
         contentAlignment = handleAlignment,
     ) {
-        Box(
-            modifier = Modifier
-                .width(pressWidth.value.dp)
-                .height(4.dp)
-                .graphicsLayer {
-                    scaleY = pressScale.value
-                }
-                .clip(handleShape)
-                .drawBehind {
-                    val handleAlpha = lerp(0.2f, 0.35f, isPressing.floatValue)
-                    drawRect(dragHandleColor.copy(alpha = handleAlpha))
-                },
+        TeakGrabberBar(
+            width = pressWidth.value.dp,
+            pressed = isPressing.floatValue > 0f,
+            color = dragHandleColor,
         )
     }
 }

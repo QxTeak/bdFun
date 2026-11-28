@@ -71,7 +71,10 @@ internal fun AuthorAvatar(
             lineHeight = 12.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 3.dp),
+            // 名称跟着顶栏材质一起淡出/回来；只改绘制期 alpha，行高不变。
+            modifier = Modifier
+                .padding(top = 3.dp)
+                .feedAvatarLabelFade(LocalFeedAvatarLabelFade.current),
         )
     }
 }

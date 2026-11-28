@@ -82,6 +82,21 @@ private fun AnnotatedString.Builder.appendVideoPlayGlyph(
     appendInlineContent(id)
 }
 
+internal fun AnnotatedString.Builder.appendRichTimestamp(runtime: RichTextRenderContext, hit: RichTextHit) {
+    val seconds = hit.timestampSeconds ?: return
+    withLink(
+        androidx.compose.ui.text.LinkAnnotation.Clickable(
+            tag = "time-${hit.start}",
+            styles = androidx.compose.ui.text.TextLinkStyles(
+                style = SpanStyle(color = runtime.linkColor),
+            ),
+            linkInteractionListener = { runtime.actions.onSeek?.invoke(seconds) },
+        ),
+    ) {
+        append(runtime.content.text.substring(hit.start, hit.end))
+    }
+}
+
 internal fun AnnotatedString.Builder.appendRichMention(runtime: RichTextRenderContext, inline: MutableMap<String, InlineTextContent>, hit: RichTextHit) {
     val text = runtime.content.text
     val mentionColor = runtime.style.mentionColor

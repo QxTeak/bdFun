@@ -8,6 +8,8 @@ interface PlayerPageHost {
     fun requestAutoNext()
     var controlsVisible: Boolean
     var orientationLocked: Boolean
+    /** 当前播放器的 seek 端口：评论区时间点等页面级入口通过它跳进度。 */
+    var seekAction: ((positionMs: Long) -> Unit)?
     fun registerPause(owner: Any?, hook: (Boolean) -> Unit)
     fun unregisterPause(hook: (Boolean) -> Unit)
     /** 被后台/其他页面暂停时登记续播动作，回到本页由 Activity 显式调用。 */

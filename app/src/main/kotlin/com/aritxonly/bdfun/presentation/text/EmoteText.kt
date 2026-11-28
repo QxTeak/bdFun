@@ -11,7 +11,9 @@ import com.aritxonly.bdfun.core.application.*
 
 @Composable
 internal fun EmoteText(content: EmoteTextContent, style: EmoteTextStyle, modifier: Modifier = Modifier,
-    decorations: EmoteTextDecorations = EmoteTextDecorations(), onMentionClick: ((Long) -> Unit)? = null) {
+    decorations: EmoteTextDecorations = EmoteTextDecorations(), onMentionClick: ((Long) -> Unit)? = null,
+    /** 评论里的 `13:10` 这类时间点：仅播放器页面提供，点了跳转到对应进度。 */
+    onSeek: ((Int) -> Unit)? = null) {
     val dependencies = LocalRichTextDependencies.current
     // 动态和独立评论页也会直接渲染正文，不应依赖先打开播放器或表情面板。
     androidx.compose.runtime.LaunchedEffect(dependencies.emotes) { dependencies.emotes.ensure() }
@@ -23,8 +25,8 @@ internal fun EmoteText(content: EmoteTextContent, style: EmoteTextStyle, modifie
     val map = remember(dependencies.emotes.byText, content.extraEmotes) {
         if (content.extraEmotes.isEmpty()) dependencies.emotes.byText else dependencies.emotes.byText + content.extraEmotes
     }
-    val analysis = remember(text, map, content.mentions, onMentionClick != null) {
-        analyzeRichText(text, map, content.mentions, onMentionClick != null)
+    val analysis = remember(text, map, content.mentions, onMentionClick != null, onSeek != null) {
+        analyzeRichText(text, map, content.mentions, onMentionClick != null, timestampClick = onSeek != null)
     }
     if (analysis.plainText(decorations.trailingContent != null)) {
         PlainEmoteText(text, style, modifier)
@@ -32,12 +34,12 @@ internal fun EmoteText(content: EmoteTextContent, style: EmoteTextStyle, modifie
     }
     val inline = remember(map, text, style.fontSize) { mutableMapOf<String, InlineTextContent>() }
     val runtime = RichTextRenderContext(content, style, decorations,
-        RichTextActions({ dependencies.openVideo(context, it) }, { uriHandler.openUri(it) }, onMentionClick),
+        RichTextActions({ dependencies.openVideo(context, it) }, { uriHandler.openUri(it) }, onMentionClick, onSeek),
         linkColor, biliTitles, analysis)
     val annotated = remember(map, text, content.prefix, style.prefixColor, style.prefixWeight,
         decorations.prefixBadge != null, decorations.prefixColon, style.fontSize, decorations.trailingContent != null,
         analysis.mentionList, style.mentionColor, style.replyTargetMentionColor, style.vipMentionColor,
-        content.vipMentions, onMentionClick != null, analysis.hasUrl, linkColor, biliTitles) {
+        content.vipMentions, onMentionClick != null, analysis.hasUrl, linkColor, biliTitles, onSeek != null) {
         buildRichText(runtime, inline)
     }
     AnnotatedEmoteText(annotated, inline, style, modifier)

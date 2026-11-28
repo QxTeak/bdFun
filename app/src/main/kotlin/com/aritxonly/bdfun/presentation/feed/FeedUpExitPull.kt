@@ -1,47 +1,30 @@
 package com.aritxonly.bdfun.ui
 
-import androidx.compose.animation.core.animate
-import androidx.compose.animation.core.spring
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.unit.dp
 
-/** 下拉退出 UP 页的位移阈值：够长，避免正常回顶被误判成退出。 */
-internal val FeedUpExitPullThreshold = 76.dp
+/** 下拉多远时一镜到底退场动画播到最后一帧。 */
+internal val FeedUpExitPullDistance = 200.dp
 
 /**
- * 下拉退出：在列表顶部继续往下拉，整页跟着手指下移，超过阈值松手即返回动态页。
+ * 快速下拉的判定速度（dp/s）。
  *
- * 这一页不刷新（刷新入口只留在分类列表上），所以原来那套下拉刷新连接被替换成它。
+ * 距离不够但手指甩得够快时直接播完退场，不必真的拖满 200dp；
+ * 慢慢拉则按下拉距离逐帧倒放，松手时没过线再弹回 UP 页。
  */
-internal class FeedUpExitPull(private val thresholdPx: Float, private val onExit: () -> Unit) {
-    var offset by mutableFloatStateOf(0f)
-        private set
-    private var triggered = false
+internal val FeedUpExitFlingVelocity = 1000.dp
 
-    suspend fun settle() {
-        if (offset <= 0f) return
-        animate(initialValue = offset, targetValue = 0f, animationSpec = spring(stiffness = 900f)) { value, _ ->
-            offset = value
-        }
-    }
+/** 松手时退场动画已播到这个比例（progress 越低表示越接近动态页），直接完成退出。 */
+internal const val FeedUpExitCompleteProgress = 0.35f
 
-    val connection: NestedScrollConnection = object : NestedScrollConnection {
-        override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
-            if (source != NestedScrollSource.UserInput) return Offset.Zero
-            // 只认列表顶部的竖直下拉；左右滑 Pager 不参与。
-            if (available.y <= 0f || available.x != 0f) return Offset.Zero
-            offset = (offset + available.y).coerceAtMost(thresholdPx * 1.3f)
-            if (offset >= thresholdPx && !triggered) {
-                triggered = true
-                offset = 0f
-                onExit()
-            }
-            return Offset(0f, available.y)
-        }
-    }
+/** 下拉位移 → 一镜到底进度：1 = 完整 UP 页，0 = 完全回到动态页。 */
+internal fun feedUpExitProgress(dragPx: Float, distancePx: Float): Float {
+    if (distancePx <= 0f) return 1f
+    return (1f - dragPx / distancePx).coerceIn(0f, 1f)
 }
+
+/** 松手后是否完成退出：拉过线或快速往下甩。 */
+internal fun shouldCompleteFeedUpExit(
+    progress: Float,
+    velocityPxPerSec: Float,
+    flingVelocityPxPerSec: Float,
+): Boolean = progress <= FeedUpExitCompleteProgress || velocityPxPerSec >= flingVelocityPxPerSec

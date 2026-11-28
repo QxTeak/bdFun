@@ -23,12 +23,12 @@ internal fun CommentRowBody(
         Column(modifier = Modifier.weight(1f)) {
             CommentRowAuthor(item)
             Spacer(Modifier.height(4.dp))
-            CommentRowMessage(item)
+            CommentRowMessage(item, actions.onSeek)
             Spacer(Modifier.height(6.dp))
             CommentRowFooter(item, disliked, liked, like, ui, actions, menuState)
 
             ReplyBlock(item, CommentPreviewActions(actions.onOpenReplies, actions.onReplyToReply,
-                actions.onLongPressReply, actions.onPreviewLike))
+                actions.onLongPressReply, actions.onPreviewLike, actions.onSeek))
         }
     }
 }

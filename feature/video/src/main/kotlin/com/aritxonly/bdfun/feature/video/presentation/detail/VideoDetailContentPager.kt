@@ -101,7 +101,10 @@ private fun VideoScreenComments(
             // 横屏分栏：tab 行在详情栏顶部自带状态栏，只需要 52dp 行高。
             topInset = if (splitPanes) 52.dp else {
                 val tabRowBottom = playerBlockHeight + 52.dp
-                (tabRowBottom + 12.dp - statusBarTop - 4.dp).coerceAtLeast(0.dp)
+                // 沉浸状态栏下评论区直接顶在 tab 下面，视觉上离得太近；
+                // 只给沉浸态多留 8dp，非沉浸保持原 12dp 间距不变。
+                val gap = if (presentation.immersiveStatusBar) 20.dp else 12.dp
+                (tabRowBottom + gap - statusBarTop - 4.dp).coerceAtLeast(0.dp)
             },
             trackBackProgress = pager.currentPage == 1,
             threadPlayerBottom = if (splitPanes) statusBarTop + 52.dp else playerBlockHeight,

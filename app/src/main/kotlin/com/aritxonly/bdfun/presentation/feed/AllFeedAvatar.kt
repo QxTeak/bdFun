@@ -73,7 +73,10 @@ internal fun AllFeedAvatar(
             fontSize = 9.5.sp,
             lineHeight = 12.sp,
             maxLines = 1,
-            modifier = Modifier.padding(top = 3.dp),
+            // 和 UP 名称同一条淡出：UP 页往下划时整行名字一起收掉。
+            modifier = Modifier
+                .padding(top = 3.dp)
+                .feedAvatarLabelFade(LocalFeedAvatarLabelFade.current),
         )
     }
 }

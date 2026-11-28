@@ -22,9 +22,12 @@ internal data class LibraryModeContent(
     /** 稍后再看的完整列表：进视频时整页加入播放队列，连播不会只覆盖当前已加载的前 20 条。 */
     val allWatchLater: List<VideoItem> = emptyList(),
 )
+/** 用户手动删除的 key 与序号：只用来触发删除粒子，换页/刷新时不带。 */
+internal data class LibraryRemoval(val seq: Int, val keys: Set<String>)
 internal data class LibraryModeLayout(
     val mode: Int, val title: String, val showModeTabs: Boolean, val isActive: Boolean,
     val modeProgress: State<Float>, val scrollTopTick: Int,
+    val removal: LibraryRemoval? = null,
 )
 internal class LibraryModeActions(
     val owner: Any, val onSelectMode: (Int) -> Unit, val onToggleSelected: (String) -> Unit,
