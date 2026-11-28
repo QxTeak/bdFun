@@ -191,6 +191,7 @@ infra:playback         ExoPlayer 适配、后台播放 Service、媒体通知、
 | 大量 `remember` 状态 | 屏幕旋转/进程回收会丢；现有 `*Memory` 单例是补丁。新代码不要再加这种补丁 |
 | `AppGraph.pendingXxx` | 隐式传参，少写一行就打开空白页。新代码禁止使用 |
 | R8 fullMode | `android.enableR8.fullMode=true`；反射/序列化相关改动要在 release 构建下验证 |
+| 浮层玻璃自采样 | 画在播放器/录制层之上的浮层（如全屏评论面板）若继续读 Activity 根部的 `LayerBackdrop`，`RenderNode` 会形成「底片里包含采样方」的自引用，`prepareTreeImpl` 递归到栈溢出直接 SIGSEGV。当前解法是面板内 `LocalTeakBackdrop provides null`（玻璃退化为平面底）；更好的解法是把浮层挂到 `layerBackdrop` 录制层之外 |
 | 测试稀疏 | `:app` 只有 7 个测试。**新逻辑没测试就等于没有保障**，这是当前最大风险 |
 
 ---
@@ -940,3 +941,10 @@ UP 之间切换必须用**真正的 `HorizontalPager`**（和空间页 `SpaceCon
 ### 2026-11-28 一镜到底大标题收缩、删除粒子、动态 UP 页
 
 一镜到底期间页面大标题不再跟内容上移，改为原位向中心收缩（TeakSearchTransitionDefaults.LargeTitleShrink）；改动在 TeakLargeTitleForeground，收藏/历史/稍后再看（PageUnderlayOptions）与设置页搜索（TeakLargeTitleSearchUnderlay）共用同一条路径。删除粒子下沉为 TeakUI 的 TeakParticleBurst：卡片登记窗口矩形与自己的颜色（视频卡片取封面平均色，coverAverageColor 必须处理 Config#HARDWARE，否则 getPixel 直接崩），数据里真的少了一项才炸，爆炸范围按被删项矩形铺开，切收藏夹/分类只重置基线。动态页点头像改成开新 UP 页（FeedUpTransition，与搜索一镜到底同一条弹簧）：窄屏顶栏是悬浮头像行 + 页面自建 backdrop 的渐进模糊，无圆角卡片、无分类分段、不排直播头像，「全部动态」为退出键；返回键、全部动态、列表顶部下拉超过 76dp 是唯三退出入口；环只在 UP 页参与动画（进页 snapTo，切换才播环绕），动态页的环固定在「全部动态」。服务端分类与 host_mid 互斥，UP 页的「视频/番剧」用 eedItemsForTab 在客户端筛。
+
+### 2026-11-28 全屏评论面板（PR #157 收尾）
+
+- 入场动画：`FullscreenCommentPanel` 的 `revealed` 初值改为 `false`。宿主只在 `panelVisible` 时组合它，初值取 `visible`（=true）会让 `rememberManualProgress` 起始值等于目标值，264ms 滑出动画一帧都不播（只有关闭方向有）；现在打开和关闭都是同一条时间线。
+- 已知坑补录：全屏评论面板画在录制树之上，内部玻璃控件再采样 Activity 根部 `LayerBackdrop` 会自引用并 SIGSEGV（真机 `RenderThread` 栈溢出）。面板内 `LocalTeakBackdrop provides null` 是当前解法，根治要把浮层挂到录制层之外。
+- 去掉未使用的 `FullscreenCommentIdentity.isPgc`（oid/type 规则以 `core.domain.videoCommentTarget` 为准），补两个新文件的末尾换行。
+- 验证：PR 分支合并当前 main 后 `:app:assembleDebug`、`:app:testDebugUnitTest`、`:core:domain:test` 全过。真机走查项见 PR #157 描述（横屏点评论、楼中楼、关闭仍横屏、关掉互动按钮后「更多」可用、竖屏不变）。

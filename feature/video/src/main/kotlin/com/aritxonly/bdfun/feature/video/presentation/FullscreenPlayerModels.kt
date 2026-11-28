@@ -60,12 +60,15 @@ data class FullscreenPlayerInfo(
     val comments get() = media.comments
 }
 
-/** 全屏内评论所需的稿件身份；与详情页评论 tab 用的是同一份。 */
+/**
+ * 全屏内评论所需的稿件身份；与详情页评论 tab 用的是同一份。
+ * 评论 oid/type 的取值规则见 `core.domain.videoCommentTarget`（aid + type=1），这里只带结果，
+ * 不在展示层再判一次 PGC。
+ */
 data class FullscreenCommentIdentity(
     val aid: Long,
     val bvid: String,
     val upMid: Long,
-    val isPgc: Boolean,
 )
 
 data class FullscreenVideoInfo(
