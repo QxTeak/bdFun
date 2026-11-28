@@ -8,6 +8,8 @@ import com.aritxonly.bdfun.core.model.video.VideoItem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
@@ -168,7 +170,8 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
                             val known = retained.mapTo(HashSet()) { it.bvid }
                             val fresh = items.filter { known.add(it.bvid) }
                             resetOnRefresh = false
-                            old.copy(videos = fresh + retained, endReached = if (fresh.isNotEmpty()) false else old.endReached,
+                            old.copy(videos = if (fresh.isEmpty()) retained else fresh + retained,
+                                endReached = if (fresh.isNotEmpty()) false else old.endReached,
                                 scrollRevision = old.scrollRevision + 1)
                         }
                         cache?.write(items)
@@ -190,9 +193,12 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
         try {
             var result = recommendations(next)
             var extra = 0
-            val known = mutable.value.videos.mapTo(HashSet()) { it.bvid }
-            while (optimizer?.state?.value?.enabled == true && current(ticket, mode) &&
-                result is Outcome.Success && result.value.items.none { it.bvid !in known } && extra < 2) {
+            val initialVideos = mutable.value.videos
+            val initialIds by lazy(LazyThreadSafetyMode.NONE) {
+                initialVideos.mapTo(HashSet()) { it.bvid }
+            }
+            while (extra < 2 && optimizer?.state?.value?.enabled == true && current(ticket, mode) &&
+                result is Outcome.Success && result.value.items.none { it.bvid !in initialIds }) {
                 extra++
                 next++
                 result = recommendations(next)
@@ -202,11 +208,17 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
                 is Outcome.Success -> if (current(ticket, mode)) {
                     page = next
                     mutable.update { old ->
-                        val known = old.videos.mapTo(HashSet()) { it.bvid }
-                        val fresh = result.value.items.filter { known.add(it.bvid) }
+                        val fresh = if (result.value.items.isEmpty()) emptyList() else {
+                            // 额外请求期间可能有卡片被移除；提交时以最新列表为准。
+                            val known = if (old.videos === initialVideos) initialIds
+                                else old.videos.mapTo(HashSet()) { it.bvid }
+                            val freshIds = HashSet<String>()
+                            result.value.items.filter { it.bvid !in known && freshIds.add(it.bvid) }
+                        }
                         val ended = optimizer?.state?.value?.enabled != true &&
                             (result.value.rawEmpty || (fresh.isEmpty() && exclusions.isEmpty))
-                        old.copy(videos = old.videos + fresh, endReached = ended, filteredPage = fresh.isEmpty() && !ended)
+                        old.copy(videos = if (fresh.isEmpty()) old.videos else old.videos + fresh,
+                            endReached = ended, filteredPage = fresh.isEmpty() && !ended)
                     }
                 }
             }
@@ -224,27 +236,31 @@ internal class HomeFeedStateHolder(private val feed: FeedRepository, private val
             is Outcome.Failure -> return result
             is Outcome.Success -> result.value
         }
-        val filtered = coroutineScope {
-            val limit = Semaphore(3)
-            items.map { video -> async {
-                if (exclusions.hasCategories && video.categoryName.isBlank()) {
-                    limit.withPermit {
-                        when (val detail = videos.videoDetail(video.bvid)) {
-                            is Outcome.Success -> video.copy(
-                                extras = video.extras.copy(
-                                    categoryName = detail.value.tname,
-                                ),
-                            )
-                            is Outcome.Failure -> video
-                        }
-                    }
-                } else video
-            } }.map { it.await() }.filter(exclusions::accepts)
-        }
+        currentCoroutineContext().ensureActive()
+        val candidates = if (exclusions.hasCategories && items.any { it.categoryName.isBlank() }) {
+            resolveMissingCategories(items)
+        } else items
+        val filtered = candidates.filter(exclusions::accepts)
         val mode = optimizer?.ticket()
         val ranked = if (mode == null) filtered else kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
             optimizer.rank(filtered, mutable.value.videos, mode)
         }
         return Outcome.Success(Batch(ranked, items.isEmpty()))
+    }
+
+    private suspend fun resolveMissingCategories(items: List<VideoItem>): List<VideoItem> = coroutineScope {
+        val limit = Semaphore(3)
+        // 只有缺分类的卡片需要并发请求详情，按原下标等待以保留推荐顺序。
+        val pending = items.map { video ->
+            if (video.categoryName.isNotBlank()) null else async {
+                limit.withPermit {
+                    when (val detail = videos.videoDetail(video.bvid)) {
+                        is Outcome.Success -> video.copy(extras = video.extras.copy(categoryName = detail.value.tname))
+                        is Outcome.Failure -> video
+                    }
+                }
+            }
+        }
+        items.mapIndexed { index, video -> pending[index]?.await() ?: video }
     }
 }

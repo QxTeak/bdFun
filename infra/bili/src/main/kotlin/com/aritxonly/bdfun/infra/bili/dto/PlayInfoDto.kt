@@ -5,6 +5,9 @@ internal data class PlaybackRepresentationDto(
     val id: Int, val bandwidth: Long, val codec: String,
     val url: String, val backups: List<String>,
     val width: Int, val height: Int, val frameRate: String,
+    /** dash.video/audio[].segment_base：fMP4 初始化段与 sidx 索引段。 */
+    val initRange: String? = null,
+    val indexRange: String? = null,
 )
 
 internal data class PlayInfoDto(

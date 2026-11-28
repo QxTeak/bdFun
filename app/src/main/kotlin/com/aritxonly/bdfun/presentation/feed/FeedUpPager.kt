@@ -62,6 +62,18 @@ private class FeedUpFeedContext(
     val loggedIn: Boolean,
 )
 
+/** UP 页的网格配置：直播集合与列数在转场期间复用，不逐帧重算。 */
+private class FeedUpGrid(val liveMids: Set<Long>, val columns: StaggeredGridCells)
+
+private fun feedUpGrid(
+    liveUsers: List<com.aritxonly.bdfun.core.model.feed.FeedLiveUser>,
+    wide: Boolean,
+): FeedUpGrid = FeedUpGrid(
+    liveMids = liveUsers.mapTo(HashSet()) { it.mid },
+    columns = if (wide) BoundedVideoStaggeredGridCells(FeedCardMinWidth.dp, FeedCardMaxWidth.dp)
+    else StaggeredGridCells.Fixed(1),
+)
+
 /**
  * UP 模式的内容层：和空间页一样用真正的 [HorizontalPager] 翻页。
  *
@@ -92,29 +104,31 @@ internal fun FeedUpPagerLayout(
 ) {
     val configuration = LocalConfiguration.current
     val wide = configuration.screenWidthDp >= FeedUpWideBreakpoint
-    val order = feedUpMids(state, AppGraph.session.value?.mid)
+    // 转场期间本函数逐帧组合：作者/直播没变时别重复 map+filter+distinct。
+    val selfMid = AppGraph.session.value?.mid
+    val order = remember(state.liveUsers, state.authors, selfMid) {
+        feedUpMids(state, selfMid)
+    }
     val scope = rememberCoroutineScope()
     val handle = rememberFeedUpPagerHandle(state, order, scope, interactive)
     // 环的选中项跟 pager 走，比 filterMid 早：一开始翻页环就动，数据等停稳再换。
     var ringMid by remember { mutableStateOf(state.filterMid) }
     LaunchedEffect(state.filterMid) { ringMid = state.filterMid }
-    LaunchedEffect(handle.pager.currentPage, order, interactive) {
+    // 读 currentPage 放进 snapshotFlow：组合期不订阅 pager 的翻页进度，
+    // 翻页时只在本函数按页重组一次，而不是每帧重组整页（含 3 页 pager）。
+    LaunchedEffect(handle.pager, order, interactive) {
         if (!interactive) return@LaunchedEffect
-        order.getOrNull(handle.pager.currentPage)?.let { ringMid = it }
+        snapshotFlow { handle.pager.currentPage }.collect { page ->
+            order.getOrNull(page)?.let { ringMid = it }
+        }
     }
     val selectUp: (Long) -> Unit = { mid ->
         // 点头像：环立刻出发，pager 同时开始滑。
         ringMid = mid
         handle.selectUp(mid)
     }
-    val liveMids = remember(state.liveUsers) {
-        state.liveUsers.mapTo(HashSet()) { it.mid }
-    }
-    val columns = if (wide) {
-        BoundedVideoStaggeredGridCells(FeedCardMinWidth.dp, FeedCardMaxWidth.dp)
-    } else {
-        StaggeredGridCells.Fixed(1)
-    }
+    // 网格配置在重组之间复用：转场期间本函数逐帧组合，直播集合/列数不必重算。
+    val grid = remember(state.liveUsers, wide) { feedUpGrid(state.liveUsers, wide) }
     // 退场时整页还在淡出：吃掉点击，避免用户点到正在消失的头像/卡片。
     val rootModifier = Modifier.fillMaxSize().then(
         if (interactive) Modifier else Modifier.blockTouches(true),
@@ -137,7 +151,7 @@ internal fun FeedUpPagerLayout(
             )
             UpPager(
                 pager = handle.pager, order = order, state = state, actions = actions, media = media,
-                liveMids = liveMids, columns = columns, contentPadding = contentPadding,
+                liveMids = grid.liveMids, columns = grid.columns, contentPadding = contentPadding,
                 tabKey = tabKey, loggedIn = loggedIn, modifier = Modifier.weight(1f),
             )
         }
@@ -150,8 +164,8 @@ internal fun FeedUpPagerLayout(
                 order = order,
                 actions = actions,
                 media = media,
-                liveMids = liveMids,
-                columns = columns,
+                liveMids = grid.liveMids,
+                columns = grid.columns,
                 tabKey = tabKey,
                 loggedIn = loggedIn,
             ),
@@ -337,7 +351,7 @@ private fun UpPager(
             val live = mid == state.filterMid
             val rawItems = if (live) state.items else state.previewItems(mid).orEmpty()
             // 分段是「视频」时这一页只留视频动态，是「番剧」时只留 PGC 卡片。
-            val items = feedItemsForTab(tabKey, items = rawItems)
+            val items = remember(tabKey, rawItems) { feedItemsForTab(tabKey, items = rawItems) }
             val gridState = if (live) {
                 state.listState
             } else {

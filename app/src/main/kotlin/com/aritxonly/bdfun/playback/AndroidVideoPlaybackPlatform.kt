@@ -3,7 +3,6 @@
 package com.aritxonly.bdfun.playback
 
 import android.content.Context
-import androidx.media3.common.C
 import com.aritxonly.bdfun.core.application.MediaControlsRegistry
 import com.aritxonly.bdfun.core.application.PlaybackController
 import com.aritxonly.bdfun.feature.video.presentation.VideoPlaybackPlatform
@@ -18,14 +17,9 @@ internal class AndroidVideoPlaybackPlatform(
     private val registry: MediaControlsRegistry,
 ) : VideoPlaybackPlatform, PlaybackController by controller {
     override val userAgent = BiliBackend.UA
-    override fun createOutput(context: Context, direct: Boolean) =
-        Media3VideoOutput(context, controller.player, direct)
-    override fun setVideoEnabled(enabled: Boolean) {
-        val exo = controller.player
-        exo.trackSelectionParameters = exo.trackSelectionParameters.buildUpon()
-            .setTrackTypeDisabled(C.TRACK_TYPE_VIDEO, !enabled)
-            .build()
-    }
+    override val videoOutputTarget = controller.videoOutputTarget
+    override fun createOutput(context: Context) = Media3VideoOutput(context, controller)
+    override fun setVideoEnabled(enabled: Boolean) = controller.setVideoEnabled(enabled)
     override fun createMediaSession(
         context: Context, title: String, artist: String, artworkUrl: String?,
         onQueueSelected: (Int) -> Unit,

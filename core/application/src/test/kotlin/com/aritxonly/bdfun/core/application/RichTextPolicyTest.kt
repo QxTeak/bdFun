@@ -37,6 +37,16 @@ class RichTextPolicyTest {
         val unknown = analyzeRichText("[unknown]", mapOf("other" to "image"), emptyMap(), false)
         assertTrue(unknown.hasEmote); assertTrue(unknown.hits.isEmpty()); assertFalse(unknown.plainText(false))
     }
+    @Test fun unmatchedBracketsStayPlainAndStandaloneVideoStillUsesRichText() {
+        val emotes = mapOf("doge" to "image")
+        for (text in listOf("少了右括号 [doge", "doge] 少了左括号", "[]")) {
+            assertTrue(analyzeRichText(text, emotes, emptyMap(), false).plainText(false))
+        }
+        val video = analyzeRichText(bv, emotes, emptyMap(), false)
+        assertTrue(video.hasUrl)
+        assertEquals(bv, video.hits.single().linkUrl)
+        assertTrue(video.hits.single().video)
+    }
     @Test fun urlWinsOverEmotesAndMentionsAndOnlyItsTrailingPunctuationIsExcluded() {
         val text = "https://example.test/@小明[doge]，"
         val plan = analyzeRichText(text, mapOf("doge" to "image"), mapOf("小明" to 9), true)

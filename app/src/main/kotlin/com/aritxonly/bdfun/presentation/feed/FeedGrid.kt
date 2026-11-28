@@ -50,10 +50,9 @@ internal fun FeedGrid(
         val liveMids = remember(state.liveUsers) {
             state.liveUsers.mapTo(HashSet()) { it.mid }
         }
-        val columns = if (wide) {
-            BoundedVideoStaggeredGridCells(FeedCardMinWidth.dp, FeedCardMaxWidth.dp)
-        } else {
-            StaggeredGridCells.Fixed(1)
+        val columns = remember(wide) {
+            if (wide) BoundedVideoStaggeredGridCells(FeedCardMinWidth.dp, FeedCardMaxWidth.dp)
+            else StaggeredGridCells.Fixed(1)
         }
         val sidebarWidth = dynamicSidebarWidth(maxWidth.value).dp
         Row(Modifier.fillMaxSize()) {

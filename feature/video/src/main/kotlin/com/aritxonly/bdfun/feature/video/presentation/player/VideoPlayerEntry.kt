@@ -1,9 +1,11 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.aritxonly.bdfun.core.application.PlaybackVideoOutputMode
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 
@@ -40,7 +42,17 @@ fun VideoPlayerEntry(
     BindPlayerHotDanmaku(playback, danmakuVisible, ui)
     BindPlayerDanmakuClock(playback, playing, danmakuVisible, ui)
     BindPlayerSystemBars(presentation.fullscreen, presentation.immersiveStatusBar, ui, observed.portraitVideo.value)
-    BindPlayerHdrWindow(media.quality, presentation.fullscreen)
-    VideoPlayerLayout(playback, observed, media, presentation, actions, ui, danmakuVisible, latencyMs, sponsor, modifier,
-        ports.render(playback, media, presentation, actions, ui))
+    val outputTarget by playback.videoOutputTarget.collectAsState()
+    BindPlayerHdrWindow(outputTarget?.mode ?: PlaybackVideoOutputMode.Standard, presentation.fullscreen)
+    val visibleQualityId = outputTarget?.qualityId
+    val visiblePresentation = if (media.autoQuality || visibleQualityId == media.quality?.id) presentation else {
+        presentation.withQualityLabel(media.info?.qualities?.firstOrNull { it.id == visibleQualityId }?.label)
+    }
+    VideoPlayerLayout(playback, observed, media, visiblePresentation, actions, ui, danmakuVisible, latencyMs, sponsor, modifier,
+        ports.render(playback, media, visiblePresentation, actions, ui))
+}
+
+private fun VideoPlayerPresentation.withQualityLabel(label: String?): VideoPlayerPresentation {
+    if (label == null || label == fullscreenInfo.qualityLabel) return this
+    return copy(fullscreenInfo = fullscreenInfo.copy(media = fullscreenInfo.media.copy(qualityLabel = label)))
 }

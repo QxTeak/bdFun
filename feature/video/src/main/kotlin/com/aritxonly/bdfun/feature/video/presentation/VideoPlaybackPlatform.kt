@@ -5,16 +5,15 @@ import android.graphics.Bitmap
 import android.view.View
 import com.aritxonly.bdfun.core.application.ForegroundMediaSession
 import com.aritxonly.bdfun.core.application.PlaybackController
+import com.aritxonly.bdfun.core.application.PlaybackVideoTarget
+import kotlinx.coroutines.flow.StateFlow
 
 /** 一个播放器组合的原生接缝；展示不读取解码器、Media3 轨道或平台会话实现。 */
 interface VideoPlaybackPlatform : PlaybackController {
     val userAgent: String
 
-    /**
-     * [direct] = true 时创建能直通显示表面的输出（杜比视界必须这样，见 isDolbyVisionQuality）。
-     * 其余画质保持原纹理输出，缩放/镜像/色觉辅助/抓帧都不受影响。
-     */
-    fun createOutput(context: Context, direct: Boolean = false): VideoOutput
+    val videoOutputTarget: StateFlow<PlaybackVideoTarget?>
+    fun createOutput(context: Context): VideoOutput
     fun setVideoEnabled(enabled: Boolean)
     fun createMediaSession(
         context: Context, title: String, artist: String, artworkUrl: String?,

@@ -45,10 +45,13 @@ class HomeOptimizationIntegrationTest {
             val optimization = optimizer(scope).apply { setEnabled(true) }
             val feed = Feed()
             val state = HomeFeedStateHolder(feed, videos, optimization)
-            state.ensureLoaded(); state.loadMore()
+            state.ensureLoaded()
+            val published = state.state.value.videos
+            state.loadMore()
             assertEquals(listOf(1, 2, 3, 4), feed.calls)
             assertFalse(state.state.value.endReached)
             assertTrue(state.state.value.filteredPage)
+            assertSame(published, state.state.value.videos)
             state.loadMore()
             assertEquals(listOf(1, 2, 3, 4, 5, 6, 7), feed.calls)
         } finally { scope.cancel() }

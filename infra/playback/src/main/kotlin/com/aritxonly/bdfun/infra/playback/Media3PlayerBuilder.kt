@@ -29,13 +29,9 @@ internal fun buildPlayer(
     loudnessEq: Boolean,
     diagnosticLog: ((String) -> Unit)?,
 ): ExoPlayer {
-    val renderers: DefaultRenderersFactory = TeakAudioRenderersFactory(context, loudnessEq)
-    renderers
-        .setEnableDecoderFallback(decoderMode != 3)
+    val renderers = TeakAudioRenderersFactory(context, loudnessEq)
         .setEnableAudioTrackPlaybackParams(false)
-    if (decoderMode in 1..3) {
-        renderers.setMediaCodecSelector(TeakCodecSelector(decoderMode))
-    }
+        .configureVideoDecoder(decoderMode)
     val loadControl = StrategyLoadControl(buffering, diagnosticLog)
     return ExoPlayer.Builder(context, renderers)
         .setLoadControl(loadControl)
@@ -51,6 +47,15 @@ internal fun buildPlayer(
             true,
         )
         .build()
+}
+
+internal fun videoRendererFactory(context: Context, decoderMode: Int) =
+    DefaultRenderersFactory(context).configureVideoDecoder(decoderMode)
+
+private fun DefaultRenderersFactory.configureVideoDecoder(mode: Int): DefaultRenderersFactory {
+    setEnableDecoderFallback(mode != 3)
+    if (mode in 1..3) setMediaCodecSelector(TeakCodecSelector(mode))
+    return this
 }
 
 private class TeakCodecSelector(private val mode: Int) : MediaCodecSelector {

@@ -3,10 +3,11 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.unit.Dp
 import com.aritxonly.bdfun.AppGraph
-import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 
@@ -20,7 +21,7 @@ internal fun rememberFeedMedia(state: FeedState): FeedMedia {
     val autoPlayMuted = AppGraph.settings.dynamicAutoPlayMuted
     LaunchedEffect(state.listState, visible, dynamicAutoPlay) {
         if (!dynamicAutoPlay) {
-            ui.autoPlayId = null
+            ui.select(null)
             return@LaunchedEffect
         }
         snapshotFlow {
@@ -31,21 +32,21 @@ internal fun rememberFeedMedia(state: FeedState): FeedMedia {
             info.visibleItemsInfo.minByOrNull {
                 kotlin.math.abs(it.offset.y + it.size.height / 2f - center)
             }?.key
-        }.filterNotNull().distinctUntilChanged().collect { index ->
+        }.filterNotNull().distinctUntilChanged().collect { key ->
             // Stable item keys identify the nearest visible card independently of its lane.
-            ui.autoPlayId = visible.firstOrNull { it.id == index }
+            ui.select(visible.firstOrNull { it.id == key }
                 ?.takeIf { it.video != null || it.orig?.video != null }
-                ?.id
+                ?.id)
         }
     }
 
     // onToggleMute 必须是稳定引用：它一变，动态卡片的 cardActions remember 就会整排失效、
     // 所有可见卡片一起重组。用 rememberUpdatedState 读最新值，lambda 只建一次。
-    val mutedState = androidx.compose.runtime.rememberUpdatedState(autoPlayMuted)
+    val mutedState = rememberUpdatedState(autoPlayMuted)
     val onToggleMute = remember {
         { AppGraph.settings.dynamicAutoPlayMuted = !mutedState.value }
     }
-    return remember(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted, onToggleMute) {
+    return remember(dynamicAutoPlay, ui, autoPlayMuted) {
         FeedMedia(dynamicAutoPlay, ui.autoPlayId, autoPlayMuted, onToggleMute)
     }
 }

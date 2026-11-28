@@ -20,7 +20,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.viewinterop.AndroidView
-import com.aritxonly.bdfun.core.domain.isDolbyVisionQuality
+import com.aritxonly.bdfun.core.application.PlaybackVideoOutputMode
 import com.aritxonly.bdfun.core.model.video.SponsorSegment
 import com.aritxonly.bdfun.feature.video.presentation.VideoPlaybackPlatform
 
@@ -45,7 +45,8 @@ fun PlayerSurface(
     val boostSpeed by ui.boostSpeed
     val speed by ui.speed
     // 杜比视界只能走直通表面；此时缩放/镜像/色觉辅助都做不到，下面统一关掉。
-    val directSurface = isDolbyVisionQuality(media.quality)
+    val outputTarget by playback.videoOutputTarget.collectAsState()
+    val directSurface = outputTarget?.mode == PlaybackVideoOutputMode.DolbyVision
     Box(
         modifier = Modifier.fillMaxSize()
             .then(if (directSurface) Modifier else Modifier.playerPictureGestures(ui))
@@ -58,8 +59,8 @@ fun PlayerSurface(
                 factory = { ctx -> PlayerOutputHost(ctx) },
                 modifier = Modifier.fillMaxSize(),
                 update = { host ->
-                    host.bind(directSurface) { direct ->
-                        playback.createOutput(host.context, direct).also { playerViewRef = it }
+                    host.bind {
+                        playback.createOutput(host.context).also { playerViewRef = it }
                     }
                 },
                 onRelease = { host -> host.dispose() },

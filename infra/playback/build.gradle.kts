@@ -21,6 +21,8 @@ dependencies {
     implementation(project(":core:domain"))
     implementation(project(":core:model"))
     implementation(libs.media3.exoplayer)
+    // 本地 MPD（多档视频 + 单音轨）播放：换档只改轨道选择，音频不断。
+    implementation(libs.media3.exoplayer.dash)
     implementation(libs.media3.ui)
     implementation(libs.androidx.media)
     implementation(libs.androidx.core)
