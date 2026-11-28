@@ -114,6 +114,38 @@ class HomeFeedStateHolderTest {
         state.loadMore()
         assertEquals("unknown", state.state.value.videos.single().bvid)
     }
+
+    @Test fun categoryResolutionRequestsOnlyMissingCategoriesAndPreservesOrder() = runBlocking {
+        val requested = mutableListOf<String>()
+        val repository = object : VideoRepository by videoRepository {
+            override suspend fun videoDetail(bvid: String): Outcome<VideoDetail> {
+                requested += bvid
+                val category = if (bvid == "hidden") "游戏" else "音乐"
+                return Outcome.Success(VideoDetail(
+                    bvid = bvid, aid = 1, title = "", cover = "", desc = "",
+                    owner = VideoDetailOwner("", "", 1, ""),
+                    counts = VideoDetailCounts(0, 0, 0, 0, 0, 0, 0),
+                    info = VideoDetailInfo(0, 0, 0, category, emptyList()),
+                ))
+            }
+        }
+        val seed = item("seed", category = "")
+        val feed = Feed().apply { load = { Outcome.Success(listOf(seed)) } }
+        val state = HomeFeedStateHolder(feed, repository)
+        state.ensureLoaded()
+        assertTrue(requested.isEmpty())
+        state.dismissRecommendation(seed, category = "游戏")
+        state.commitDismissed()
+        feed.load = {
+            Outcome.Success(listOf(item("known", category = "音乐"), item("hidden", category = ""),
+                item("resolved", category = ""), item("last", category = "生活")))
+        }
+        state.loadMore()
+        assertEquals(setOf("hidden", "resolved"), requested.toSet())
+        assertEquals(2, requested.size)
+        assertEquals(listOf("known", "resolved", "last"), state.state.value.videos.map { it.bvid })
+        assertEquals("音乐", state.state.value.videos[1].categoryName)
+    }
     @Test fun refreshDiscardsLatePaginationWithoutLosingCurrentItems() = runBlocking {
         val pending = CompletableDeferred<Outcome<List<VideoItem>>>()
         val feed = Feed().apply { load = { page -> if (page == 1) Outcome.Success(listOf(item("old"))) else pending.await() } }

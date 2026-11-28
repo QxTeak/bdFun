@@ -9,7 +9,7 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.homeVideoItems(
     state: HomeFeedState, largeCards: Boolean, ui: HomePresentationStateHolder,
     onOpenVideo: (VideoItem) -> Unit, host: HomePresentationHost,
 ) {
-    items(items = state.videos, key = { it.bvid }) { video ->
+    items(items = state.videos, key = { it.bvid }, contentType = { largeCards }) { video ->
         // 每张卡片独立锚点：Miuix 的 anchor 只记录最后一次 bounds。
         val cardMenu = remember(video.bvid) { TeakMorphMenuState() }
         // 长按：从手指位置长出来，不画省略号副本；省略号：从图标长出来。

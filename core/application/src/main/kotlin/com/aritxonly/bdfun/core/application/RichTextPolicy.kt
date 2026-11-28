@@ -61,31 +61,42 @@ fun analyzeRichText(
     val compiled = mentionPattern(mentions, mentionClick)
     val mentionRegex = compiled.pattern
     val mentionList = compiled.list
-    val hits = collectRichLinks(text).toMutableList()
-    addRichEmotes(hits, text, emotes)
+    val hits = mutableListOf<RichTextHit>()
+    val hasUrl = addRichLinks(hits, text)
+    val mayHaveEmote = emotes.isNotEmpty() && '[' in text && ']' in text
+    if (mayHaveEmote) addRichEmotes(hits, text, emotes)
     if (mentionRegex != null) addRichMentions(hits, text, mentionRegex, mentions)
     if (timestampClick) addRichTimestamps(hits, text)
-    return RichTextAnalysis(hits.sortedBy { it.start }, emotes.isNotEmpty() && EmoteToken.containsMatchIn(text),
-        mentionClick && mentionRegex?.containsMatchIn(text) == true,
-        videoTextUrls.containsMatchIn(text) || videoTextTokens(text).isNotEmpty(), mentionList,
+    if (hits.size > 1) hits.sortBy { it.start }
+    return RichTextAnalysis(hits, mayHaveEmote && EmoteToken.containsMatchIn(text),
+        mentionClick && mentionRegex?.containsMatchIn(text) == true, hasUrl, mentionList,
         timestampClick && hits.any { it.timestampSeconds != null })
 }
 
 fun collectRichLinks(text: String): List<RichTextHit> {
     val hits = mutableListOf<RichTextHit>()
+    addRichLinks(hits, text)
+    return hits
+}
+
+private fun addRichLinks(hits: MutableList<RichTextHit>, text: String): Boolean {
+    var hasUrl = false
     for (match in videoTextUrls.findAll(text)) {
+        // 即使短到不能点开的 URL，也仍走原来的富文本显示路径。
+        hasUrl = true
         val url = trimVideoTextToken(match.value)
         if (url.length <= "https://".length) continue
         hits += RichTextHit(match.range.first, match.range.first + url.length, linkUrl = url)
     }
-    for (token in videoTextTokens(text)) {
+    val tokens = videoTextTokens(text)
+    for (token in tokens) {
         val start = text.indexOf(token)
         if (start < 0) continue
         val end = start + token.length
         if (hits.any { it.start < end && start < it.end }) continue
         hits += RichTextHit(start, end, linkUrl = token, video = true)
     }
-    return hits
+    return hasUrl || tokens.isNotEmpty()
 }
 
 /**
@@ -108,7 +119,8 @@ private fun emotePattern(emotes: Map<String, String>): Regex? {
     return pattern
 }
 
-private fun addRichEmotes(hits: MutableList<RichTextHit>, text: String, emotes: Map<String, String>) {    val pattern = emotePattern(emotes) ?: return
+private fun addRichEmotes(hits: MutableList<RichTextHit>, text: String, emotes: Map<String, String>) {
+    val pattern = emotePattern(emotes) ?: return
     for (match in pattern.findAll(text)) {
         val token = match.value.removeSurrounding("[", "]")
         val url = emotes[token] ?: emotes[match.value] ?: continue
