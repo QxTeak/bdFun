@@ -37,7 +37,9 @@ internal fun FullscreenCommentPanel(
     comments: @Composable (FullscreenPlayerInfo, androidx.compose.ui.unit.Dp, Modifier) -> Unit,
     composer: @Composable (Modifier) -> Unit,
 ) {
-    var revealed by remember { mutableStateOf(visible) }
+    // 初值必须是 false：宿主只在 panelVisible 时才组合这里，若初值取 visible（=true），
+    // rememberManualProgress 的起始值就等于目标值，滑出动画一帧都不会播（只有关闭方向有动画）。
+    var revealed by remember { mutableStateOf(false) }
     LaunchedEffect(visible) { revealed = visible }
     val reveal = rememberManualProgress(if (revealed) 1f else 0f, 264f)
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
