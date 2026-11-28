@@ -17,6 +17,9 @@ enum class FullscreenPanel {
     Quality,
     Subtitles,
     Cache,
+
+    /** 横屏全屏就地看评论：不退出全屏，避免窗口朝被交还给传感器后甩成竖屏。 */
+    Comments,
 }
 
 val FullscreenSpeeds = listOf(2f, 1.5f, 1.25f, 1f, 0.75f, 0.5f)
@@ -53,7 +56,17 @@ data class FullscreenPlayerInfo(
     val selectedSubtitle get() = media.selectedSubtitle
     val subtitleCues get() = media.subtitleCues
     val danmakuItems get() = media.danmakuItems
+    /** 全屏评论面板用的稿件身份：评论 oid 与标题都从这里取。 */
+    val comments get() = media.comments
 }
+
+/** 全屏内评论所需的稿件身份；与详情页评论 tab 用的是同一份。 */
+data class FullscreenCommentIdentity(
+    val aid: Long,
+    val bvid: String,
+    val upMid: Long,
+    val isPgc: Boolean,
+)
 
 data class FullscreenVideoInfo(
     val title: String,
@@ -89,6 +102,7 @@ data class FullscreenMediaInfo(
     val selectedSubtitle: SubtitleTrack?,
     val subtitleCues: List<SubtitleCue>,
     val danmakuItems: List<DanmakuItem> = emptyList(),
+    val comments: FullscreenCommentIdentity,
 )
 
 

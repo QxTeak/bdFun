@@ -173,6 +173,8 @@ private fun FullscreenHeaderPortrait(
 
 @Composable
 internal fun FullscreenHeaderActions(info: FullscreenPlayerInfo, actions: FullscreenActions, onPanelChanged: (FullscreenPanel) -> Unit, appearance: FullscreenAppearance) {
+    // 「全屏显示互动按钮」只管点赞 / 评论 / 收藏 / 分享这四个互动项。
+    // 「更多」是听视频、稍后再看、小窗、投屏的唯一入口，跟着一起被关掉会把这些功能一起锁死（issue #154）。
     if (appearance.showActions) {
         Spacer(Modifier.width(12.dp))
         BadgeStatAction(
@@ -217,17 +219,17 @@ internal fun FullscreenHeaderActions(info: FullscreenPlayerInfo, actions: Fullsc
             onClick = actions.onShare,
         )
         Spacer(Modifier.width(16.dp))
-        Box(
-            modifier = Modifier
-                .size(width = 30.dp, height = 40.dp)
-                .offset(y = (-7).dp)
-                .clickable(interactionSource = null, indication = null) {
-                    onPanelChanged(FullscreenPanel.More)
-                },
-            contentAlignment = Alignment.BottomStart,
-        ) {
-            MoreGlyph()
-        }
+    }
+    Box(
+        modifier = Modifier
+            .size(width = 30.dp, height = 40.dp)
+            .offset(y = (-7).dp)
+            .clickable(interactionSource = null, indication = null) {
+                onPanelChanged(FullscreenPanel.More)
+            },
+        contentAlignment = Alignment.BottomStart,
+    ) {
+        MoreGlyph()
     }
 }
 
