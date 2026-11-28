@@ -89,7 +89,18 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows
     particleState: com.aritxonly.teak.common.motion.TeakParticleBurstState? = null,
 ) {
     // 搜索/热门接口会返回重复 bvid（同一稿件多个入口），只用 bvid 当 key 会直接崩 LazyGrid。
-    itemsIndexed(items = videos, key = { index, video -> keyPrefix + index + "-" + video.bvid }) { _, video ->
+    // 但不能把 index 写进 key：删掉一项后后面所有 key 都会变，懒网格会当成整页换数据，
+    // 既没有补位动画，删除粒子也会把后面的项全部误判成「被删」。
+    val stableKeys = run {
+        val seen = HashMap<String, Int>()
+        videos.map { video ->
+            val occurrence = seen.getOrDefault(video.bvid, 0)
+            seen[video.bvid] = occurrence + 1
+            "$keyPrefix${video.bvid}#$occurrence"
+        }
+    }
+    itemsIndexed(items = videos, key = { index, _ -> stableKeys[index] }) { _, video ->
+        val animateRemoval = if (particleState != null) Modifier.animateItem() else Modifier
         val oneTake = rememberOneTakeAnchor()
         // 页面没显式接线时读取本地形变菜单：搜索、收藏、空间等共用这一行自动获得同一套效果。
         val localMorph = LocalVideoCardMorphMenu.current
@@ -138,7 +149,10 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows
         SearchResultRow(
             video = video,
             onClick = open,
-            modifier = (if (enableOneTake) oneTake.modifier else Modifier).then(itemModifier).then(particleAnchor),
+            modifier = (if (enableOneTake) oneTake.modifier else Modifier)
+                .then(itemModifier)
+                .then(animateRemoval)
+                .then(particleAnchor),
             onCoverColor = if (particleState != null) {
                 { color -> coverColor.value = color }
             } else {

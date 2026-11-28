@@ -3,7 +3,9 @@ package com.aritxonly.bdfun.ui
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -19,6 +21,7 @@ import com.aritxonly.bdfun.data.SearchUser
 import com.aritxonly.bdfun.data.VideoItem
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
+import kotlin.math.roundToInt
 
 @Composable
 internal fun SearchResults(
@@ -121,8 +124,16 @@ private fun SearchResultsChrome(
         return
     }
     // 独立窗口承载 segment：位置不变，但不在 layerBackdrop 的录制树里。
+    // Popup 本身从顶栏下沿开始，而不是盖住整条顶栏：Popup 窗口会吞掉范围内所有触摸，
+    // 若从 y=0 开始，结果页上方的返回键和搜索框就点不动了。
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val statusTop = androidx.compose.foundation.layout.WindowInsets.statusBars
+        .asPaddingValues().calculateTopPadding()
+    val popupTop = statusTop + HomeTopBarHeight + 6.dp
+    val popupTopPx = with(density) { popupTop.roundToPx() }
     androidx.compose.ui.window.Popup(
         alignment = Alignment.TopCenter,
+        offset = androidx.compose.ui.unit.IntOffset(0, popupTopPx),
         properties = androidx.compose.ui.window.PopupProperties(
             focusable = false,
             clippingEnabled = false,
@@ -130,15 +141,11 @@ private fun SearchResultsChrome(
     ) {
         // Popup 的内容用无界约束测量，必须显式给屏幕尺寸，fillMaxSize 单独用会量成 0。
         val popupWidth = androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp.dp
-        val popupHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
+        val screenHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.dp
+        val popupHeight = (screenHeight - popupTop).coerceAtLeast(240.dp)
         Box(Modifier.width(popupWidth)) {
-            Box(
-                Modifier
-                    .width(popupWidth)
-                    .statusBarsPadding()
-                    .padding(top = HomeTopBarHeight + 6.dp),
-            ) { header(Modifier) }
-            // 菜单打开时把整个 Popup 临时撑到整屏：宿主、点击收起层都和 anchor 同窗口，
+            Box(Modifier.width(popupWidth)) { header(Modifier) }
+            // 菜单打开时把宿主撑到屏幕剩余高度：宿主、点击收起层都和 anchor 同窗口，
             // 面板不会被同窗口的 Tab 栏压住；收起动画结束后宿主卸载，窗口恢复成 header 大小。
             SearchFilterMorphHost(
                 visible = filterMenuVisible,

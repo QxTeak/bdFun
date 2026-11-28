@@ -87,10 +87,10 @@ fun VideoMetadataSection(
             if (description.expanded) 1f else 0f,
             durationMs = 420f,
         )
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(2.dp))
         VideoMetadataIdentifier(content, description, descText, descProgress, slots)
         VideoMetadataDescription(descText, description, slots, content.tags)
-        Spacer(Modifier.height(14.dp))
+        Spacer(Modifier.height(8.dp))
         VideoMetadataInteractions(interaction, actions, appearance, slots)
     }
 }

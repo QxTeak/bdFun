@@ -99,6 +99,8 @@ internal fun CacheScreen(queue: DownloadQueueStateHolder, onOpen: (com.aritxonly
                         ) { onOpen(playable) }
                     },
                     onDelete = {
+                        // 先声明是手动删除，列表随后自动扣掉这一项时才炸粒子。
+                        particle.expectRemoval(listOf(entry.id))
                         // 删除会在后台递归删文件；界面这边先给提示，列表随后自动更新。
                         scope.launch { queue.delete(entry.id) }
                         context.showToast("已删除缓存")

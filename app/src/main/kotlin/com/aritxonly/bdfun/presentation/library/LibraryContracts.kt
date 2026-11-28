@@ -21,6 +21,9 @@ internal data class LibraryModeContent(
     val loading: Boolean, val error: String?, val batchMode: Boolean, val selected: Set<String>, val canLoadMore: Boolean,
     /** 稍后再看的完整列表：进视频时整页加入播放队列，连播不会只覆盖当前已加载的前 20 条。 */
     val allWatchLater: List<VideoItem> = emptyList(),
+    /** 用户手动删除的 key 与序号：只用来触发删除粒子，换页/刷新时为空。 */
+    val removedKeys: Set<String> = emptySet(),
+    val removalSeq: Int = 0,
 )
 internal data class LibraryModeLayout(
     val mode: Int, val title: String, val showModeTabs: Boolean, val isActive: Boolean,

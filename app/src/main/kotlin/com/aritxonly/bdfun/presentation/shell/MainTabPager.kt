@@ -53,6 +53,8 @@ internal fun MainTabPager(
     onHomeSectionChange: (Int) -> Unit = {},
     onHomeSectionPositionChange: (Float) -> Unit = {},
     dynamic: DynamicTabPagerBindings = DynamicTabPagerBindings(),
+    /** UP 页一镜到底进度：主壳顶部动态分段和页面内容共用同一条时间线。 */
+    onDynamicUpProgress: (Float) -> Unit = {},
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val topBarHeight = homeTopBarHeight(settings.interfaceStyle)
@@ -92,6 +94,7 @@ internal fun MainTabPager(
                     tabClickTick = dynamic.clickTick,
                     onTabChange = dynamic.onTabChange,
                     onTabPositionChange = dynamic.onPositionChange,
+                    onUpProgress = onDynamicUpProgress,
                 )
 
                 else -> MainMineTab(session, settings, mineList)

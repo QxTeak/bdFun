@@ -56,7 +56,12 @@ internal fun MainHomeBarContent(settings: SettingsBindings, shell: MainShellStat
             if (word.isNotEmpty()) submitWord(word)
         },
             onCancelSearch = {
-            if (input.submitted != null) input.changeSubmitted(null) else input.close()
+            // 返回顺序：结果页 → 保留关键词的联想页 → 清空关键词的热搜首页 → 退出搜索。
+            when {
+                input.submitted != null -> input.changeSubmitted(null)
+                input.query.isNotEmpty() -> input.changeQuery("")
+                else -> input.close()
+            }
         },
             onClearQuery = { input.changeQuery("") },
             onSearch = {

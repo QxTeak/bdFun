@@ -2,12 +2,17 @@ package com.aritxonly.bdfun.ui
 
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
@@ -16,6 +21,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -28,18 +34,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aritxonly.bdfun.AppGraph
+import com.aritxonly.bdfun.feature.settings.presentation.LocalSettingsBindings
+import com.aritxonly.teak.common.chrome.TeakGrabberBar
+import com.aritxonly.teak.common.chrome.TeakGrabberStripHeight
 import com.aritxonly.teak.common.chrome.teakProgressiveBarBlur
 import com.aritxonly.teak.common.interaction.blockTouches
 import com.aritxonly.teak.common.theme.TeakUiStyle
@@ -48,10 +52,8 @@ import kotlinx.coroutines.launch
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-import kotlin.math.roundToInt
 
 private const val FeedUpWideBreakpoint = 736
-
 
 /** UP 页里「内容 + pager」的一组依赖，打包后悬浮页与两栏页都不用铺十几个参数。 */
 private class FeedUpFeedContext(
@@ -85,6 +87,8 @@ internal fun FeedUpPagerLayout(
     actions: FeedActions,
     media: FeedMedia,
     loggedIn: Boolean,
+    /** 顶部下拉退出手势：和 Sheet 同一根拖拽条，跟手倒放一镜到底。 */
+    pull: FeedUpPullController,
     onExitUp: () -> Unit,
     /**
      * 退场动画期间为 false：这一页还在淡出，但不能再改筛选 / 抢手势。
@@ -140,7 +144,7 @@ internal fun FeedUpPagerLayout(
             UpPager(
                 pager = handle.pager, order = order, state = state, actions = actions, media = media,
                 liveMids = liveMids, columns = columns, contentPadding = contentPadding,
-                tabKey = tabKey, exitPull = null, loggedIn = loggedIn, modifier = Modifier.weight(1f),
+                tabKey = tabKey, loggedIn = loggedIn, modifier = Modifier.weight(1f),
             )
         }
     } else {
@@ -161,6 +165,7 @@ internal fun FeedUpPagerLayout(
             ringMid = ringMid,
             selectUp = selectUp,
             onExitUp = onExitUp,
+            pull = pull,
             interactive = interactive,
             rootModifier = rootModifier,
         )
@@ -181,22 +186,17 @@ private fun FeedUpFloatingPage(
     ringMid: Long?,
     selectUp: (Long) -> Unit,
     onExitUp: () -> Unit,
+    pull: FeedUpPullController,
     interactive: Boolean,
     rootModifier: Modifier,
 ) {
     val density = LocalDensity.current
-    val thresholdPx = with(density) { FeedUpExitPullThreshold.toPx() }
-    val exitCallback by androidx.compose.runtime.rememberUpdatedState(onExitUp)
-    // 下拉退出：这一页不刷新（刷新入口只留在分类列表上）。
-    val bounds = remember(thresholdPx) { FeedUpExitPull(thresholdPx) { exitCallback() } }
-    LaunchedEffect(bounds, feed.state.listState, interactive) {
-        if (!interactive) return@LaunchedEffect
-        snapshotFlow { feed.state.listState.isScrollInProgress }.collect { scrolling ->
-            if (!scrolling) bounds.settle()
-        }
-    }
     var barHeightPx by remember { mutableIntStateOf(0) }
     val barContentTop = with(density) { barHeightPx.toDp() } + 8.dp
+    // 顶部材质进度：0 = 没有模糊、名称全显；离开顶部后 260ms 补到 1。
+    // 模糊和头像名称共用这一个 State，所以是同一拍，且都与手势速度无关。
+    val atTop by rememberFeedUpAtTop(feed.state)
+    val headerProgress = rememberFeedUpHeaderProgress(atTop, LocalSettingsBindings.current.animationsEnabled)
     // 颜色在组合期取好：backdrop 的绘制 lambda 不是 @Composable，不能在里面读主题。
     val pageBackground = MiuixTheme.colorScheme.background
     val backdrop = rememberLayerBackdrop {
@@ -211,11 +211,12 @@ private fun FeedUpFloatingPage(
                 media = feed.media, liveMids = feed.liveMids, columns = feed.columns,
                 contentPadding = PaddingValues(
                     start = TeakUiStyle.design.contentInset(8.dp),
-                    top = barContentTop,
+                    // 拖拽条固定在顶栏下沿，占一行高度，列表内容从它下面开始。
+                    top = barContentTop + TeakGrabberStripHeight,
                     end = TeakUiStyle.design.contentInset(8.dp),
                     bottom = 100.dp,
                 ),
-                tabKey = feed.tabKey, exitPull = bounds, loggedIn = feed.loggedIn,
+                tabKey = feed.tabKey, loggedIn = feed.loggedIn,
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -224,27 +225,78 @@ private fun FeedUpFloatingPage(
             Modifier
                 .fillMaxWidth()
                 .align(Alignment.TopCenter)
-                .teakProgressiveBarBlur(backdropOverride = backdrop)
                 .onSizeChanged { barHeightPx = it.height },
         ) {
-            FeedAvatarRow(
-                state = feed.state,
-                ring = ring,
-                selectedMid = ringMid,
-                onSelectUp = selectUp,
-                onExitUp = onExitUp,
-                includeLive = false,
-                modifier = Modifier.padding(
-                    start = TeakUiStyle.design.contentInset(8.dp),
-                    end = TeakUiStyle.design.contentInset(8.dp),
-                    top = statusTop + 4.dp,
-                    bottom = 4.dp,
+            Box(
+                Modifier.matchParentSize().teakProgressiveBarBlur(
+                    backdropOverride = backdrop,
+                    materialProgress = headerProgress,
                 ),
-                contentPadding = PaddingValues(horizontal = 2.dp, vertical = 6.dp),
-                // 环进场直接套在当前 UP 上，之后切换（左右滑 / 点头像）才播环绕动画。
-                snapRingOnEnter = true,
+            )
+            // 名称和模糊一起走：同一个 headerProgress，材质渐显的同一拍把名字收掉。
+            CompositionLocalProvider(LocalFeedAvatarLabelFade provides headerProgress) {
+                FeedAvatarRow(
+                    state = feed.state,
+                    ring = ring,
+                    selectedMid = ringMid,
+                    onSelectUp = selectUp,
+                    onExitUp = onExitUp,
+                    includeLive = false,
+                    modifier = Modifier.padding(
+                        start = TeakUiStyle.design.contentInset(8.dp),
+                        end = TeakUiStyle.design.contentInset(8.dp),
+                        top = statusTop + 4.dp,
+                        bottom = 4.dp,
+                    ),
+                    contentPadding = PaddingValues(horizontal = 2.dp, vertical = 6.dp),
+                    // 环进场直接套在当前 UP 上，之后切换（左右滑 / 点头像）才播环绕动画。
+                    snapRingOnEnter = true,
+                )
+            }
+        }
+        // 拖拽条挂在顶栏下沿，属于这一页的固定顶栏而不是某个 UP 的列表：
+        // 切换 UP 时它原地不动，也不会跟着旧页离开；整页退场时随一镜到底一起下移。
+        if (interactive) {
+            FeedUpExitGrabber(
+                pull = pull,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = barContentTop)
+                    .height(TeakGrabberStripHeight),
             )
         }
+    }
+}
+
+/**
+ * UP 页顶部的下拉退出条。
+ *
+ * 视觉与 [com.aritxonly.teak.common.modal.sheet] 的拖拽条完全同源：
+ * 45dp × 4dp，按压缩到 55dp / 1.15 倍，颜色取 onSurfaceVariantSummary。
+ * 只有这根条接手势，列表本身不再用下拉刷新，也不会和滚动抢事件。
+ */
+@Composable
+private fun FeedUpExitGrabber(
+    pull: FeedUpPullController,
+    modifier: Modifier = Modifier,
+) {
+    val dragState = rememberDraggableState { delta -> pull.drag(delta) }
+    val pressed = pull.pressed
+    val width by animateDpAsState(
+        targetValue = if (pressed) 55.dp else 45.dp,
+        animationSpec = tween(if (pressed) 100 else 150),
+        label = "feedUpGrabberWidth",
+    )
+    Box(
+        modifier = modifier.draggable(
+            state = dragState,
+            orientation = Orientation.Vertical,
+            onDragStarted = { pull.start() },
+            onDragStopped = { velocity -> pull.end(velocity) },
+        ),
+        contentAlignment = Alignment.Center,
+    ) {
+        TeakGrabberBar(width = width, pressed = pressed)
     }
 }
 
@@ -308,7 +360,6 @@ private fun UpPager(
     columns: StaggeredGridCells,
     contentPadding: PaddingValues,
     tabKey: String,
-    exitPull: FeedUpExitPull?,
     loggedIn: Boolean,
     modifier: Modifier,
 ) {
@@ -344,14 +395,7 @@ private fun UpPager(
                     listState = gridState,
                     columns = columns,
                     contentPadding = contentPadding,
-                    modifier = if (live && exitPull != null) {
-                        Modifier
-                            .fillMaxSize()
-                            .offset { IntOffset(0, exitPull.offset.roundToInt()) }
-                            .nestedScroll(exitPull.connection)
-                    } else {
-                        Modifier.fillMaxSize()
-                    },
+                    modifier = Modifier.fillMaxSize(),
                     showSkeleton = rawItems.isEmpty() && (loading || !live),
                     showFooter = live,
                 )

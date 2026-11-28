@@ -156,6 +156,8 @@ internal class VideoPagePresentationState(
                 orientationLocked = value,
             ),
         ) }
+    /** 当前播放器注册的 seek；评论时间点等页面级控件只读这个端口。 */
+    override var seekAction: ((Long) -> Unit)? by mutableStateOf(null)
     var replyName: String?
         get() = snapshot.replyName
         set(value) = update { it.copy(

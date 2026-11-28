@@ -23,6 +23,13 @@ internal class MainShellUiStateHolder {
     var dynamicTab by mutableStateOf("")
     /** 顶部分段被点了一次（含点当前项）：动态页据此退出 UP 模式。 */
     var dynamicTabClickTick by mutableIntStateOf(0)
+    /**
+     * UP 页一镜到底的实时进度：0 = 动态页，1 = UP 页完整在场。
+     *
+     * 动态页内容、下拉退出手势和主壳的「全部/视频/番剧」分段必须共用这一份进度，
+     * 否则下拉时内容在动、顶部 segment 却停在原地。正常进出和手指拖拽都写这里。
+     */
+    val dynamicUpProgress = mutableFloatStateOf(0f)
     val dynamicTabPosition = mutableFloatStateOf(0f)
 
     /**

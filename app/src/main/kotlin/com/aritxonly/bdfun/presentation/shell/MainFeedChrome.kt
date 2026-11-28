@@ -1,9 +1,6 @@
 package com.aritxonly.bdfun
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import com.aritxonly.bdfun.core.domain.DynamicTabPolicy
@@ -30,14 +27,9 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainFeedChrome(
     val settings = LocalSettingsBindings.current
     val tabs = DynamicTabPolicy.ordered(settings.dynamicFeedTabs, settings.dynamicFeedTabOrder)
     val selected = tabs.indexOfFirst { it.key == shell.ui.dynamicTab }.coerceAtLeast(0)
-    // 读 FeedState 的快照字段：进出 UP 页时这里会自动重组。
-    val upFocus = AppGraph.dynamicFeedStateFor(shell.ui.dynamicTab).filterMid != null
-    // 和搜索一镜到底的旧 chrome 一样：向内缩到 0.9 再淡出，不是整条硬消失。
-    val barProgress by animateFloatAsState(
-        targetValue = if (upFocus) 1f else 0f,
-        animationSpec = tween(if (settings.animationsEnabled) FeedTopBarSwapMs else 0),
-        label = "feedTopBarUpPage",
-    )
+    // 和 UP 页共用同一份一镜到底进度：进页、退页、手指下拉倒放都同步淡出/缩小，
+    // 不再单独跑一条 140ms 的补间（那条会让下拉时 segment 停在原地）。
+    val barProgress = shell.ui.dynamicUpProgress.floatValue.coerceIn(0f, 1f)
     val barAlpha = (1f - barProgress) * (1f - barProgress)
     MainTopBarChrome(
         shell = shell,
@@ -84,5 +76,4 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainFeedChrome(
     }
 }
 
-/** 分段栏让位给头像顶栏的时间：比 UP 页的弹簧短，旧顶栏要在新页升上来之前退干净。 */
-private const val FeedTopBarSwapMs = 140
+// 分段栏的进出完全跟随 UP 页一镜到底进度，不再单独维护一条补间时长。

@@ -13,11 +13,14 @@ internal data class CommentRowActions(
     val onOpenReplies: () -> Unit, val onReplyToReply: (CommentItem) -> Unit,
     val onLongPressReply: (CommentItem, androidx.compose.ui.geometry.Rect, TeakMorphMenuState) -> Unit,
     val onPreviewLike: (CommentItem) -> Unit,
+    /** 评论里的 `13:10` 等时间点：跳到视频对应进度（秒）。 */
+    val onSeek: ((Int) -> Unit)? = null,
 )
 internal data class CommentPreviewActions(
     val onOpen: () -> Unit, val onReplyToReply: (CommentItem) -> Unit,
     val onLongPressReply: (CommentItem, androidx.compose.ui.geometry.Rect, TeakMorphMenuState) -> Unit,
     val onPreviewLike: (CommentItem) -> Unit,
+    val onSeek: ((Int) -> Unit)? = null,
 )
 internal class CommentRowPresentationStateHolder {
     /** 只在长按事件里读取；滚动时每帧写 State 会让整行反复失效，这里用普通字段。 */

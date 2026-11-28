@@ -59,7 +59,7 @@ internal fun VideoMetadataIdentifier(
                     onClick = {},
                     onLongClick = { slots.copyText(bvid) },
                 )
-                .padding(horizontal = 2.dp, vertical = 6.dp),
+                .padding(horizontal = 0.dp, vertical = 2.dp),
         )
         Spacer(Modifier.weight(1f))
         if (description.expandable) {
@@ -105,7 +105,7 @@ internal fun VideoMetadataDescription(
         androidx.compose.runtime.LaunchedEffect(tagLabels.size) { description.expandable = true }
     }
     if (descText != null || tagLabels.isNotEmpty()) {
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(2.dp))
         // 简介正文带 LinkAnnotation，普通点击会被 Text 内部链接处理先吃掉。
         // 用 Initial 阶段的指针监听自己判定“点按/长按”，并在抬手时消费事件，
         // 从根上保证左半部分文字也能展开；滑动超过阈值就完全放行给列表滚动。

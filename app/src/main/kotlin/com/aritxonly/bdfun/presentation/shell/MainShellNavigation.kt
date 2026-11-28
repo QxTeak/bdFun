@@ -60,7 +60,16 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
                         4 -> AppGraph.cinemaPageState.requestRefresh()
                         0 -> homeFeed.requestRefresh()
                     }
-                    1 -> ui.dynamicRefreshTick++
+                    1 -> {
+                        val dynamic = shell.feeds.dynamic
+                        if (dynamic.filterMid != null) {
+                            // 特定 UP 页里的「再次点动态」：留在本页静默刷新。
+                            // 不能走 refreshTick（那条路会拉下拉指示器，弹出小电视）。
+                            appScope.launch { dynamic.refresh(shell.feeds.session != null) }
+                        } else {
+                            ui.dynamicRefreshTick++
+                        }
+                    }
                 }
             }
         } else {

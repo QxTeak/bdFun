@@ -178,6 +178,7 @@ fun Modifier.teakProgressiveBarBlur(
      * 不传时用页面外壳的 [LocalTeakBackdrop]，行为和原来一致。
      */
     backdropOverride: top.yukonga.miuix.kmp.blur.LayerBackdrop? = null,
+    materialProgress: androidx.compose.runtime.State<Float>? = null,
 ): Modifier {
     if (LocalProgressiveTopBarMaterialHosted.current) return this
     val backdrop = backdropOverride ?: LocalTeakBackdrop.current
@@ -185,8 +186,9 @@ fun Modifier.teakProgressiveBarBlur(
     val blurColors = BlurDefaults.blurColors(
         blendColors = listOf(BlendColorEntry(color = color.copy(alpha = tintAlpha))),
     )
+    val layer = if (materialProgress == null) this else progressiveTopBarEdgeLayer(materialProgress)
     return if (backdrop != null && material.textureBlurEnabled) {
-        progressiveTextureBlur(
+        layer.progressiveTextureBlur(
             backdrop = backdrop,
             shape = RectangleShape,
             blurRadius = blurRadius,
@@ -195,7 +197,7 @@ fun Modifier.teakProgressiveBarBlur(
             colors = blurColors,
         )
     } else {
-        background(color, RectangleShape)
+        layer.background(color, RectangleShape)
     }
 }
 
@@ -548,13 +550,13 @@ fun TeakPageScaffold(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
+                    .layerBackdrop(backdrop)
                     .teakSearchUnderlay(underlayProgress, underlayAlpha, underlayBlurProgress)
                     .then(if (underlayProgress > 0.001f) Modifier.blockTouches(true) else Modifier),
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .layerBackdrop(backdrop)
                         .then(contentModifier),
                 ) {
                     if (title != null && limitContentWidth) {
@@ -571,10 +573,6 @@ fun TeakPageScaffold(
             )
             // 顶栏始终留在组合里：一镜到底时只改透明度，避免动画中途卸载/重建整棵顶栏
             // 造成一帧跳动；搜索层画在 topOverlay，盖在顶栏之上，透明时也接不到点击。
-            val underlayLiftPx = with(androidx.compose.ui.platform.LocalDensity.current) {
-                TeakSearchTransitionDefaults.ContentLift.toPx() *
-                    underlayProgress.coerceIn(0f, 1f)
-            }
             // 搜索退让进度：外壳自己的参数，加上页面在内容里登记的那一份（设置页搜索）。
             // 顶栏整行（返回键 / 小标题 / 操作按钮）和首页一致地向内缩并淡出，
             // 搜索层自己的顶栏按同一进度淡入，返回键才不会凭空消失。
@@ -606,12 +604,7 @@ fun TeakPageScaffold(
                 } else {
                     Modifier
                 }
-                ProgressiveTopBarMaterial(
-                    modifier = topBarLayer,
-                    underlayLiftPx = underlayLiftPx,
-                    underlayBlurPx = TeakSearchTransitionDefaults.UnderlayBlurPx *
-                        underlayBlurProgress.coerceIn(0f, 1f),
-                ) {
+                ProgressiveTopBarMaterial(modifier = topBarLayer) {
                     if (title != null && !wide) {
                         if (!com.aritxonly.teak.common.theme.TeakUiStyle.isClassic &&
                             largeTitleState.present > 0

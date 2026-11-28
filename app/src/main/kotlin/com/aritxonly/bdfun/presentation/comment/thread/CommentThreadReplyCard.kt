@@ -49,6 +49,9 @@ internal fun CommentThreadReplyCard(
                     transient.menuVisible = true
                 },
                 onPreviewLike = { callbacks.onLike(it) },
+                onSeek = LocalVideoPageState.current.seekAction?.let { action ->
+                    { seconds: Int -> action(seconds * 1000L) }
+                },
             ),
         )
     }

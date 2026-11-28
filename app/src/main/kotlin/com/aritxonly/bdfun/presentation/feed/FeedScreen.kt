@@ -51,6 +51,8 @@ fun FeedScreen(
     tabClickTick: Int = 0,
     onTabChange: (String) -> Unit = {},
     onTabPositionChange: (Float) -> Unit = {},
+    /** UP 页一镜到底进度：主壳顶部「全部/视频/番剧」分段要跟同一条时间线淡出。 */
+    onUpProgress: (Float) -> Unit = {},
 ) {
     val settings = LocalSettingsBindings.current
     val tabs = remember(settings.dynamicFeedTabs, settings.dynamicFeedTabOrder) {
@@ -80,6 +82,7 @@ fun FeedScreen(
                 onOpenVideo = onOpenVideo,
                 onOpenFeed = onOpenFeed,
                 refreshTick = refreshTick,
+                onUpProgress = onUpProgress,
             )
         }
     }
@@ -150,6 +153,7 @@ private fun FeedTabPage(
     tabKey: String,
     state: FeedState, loggedIn: Boolean, onNeedLogin: () -> Unit,
     onOpenVideo: (VideoItem) -> Unit, onOpenFeed: (FeedItem) -> Unit, refreshTick: Int,
+    onUpProgress: (Float) -> Unit,
 ) {
     val scope = rememberFeedTaskScope(state)
     val context = LocalContext.current
@@ -167,7 +171,7 @@ private fun FeedTabPage(
     // 环放在页面级持有：头像卡片是懒列表第一项，滚出屏幕会被回收；状态挂在卡片里会丢。
     val ring = remember { FeedAvatarRingState() }
     val media = rememberFeedMedia(state)
-    val up = rememberFeedUpTransition(state, tabKey, loggedIn, scope)
+    val up = rememberFeedUpTransition(state, tabKey, loggedIn, scope, onUpProgress)
     Box(Modifier.fillMaxSize()) {
         FeedCardMenuAnchorHost(menuUi)
         if (!loggedIn) {

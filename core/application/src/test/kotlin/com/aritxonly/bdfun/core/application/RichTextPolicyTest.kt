@@ -85,4 +85,21 @@ class RichTextPolicyTest {
         val resolved = mapOf("av123" to ResolvedVideoLink(bv, "标题"))
         assertEquals("标题", displayVideoTextToken("av123", resolved)); assertEquals(bv, videoTextClickBvid("av123", resolved))
     }
+
+    @Test fun commentTimestampsAcceptEnglishAndChineseColons() {
+        val plan = analyzeRichText("前面 13:10 中间 1：02：33 后面", emptyMap(), emptyMap(), false, timestampClick = true)
+        assertEquals(listOf(13 * 60 + 10, 3600 + 2 * 60 + 33), plan.hits.map { it.timestampSeconds })
+        assertTrue(plan.hasTimestamp)
+        assertFalse(plan.plainText(false))
+        // 没有播放器时保持纯文本，不标色也不可点。
+        assertEquals(0, analyzeRichText("13:10", emptyMap(), emptyMap(), false).hits.size)
+    }
+
+    @Test fun commentTimestampsRejectDatesUrlsAndOutOfRangeSeconds() {
+        assertEquals(0, analyzeRichText("2026:11:28", emptyMap(), emptyMap(), false, timestampClick = true).hits.size)
+        assertEquals(0, analyzeRichText("https://a.test/13:10", emptyMap(), emptyMap(), false, timestampClick = true)
+            .hits.count { it.timestampSeconds != null })
+        assertEquals(0, analyzeRichText("13:99 100:200", emptyMap(), emptyMap(), false, timestampClick = true)
+            .hits.count { it.timestampSeconds != null })
+    }
 }

@@ -26,6 +26,8 @@ internal data class LibraryUiState(
     val favorites: FavoriteUiState = FavoriteUiState(), val history: HistoryUiState = HistoryUiState(),
     val watchLater: List<HistoryItem> = emptyList(), val loading: Map<Int, Boolean> = emptyMap(),
     val errors: Map<Int, String?> = emptyMap(), val busy: Boolean = false,
+    /** 手动删除的 key 与序号：只有这些项消失时才播放粒子，换页/刷新不炸。 */
+    val removedKeys: Set<String> = emptySet(), val removalSeq: Int = 0,
 )
 
 /** 收藏夹切换使用版本号隔离，分页保留接口的原始游标与去重行为。 */
@@ -224,7 +226,7 @@ internal class LibraryStateHolder(
                 }
                 if (result is Outcome.Success && result.value) {
                     successful += bvid
-                    remove(mode, setOf(bvid))
+                    remove(mode, setOf(bvid), manualDelete = true)
                 }
             }
             return if (successful.size == ids.size) "已删除 ${ids.size} 项" else "部分删除失败，请重试"
@@ -245,20 +247,33 @@ internal class LibraryStateHolder(
                 if (added !is Outcome.Success || !added.value) { allOk = false; continue }
                 if (moving) {
                     val removed = request { repository.removeFavorite(video.aid, source.id) }
-                    if (removed is Outcome.Success && removed.value) remove(0, setOf(video.bvid)) else allOk = false
-                }
+                    if (removed is Outcome.Success && removed.value) remove(0, setOf(video.bvid)) else allOk = false                }
             }
             return if (!allOk) "部分操作失败，请重试" else if (moving) "已移动到「${target.title}」" else "已复制到「${target.title}」"
         } finally { mutable.update { it.copy(busy = false) } }
     }
 
-    private fun remove(mode: Int, ids: Set<String>) = mutable.update { if (!isActive) it else when (mode) {
-        0 -> it.copy(
-            favorites = it.favorites.copy(
-                videos = it.favorites.videos.filterNot { video -> video.bvid in ids },
-            ),
-        )
-        1 -> it.copy(history = it.history.copy(entries = it.history.entries.filterNot { entry -> entry.bvid in ids }))
-        else -> it.copy(watchLater = it.watchLater.filterNot { entry -> entry.bvid in ids })
-    } }
+    /**
+     * 从当前列表移除若干项。
+     *
+     * [manualDelete] 只有用户主动点删除时才为 true：粒子爆炸只认这个来源，
+     * 换收藏夹、切历史分类、刷新覆盖等「整批换数据」不会被误判成删除。
+     */
+    private fun remove(mode: Int, ids: Set<String>, manualDelete: Boolean = false) = mutable.update { state ->
+        if (!isActive) return@update state
+        val next = when (mode) {
+            0 -> state.copy(
+                favorites = state.favorites.copy(
+                    videos = state.favorites.videos.filterNot { video -> video.bvid in ids },
+                ),
+            )
+            1 -> state.copy(history = state.history.copy(entries = state.history.entries.filterNot { entry -> entry.bvid in ids }))
+            else -> state.copy(watchLater = state.watchLater.filterNot { entry -> entry.bvid in ids })
+        }
+        if (manualDelete) {
+            next.copy(removedKeys = ids, removalSeq = state.removalSeq + 1)
+        } else {
+            next
+        }
+    }
 }

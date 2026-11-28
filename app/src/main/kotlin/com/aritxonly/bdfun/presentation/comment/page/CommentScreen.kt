@@ -32,6 +32,8 @@ private fun CommentPageList(
 ) {
     val state by key(runtime.list) { runtime.list.state.collectAsState() }
     val ui = runtime.ui
+    // 播放器页面才提供 seek 端口；动态详情等没有播放器时不标时间点。
+    val seek = LocalVideoPageState.current.seekAction
     CommentListView(
         state = CommentListViewState(state.items, state.total, state.loading, state.loadingMore, state.end,
             state.error?.messageOr("评论加载失败"), state.query.sortHot, ui.highlightRpid, ui.disliked,
@@ -46,6 +48,7 @@ private fun CommentPageList(
             onReply = runtime::startReply,
             onMenu = { item, state, point -> runtime.menu.open(item, state, point) },
             onOpenReplies = runtime::openReplySheet,
+            onSeek = seek?.let { action -> { seconds: Int -> action(seconds * 1000L) } },
         ),
         listState = runtime.listState,
     )

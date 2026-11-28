@@ -14,7 +14,7 @@ import com.aritxonly.bdfun.core.model.comment.CommentItem
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
-internal fun CommentRowMessage(item: CommentItem) {
+internal fun CommentRowMessage(item: CommentItem, onSeek: ((Int) -> Unit)? = null) {
     val colors = MiuixTheme.colorScheme
     val context = LocalContext.current
     val photo = LocalPhotoViewer.current
@@ -44,6 +44,7 @@ internal fun CommentRowMessage(item: CommentItem) {
                 navigateToSpace(context, mid)
             }
         },
+        onSeek = onSeek,
     )
     if (item.pictures.isNotEmpty()) {
         Spacer(Modifier.height(8.dp))

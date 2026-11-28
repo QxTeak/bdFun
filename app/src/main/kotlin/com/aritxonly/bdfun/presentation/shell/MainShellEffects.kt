@@ -26,17 +26,20 @@ internal fun MainShellEffects(settings: SettingsBindings, shell: MainShellState)
     ) {
         context.findHostActivity()?.moveTaskToBack(true)
     }
-    // 系统返回键：先关搜索 / 覆盖页，再退出 App
+    // 系统返回键：结果页 → 带关键词/联想的搜索页 → 热搜首页 → 退出 App。
     androidx.activity.compose.BackHandler(enabled = ui.showSearch) {
-        if (ui.searchSubmitted != null) {
-            ui.searchSubmitted = null
-        } else {
-            ui.closeSearch()
+        when {
+            ui.searchSubmitted != null -> ui.searchSubmitted = null
+            ui.searchQuery.isNotEmpty() -> ui.searchQuery = ""
+            else -> ui.closeSearch()
         }
     }
     androidx.activity.compose.BackHandler(enabled = shell.bottom.showBottomSearch) {
-        if (shell.bottom.bottomSubmitted != null) shell.bottom.bottomSubmitted = null
-        else shell.bottom.close()
+        when {
+            shell.bottom.bottomSubmitted != null -> shell.bottom.bottomSubmitted = null
+            shell.bottom.bottomQuery.isNotEmpty() -> shell.bottom.bottomQuery = ""
+            else -> shell.bottom.close()
+        }
     }
 
     // 当前页面标识：用于页面过渡动画 + 返回键状态复位

@@ -25,6 +25,7 @@ private fun AnnotatedString.Builder.appendRichBody(runtime: RichTextRenderContex
         if (hit.start > index) append(text.substring(index, hit.start))
         if (hit.emoteUrl != null) appendRichEmote(runtime, inline, hit, "emote-${position++}")
         else if (hit.linkUrl != null) appendRichLink(runtime, inline, hit)
+        else if (hit.timestampSeconds != null) appendRichTimestamp(runtime, hit)
         else appendRichMention(runtime, inline, hit)
         index = hit.end
     }

@@ -113,7 +113,10 @@ internal fun LiveAvatar(
             lineHeight = 12.sp,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.padding(top = 3.dp),
+            // 与普通头像同一套名称淡出（只有 UP 页顶栏会提供进度，别处为 null 即常显）。
+            modifier = Modifier
+                .padding(top = 3.dp)
+                .feedAvatarLabelFade(LocalFeedAvatarLabelFade.current),
         )
     }
 }

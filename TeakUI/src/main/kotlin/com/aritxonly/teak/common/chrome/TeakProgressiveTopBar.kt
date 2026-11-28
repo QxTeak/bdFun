@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -24,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.luminance
@@ -74,6 +74,7 @@ internal const val ProgressiveTopBarBlurRadiusDp = TeakChromeDefaults.BarBlurRad
 internal const val ProgressiveTopBarBlurFadeStart = TeakChromeDefaults.BarBlurStartFraction
 internal const val ProgressiveTopBarOverlayTopAlpha = TeakChromeDefaults.BarTintAlpha
 internal const val ProgressiveTopBarOverlayEndFraction = 0.80f
+private const val ProgressiveTopBarEdgeFadeStart = 0.88f
 internal const val ProgressiveTopBarContentEndFraction = 0.75f
 internal const val ProgressiveTopBarMinimumContentHeightDp = 56f
 internal const val ProgressiveTopBarMaterialHeightTrimDp = 6f
@@ -127,19 +128,18 @@ internal fun resolveProgressiveTopBarHeightMetrics(
 fun ProgressiveTopBarMaterial(
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
-    /**
-     * 底层页面正在做一镜到底时，内容被整体上移了多少（px）。
-     *
-     * backdrop 录的是变换之前的画面，而顶栏画在变换之外；不补偿的话，
-     * 顶栏采样到的是"还没上移"的内容，接缝就出现在两者交界处。
-     * 这里把采样区域的布局位置下移同样的距离，再用绘制位移抵消回来：
-     * 画面不动，取景跟着内容走。
-     */
-    underlayLiftPx: Float = 0f,
-    /** 内容自身叠加的模糊半径（px）；顶栏要补上同样的量，否则两边清晰度不一致。 */
-    underlayBlurPx: Float = 0f,
     /** 位于播放器下方的顶栏不占用状态栏，不应重复补足该高度。 */
     includeStatusBar: Boolean = true,
+    /**
+     * 材质实际绘制高度（px），测量完成后回调一次。
+     *
+     * 材质比顶栏内容高三分之一，是为了让底部那段模糊慢慢收尾；但调用方常在外层套
+     * `graphicsLayer { alpha < 1 }`（淡出、换页、进 UP 页）。HWUI 渲染半透明层时按
+     * **外层节点边界**裁剪，裁口正好落在渐变还有强度的地方，滚动的画面穿过它就成了
+     * 一条硬边。调用方拿这个高度把半透明层撑到材质那么高，裁口就落到渐变已经为 0 的
+     * 位置：观感与裁剪无关，配方（半径/染色/起止）一个参数都不动。
+     */
+    onMaterialHeightPx: ((Int) -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
     if (!enabled) { Box(modifier, content = content); return }
@@ -163,6 +163,8 @@ fun ProgressiveTopBarMaterial(
             .dp
             .roundToPx()
     }
+    // 只在高度真的变了才回调：调用方据此调整半透明层高度，重复上报会让测量来回跳。
+    val reportedMaterialHeightPx = remember { intArrayOf(-1) }
 
     Layout(
         modifier = modifier,
@@ -170,8 +172,6 @@ fun ProgressiveTopBarMaterial(
             if (materialVisible) {
                 ProgressiveTopBarBackground(
                     materialProgress = materialProgress,
-                    underlayLiftPx = underlayLiftPx,
-                    underlayBlurPx = underlayBlurPx,
                     modifier = Modifier.fillMaxSize(),
                 )
             }
@@ -200,6 +200,13 @@ fun ProgressiveTopBarMaterial(
             minimumContentHeightPx = minimumContentHeightPx,
             materialHeightTrimPx = materialHeightTrimPx,
         )
+        // 上报放在测量之后：高度由内容决定，调用方只是把外层半透明层撑高，不会反过来改内容。
+        if (onMaterialHeightPx != null &&
+            reportedMaterialHeightPx[0] != heightMetrics.materialHeightPx
+        ) {
+            reportedMaterialHeightPx[0] = heightMetrics.materialHeightPx
+            onMaterialHeightPx(heightMetrics.materialHeightPx)
+        }
         val backgroundPlaceable = if (materialVisible) {
             measurables[0].measure(
                 Constraints.fixed(
@@ -220,27 +227,15 @@ fun ProgressiveTopBarMaterial(
 @Composable
 private fun ProgressiveTopBarBackground(
     materialProgress: State<Float>,
-    underlayLiftPx: Float = 0f,
-    underlayBlurPx: Float = 0f,
     modifier: Modifier = Modifier,
 ) {
-    val density = LocalDensity.current
-    val lift = underlayLiftPx.coerceAtLeast(0f)
-    val shiftDp = with(density) { lift.toDp() }
-    val extraBlurDp = with(density) { underlayBlurPx.coerceAtLeast(0f).toDp().value }
-    val blurRadius = ProgressiveTopBarBlurRadiusDp + extraBlurDp
-    // 布局下移、绘制上移，净位移为 0；被移动的只是"取景框"。
-    val samplingShift = Modifier
-        .offset(y = shiftDp)
-        .graphicsLayer { translationY = -lift }
-
     val surface = MaterialTheme.colorScheme.surface
     val advancedMaterial = LocalTeakMaterialSpec.current
     val backdrop = LocalTeakBackdrop.current
     if (advancedMaterial.useOfficialMiuixGlass && advancedMaterial.textureBlurEnabled &&
         backdrop != null && top.yukonga.miuix.kmp.material.isRuntimeShaderSupported()) {
         // Keep the app's edge fade and scroll ownership, with the official action-bar body.
-        Box(modifier.then(samplingShift).graphicsLayer {
+        Box(modifier.graphicsLayer {
             alpha = materialProgress.value.coerceIn(0f, 1f)
             compositingStrategy = CompositingStrategy.Offscreen
         }.drawWithContent {
@@ -261,18 +256,15 @@ private fun ProgressiveTopBarBackground(
         ))
         return
     }
-    Box(
-        modifier = modifier.graphicsLayer { alpha = materialProgress.value.coerceIn(0f, 1f) },
-    ) {
-        if (advancedMaterial.enabled && backdrop != null) {
+    val usesBackdrop = advancedMaterial.enabled && backdrop != null
+    val materialLayer = if (usesBackdrop) Modifier.progressiveTopBarEdgeLayer(materialProgress)
+        else Modifier.graphicsLayer { alpha = materialProgress.value.coerceIn(0f, 1f) }
+    Box(modifier.then(materialLayer)) {
+        if (usesBackdrop) {
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .then(if (lift > 0f) samplingShift else Modifier)
-                    .progressiveTopBarBackdrop(
-                        backdrop = requireNotNull(backdrop),
-                        blurRadius = blurRadius,
-                    ),
+                    .progressiveTopBarBackdrop(requireNotNull(backdrop)),
             )
         }
         Box(
@@ -291,12 +283,25 @@ private fun ProgressiveTopBarBackground(
     }
 }
 
-private fun Modifier.progressiveTopBarBackdrop(
-    backdrop: Backdrop,
-    blurRadius: Float = ProgressiveTopBarBlurRadiusDp,
-): Modifier = progressiveTextureBlur(
+private fun Modifier.progressiveTopBarBackdrop(backdrop: Backdrop): Modifier = progressiveTextureBlur(
     backdrop = backdrop,
     shape = RectangleShape,
-    blurRadius = blurRadius,
+    blurRadius = ProgressiveTopBarBlurRadiusDp,
     gradient = TeakBarProgressiveBlur,
 )
+
+/** 模糊半径归零时采样层依然在绘制。让末端的采样像素逐渐交还给底下的正文。 */
+internal fun Modifier.progressiveTopBarEdgeLayer(progress: State<Float>): Modifier =
+    graphicsLayer {
+        alpha = progress.value.coerceIn(0f, 1f)
+        compositingStrategy = CompositingStrategy.Offscreen
+    }.drawWithCache {
+        val tail = Brush.verticalGradient(
+            ProgressiveTopBarEdgeFadeStart to Color.White,
+            1f to Color.Transparent,
+        )
+        onDrawWithContent {
+            drawContent()
+            drawRect(brush = tail, blendMode = BlendMode.DstIn)
+        }
+    }

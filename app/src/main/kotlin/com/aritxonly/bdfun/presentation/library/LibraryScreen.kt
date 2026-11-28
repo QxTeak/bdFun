@@ -104,6 +104,8 @@ internal fun libraryModeContent(
     data.errors[mode], ui.batchMode, ui.selected,
     when(mode) { 0 -> data.favorites.hasMore; 1 -> data.history.hasMore; else -> ui.watchLaterVisibleCount < data.watchLater.size },
     allWatchLater = data.watchLater.map { it.toVideoItem() },
+    removedKeys = data.removedKeys,
+    removalSeq = data.removalSeq,
 )
 
 @Composable

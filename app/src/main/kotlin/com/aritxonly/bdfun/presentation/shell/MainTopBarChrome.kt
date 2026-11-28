@@ -2,8 +2,14 @@ package com.aritxonly.bdfun
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
@@ -12,7 +18,6 @@ import com.aritxonly.teak.common.chrome.LocalTopBarScrollProgress
 import com.aritxonly.teak.common.chrome.ProgressiveTopBarMaterial
 import com.aritxonly.teak.common.chrome.TeakPageScrollState
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
-import com.aritxonly.teak.common.search.TeakSearchTransitionDefaults
 import kotlin.math.abs
 
 /**
@@ -23,7 +28,7 @@ import kotlin.math.abs
  *
  * 1. 材质层（渐进模糊 + 玻璃）只做**淡出**，不缩放；
  * 2. 缩放 / 横移交给内容层，否则模糊采样矩形跟着缩到 0.9，动画里会切出一条清晰/模糊的硬边；
- * 3. 一镜到底时内容整体上移并被模糊，顶栏采样要按同样的位移和模糊量补偿，接缝才不会露出来；
+ * 3. 一镜到底时顶栏采样正文已经上移和模糊后的输出；
  * 4. 搜索页打开时采样源切到搜索页自己的 backdrop，进度切到搜索页的滚动进度。
  */
 @Composable
@@ -48,10 +53,6 @@ internal fun BoxScope.MainTopBarChrome(
     val pageAlpha = (1f - abs(pageFloat - pageIndex)).coerceIn(0f, 1f)
     if (pageAlpha <= 0.01f) return
 
-    // 一镜到底：内容被整体上移并模糊，顶栏画在变换之外，采样必须补偿同样的量。
-    val liftPx = with(LocalDensity.current) { TeakSearchTransitionDefaults.ContentLift.toPx() } *
-        bottom.bottomSearchProgress.value
-    val underlayBlurPx = TeakSearchTransitionDefaults.UnderlayBlurPx * bottom.bottomBlurProgress.value
     val searchFade = if (fadesWhenSearchOpens && ui.showSearch) {
         (1f - shell.searchReveal).coerceIn(0f, 1f)
     } else {
@@ -67,25 +68,39 @@ internal fun BoxScope.MainTopBarChrome(
             surface.materialProgress
         },
     ) {
-        ProgressiveTopBarMaterial(
-            underlayLiftPx = liftPx,
-            underlayBlurPx = underlayBlurPx,
+        // 半透明层要撑到材质实际高度：材质比顶栏高三分之一，用它收尾底部模糊；
+        // 只按顶栏高度裁剪会把那段尾巴切断，快速滚动和淡出时就是一条硬边。
+        val density = LocalDensity.current
+        var materialHeightPx by remember { mutableIntStateOf(0) }
+        Box(
             modifier = Modifier
                 .align(Alignment.TopCenter)
+                .then(
+                    if (materialHeightPx > 0) {
+                        Modifier.height(with(density) { materialHeightPx.toDp() })
+                    } else {
+                        Modifier
+                    },
+                )
                 .graphicsLayer {
                     alpha = pageAlpha * (1f - bottom.bottomTopBarAlpha.value) * searchFade *
                         extraAlpha.coerceIn(0f, 1f)
                 },
         ) {
-            Box(
-                modifier = Modifier.graphicsLayer {
-                    val searchScale = 1f - 0.1f * bottom.bottomSearchProgress.value
-                    scaleX = searchScale
-                    scaleY = searchScale
-                    translationX = -(pageFloat - pageIndex) * size.width * 0.92f
-                },
+            ProgressiveTopBarMaterial(
+                onMaterialHeightPx = { px -> if (px != materialHeightPx) materialHeightPx = px },
+                modifier = Modifier.fillMaxWidth(),
             ) {
-                content()
+                Box(
+                    modifier = Modifier.graphicsLayer {
+                        val searchScale = 1f - 0.1f * bottom.bottomSearchProgress.value
+                        scaleX = searchScale
+                        scaleY = searchScale
+                        translationX = -(pageFloat - pageIndex) * size.width * 0.92f
+                    },
+                ) {
+                    content()
+                }
             }
         }
     }

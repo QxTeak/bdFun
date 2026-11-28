@@ -125,6 +125,7 @@ internal fun CommentCardRow(item: CommentItem, disliked: Boolean, actions: Comme
                                     actions.onMenu(reply, state, androidx.compose.ui.geometry.Offset(bounds.left, bounds.top))
                                 },
                                 onPreviewLike = { reply -> actions.onLike(reply) },
+                                onSeek = actions.onSeek,
                             ),
                         )
 }

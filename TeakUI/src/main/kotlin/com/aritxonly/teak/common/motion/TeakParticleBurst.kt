@@ -59,9 +59,26 @@ class TeakParticleBurstState internal constructor(
     private var lastKeys: List<Any> = emptyList()
     private var synced = false
 
+    /**
+     * 调用方明确声明「这一项是用户手动删掉的」。
+     *
+     * 只有出现在这里的 key 才会炸；列表换页、筛选、加载/清空造成的 key 差异一律不炸。
+     */
+    private val pendingRemovals = mutableSetOf<Any>()
+
     /** 卡片每次被测量时登记一次；同一项只保留最后一次位置。 */
     fun recordAnchor(key: Any, windowBounds: Rect, color: Color) {
         anchors[key] = Anchor(windowBounds, color)
+    }
+
+    /** 页面切换 / 整批换数据不是删除；调用方可以借此清掉还没消费的删除声明。 */
+    fun clearPendingRemovals() {
+        pendingRemovals.clear()
+    }
+
+    /** 声明这些 key 是用户手动删除的；等它们真正从 keys 里消失时再炸。 */
+    fun expectRemoval(keys: Collection<Any>) {
+        if (TeakMotion.enabled) pendingRemovals.addAll(keys)
     }
 
     /**
@@ -69,24 +86,31 @@ class TeakParticleBurstState internal constructor(
      *
      * [generation] 变化（切收藏夹 / 切历史分类 / 换搜索词）时只重置基线不炸：
      * 整页换内容不是"删了一项"，否则一换分类就会炸一屏。
+     * [expectedRemovals] 是本轮用户手动删除的 key；只有它们从列表里消失时才炸，
+     * 因此页面切换、刷新、分页补位都不会误触发粒子。
      */
-    fun sync(generation: Any?, keys: List<Any>) {
+    fun sync(generation: Any?, keys: List<Any>, expectedRemovals: Collection<Any> = emptyList()) {
         if (!synced || generation != this.generation) {
             this.generation = generation
             lastKeys = keys
             synced = true
+            pendingRemovals.clear()
             anchors.keys.retainAll(keys.toSet())
             return
         }
+        pendingRemovals.addAll(expectedRemovals)
         val live = keys.toHashSet()
         val removed = lastKeys.filter { it !in live }
         removed.forEach { key ->
+            // 没被用户声明删除的 key 差异（换页 / 刷新 / 数据回退）直接忽略。
+            if (!pendingRemovals.remove(key)) return@forEach
             val anchor = anchors[key] ?: return@forEach
             burstAtWindow(anchor.windowBounds, anchor.color)
         }
         lastKeys = keys
         // 锚点只服务"这一项还在数据里"的删除；已经不在列表里的项顺手清掉，避免无限增长。
         anchors.keys.retainAll(live)
+        pendingRemovals.retainAll(live)
     }
 
     /** 直接在一个窗口矩形上炸一簇（给没有卡片测量的场景用）。 */
@@ -178,9 +202,11 @@ fun TeakParticleRemovalSync(
     state: TeakParticleBurstState,
     generation: Any?,
     keys: List<Any>,
+    /** 本轮用户手动删除的 key；只有它们消失时会炸。不传则永远不炸，只更新基线。 */
+    expectedRemovals: Collection<Any> = emptyList(),
 ) {
-    LaunchedEffect(state, generation, keys) {
-        state.sync(generation, keys)
+    LaunchedEffect(state, generation, keys, expectedRemovals) {
+        state.sync(generation, keys, expectedRemovals)
     }
 }
 
