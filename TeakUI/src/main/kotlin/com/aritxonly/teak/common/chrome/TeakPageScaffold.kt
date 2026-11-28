@@ -139,12 +139,12 @@ object TeakChromeDefaults {
     /** 小标题相对顶栏视觉中心再上移的距离。 */
     val SmallTitleLift: Dp = 3.dp
 
-    /** 顶栏背景渐变模糊参数。参数参考 HyperIsland，代码为 Teak 实现；记录见 docs/CREDITS.md。 */
-    const val BarBlurRadius = 16f
-    const val BarTintAlpha = 0.66f
-    const val BarBlurStartFraction = 0.62f
+    /** 渐进顶栏使用 Deadliner 的顶部模糊和表面染色参数。 */
+    const val BarBlurRadius = 8f
+    const val BarTintAlpha = 0.94f
+    const val BarBlurStartFraction = 0.60f
     const val BarBlurEndFraction = 1f
-    const val BarBlurCurve = 1.25f
+    const val BarBlurCurve = 1f
 
     val BackButtonSize: Dp = 40.dp
 
@@ -152,7 +152,7 @@ object TeakChromeDefaults {
     val RaisedBottomBarExtra: Dp = 16.dp
 }
 
-private val TeakBarProgressiveBlur = ProgressiveBlur.Top.copy(
+internal val TeakBarProgressiveBlur = ProgressiveBlur.Top.copy(
     startFraction = TeakChromeDefaults.BarBlurStartFraction,
     endFraction = TeakChromeDefaults.BarBlurEndFraction,
     curve = TeakChromeDefaults.BarBlurCurve,
@@ -160,6 +160,8 @@ private val TeakBarProgressiveBlur = ProgressiveBlur.Top.copy(
 
 /** 搜索页顶栏从下方抬进画面的距离：搜索结果面板本身就是从下往上，顶栏跟着同一条方向。 */
 private val SearchedChromeRise = 14.dp
+
+private const val ClassicBarBlurRadius = 16f
 
 /**
  * 顶栏渐变模糊：顶栏底部清晰 -> 顶部完全模糊，底部用页面底色染色，
@@ -215,7 +217,7 @@ fun Modifier.teakClassicBarGlass(): Modifier {
         textureBlur(
             backdrop = backdrop,
             shape = RectangleShape,
-            blurRadius = TeakChromeDefaults.BarBlurRadius,
+            blurRadius = ClassicBarBlurRadius,
             noiseCoefficient = 0f,
             colors = blurColors,
         )

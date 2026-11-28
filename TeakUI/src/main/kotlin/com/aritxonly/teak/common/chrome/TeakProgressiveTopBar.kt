@@ -38,7 +38,6 @@ import androidx.compose.ui.unit.dp
 import com.aritxonly.teak.common.material.LocalTeakBackdrop
 import com.aritxonly.teak.common.material.LocalTeakMaterialSpec
 import top.yukonga.miuix.kmp.blur.Backdrop
-import top.yukonga.miuix.kmp.blur.ProgressiveBlur
 import top.yukonga.miuix.kmp.blur.progressiveTextureBlur
 import kotlin.math.ceil
 import kotlin.math.max
@@ -299,9 +298,5 @@ private fun Modifier.progressiveTopBarBackdrop(
     backdrop = backdrop,
     shape = RectangleShape,
     blurRadius = blurRadius,
-    gradient = ProgressiveBlur.Top.copy(
-        startFraction = ProgressiveTopBarBlurFadeStart,
-        endFraction = TeakChromeDefaults.BarBlurEndFraction,
-        curve = TeakChromeDefaults.BarBlurCurve,
-    ),
+    gradient = TeakBarProgressiveBlur,
 )

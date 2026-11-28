@@ -37,6 +37,8 @@ HyperPiliPlus 不只是“参考”，其中有一部分是直接移植，也有
 
 **没有复制 HyperIsland 的源码。** 只参考渐进式模糊的部分参数/观感：
 
+以下为历史参数。现行顶栏参数与 Deadliner 的对照见[同步记录](../../docs/DEADLINER_GLASS_SYNC.md#2026-11-28-顶栏渐进模糊)。
+
 - `curve = 1.25`
 - `blurRadius = 16`
 - `tint = 0.66`
