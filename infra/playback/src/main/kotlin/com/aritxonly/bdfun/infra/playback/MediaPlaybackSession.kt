@@ -19,6 +19,7 @@ import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 import com.aritxonly.bdfun.core.application.PlaybackController
+import com.aritxonly.bdfun.core.domain.playbackIntentIsPlaying
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancel
 
@@ -202,7 +203,9 @@ class MediaPlaybackSession(
     }
 
     override fun toggle() {
-        if (playback.refresh().playing) playback.pause() else playback.play()
+        // 播完后 playWhenReady 仍是 true，按它判会变成“再暂停一次”，这里要能重播。
+        val tick = playback.refresh()
+        if (playbackIntentIsPlaying(tick.ended, tick.playWhenReady)) playback.pause() else playback.play()
     }
 
     override fun seekBy(deltaMs: Long) {
