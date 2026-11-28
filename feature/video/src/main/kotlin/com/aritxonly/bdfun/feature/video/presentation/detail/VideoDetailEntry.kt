@@ -10,6 +10,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 
+/**
+ * 进全屏后延迟多久再升级清晰度。
+ *
+ * 转屏 + 全屏布局重排大约 300~500ms；留出余量让播放器和弹幕层先稳定下来，
+ * 避免「布局重建 + 播放源重建」挤在同一帧里。暂停时不等这个延时。
+ */
+private const val FullscreenQualityUpgradeDelayMs = 900L
+
 @Composable
 fun VideoDetailEntry(
     isLoggedIn: () -> Boolean, request: VideoScreenRequest, presentation: VideoScreenPresentation, events: VideoScreenEvents,
@@ -38,13 +46,22 @@ fun VideoDetailEntry(
         qualities.firstOrNull { it.id == selection.quality } ?: qualities.firstOrNull()
     }
     // 半屏只起 720P：小窗里 4K/HDR 没有意义，还会白拉高码率。
-    // 这个限制只在首次进入时生效：一旦进过全屏，回到半屏就保持全屏时选中的清晰度，
-    // 否则每次退出全屏都会重新降到 720P（用户看到的是画面突然变糊）。
+    // 全屏不再「一进去就换高清」：转屏/全屏布局本身就要重建一遍，同一个窗口里再
+    // 重建播放源（新 MediaSource 会重开解码器）会叠成一次明显卡顿，音频也会断一下。
+    // 现在先让 720P 继续播，等全屏布局稳定（暂停时直接换，没有音频断点）再升级；
+    // 升级后回半屏保持这个清晰度，不再降回 720P。
     var enteredFullscreen by remember(selection.bvid) { mutableStateOf(false) }
-    LaunchedEffect(presentation.fullscreen) {
-        if (presentation.fullscreen) enteredFullscreen = true
+    LaunchedEffect(presentation.fullscreen, selection.bvid, playing) {
+        if (!presentation.fullscreen || enteredFullscreen) return@LaunchedEffect
+        if (!playing) {
+            // 暂停时没有声音，换源听不出来，可以立刻升级。
+            enteredFullscreen = true
+            return@LaunchedEffect
+        }
+        kotlinx.coroutines.delay(FullscreenQualityUpgradeDelayMs)
+        enteredFullscreen = true
     }
-    val quality = if (presentation.fullscreen || enteredFullscreen) selectedQuality
+    val quality = if (enteredFullscreen) selectedQuality
         else com.aritxonly.bdfun.core.domain.capInlineQuality(selectedQuality, qualities)
     // 用当前清晰度的真实宽高比判断竖屏视频；读不到就按原来的 16:9 处理。
     val videoAspectRatio = quality?.let { q ->

@@ -23,7 +23,9 @@ internal fun rememberPlayerRenderPorts(
     val fullscreenChrome = rememberFullscreenChromeAssembly()
     val fsActions = VideoFullscreenActionBindings(
         context, playback, presentation.fullscreenInfo, actions, ui, page,
-        dolbyVision = { com.aritxonly.bdfun.core.domain.isDolbyVisionQuality(media.quality) },
+        dolbyVision = {
+            playback.videoOutputTarget.value?.mode == com.aritxonly.bdfun.core.application.PlaybackVideoOutputMode.DolbyVision
+        },
     ).create()
     // 全屏/半屏共用 onCast 写请求状态，这里统一挂一个投屏面板，避免复制第二份入口。
     val castUrl = CastRequestState.url

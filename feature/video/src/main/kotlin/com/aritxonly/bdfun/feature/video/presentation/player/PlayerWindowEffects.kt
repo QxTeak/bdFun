@@ -12,7 +12,7 @@ import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.aritxonly.bdfun.core.domain.isTabletDevice
-import com.aritxonly.bdfun.core.model.video.Quality
+import com.aritxonly.bdfun.core.application.PlaybackVideoOutputMode
 
 /**
  * 全屏期间由我们这一侧写进窗口的朝向：
@@ -90,17 +90,11 @@ fun BindPlayerSystemBars(
 }
 
 @Composable
-fun BindPlayerHdrWindow(quality: Quality?, fullscreen: Boolean) {
+fun BindPlayerHdrWindow(outputMode: PlaybackVideoOutputMode, fullscreen: Boolean) {
     val activity = LocalContext.current as? Activity
     // HDR / 杜比视界：把屏幕亮度拉到最高，请求 HDR 颜色模式与 10bit 输出。
     // 部分机型不会因为 Surface 是 HDR 就自动提亮，这里显式做一次。
-    val isHdrQuality = quality?.let { q ->
-        q.id == 125 || q.id == 126 ||
-            q.codec.contains("hdr", ignoreCase = true) ||
-            q.codec.contains("dovi", ignoreCase = true) ||
-            q.codec.contains("dvh", ignoreCase = true) ||
-            q.codec.contains("dolby", ignoreCase = true)
-    } == true
+    val isHdrQuality = outputMode != PlaybackVideoOutputMode.Standard
     DisposableEffect(isHdrQuality, fullscreen, activity) {
         val window = activity?.window
         val hdrActive = isHdrQuality

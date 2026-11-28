@@ -51,6 +51,7 @@ class VideoPlayerUiStateHolder(
     val progressPositionMs = mutableLongStateOf(0L)
     val progressDurationMs = mutableLongStateOf(0L)
     val preparedMediaKey = mutableStateOf<String?>(null)
+    val requestedVideoQualityId = mutableIntStateOf(0)
     /** 上一次起播用的画面地址：退出听视频后靠它判断要不要按当前档位重新 prepare。 */
     val preparedVideoUrl = mutableStateOf<String?>(null)
     /** 上一次起播用的音轨地址：听视频里档位来回换不影响音轨，靠它判断能不能不重新起播。 */

@@ -25,6 +25,29 @@ class PlayInfoMapperTest {
         assertEquals(98452L, info.durationMs)
         assertEquals(listOf(64, 32, 16), info.acceptQuality)
         assertNull(info.fallbackUrl)
+        // 真实样本带 SegmentBase/segment_base：范围必须解析出来，本地 MPD 才拼得动。
+        assertNotNull(info.qualities.first().initRange)
+        assertNotNull(info.qualities.first().indexRange)
+        assertTrue(info.qualities.first().bandwidth > 0)
+        assertNotNull(info.audioInitRange)
+        assertNotNull(info.audioIndexRange)
+        assertEquals("mp4a.40.2", info.audioCodec)
+    }
+
+    @Test fun segmentBaseAliasesAreReadForBothCases() {
+        val dto = readPlayInfo(
+            JSONObject(
+                """{"timelength":100000,"dash":{"video":[
+                   {"id":80,"baseUrl":"v","bandwidth":1000,"width":1920,"height":1080,
+                    "SegmentBase":{"Initialization":"0-10","indexRange":"11-20"}}],
+                   "audio":[{"id":30280,"baseUrl":"a","bandwidth":100,
+                    "segment_base":{"initialization":"0-5","index_range":"6-9"}}]}}""",
+            ),
+        )
+        assertEquals("0-10", dto.videos.single().initRange)
+        assertEquals("11-20", dto.videos.single().indexRange)
+        assertEquals("0-5", dto.audios.single().initRange)
+        assertEquals("6-9", dto.audios.single().indexRange)
     }
 
     @Test fun explicitCodecAndCdnMappingKeepRawUrlsAndOriginalRewriteOrder() {

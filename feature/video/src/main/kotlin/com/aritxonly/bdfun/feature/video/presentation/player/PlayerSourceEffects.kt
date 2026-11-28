@@ -5,7 +5,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import com.aritxonly.bdfun.core.application.PlaybackController
 import com.aritxonly.bdfun.core.application.PlaybackSource
+import com.aritxonly.bdfun.core.application.PlaybackVideoOutputMode
+import com.aritxonly.bdfun.core.application.PlaybackVideoTarget
+import com.aritxonly.bdfun.core.application.buildPlaybackDashSource
+import com.aritxonly.bdfun.core.domain.isDolbyVisionQuality
 import com.aritxonly.bdfun.core.domain.resolvePlaybackSourceUrls
+import com.aritxonly.bdfun.core.model.video.Quality
 import com.aritxonly.bdfun.feature.video.presentation.VideoPlaybackPlatform
 import androidx.compose.ui.platform.LocalContext
 
@@ -64,6 +69,11 @@ fun BindPlayerSource(
             log("PLAYER", "source-keep bvid=$bvid q=${quality?.id} audioOnly=$audioOnly")
             return@LaunchedEffect
         }
+        // 具备完整 segment_base 时拼本地 MPD：之后同一视频换档只改轨道选择，
+        // 不重建 MediaSource，音频解码器不会被释放（全屏升画质不断音）。
+        val dash = if (usingOriginal || usingFallback) null else {
+            info?.let { buildPlaybackDashSource(it, quality?.id ?: 0) }
+        }
         if (resumePlayback() && previousKey != null && previousKey != mediaKey) {
             val previous = previousKey.split(":")
             val tick = playback.refresh()
@@ -72,7 +82,11 @@ fun BindPlayerSource(
         val localResume = if (resumePlayback() && previousKey != mediaKey && resumePositionMs <= 0L) {
             progress.resumeFor(bvid, presentation.fullscreenInfo.currentCid)
         } else 0L
+        val sameFullscreenVideo = previousKey == mediaKey && presentation.fullscreen &&
+            !audioOnly && !usingOriginal && !usingFallback
+        val target = quality?.videoTarget(ui.requestedVideoQualityId.intValue, sameFullscreenVideo)
         ui.preparedMediaKey.value = mediaKey
+        ui.requestedVideoQualityId.intValue = quality?.id ?: 0
         ui.preparedVideoUrl.value = url
         ui.preparedAudioUrl.value = audioUrl
         playback.prepare(PlaybackSource(
@@ -81,7 +95,20 @@ fun BindPlayerSource(
             resumePositionMs = if (resumePositionMs > 0L) resumePositionMs else localResume, autoPlay = autoPlay(), speed = speed,
             // DASH 的音视频是分开的；投屏给电视一个文件地址，优先用能带声音的 durl。
             castUrl = info?.fallbackUrl?.takeIf { it.isNotBlank() },
+            dash = dash,
+            videoTarget = target,
         ))
     }
 
 }
+
+internal fun Quality.videoTarget(previousId: Int, sameFullscreenVideo: Boolean) = PlaybackVideoTarget(
+    qualityId = id,
+    mode = when {
+        isDolbyVisionQuality(this) -> PlaybackVideoOutputMode.DolbyVision
+        id == 125 || codec.contains("hdr", ignoreCase = true) ||
+            codec.contains("dovi", ignoreCase = true) -> PlaybackVideoOutputMode.Hdr
+        else -> PlaybackVideoOutputMode.Standard
+    },
+    upgradeInBackground = sameFullscreenVideo && previousId in 1..64 && id > 64,
+)

@@ -22,13 +22,22 @@ internal fun readPlayInfo(data: JSONObject): PlayInfoDto {
     )
 }
 
-private fun readPlaybackRepresentation(rep: JSONObject) = PlaybackRepresentationDto(
-    id = rep.optInt("id", 0), bandwidth = rep.l("bandwidth"), codec = rep.s("codecs"),
-    url = rep.s("baseUrl").ifBlank { rep.s("base_url") },
-    backups = jsonStrings(rep.optJSONArray("backupUrl") ?: rep.optJSONArray("backup_url")),
-    width = rep.optInt("width", 0), height = rep.optInt("height", 0),
-    frameRate = rep.s("frameRate").ifBlank { rep.s("fps") },
-)
+private fun readPlaybackRepresentation(rep: JSONObject): PlaybackRepresentationDto {
+    // B 站 dash 条目用 snake_case；真实样本里还同时带一份 `SegmentBase`（首字母大写）。
+    val segment = rep.optJSONObject("segment_base") ?: rep.optJSONObject("segmentBase")
+        ?: rep.optJSONObject("SegmentBase")
+    return PlaybackRepresentationDto(
+        id = rep.optInt("id", 0), bandwidth = rep.l("bandwidth"), codec = rep.s("codecs"),
+        url = rep.s("baseUrl").ifBlank { rep.s("base_url") },
+        backups = jsonStrings(rep.optJSONArray("backupUrl") ?: rep.optJSONArray("backup_url")),
+        width = rep.optInt("width", 0), height = rep.optInt("height", 0),
+        frameRate = rep.s("frameRate").ifBlank { rep.s("fps") },
+        initRange = segment?.let { it.s("initialization").ifBlank { it.s("Initialization") } }
+            ?.takeIf { it.isNotBlank() },
+        indexRange = segment?.let { it.s("indexRange").ifBlank { it.s("index_range") } }
+            ?.takeIf { it.isNotBlank() },
+    )
+}
 
 internal fun mapPlayInfo(
     dto: PlayInfoDto, durationSec: Int, codecPreference: String,
@@ -45,6 +54,7 @@ internal fun mapPlayInfo(
             id = id, label = qualityLabel(id), width = rep.width, height = rep.height,
             frameRate = rep.frameRate, codec = rep.codec,
             videoUrl = rewrite(baseUrl, rep.backups), rawVideoUrl = baseUrl,
+            bandwidth = rep.bandwidth, initRange = rep.initRange, indexRange = rep.indexRange,
         )
     }
     val fallback = dto.fallback
@@ -55,6 +65,10 @@ internal fun mapPlayInfo(
         rawFallbackUrl = fallback.takeIf { it.isNotBlank() },
         durationMs = dto.durationMs.takeIf { it > 0 } ?: (durationSec * 1000L),
         acceptQuality = dto.acceptQuality,
+        audioBandwidth = selectedAudio?.bandwidth ?: 0,
+        audioCodec = selectedAudio?.codec.orEmpty(),
+        audioInitRange = selectedAudio?.initRange,
+        audioIndexRange = selectedAudio?.indexRange,
     )
 }
 
