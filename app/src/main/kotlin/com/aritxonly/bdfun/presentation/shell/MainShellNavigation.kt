@@ -32,46 +32,7 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
             .indexOfFirst { it.key == item.key }
             .coerceAtLeast(0)
         if (index == tabPagerState.currentPage) {
-            val chrome = when (index) {
-                0 -> when (ui.homeSection) {
-                    1 -> shell.chrome.live
-                    2 -> shell.chrome.popular
-                    3 -> shell.chrome.bangumi
-                    4 -> shell.chrome.cinema
-                    else -> shell.chrome.home
-                }
-                1 -> shell.chrome.dynamic
-                else -> shell.chrome.mine
-            }
-            val scroll = chrome.scrollableState
-            val refresh = index in 0..1 && com.aritxonly.bdfun.core.domain.TabClickPolicy.shouldRefresh(
-                settings.tabClickRefresh, scroll != null && !scroll.canScrollBackward,
-            )
-            if (!refresh) {
-                appScope.launch { scrollMainPageToTop(scroll) }
-            } else {
-                when (index) {
-                    // 首页三段各有自己的刷新入口，别让直播/番剧去刷推荐。
-                    // 直播/番剧和推荐页一致：先平滑回顶，再拉刷新。
-                    0 -> when (ui.homeSection) {
-                        1 -> AppGraph.livePageState.requestRefresh()
-                        2 -> AppGraph.popularPageState.requestRefresh()
-                        3 -> AppGraph.bangumiPageState.requestRefresh()
-                        4 -> AppGraph.cinemaPageState.requestRefresh()
-                        0 -> homeFeed.requestRefresh()
-                    }
-                    1 -> {
-                        val dynamic = shell.feeds.dynamic
-                        if (dynamic.filterMid != null) {
-                            // 特定 UP 页里的「再次点动态」：留在本页静默刷新。
-                            // 不能走 refreshTick（那条路会拉下拉指示器，弹出小电视）。
-                            appScope.launch { dynamic.refresh(shell.feeds.session != null) }
-                        } else {
-                            ui.dynamicRefreshTick++
-                        }
-                    }
-                }
-            }
+            handleMainTabReselect(index, ui, shell, settings, appScope)
         } else {
             // 主 tab 不能左右滑；点底栏切换仍保留横向滑动，但用先快后慢的缓动。
             appScope.launch {
@@ -98,4 +59,52 @@ internal fun androidx.compose.foundation.layout.BoxScope.MainShellNavigation(set
         onOpenVideo = { navigateToVideo(context, it) },
     )
 
+}
+
+/** 再次点击当前底栏项：回顶或触发该页刷新；UP 页则静默刷新。 */
+private fun handleMainTabReselect(
+    index: Int,
+    ui: MainShellUiStateHolder,
+    shell: MainShellState,
+    settings: SettingsBindings,
+    appScope: kotlinx.coroutines.CoroutineScope,
+) {
+    val chrome = when (index) {
+        0 -> when (ui.homeSection) {
+            1 -> shell.chrome.live
+            2 -> shell.chrome.popular
+            3 -> shell.chrome.bangumi
+            4 -> shell.chrome.cinema
+            else -> shell.chrome.home
+        }
+        1 -> shell.chrome.dynamic
+        else -> shell.chrome.mine
+    }
+    val scroll = chrome.scrollableState
+    val refresh = index in 0..1 && com.aritxonly.bdfun.core.domain.TabClickPolicy.shouldRefresh(
+        settings.tabClickRefresh, scroll != null && !scroll.canScrollBackward,
+    )
+    if (!refresh) {
+        appScope.launch { scrollMainPageToTop(scroll) }
+        return
+    }
+    when (index) {
+        // 首页各段各有刷新入口，别让直播/番剧去刷推荐。
+        0 -> when (ui.homeSection) {
+            1 -> AppGraph.livePageState.requestRefresh()
+            2 -> AppGraph.popularPageState.requestRefresh()
+            3 -> AppGraph.bangumiPageState.requestRefresh()
+            4 -> AppGraph.cinemaPageState.requestRefresh()
+            0 -> shell.feeds.home.requestRefresh()
+        }
+        1 -> {
+            val dynamic = shell.feeds.dynamic
+            if (dynamic.filterMid != null) {
+                // UP 页里的「再次点动态」：留在本页静默刷新，不走下拉小电视。
+                appScope.launch { dynamic.refresh(shell.feeds.session != null) }
+            } else {
+                ui.dynamicRefreshTick++
+            }
+        }
+    }
 }

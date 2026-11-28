@@ -100,8 +100,8 @@ private fun LibraryGridBody(
     // 只对「用户手动删除」炸：切页签/收藏夹/历史分类是整页换内容，generation 一变只重置基线。
     val rowKeys = remember(rows) { rows.map { it.bvid } }
     // 删除声明在 sync 之前登记：数据真正少掉这一项的那一帧才能找到对应锚点。
-    LaunchedEffect(particle, content.removalSeq) {
-        if (content.removalSeq > 0) particle.expectRemoval(content.removedKeys)
+    LaunchedEffect(particle, layout.removal?.seq) {
+        layout.removal?.takeIf { it.seq > 0 }?.let { particle.expectRemoval(it.keys) }
     }
     TeakParticleRemovalSync(
         state = particle,

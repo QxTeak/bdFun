@@ -139,6 +139,51 @@ internal fun rememberFeedUpTransition(
 ): FeedUpVisual {
     val upFocus = state.filterMid != null
     val upOrder = feedUpMids(state, AppGraph.session.value?.mid)
+    val upPageVisible = upFocus && upOrder.isNotEmpty()
+    val control = rememberFeedUpControl(state, tabKey, loggedIn, scope, upFocus, upPageVisible, onProgress)
+    // 卡片顶上边距是「顶栏高 + 8dp」、内部还有 14dp，新顶栏只有 4dp：
+    // 把 UP 页整块下移这个差值起步，头像看起来就是从列表里那张卡片升上来的。
+    val risePx = with(LocalDensity.current) { (FeedTopBarHeight + 16.dp).toPx() }
+    // 转场期间新旧两行头像同时在场：卡片静态环和 UP 页的动环必须是两份状态。
+    val cardRing = remember { FeedAvatarRingState() }
+    // 进入且确实有 UP 页时才推退让进度；没有目标页（作者列表还没到）就保持原列表。
+    val underlayProgress = if (upPageVisible || !upFocus) control.progress else 0f
+    return FeedUpVisual(
+        upFocus = upFocus,
+        upPageVisible = upPageVisible,
+        tabKey = tabKey,
+        progress = control.progress,
+        underlayProgress = underlayProgress,
+        risePx = risePx,
+        underlayItems = control.underlayItems,
+        underlayList = control.underlayList,
+        cardRing = cardRing,
+        pull = control.pull,
+        enterUp = control.enterUp,
+        exitUp = control.exitUp,
+    )
+}
+
+private class FeedUpControl(
+    val progress: Float,
+    val pull: FeedUpPullController,
+    val underlayItems: List<FeedItem>,
+    val underlayList: LazyStaggeredGridState,
+    val enterUp: (Long) -> Unit,
+    val exitUp: () -> Unit,
+)
+
+/** 退让层、进入/退出动作和下拉跟手控制器；主转场函数只负责几何与分层。 */
+@Composable
+private fun rememberFeedUpControl(
+    state: FeedState,
+    tabKey: String,
+    loggedIn: Boolean,
+    scope: CoroutineScope,
+    upFocus: Boolean,
+    upPageVisible: Boolean,
+    onProgress: (Float) -> Unit,
+): FeedUpControl {
     var underlayItems by remember { mutableStateOf(state.items) }
     var underlayIndex by remember { mutableIntStateOf(0) }
     var underlayOffset by remember { mutableIntStateOf(0) }
@@ -170,15 +215,13 @@ internal fun rememberFeedUpTransition(
         }
     }
     // 和搜索一镜到底同一条弹簧（阻尼 0.97 / stiffness 247）。
-    val animationsEnabled = LocalSettingsBindings.current.animationsEnabled
-    val spec: AnimationSpec<Float> = if (animationsEnabled) {
+    val spec: AnimationSpec<Float> = if (LocalSettingsBindings.current.animationsEnabled) {
         TeakSearchTransitionDefaults.spec()
     } else {
         tween(0)
     }
     var progress by remember { mutableFloatStateOf(if (upFocus) 1f else 0f) }
-    // 主壳顶部 segment 不能自己跑一条补间：这里把内容正在用的进度原样上报，
-    // 进页、退页、手指下拉倒放才会是同一套运动。
+    // 主壳顶部 segment 不能自己跑一条补间：这里把内容正在用的进度原样上报。
     SideEffect { onProgress(progress) }
     val density = LocalDensity.current
     val distancePx = with(density) { FeedUpExitPullDistance.toPx() }
@@ -204,34 +247,13 @@ internal fun rememberFeedUpTransition(
         if (upFocus && pull.pressed) return@LaunchedEffect
         pull.animateTo(if (upFocus) 1f else 0f)
     }
-    // 卡片顶上边距是「顶栏高 + 8dp」、内部还有 14dp，新顶栏只有 4dp：
-    // 把 UP 页整块下移这个差值起步，头像看起来就是从列表里那张卡片升上来的。
-    val risePx = with(LocalDensity.current) { (FeedTopBarHeight + 16.dp).toPx() }
-    val upPageVisible = upFocus && upOrder.isNotEmpty()
-    // 转场期间新旧两行头像同时在场：卡片静态环和 UP 页的动环必须是两份状态。
-    val cardRing = remember { FeedAvatarRingState() }
     // 退让层自己的列表状态：UP 页同时在场时不能和它共用一个 LazyStaggeredGridState。
     val underlayList = remember { LazyStaggeredGridState() }
     // 进页那一帧把退让层滚到原列表的位置，否则它从顶部开始、和「上移」对不上。
     LaunchedEffect(upPageVisible) {
         if (upPageVisible) underlayList.scrollToItem(underlayIndex, underlayOffset)
     }
-    // 进入且确实有 UP 页时才推退让进度；没有目标页（作者列表还没到）就保持原列表。
-    val underlayProgress = if (upPageVisible || !upFocus) progress else 0f
-    return FeedUpVisual(
-        upFocus = upFocus,
-        upPageVisible = upPageVisible,
-        tabKey = tabKey,
-        progress = progress,
-        underlayProgress = underlayProgress,
-        risePx = risePx,
-        underlayItems = underlayItems,
-        underlayList = underlayList,
-        cardRing = cardRing,
-        pull = pull,
-        enterUp = enterUp,
-        exitUp = exitUp,
-    )
+    return FeedUpControl(progress, pull, underlayItems, underlayList, enterUp, exitUp)
 }
 
 /**

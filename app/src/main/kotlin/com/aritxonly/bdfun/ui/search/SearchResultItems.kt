@@ -91,14 +91,7 @@ internal fun androidx.compose.foundation.lazy.grid.LazyGridScope.videoResultRows
     // 搜索/热门接口会返回重复 bvid（同一稿件多个入口），只用 bvid 当 key 会直接崩 LazyGrid。
     // 但不能把 index 写进 key：删掉一项后后面所有 key 都会变，懒网格会当成整页换数据，
     // 既没有补位动画，删除粒子也会把后面的项全部误判成「被删」。
-    val stableKeys = run {
-        val seen = HashMap<String, Int>()
-        videos.map { video ->
-            val occurrence = seen.getOrDefault(video.bvid, 0)
-            seen[video.bvid] = occurrence + 1
-            "$keyPrefix${video.bvid}#$occurrence"
-        }
-    }
+    val stableKeys = stableVideoKeys(videos, keyPrefix)
     itemsIndexed(items = videos, key = { index, _ -> stableKeys[index] }) { _, video ->
         val animateRemoval = if (particleState != null) Modifier.animateItem() else Modifier
         val oneTake = rememberOneTakeAnchor()
@@ -375,6 +368,16 @@ private fun SearchPgcRow(item: SearchPgcItem) {
                 )
             }
         }
+    }
+}
+
+/** 稳定 key：同一 bvid 的多次出现用出现序号区分，删除中间项时后面的 key 不变。 */
+private fun stableVideoKeys(videos: List<VideoItem>, keyPrefix: String): List<String> {
+    val seen = HashMap<String, Int>()
+    return videos.map { video ->
+        val occurrence = seen.getOrDefault(video.bvid, 0)
+        seen[video.bvid] = occurrence + 1
+        "$keyPrefix${video.bvid}#$occurrence"
     }
 }
 

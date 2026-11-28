@@ -83,7 +83,8 @@ internal fun LibraryPagerPage(
     LibraryModePage(
         content = libraryModeContent(runtime.interaction, data, interaction, mode),
         layout = LibraryModeLayout(mode, runtime.request.title, runtime.request.fixedMode == null,
-            mode == runtime.currentMode, progress, runtime.presentation.scrollTopTick),
+            mode == runtime.currentMode, progress, runtime.presentation.scrollTopTick,
+            removal = data.removalSeq.takeIf { it > 0 }?.let { LibraryRemoval(it, data.removedKeys) }),
         actions = LibraryModeActions(runtime.data, runtime::selectMode, runtime.interaction::toggleSelected,
             runtime::selectFolder, runtime.navigation.onOpenVideo, { runtime.loadMore(mode) },
             runtime.dependencies.playbackQueue::set,
@@ -104,8 +105,6 @@ internal fun libraryModeContent(
     data.errors[mode], ui.batchMode, ui.selected,
     when(mode) { 0 -> data.favorites.hasMore; 1 -> data.history.hasMore; else -> ui.watchLaterVisibleCount < data.watchLater.size },
     allWatchLater = data.watchLater.map { it.toVideoItem() },
-    removedKeys = data.removedKeys,
-    removalSeq = data.removalSeq,
 )
 
 @Composable

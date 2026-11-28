@@ -27,7 +27,6 @@ internal fun MainScaffold(settings: SettingsBindings, shell: MainShellState, dar
 @Composable
 private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellState, dark: Boolean, background: Color, modifier: Modifier) {
     val ui = shell.ui
-    val session = shell.feeds.session
     val homeFeed = shell.feeds.home
     val tabPagerState = shell.navigation.pager
     val backdrop = shell.backdrops.main
@@ -56,7 +55,7 @@ private fun MainScaffoldContent(settings: SettingsBindings, shell: MainShellStat
                 // 外面包一层更大的触摸阈值，手指轻抖不会误翻页。
                 // 分段只在 HyperOS 4 风格下可见；切回官方/经典时强制回到推荐，
                 // 否则会停在一个没有入口可以离开的空页面上。
-                MainTabPager(tabPagerState, homeFeed, session, settings, ui.dynamicRefreshTick,
+                MainTabPager(tabPagerState, homeFeed, shell.feeds.session, settings, ui.dynamicRefreshTick,
                     shell.chrome.mineList,
                     // 三种界面风格都保留首页的推荐/直播/番剧分段。
                     homeSection = ui.homeSection,
