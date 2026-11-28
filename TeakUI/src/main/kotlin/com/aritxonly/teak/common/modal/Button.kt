@@ -54,8 +54,20 @@ private fun resolveMiuixButtonColors(
 
 @Composable
 private fun resolveMiuixTextButtonColors(
-    style: MiuixDialogActionStyle, destructive: Boolean = false,
+    style: MiuixDialogActionStyle,
+    destructive: Boolean = false,
+    primary: Boolean = false,
 ): MiuixTextButtonColors {
+    // 危险操作优先保持错误色；普通操作可按调用方要求提升为主题色实心按钮。
+    if (primary && !destructive) {
+        val colors = MiuixTheme.colorScheme
+        return MiuixButtonDefaults.textButtonColors(
+            color = colors.primary,
+            disabledColor = colors.primary.copy(alpha = .38f),
+            textColor = colors.onPrimary,
+            disabledTextColor = colors.onPrimary.copy(alpha = .7f),
+        )
+    }
     if (style == MiuixDialogActionStyle.Default) return MiuixButtonDefaults.textButtonColors()
     return MiuixButtonDefaults.textButtonColors(
         color = MiuixTheme.colorScheme.secondaryContainer.copy(alpha = .85f),
@@ -123,6 +135,8 @@ fun TextButton(
     // MIUIX 专属辅助参数
     miuixText: String = "",
     useMiuixDialogActionColors: Boolean = true,
+    /** 弹窗主操作使用主题色实心底，而不是默认的中性容器色。 */
+    primary: Boolean = false,
 
     destructive: Boolean = false,
     content: @Composable RowScope.() -> Unit
@@ -136,7 +150,7 @@ fun TextButton(
             modifier = miuixModifier,
             enabled = enabled,
             cornerRadius = TeakModalDefaults.ButtonCornerRadius,
-            colors = resolveMiuixTextButtonColors(dialogActionStyle, destructive),
+            colors = resolveMiuixTextButtonColors(dialogActionStyle, destructive, primary),
         )
     } else {
         val miuixColors = resolveMiuixButtonColors(

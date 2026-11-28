@@ -5,10 +5,9 @@ import com.aritxonly.bdfun.core.model.message.MessageItem
 import com.aritxonly.bdfun.core.model.message.MessageSession
 import kotlinx.coroutines.*
 
-internal class MessageSessionsPresentationStateHolder(readAll: Int, more: Int) {
+internal class MessageSessionsPresentationStateHolder(readAll: Int) {
     var tabIndex by mutableIntStateOf(0)
     var consumedReadAll by mutableIntStateOf(readAll)
-    var consumedMore by mutableIntStateOf(more)
 }
 
 internal class MessageSessionMenuStateHolder {
@@ -16,7 +15,6 @@ internal class MessageSessionMenuStateHolder {
     var confirmDelete by mutableStateOf(false)
     var sessionMenuVisible by mutableStateOf(false)
     var sessionAnchor by mutableStateOf(androidx.compose.ui.geometry.Rect.Zero)
-    var showMore by mutableStateOf(false)
     var confirmRead by mutableStateOf(false)
     var confirmClear by mutableStateOf(false)
 

@@ -14,7 +14,6 @@ data class PageChromeState(
     val batchActionRequest: Int = 0,
     val batchActionKey: String = "",
     val readAllRequest: Int = 0,
-    val moreRequest: Int = 0,
     val page: String? = null,
     val scrolled: Boolean = false,
 )

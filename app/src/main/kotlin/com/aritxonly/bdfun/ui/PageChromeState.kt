@@ -1,9 +1,9 @@
 package com.aritxonly.bdfun.ui
 
 import androidx.compose.runtime.*
-import androidx.compose.ui.geometry.Rect
 import com.aritxonly.bdfun.core.application.PageChromeState
 import com.aritxonly.bdfun.core.application.PageChromeStateHolder
+import com.aritxonly.teak.common.navigation.TeakMorphMenuState
 import kotlinx.coroutines.*
 
 internal val LocalPageChromeState = staticCompositionLocalOf<PageChromePresentationState> {
@@ -52,10 +52,19 @@ internal class PageChromePresentationState(scope: CoroutineScope) {
     var readAllRequest: Int
         get() = snapshot.readAllRequest
         set(value) = update { it.copy(readAllRequest = value) }
-    var moreAnchor by mutableStateOf(Rect.Zero)
-    var moreRequest: Int
-        get() = snapshot.moreRequest
-        set(value) = update { it.copy(moreRequest = value) }
+    /**
+     * 消息页右上角“更多”的玻璃形变菜单。
+     *
+     * 按钮画在 Activity 的顶栏 overlay 槽、宿主画在 menuOverlay 槽，两处共用这一份状态。
+     */
+    val moreMenu = TeakMorphMenuState()
+    /**
+     * 页面内登记、由 Activity 菜单槽执行的菜单内容。
+     *
+     * 形变弹层必须画在页面 backdrop 采集树之外，否则会自采样；页面自己又不能直接组合宿主，
+     * 所以内容先寄存在这里，宿主每次重组时取最新的一份。
+     */
+    var moreMenuContent by mutableStateOf<(@Composable (dismiss: (after: () -> Unit) -> Unit) -> Unit)?>(null)
     var page: String?
         get() = snapshot.page
         set(value) = update { it.copy(page = value) }
@@ -65,7 +74,6 @@ internal class PageChromePresentationState(scope: CoroutineScope) {
     fun requestScrollTop() { scrollTopRequest++ }
     fun requestBatch() { batchRequest++ }
     fun requestSearch() { searchRequest++ }
-    fun requestMore() { moreRequest++ }
     fun requestReadAll() { readAllRequest++ }
     fun sendBatchAction(key: String) = update { it.copy(batchActionKey = key, batchActionRequest = it.batchActionRequest + 1) }
     fun clearBatch() = update { it.copy(batchVisible = false, batchCount = 0, batchCanTransfer = false, batchActionKey = "") }
